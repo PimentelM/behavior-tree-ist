@@ -8,10 +8,13 @@ export class Throttle extends Decorator {
         super(child);
     }
 
-    private lastTriggeredAt: number = 0;
+    private lastTriggeredAt: number | undefined = undefined;
     private lastNow: number = 0;
 
     private get remainingThrottleMs(): number {
+        if (this.lastTriggeredAt === undefined) {
+            return 0;
+        }
         return Math.max(0, this.throttleMs - (this.lastNow - this.lastTriggeredAt));
     }
 
@@ -31,7 +34,7 @@ export class Throttle extends Decorator {
     protected override onAbort(ctx: TickContext): void {
         if (this.options.resetOnAbort) {
             this.lastChildResult = undefined;
-            this.lastTriggeredAt = 0;
+            this.lastTriggeredAt = undefined;
             this.lastNow = 0;
         }
         super.onAbort(ctx);

@@ -1,0 +1,82 @@
+import { describe, it, expect } from "vitest";
+import { Selector } from "./selector";
+import { BTNode } from "../../base/node";
+import { NodeResult } from "../../base/types";
+import { createTickContext, StubAction } from "../../test-helpers";
+
+describe("Selector", () => {
+    it("returns Succeeded on first child success", () => {
+        const child1 = new StubAction(NodeResult.Failed);
+        const child2 = new StubAction(NodeResult.Succeeded);
+        const child3 = new StubAction(NodeResult.Failed);
+        const selector = Selector.from([child1, child2, child3]);
+
+        const result = BTNode.Tick(selector, createTickContext());
+
+        expect(result).toBe(NodeResult.Succeeded);
+    });
+
+    it("returns Failed when all children fail", () => {
+        const child1 = new StubAction(NodeResult.Failed);
+        const child2 = new StubAction(NodeResult.Failed);
+        const selector = Selector.from([child1, child2]);
+
+        const result = BTNode.Tick(selector, createTickContext());
+
+        expect(result).toBe(NodeResult.Failed);
+        expect(child1.tickCount).toBe(1);
+        expect(child2.tickCount).toBe(1);
+    });
+
+    it("returns Running when a child returns Running", () => {
+        const child1 = new StubAction(NodeResult.Failed);
+        const child2 = new StubAction(NodeResult.Running);
+        const selector = Selector.from([child1, child2]);
+
+        const result = BTNode.Tick(selector, createTickContext());
+
+        expect(result).toBe(NodeResult.Running);
+        expect(child1.tickCount).toBe(1);
+        expect(child2.tickCount).toBe(1);
+    });
+
+    it("stops ticking and aborts remaining children after Succeeded", () => {
+        const child1 = new StubAction(NodeResult.Succeeded);
+        const child2 = new StubAction(NodeResult.Failed);
+        const selector = Selector.from([child1, child2]);
+
+        BTNode.Tick(selector, createTickContext());
+
+        expect(child2.tickCount).toBe(0);
+        expect(child2.abortCount).toBe(1);
+    });
+
+    it("stops ticking and aborts remaining children after Running", () => {
+        const child1 = new StubAction(NodeResult.Running);
+        const child2 = new StubAction(NodeResult.Failed);
+        const selector = Selector.from([child1, child2]);
+
+        BTNode.Tick(selector, createTickContext());
+
+        expect(child2.tickCount).toBe(0);
+        expect(child2.abortCount).toBe(1);
+    });
+
+    it("throws when no children", () => {
+        const selector = Selector.from([]);
+
+        expect(() => BTNode.Tick(selector, createTickContext())).toThrow("has no nodes");
+    });
+
+    it("from factory works with name", () => {
+        const selector = Selector.from("mySelector", [new StubAction()]);
+
+        expect(selector.name).toBe("mySelector");
+    });
+
+    it("from factory works without name", () => {
+        const selector = Selector.from([new StubAction()]);
+
+        expect(selector.nodes).toHaveLength(1);
+    });
+});
