@@ -1,0 +1,61 @@
+import { describe, it, expect } from "vitest";
+import { Debounce } from "./debounce";
+import { NodeResult } from "../../base";
+import { StubAction } from "../../test-helpers";
+import { BehaviourTree } from "../../tree";
+
+describe("Debounce", () => {
+    it("returns failed while debouncing success", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const debounce = new Debounce(child, 100);
+        const tree = new BehaviourTree(debounce).enableTrace();
+
+        const events = tree.tick({ now: 0 }); // ticks child, returns Succeeded, debounces
+
+        expect(events[events.length - 1].result).toBe(NodeResult.Failed);
+    });
+
+    it("returns succeeded after debounce expires with uninterrupted success", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const debounce = new Debounce(child, 100);
+        const tree = new BehaviourTree(debounce).enableTrace();
+
+        tree.tick({ now: 0 }); // starts debouncing
+        tree.tick({ now: 50 }); // still debouncing
+        const events = tree.tick({ now: 100 }); // debounce met
+
+        expect(events[events.length - 1].result).toBe(NodeResult.Succeeded);
+    });
+
+    it("resets debounce timer if child runs", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const debounce = new Debounce(child, 100);
+        const tree = new BehaviourTree(debounce).enableTrace();
+
+        tree.tick({ now: 0 }); // starts debouncing
+
+        child.nextResult = NodeResult.Running;
+        tree.tick({ now: 50 }); // interrupts debounce
+
+        child.nextResult = NodeResult.Succeeded;
+        const events = tree.tick({ now: 100 }); // starts debouncing fresh
+
+        expect(events[events.length - 1].result).toBe(NodeResult.Failed); // not met yet
+    });
+
+    it("resets debounce timer if child fails", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const debounce = new Debounce(child, 100);
+        const tree = new BehaviourTree(debounce).enableTrace();
+
+        tree.tick({ now: 0 }); // starts debouncing
+
+        child.nextResult = NodeResult.Failed;
+        tree.tick({ now: 50 }); // interrupts debounce
+
+        child.nextResult = NodeResult.Succeeded;
+        const events = tree.tick({ now: 100 }); // starts debouncing fresh
+
+        expect(events[events.length - 1].result).toBe(NodeResult.Failed); // not met yet
+    });
+});

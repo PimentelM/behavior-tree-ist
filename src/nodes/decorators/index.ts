@@ -4,3 +4,8 @@ export * from './timeout';
 export * from './throttle';
 export * from './always-succeed';
 export * from './always-fail';
+export * from './hard-throttle';
+export * from './cooldown';
+export * from './debounce';
+export * from './retry';
+export * from './repeat';

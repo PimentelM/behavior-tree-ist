@@ -8,9 +8,13 @@ export function createTickContext(overrides: Partial<TickContext> = {}): TickCon
         tickNumber: 1,
         now: 0,
         events: [],
-        trace: () => {},
+        trace: () => { },
         ...overrides,
     };
+}
+
+export function tickNode(node: BTNode, ctxOverrides: Partial<TickContext> = {}): NodeResult {
+    return BTNode.Tick(node, createTickContext(ctxOverrides));
 }
 
 export function createTracingTickContext(overrides: Partial<TickContext> = {}): TickContext {
