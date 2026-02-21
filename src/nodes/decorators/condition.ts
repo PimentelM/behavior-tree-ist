@@ -9,10 +9,6 @@ export class Condition extends Decorator {
     }
 
     protected onTick(ctx: TickContext): NodeResult {
-        if (!this.condition) {
-            throw new Error(`Condition ${this.name} has no condition specified`);
-        }
-
         if (this.condition()) {
             return BTNode.Tick(this.child, ctx);
         }

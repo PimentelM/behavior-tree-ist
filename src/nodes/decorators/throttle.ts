@@ -9,8 +9,10 @@ export class Throttle extends Decorator {
     }
 
     private lastTriggeredAt: number = 0;
+    private lastNow: number = 0;
+
     private get remainingThrottleMs(): number {
-        return Math.max(0, this.throttleMs - (Date.now() - this.lastTriggeredAt));
+        return Math.max(0, this.throttleMs - (this.lastNow - this.lastTriggeredAt));
     }
 
     public override get displayName(): string {
@@ -21,12 +23,21 @@ export class Throttle extends Decorator {
         return this.remainingThrottleMs > 0;
     }
     private startThrottle(): void {
-        this.lastTriggeredAt = Date.now();
+        this.lastTriggeredAt = this.lastNow;
     }
 
     private lastChildResult: NodeResult | undefined = undefined;
 
+    protected override onAbort(ctx: TickContext): void {
+        this.lastChildResult = undefined;
+        this.lastTriggeredAt = 0;
+        this.lastNow = 0;
+        super.onAbort(ctx);
+    }
+
     protected override onTick(ctx: TickContext): NodeResult {
+        this.lastNow = ctx.now;
+
         if (this.hasThrottle() && this.lastChildResult !== NodeResult.Running) {
             return NodeResult.Failed;
         }
@@ -40,4 +51,3 @@ export class Throttle extends Decorator {
         return result;
     }
 }
-

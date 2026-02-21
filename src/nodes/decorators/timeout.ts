@@ -18,7 +18,7 @@ export class Timeout extends Decorator {
         if (!this.startedAtMs) {
             return 0;
         }
-        return Date.now() - this.startedAtMs;
+        return this.lastNow - this.startedAtMs;
     }
 
     private get remainingMs(): number {
@@ -28,20 +28,26 @@ export class Timeout extends Decorator {
 
     private lastChildResult: NodeResult | undefined = undefined;
     private startedAtMs: number | undefined;
+    private lastNow: number = 0;
 
     protected override onAbort(ctx: TickContext): void {
         this.lastChildResult = undefined;
         this.startedAtMs = undefined;
+        this.lastNow = 0;
+        super.onAbort(ctx);
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
+        this.lastNow = ctx.now;
+
         if (this.lastChildResult !== NodeResult.Running) {
-            this.startedAtMs = Date.now();
+            this.startedAtMs = ctx.now;
         }
 
         // If last result was running, check if we timed out
         if (this.lastChildResult === NodeResult.Running && this.elapsedMs >= this.timeoutMs) {
             this.lastChildResult = undefined;
+            BTNode.Abort(this.child, ctx);
             return NodeResult.Failed;
         }
 
@@ -50,4 +56,3 @@ export class Timeout extends Decorator {
         return result;
     }
 }
-

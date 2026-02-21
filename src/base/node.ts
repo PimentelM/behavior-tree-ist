@@ -69,7 +69,7 @@ export abstract class BTNode {
         return current;
     }
 
-    protected onTick(ctx: TickContext): NodeResult { throw new Error(`Node [${this.id}]${this.name} does not implement onTick`); };
+    protected abstract onTick(ctx: TickContext): NodeResult;
     protected onAbort(ctx: TickContext): void { };
 
     // Some helper methods that could be done inside onTick but are here for convenience

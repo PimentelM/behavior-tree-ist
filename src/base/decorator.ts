@@ -1,11 +1,15 @@
-import { BTNode } from "./node";
+import { BTNode, TickContext } from "./node";
 import { NodeType } from "./types";
 
-export class Decorator extends BTNode {
+export abstract class Decorator extends BTNode {
     public readonly NODE_TYPE: NodeType = "Decorator";
 
     constructor(public child: BTNode) {
         super();
+    }
+
+    protected override onAbort(ctx: TickContext): void {
+        BTNode.Abort(this.child, ctx);
     }
 }
 

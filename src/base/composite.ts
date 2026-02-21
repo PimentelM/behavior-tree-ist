@@ -1,7 +1,7 @@
 import { BTNode, TickContext } from "./node";
 import { NodeType } from "./types";
 
-export class Composite extends BTNode {
+export abstract class Composite extends BTNode {
     public readonly NODE_TYPE: NodeType = "Composite";
 
     protected readonly _nodes: BTNode[] = [];
@@ -28,7 +28,7 @@ export class Composite extends BTNode {
         this.abortChildrenFrom(0, ctx);
     }
 
-    protected abortChildrens(indexes: number[], ctx: TickContext): void {
+    protected abortChildrenByIndex(indexes: number[], ctx: TickContext): void {
         for (const index of indexes) {
             const node = this._nodes[index];
             if (!node) continue;

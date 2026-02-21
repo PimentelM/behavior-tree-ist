@@ -17,18 +17,22 @@ export class WaitAction extends Action {
         if (!this.startTime) {
             return this.duration;
         }
-        return this.duration - (Date.now() - this.startTime);
+        return this.duration - (this.lastNow - this.startTime);
     }
 
     private startTime: number | undefined = undefined;
+    private lastNow: number = 0;
 
-    protected override onAbort(ctx: TickContext): void {
+    protected override onAbort(): void {
         this.startTime = undefined;
+        this.lastNow = 0;
     }
 
-    protected override onTick(): NodeResult {
+    protected override onTick(ctx: TickContext): NodeResult {
+        this.lastNow = ctx.now;
+
         if (!this.startTime) {
-            this.startTime = Date.now();
+            this.startTime = ctx.now;
         }
 
         if (this.remainingTime <= 0) {
