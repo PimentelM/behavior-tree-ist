@@ -4,12 +4,12 @@ import { BTNode, TickContext } from "../../base/node";
 
 export class Condition extends Decorator {
 
-    constructor(child: BTNode, public override name: string, public readonly condition: () => boolean) {
+    constructor(child: BTNode, public override name: string, public readonly condition: (ctx: TickContext) => boolean) {
         super(child);
     }
 
     protected onTick(ctx: TickContext): NodeResult {
-        if (this.condition()) {
+        if (this.condition(ctx)) {
             return BTNode.Tick(this.child, ctx);
         }
 
