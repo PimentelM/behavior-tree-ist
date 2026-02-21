@@ -4,7 +4,7 @@ import { BTNode, TickContext } from "../../base/node";
 
 export class Throttle extends Decorator {
     public override name = "Throttle";
-    constructor(child: BTNode, public readonly throttleMs: number) {
+    constructor(child: BTNode, public readonly throttleMs: number, private options: { resetOnAbort?: boolean } = {}) {
         super(child);
     }
 
@@ -29,9 +29,11 @@ export class Throttle extends Decorator {
     private lastChildResult: NodeResult | undefined = undefined;
 
     protected override onAbort(ctx: TickContext): void {
-        this.lastChildResult = undefined;
-        this.lastTriggeredAt = 0;
-        this.lastNow = 0;
+        if (this.options.resetOnAbort) {
+            this.lastChildResult = undefined;
+            this.lastTriggeredAt = 0;
+            this.lastNow = 0;
+        }
         super.onAbort(ctx);
     }
 
