@@ -1,5 +1,5 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeType } from "../../base/types";
+import { NodeResult, NodeType, SerializableState } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export type UtilityScorer = (ctx: TickContext) => number;
@@ -10,9 +10,14 @@ export interface UtilityNodeSpec {
 }
 
 export class UtilitySelector extends Composite {
-    public readonly NODE_TYPE: NodeType = "Selector";
+    public readonly NODE_TYPE: NodeType = "UtilitySelector";
     private specs: UtilityNodeSpec[] = [];
     private currentlyRunningIndex: number | undefined = undefined;
+    private lastScores: { index: number; score: number }[] | undefined = undefined;
+
+    public override getChildren(): BTNode[] {
+        return this.specs.map(spec => spec.node);
+    }
 
     public static from(specs: UtilityNodeSpec[]): UtilitySelector
     public static from(name: string, specs: UtilityNodeSpec[]): UtilitySelector
@@ -22,6 +27,13 @@ export class UtilitySelector extends Composite {
         const composite = new UtilitySelector(name);
         composite.setUtilityNodes(specs);
         return composite;
+    }
+
+    public override getState(): SerializableState {
+        return {
+            currentlyRunningIndex: this.currentlyRunningIndex,
+            lastScores: this.lastScores?.map(score => [score.index, score.score])
+        };
     }
 
     public setUtilityNodes(specs: UtilityNodeSpec[]): void {
@@ -42,6 +54,7 @@ export class UtilitySelector extends Composite {
             index,
             score: spec.scorer(ctx)
         }));
+        this.lastScores = scoredIndices;
 
         // Sort descending by score
         scoredIndices.sort((a, b) => b.score - a.score);
@@ -77,6 +90,7 @@ export class UtilitySelector extends Composite {
 
     protected override onAbort(ctx: TickContext): void {
         this.currentlyRunningIndex = undefined;
+        this.lastScores = undefined;
         super.onAbort(ctx);
     }
 }

@@ -3,10 +3,11 @@ import { BTNode, TickContext } from "./base/node";
 import { NodeResult } from "./base/types";
 
 export function createTickContext(overrides: Partial<TickContext> = {}): TickContext {
+    const mockTickId = Date.now();
     return {
-        tickId: 1,
-        tickNumber: 1,
-        now: 0,
+        tickId: mockTickId,
+        tickNumber: mockTickId,
+        now: Date.now(),
         events: [],
         trace: () => { },
         ...overrides,
@@ -32,7 +33,6 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
                 timestampMs: overrides.now ?? 0,
                 nodeId: node.id,
                 nodeType: node.NODE_TYPE,
-                nodeName: node.name,
                 nodeDisplayName: node.displayName,
                 result,
             });

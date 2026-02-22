@@ -1,6 +1,6 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, SerializableState } from "../../base/types";
 
 export class Cooldown extends Decorator {
     public override name = "Cooldown";
@@ -24,6 +24,13 @@ export class Cooldown extends Decorator {
 
     public override get displayName(): string {
         return `Cooldown${this.remainingCooldownMs > 0 ? ` (${this.remainingCooldownMs}ms)` : ""}`;
+    }
+
+    public override getState(): SerializableState {
+        return {
+            lastFinishedAt: this.lastFinishedAt,
+            lastNow: this.lastNow
+        };
     }
 
     private hasCooldown(): boolean {

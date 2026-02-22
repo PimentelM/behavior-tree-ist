@@ -1,5 +1,5 @@
 import { TickTraceEvent } from "./types";
-import { NodeResult, NodeType } from "./types";
+import { NodeResult, NodeType, SerializableState } from "./types";
 
 type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];
 
@@ -28,6 +28,14 @@ export abstract class BTNode {
         if (name) {
             this.name = name;
         }
+    }
+
+    public getState(): SerializableState | undefined {
+        return undefined;
+    }
+
+    public getChildren(): readonly BTNode[] | undefined {
+        return undefined;
     }
 
     public get displayName(): string {
@@ -70,13 +78,13 @@ export abstract class BTNode {
     }
 
     protected abstract onTick(ctx: TickContext): NodeResult;
-    protected onAbort(ctx: TickContext): void { };
+    protected onAbort(_ctx: TickContext): void { };
 
     // Some helper methods that could be done inside onTick but are here for convenience
-    protected onTicked(result: NodeResult, ctx: TickContext): void { };
-    protected onSuccess(ctx: TickContext): void { };
-    protected onFailed(ctx: TickContext): void { };
-    protected onFinished(result: NodeResult & ('Succeeded' | 'Failed'), ctx: TickContext): void { };
+    protected onTicked(_result: NodeResult, _ctx: TickContext): void { };
+    protected onSuccess(_ctx: TickContext): void { };
+    protected onFailed(_ctx: TickContext): void { };
+    protected onFinished(_result: NodeResult & ('Succeeded' | 'Failed'), _ctx: TickContext): void { };
 }
 
 export interface TickContext {

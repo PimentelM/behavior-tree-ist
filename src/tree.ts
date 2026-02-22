@@ -1,4 +1,5 @@
-import { BTNode, TickContext, TickTraceEvent } from "./base";
+import { BTNode, TickContext, TickTraceEvent, SerializableNode } from "./base";
+import { serializeTree } from "./serialization/serializer";
 
 type PublicTickContext = {
     tickNumber?: number;
@@ -24,8 +25,11 @@ export class BehaviourTree {
         return this;
     }
 
-    public tick(pCtx: PublicTickContext = {}): TickTraceEvent[] {
+    public serialize(): SerializableNode {
+        return serializeTree(this.root);
+    }
 
+    public tick(pCtx: PublicTickContext = {}): TickTraceEvent[] {
         const events: TickTraceEvent[] = [];
         const ctx: TickContext = {
             tickId: this.currentTickId,
@@ -40,7 +44,6 @@ export class BehaviourTree {
                     timestampMs: ctx.now,
                     nodeId: node.id,
                     nodeType: node.NODE_TYPE,
-                    nodeName: node.name,
                     nodeDisplayName: node.displayName,
                     result
                 });

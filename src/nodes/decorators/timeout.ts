@@ -1,6 +1,6 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, SerializableState } from "../../base/types";
 
 export class Timeout extends Decorator {
     public override name = "Timeout";
@@ -23,6 +23,14 @@ export class Timeout extends Decorator {
 
     private get remainingMs(): number {
         return Math.max(0, this.timeoutMs - this.elapsedMs);
+    }
+
+    public override getState(): SerializableState {
+        return {
+            lastChildResult: this.lastChildResult,
+            startedAtMs: this.startedAtMs,
+            lastNow: this.lastNow
+        };
     }
 
 

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { HardThrottle } from "./hard-throttle";
 import { NodeResult } from "../../base";
 import { StubAction, tickNode } from "../../test-helpers";
-import { BTNode } from "../../base/node";
 
 describe("HardThrottle", () => {
     it("returns node result on first tick", () => {

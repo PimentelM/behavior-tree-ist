@@ -12,9 +12,21 @@ export const NodeType = {
     Sequence: "Sequence",
     Parallel: "Parallel",
     Decorator: "Decorator",
-    Composite: "Composite" // Fallback for generic composite types
+    Composite: "Composite", // Fallback for generic composite types
+    UtilitySelector: "UtilitySelector"
 } as const;
 export type NodeType = (typeof NodeType)[keyof typeof NodeType];
+
+export type SerializableValue = string | number | boolean | null | undefined | SerializableValue[] | { [key: string]: SerializableValue };
+export type SerializableState = Record<string, SerializableValue>;
+
+export interface SerializableNode {
+    id: number;
+    type: NodeType;
+    displayName: string;
+    state?: SerializableState;
+    children?: SerializableNode[];
+}
 
 export type TickTraceEvent = {
     tickId: number;
@@ -22,7 +34,6 @@ export type TickTraceEvent = {
     nodeId: number;
     timestampMs: number;
     nodeType: NodeType;
-    nodeName: string;
     nodeDisplayName: string;
     result: NodeResult;
 };

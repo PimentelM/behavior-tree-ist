@@ -1,6 +1,6 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, SerializableState } from "../../base/types";
 
 export class Debounce extends Decorator {
     public override name = "Debounce";
@@ -24,6 +24,13 @@ export class Debounce extends Decorator {
 
     public override get displayName(): string {
         return `Debounce${this.successDurationMs < this.debounceMs ? ` (${this.debounceMs - this.successDurationMs}ms left)` : ""}`;
+    }
+
+    public override getState(): SerializableState {
+        return {
+            firstSuccessAt: this.firstSuccessAt,
+            lastNow: this.lastNow
+        };
     }
 
     protected override onAbort(ctx: TickContext): void {

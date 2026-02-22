@@ -7,6 +7,18 @@ export default tseslint.config(
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-this-alias': 'warn',
+      // Disable the base ESLint rule as it can report incorrect errors for TS
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "caughtErrorsIgnorePattern": "^_",
+          "ignoreRestSiblings": true
+        }
+      ]
     },
   },
   {

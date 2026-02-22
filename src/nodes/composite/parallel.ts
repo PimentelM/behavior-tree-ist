@@ -22,7 +22,7 @@ export class SuccessThresholdParallelPolicy implements ParallelPolicy {
 }
 
 export const AlwaysRunningParallelPolicy: ParallelPolicy = {
-    getResult(successCount: number, _: number, runningCount: number): NodeResult {
+    getResult(_successCount: number, _failureCount: number, _runningCount: number): NodeResult {
         return NodeResult.Running;
     }
 }

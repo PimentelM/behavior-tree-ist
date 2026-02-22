@@ -9,6 +9,10 @@ export abstract class Composite extends BTNode {
         return this._nodes;
     }
 
+    public override getChildren(): BTNode[] {
+        return [...this._nodes];
+    }
+
     protected abortChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {
         for (let i = startIndexInclusive; i < this._nodes.length; i++) {
             const node = this._nodes[i];

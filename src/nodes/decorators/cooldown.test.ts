@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { Cooldown } from "./cooldown";
 import { NodeResult } from "../../base";
 import { StubAction, tickNode } from "../../test-helpers";
-import { BTNode } from "../../base/node";
 
 describe("Cooldown", () => {
     it("returns node result on first tick", () => {

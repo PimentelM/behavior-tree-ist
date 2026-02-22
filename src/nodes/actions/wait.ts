@@ -1,6 +1,6 @@
 import { TickContext } from "../../base";
 import { Action } from "../../base/action";
-import { NodeResult } from "../../base/types";
+import { NodeResult, SerializableState } from "../../base/types";
 
 export class WaitAction extends Action {
     public override name = "WaitAction";
@@ -18,6 +18,13 @@ export class WaitAction extends Action {
             return this.duration;
         }
         return this.duration - (this.lastNow - this.startTime);
+    }
+
+    public override getState(): SerializableState {
+        return {
+            startTime: this.startTime,
+            lastNow: this.lastNow
+        };
     }
 
     private startTime: number | undefined = undefined;

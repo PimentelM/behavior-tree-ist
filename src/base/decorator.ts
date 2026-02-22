@@ -8,6 +8,10 @@ export abstract class Decorator extends BTNode {
         super();
     }
 
+    public override getChildren(): BTNode[] {
+        return [this.child];
+    }
+
     protected override onAbort(ctx: TickContext): void {
         BTNode.Abort(this.child, ctx);
     }

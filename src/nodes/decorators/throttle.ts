@@ -1,4 +1,4 @@
-import { NodeResult } from "../../base";
+import { NodeResult, SerializableState } from "../../base/types";
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 
@@ -20,6 +20,13 @@ export class Throttle extends Decorator {
 
     public override get displayName(): string {
         return `Throttle${this.remainingThrottleMs > 0 ? ` (${this.remainingThrottleMs}ms)` : ""}`;
+    }
+
+    public override getState(): SerializableState {
+        return {
+            lastTriggeredAt: this.lastTriggeredAt,
+            lastNow: this.lastNow
+        };
     }
 
     private hasThrottle(): boolean {

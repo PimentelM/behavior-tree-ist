@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { BehaviourTree } from "./tree";
 import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
-import { Sequence, Throttle } from "./nodes";
+import { Throttle } from "./nodes";
 import { buildSubtree } from "./subtree-builder";
 import { Action } from "./base";
 
@@ -83,7 +83,6 @@ describe("BehaviourTree", () => {
                 timestampMs: 100,
                 nodeId: root.id,
                 nodeType: "Action",
-                nodeName: "StubAction",
                 nodeDisplayName: "StubAction",
                 result: NodeResult.Succeeded,
             });
@@ -118,7 +117,7 @@ describe("BehaviourTree", () => {
 
             const events = tree.tick({ now: 0 });
 
-            expect(events.map(e => [e.nodeName, e.result])).toEqual([
+            expect(events.map(e => [e.nodeDisplayName, e.result])).toEqual([
                 ["cond1", NodeResult.Failed],
                 ["seq1", NodeResult.Failed],
                 ["cond2", NodeResult.Succeeded],
@@ -141,14 +140,21 @@ describe("BehaviourTree", () => {
             ]);
             const tree = new BehaviourTree(subtree).enableTrace();
 
-            const events = tree.tick({ now: 1 });
-
-            expect(events.map(e => [e.nodeName, e.result, e.nodeType])).toEqual([
+            const events1 = tree.tick({ now: 1 });
+            expect(events1.map(e => [e.nodeDisplayName, e.result, e.nodeType])).toEqual([
                 ["isReady", NodeResult.Succeeded, "Condition"],
                 ["doSomething", NodeResult.Succeeded, "Action"],
                 ["decoratedNode", NodeResult.Succeeded, "Action"],
-                ["Throttle", NodeResult.Succeeded, "Decorator"],
+                ["Throttle (1000ms)", NodeResult.Succeeded, "Decorator"],
                 ["root", NodeResult.Succeeded, "Sequence"],
+            ])
+
+            const events2 = tree.tick({ now: 2 });
+            expect(events2.map(e => [e.nodeDisplayName, e.result, e.nodeType])).toEqual([
+                ["isReady", NodeResult.Succeeded, "Condition"],
+                ["doSomething", NodeResult.Succeeded, "Action"],
+                ["Throttle (999ms)", NodeResult.Failed, "Decorator"],
+                ["root", NodeResult.Failed, "Sequence"],
             ])
         })
     })
