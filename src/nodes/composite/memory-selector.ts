@@ -2,8 +2,8 @@ import { Composite } from "../../base/composite";
 import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
-export class SequenceMemory extends Composite {
-    public override readonly defaultName = "SequenceMemory";
+export class MemorySelector extends Composite {
+    public override readonly defaultName = "MemorySelector";
     private _runningChildIndex: number | undefined;
 
     public get runningChildIndex(): number | undefined {
@@ -12,15 +12,15 @@ export class SequenceMemory extends Composite {
 
     constructor(name?: string) {
         super(name);
-        this.addFlags(NodeFlags.Sequence, NodeFlags.Memory);
+        this.addFlags(NodeFlags.Selector, NodeFlags.Memory);
     }
 
-    public static from(nodes: BTNode[]): SequenceMemory
-    public static from(name: string, nodes: BTNode[]): SequenceMemory
-    public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): SequenceMemory {
+    public static from(nodes: BTNode[]): MemorySelector
+    public static from(name: string, nodes: BTNode[]): MemorySelector
+    public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): MemorySelector {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "";
         const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
-        const composite = new SequenceMemory(name);
+        const composite = new MemorySelector(name);
         composite.setNodes(nodes);
         return composite;
     }
@@ -31,7 +31,7 @@ export class SequenceMemory extends Composite {
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`SequenceMemory node ${this.name} has no nodes`);
+            throw new Error(`MemorySelector node ${this.name} has no nodes`);
         }
 
         const startIndex = this._runningChildIndex ?? 0;
@@ -45,15 +45,15 @@ export class SequenceMemory extends Composite {
                 return NodeResult.Running;
             }
 
-            if (status === NodeResult.Failed) {
+            if (status === NodeResult.Succeeded) {
                 this._runningChildIndex = undefined;
                 this.abortChildrenFrom(i + 1, ctx);
-                return NodeResult.Failed;
+                return NodeResult.Succeeded;
             }
         }
 
         this._runningChildIndex = undefined;
-        return NodeResult.Succeeded;
+        return NodeResult.Failed;
     }
 
     protected override onAbort(ctx: TickContext): void {
