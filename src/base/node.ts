@@ -48,15 +48,24 @@ export abstract class BTNode {
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
         const result = node.onTick(ctx);
-        node.onTicked(result, ctx);
+        node.onTicked?.(result, ctx);
 
         if (result === NodeResult.Succeeded) {
-            node.onSuccess(ctx);
+            node.onSuccess?.(ctx);
         } else if (result === NodeResult.Failed) {
-            node.onFailed(ctx);
+            node.onFailed?.(ctx);
         }
         if (result === NodeResult.Succeeded || result === NodeResult.Failed) {
-            node.onFinished(result, ctx);
+            node.onFinished?.(result, ctx);
+        }
+        if (result === NodeResult.Running) {
+            node.onRunning?.(ctx);
+        }
+        if (result === NodeResult.Succeeded || result === NodeResult.Running) {
+            node.onSuccessOrRunning?.(ctx);
+        }
+        if (result === NodeResult.Failed || result === NodeResult.Running) {
+            node.onFailedOrRunning?.(ctx);
         }
 
         ctx.trace(node, result);
@@ -81,10 +90,13 @@ export abstract class BTNode {
     protected onAbort(_ctx: TickContext): void { };
 
     // Some helper methods that could be done inside onTick but are here for convenience
-    protected onTicked(_result: NodeResult, _ctx: TickContext): void { };
-    protected onSuccess(_ctx: TickContext): void { };
-    protected onFailed(_ctx: TickContext): void { };
-    protected onFinished(_result: NodeResult & ('Succeeded' | 'Failed'), _ctx: TickContext): void { };
+    protected onTicked?(_result: NodeResult, _ctx: TickContext): void { };
+    protected onSuccess?(_ctx: TickContext): void { };
+    protected onFailed?(_ctx: TickContext): void { };
+    protected onRunning?(_ctx: TickContext): void { };
+    protected onSuccessOrRunning?(_ctx: TickContext): void { };
+    protected onFailedOrRunning?(_ctx: TickContext): void { };
+    protected onFinished?(_result: NodeResult & ('Succeeded' | 'Failed'), _ctx: TickContext): void { };
 }
 
 export interface TickContext {
