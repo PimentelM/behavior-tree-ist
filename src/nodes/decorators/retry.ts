@@ -9,10 +9,9 @@ export class Retry extends Decorator {
     constructor(
         child: BTNode,
         public readonly maxRetries: number = -1, // -1 for infinite
-        private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
-        this.addFlags(NodeFlags.Repeating);
+        this.addFlags(NodeFlags.Repeating, NodeFlags.Stateful);
     }
 
     public override get displayName(): string {
@@ -23,9 +22,7 @@ export class Retry extends Decorator {
     }
 
     protected override onAbort(ctx: TickContext): void {
-        if (this.options.resetOnAbort) {
-            this.failedCount = 0;
-        }
+        this.failedCount = 0;
         super.onAbort(ctx);
     }
 

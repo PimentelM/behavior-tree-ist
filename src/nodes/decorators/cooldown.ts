@@ -10,7 +10,6 @@ export class Cooldown extends Decorator {
     constructor(
         child: BTNode,
         public readonly cooldownMs: number,
-        private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
@@ -31,13 +30,6 @@ export class Cooldown extends Decorator {
         return this.remainingCooldownMs > 0;
     }
 
-    protected override onAbort(ctx: TickContext): void {
-        if (this.options.resetOnAbort) {
-            this.lastFinishedAt = undefined;
-            this.lastNow = 0;
-        }
-        super.onAbort(ctx);
-    }
 
     protected override onTick(ctx: TickContext): NodeResult {
         this.lastNow = ctx.now;

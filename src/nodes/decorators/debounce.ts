@@ -10,7 +10,6 @@ export class Debounce extends Decorator {
     constructor(
         child: BTNode,
         public readonly debounceMs: number,
-        private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
@@ -27,13 +26,6 @@ export class Debounce extends Decorator {
         return `Debounce${this.successDurationMs < this.debounceMs ? ` (${this.debounceMs - this.successDurationMs}ms left)` : ""}`;
     }
 
-    protected override onAbort(ctx: TickContext): void {
-        if (this.options.resetOnAbort) {
-            this.firstSuccessAt = undefined;
-            this.lastNow = 0;
-        }
-        super.onAbort(ctx);
-    }
 
     protected override onTick(ctx: TickContext): NodeResult {
         this.lastNow = ctx.now;

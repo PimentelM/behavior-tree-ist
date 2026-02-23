@@ -28,22 +28,7 @@ describe("Stateful decorators in context", () => {
             expect(lowPriority.abortCount).toBe(1);
         });
 
-        it("resetOnAbort true restarts throttle after abort by selector", () => {
-            // Throttle must be Running for abort to be effective
-            const highPriority = new StubAction([NodeResult.Failed, NodeResult.Succeeded, NodeResult.Failed]);
-            const lowPriority = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
-            const throttledLow = new Throttle(lowPriority, 1000, { resetOnAbort: true });
-            const selector = Selector.from([highPriority, throttledLow]);
-            const tree = new BehaviourTree(selector);
-
-            tree.tick({ now: 5000 });     // highPriority fails, throttle ticks child (Running)
-            tree.tick({ now: 5100 });      // highPriority succeeds, throttle aborted+reset
-            tree.tick({ now: 5200 });      // highPriority fails, throttle should tick child again (reset)
-
-            expect(lowPriority.tickCount).toBe(2);
-        });
-
-        it("resetOnAbort false preserves throttle after abort by selector", () => {
+        it("preserves throttle state after abort by selector", () => {
             const highPriority = new StubAction([NodeResult.Failed, NodeResult.Succeeded, NodeResult.Failed]);
             const lowPriority = new StubAction(NodeResult.Succeeded);
             const throttledLow = new Throttle(lowPriority, 1000);

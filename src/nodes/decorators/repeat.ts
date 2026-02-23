@@ -9,10 +9,9 @@ export class Repeat extends Decorator {
     constructor(
         child: BTNode,
         public readonly times: number = -1, // -1 for infinite
-        private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
-        this.addFlags(NodeFlags.Repeating);
+        this.addFlags(NodeFlags.Repeating, NodeFlags.Stateful);
     }
 
     public override get displayName(): string {
@@ -23,9 +22,7 @@ export class Repeat extends Decorator {
     }
 
     protected override onAbort(ctx: TickContext): void {
-        if (this.options.resetOnAbort) {
-            this.successfulCount = 0;
-        }
+        this.successfulCount = 0;
         super.onAbort(ctx);
     }
 

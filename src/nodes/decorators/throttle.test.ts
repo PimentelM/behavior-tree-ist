@@ -64,20 +64,7 @@ describe("Throttle", () => {
         expect(result).toBe(NodeResult.Failed);
     });
 
-    it("resetOnAbort true resets throttle state on abort", () => {
-        // Throttle must be Running for abort to be effective
-        const child = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
-        const throttle = new Throttle(child, 1000, { resetOnAbort: true });
-
-        BTNode.Tick(throttle, createTickContext({ now: 5000 })); // child Running, throttle Running
-        BTNode.Abort(throttle, createTickContext()); // abort resets throttle state
-        const result = BTNode.Tick(throttle, createTickContext({ now: 5100 }));
-
-        expect(result).toBe(NodeResult.Succeeded);
-        expect(child.tickCount).toBe(2);
-    });
-
-    it("resetOnAbort false (default) preserves throttle state on abort but still aborts child", () => {
+    it("preserves throttle state on abort but still aborts child", () => {
         // Throttle must be Running for abort to be effective
         const child = new StubAction(NodeResult.Running);
         const throttle = new Throttle(child, 1000);

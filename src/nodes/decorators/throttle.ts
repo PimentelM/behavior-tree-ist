@@ -2,10 +2,16 @@ import { NodeResult, NodeFlags } from "../../base/types";
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 
+/**
+ * A decorator that prevents the child node from being executed more than once within a specified time window.
+ * 
+ * @param child The child node to execute.
+ * @param throttleMs The time window in milliseconds to wait before allowing the child to be executed again.
+ */
 export class Throttle extends Decorator {
     public override readonly defaultName = "Throttle";
 
-    constructor(child: BTNode, public readonly throttleMs: number, private options: { resetOnAbort?: boolean } = {}) {
+    constructor(child: BTNode, public readonly throttleMs: number) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
     }
@@ -31,14 +37,6 @@ export class Throttle extends Decorator {
         this.lastTriggeredAt = this.lastNow;
     }
 
-    protected override onAbort(ctx: TickContext): void {
-        if (this.options.resetOnAbort) {
-            // Reset throttle window on abort
-            this.lastTriggeredAt = undefined;
-            this.lastNow = 0;
-        }
-        super.onAbort(ctx);
-    }
 
     protected override onTick(ctx: TickContext): NodeResult {
         this.lastNow = ctx.now;
