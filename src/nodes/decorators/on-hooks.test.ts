@@ -12,6 +12,7 @@ import { OnFinished } from "./on-finished";
 import { OnReset } from "./on-reset";
 import { OnAbort } from "./on-abort";
 import { OnEnter } from "./on-enter";
+import { OnResume } from "./on-resume";
 
 describe("Lifecycle hook decorators", () => {
     describe("OnTicked", () => {
@@ -204,6 +205,48 @@ describe("Lifecycle hook decorators", () => {
             tickNode(node); // continuation
 
             expect(cb).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("OnResume", () => {
+        it("fires on continuation ticks", () => {
+            const cb = vi.fn();
+            const child = new StubAction(NodeResult.Running);
+            const node = new OnResume(child, cb);
+
+            tickNode(node); // first tick, no resume
+            expect(cb).not.toHaveBeenCalled();
+
+            tickNode(node); // continuation, resume fires
+            tickNode(node); // continuation, resume fires
+
+            expect(cb).toHaveBeenCalledTimes(2);
+        });
+
+        it("does not fire on first tick or fresh execution after terminal", () => {
+            const cb = vi.fn();
+            const child = new StubAction([NodeResult.Running, NodeResult.Succeeded, NodeResult.Running]);
+            const node = new OnResume(child, cb);
+
+            tickNode(node); // first tick (Running), no resume
+            expect(cb).not.toHaveBeenCalled();
+
+            tickNode(node); // was Running → onResume fires, child returns Succeeded
+            expect(cb).toHaveBeenCalledTimes(1);
+
+            tickNode(node); // fresh execution (not wasRunning), no resume
+            expect(cb).toHaveBeenCalledTimes(1);
+        });
+
+        it("does not fire when node always returns terminal", () => {
+            const cb = vi.fn();
+            const child = new StubAction(NodeResult.Succeeded);
+            const node = new OnResume(child, cb);
+
+            tickNode(node);
+            tickNode(node);
+
+            expect(cb).not.toHaveBeenCalled();
         });
     });
 });

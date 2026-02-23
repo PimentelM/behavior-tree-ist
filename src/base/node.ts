@@ -61,6 +61,8 @@ export abstract class BTNode {
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
         if (!node._wasRunning) {
             node.onEnter?.(ctx);
+        } else {
+            node.onResume?.(ctx);
         }
 
         const result = node.onTick(ctx);
@@ -123,6 +125,13 @@ export abstract class BTNode {
      * Use this for initializing state, recording start time, acquiring resources, etc.
      */
     protected onEnter?(_ctx: TickContext): void;
+
+    /**
+     * Called on continuation ticks when the node was already Running.
+     * Complement to onEnter — together they partition every tick into
+     * "first" vs "subsequent".
+     */
+    protected onResume?(_ctx: TickContext): void;
 
     /**
      * Called when the node transitions OUT of Running state.

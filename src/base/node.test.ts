@@ -53,6 +53,11 @@ class ConcreteNode extends BTNode {
     protected override onEnter(): void {
         this.enterCallCount++;
     }
+
+    public resumeCallCount = 0;
+    protected override onResume(): void {
+        this.resumeCallCount++;
+    }
 }
 
 describe("BTNode", () => {
@@ -308,6 +313,60 @@ describe("BTNode", () => {
             BTNode.Tick(node, ctx);
 
             expect(node.enterCallCount).toBe(3);
+        });
+    });
+
+    describe("onResume", () => {
+        it("fires on continuation ticks (Running → Running)", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx); // first tick, onEnter fires
+            BTNode.Tick(node, ctx); // continuation, onResume fires
+            BTNode.Tick(node, ctx); // continuation, onResume fires
+
+            expect(node.resumeCallCount).toBe(2);
+        });
+
+        it("does NOT fire on first tick", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(node.resumeCallCount).toBe(0);
+        });
+
+        it("does NOT fire when node always returns terminal", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Succeeded;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+            BTNode.Tick(node, ctx);
+
+            expect(node.resumeCallCount).toBe(0);
+        });
+
+        it("fires before onTick on continuation", () => {
+            const callOrder: string[] = [];
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+
+            node["onResume"] = () => { callOrder.push("onResume"); };
+            node["onTick"] = () => {
+                callOrder.push("onTick");
+                return NodeResult.Running;
+            };
+
+            const ctx = createTickContext();
+            BTNode.Tick(node, ctx); // first tick
+            callOrder.length = 0;
+            BTNode.Tick(node, ctx); // continuation
+
+            expect(callOrder).toEqual(["onResume", "onTick"]);
         });
     });
 

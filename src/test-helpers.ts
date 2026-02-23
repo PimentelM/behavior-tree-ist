@@ -44,6 +44,7 @@ export class StubAction extends Action {
     public abortCount = 0;
     public resetCount = 0;
     public enterCount = 0;
+    public resumeCount = 0;
     public tickCount = 0;
     private resultQueue: NodeResult[];
     private defaultResult: NodeResult;
@@ -77,6 +78,10 @@ export class StubAction extends Action {
 
     protected override onEnter(): void {
         this.enterCount++;
+    }
+
+    protected override onResume(): void {
+        this.resumeCount++;
     }
 
     protected override onReset(): void {
