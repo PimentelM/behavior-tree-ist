@@ -4,7 +4,11 @@ import { BTNode, TickContext } from "../../base/node";
 
 export class SequenceMemory extends Composite {
     public readonly NODE_TYPE: NodeType = "SequenceMemory";
-    private runningChildIndex: number | undefined;
+    private _runningChildIndex: number | undefined;
+
+    public get runningChildIndex(): number | undefined {
+        return this._runningChildIndex;
+    }
 
     public static from(nodes: BTNode[]): SequenceMemory
     public static from(name: string, nodes: BTNode[]): SequenceMemory
@@ -16,8 +20,8 @@ export class SequenceMemory extends Composite {
         return composite;
     }
 
-    public override getState(): SerializableState {
-        return { runningChildIndex: this.runningChildIndex };
+    public override getDisplayState(): SerializableState {
+        return { runningChildIndex: this._runningChildIndex };
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
@@ -25,30 +29,30 @@ export class SequenceMemory extends Composite {
             throw new Error(`SequenceMemory node ${this.name} has no nodes`);
         }
 
-        const startIndex = this.runningChildIndex ?? 0;
+        const startIndex = this._runningChildIndex ?? 0;
 
         for (let i = startIndex; i < this.nodes.length; i++) {
             const status = BTNode.Tick(this.nodes[i], ctx);
 
             if (status === NodeResult.Running) {
-                this.runningChildIndex = i;
+                this._runningChildIndex = i;
                 this.abortChildrenFrom(i + 1, ctx);
                 return NodeResult.Running;
             }
 
             if (status === NodeResult.Failed) {
-                this.runningChildIndex = undefined;
+                this._runningChildIndex = undefined;
                 this.abortChildrenFrom(i + 1, ctx);
                 return NodeResult.Failed;
             }
         }
 
-        this.runningChildIndex = undefined;
+        this._runningChildIndex = undefined;
         return NodeResult.Succeeded;
     }
 
     protected override onAbort(ctx: TickContext): void {
-        this.runningChildIndex = undefined;
+        this._runningChildIndex = undefined;
         super.onAbort(ctx);
     }
 }

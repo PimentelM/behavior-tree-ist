@@ -1,4 +1,4 @@
-import { NodeResult, SerializableState } from "../../base/types";
+import { NodeResult } from "../../base/types";
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 

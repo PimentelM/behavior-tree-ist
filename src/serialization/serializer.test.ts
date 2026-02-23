@@ -14,7 +14,7 @@ class MockAction extends Action {
         return NodeResult.Running;
     }
 
-    public override getState(): SerializableState {
+    public override getDisplayState(): SerializableState {
         return this.customState;
     }
 }
@@ -33,7 +33,7 @@ class MockDecorator extends Decorator {
         return NodeResult.Running;
     }
 
-    public override getState(): SerializableState {
+    public override getDisplayState(): SerializableState {
         return this.customState;
     }
 }

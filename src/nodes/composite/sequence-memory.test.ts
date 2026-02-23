@@ -60,7 +60,7 @@ describe("SequenceMemory", () => {
         BTNode.Tick(seq, createTickContext()); // child1 running
         BTNode.Tick(seq, createTickContext()); // child1 succeeds, child2 succeeds
 
-        expect(seq.getState()).toEqual({ runningChildIndex: undefined });
+        expect(seq.runningChildIndex).toBeUndefined();
 
         BTNode.Tick(seq, createTickContext()); // should start from child1 again
         expect(child1.tickCount).toBe(3);
@@ -73,7 +73,7 @@ describe("SequenceMemory", () => {
         BTNode.Tick(seq, createTickContext());
         BTNode.Tick(seq, createTickContext());
 
-        expect(seq.getState()).toEqual({ runningChildIndex: undefined });
+        expect(seq.runningChildIndex).toBeUndefined();
     });
 
     it("aborts children after the running child", () => {
@@ -93,23 +93,23 @@ describe("SequenceMemory", () => {
         const seq = SequenceMemory.from([child1]);
 
         BTNode.Tick(seq, createTickContext());
-        expect(seq.getState()).toEqual({ runningChildIndex: 0 });
+        expect(seq.runningChildIndex).toBe(0);
 
         BTNode.Abort(seq, createTickContext());
 
-        expect(seq.getState()).toEqual({ runningChildIndex: undefined });
+        expect(seq.runningChildIndex).toBeUndefined();
     });
 
-    it("getState returns runningChildIndex", () => {
+    it("tracks runningChildIndex", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Running);
         const seq = SequenceMemory.from([child1, child2]);
 
-        expect(seq.getState()).toEqual({ runningChildIndex: undefined });
+        expect(seq.runningChildIndex).toBeUndefined();
 
         BTNode.Tick(seq, createTickContext());
 
-        expect(seq.getState()).toEqual({ runningChildIndex: 1 });
+        expect(seq.runningChildIndex).toBe(1);
     });
 
     it("from factory works with name", () => {

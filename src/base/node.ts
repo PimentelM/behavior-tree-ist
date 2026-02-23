@@ -30,7 +30,11 @@ export abstract class BTNode {
         }
     }
 
-    public getState?(): SerializableState | undefined
+    /* 
+        We do not need to provide the whole state of a node here, just the essential
+        for debugging and visualization purposes. 
+    */
+    public getDisplayState?(): SerializableState | undefined
 
     public getChildren(): readonly BTNode[] | undefined {
         return undefined;

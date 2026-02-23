@@ -58,7 +58,7 @@ describe("SelectorMemory", () => {
         BTNode.Tick(sel, createTickContext()); // child1 running
         BTNode.Tick(sel, createTickContext()); // child1 succeeds
 
-        expect(sel.getState()).toEqual({ runningChildIndex: undefined });
+        expect(sel.runningChildIndex).toBeUndefined();
 
         BTNode.Tick(sel, createTickContext()); // should start from child1 again
         expect(child1.tickCount).toBe(3);
@@ -72,7 +72,7 @@ describe("SelectorMemory", () => {
         BTNode.Tick(sel, createTickContext());
         BTNode.Tick(sel, createTickContext());
 
-        expect(sel.getState()).toEqual({ runningChildIndex: undefined });
+        expect(sel.runningChildIndex).toBeUndefined();
     });
 
     it("aborts children after the running child", () => {
@@ -92,23 +92,23 @@ describe("SelectorMemory", () => {
         const sel = SelectorMemory.from([child1]);
 
         BTNode.Tick(sel, createTickContext());
-        expect(sel.getState()).toEqual({ runningChildIndex: 0 });
+        expect(sel.runningChildIndex).toBe(0);
 
         BTNode.Abort(sel, createTickContext());
 
-        expect(sel.getState()).toEqual({ runningChildIndex: undefined });
+        expect(sel.runningChildIndex).toBeUndefined();
     });
 
-    it("getState returns runningChildIndex", () => {
+    it("tracks runningChildIndex", () => {
         const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Running);
         const sel = SelectorMemory.from([child1, child2]);
 
-        expect(sel.getState()).toEqual({ runningChildIndex: undefined });
+        expect(sel.runningChildIndex).toBeUndefined();
 
         BTNode.Tick(sel, createTickContext());
 
-        expect(sel.getState()).toEqual({ runningChildIndex: 1 });
+        expect(sel.runningChildIndex).toBe(1);
     });
 
     it("from factory works with name", () => {

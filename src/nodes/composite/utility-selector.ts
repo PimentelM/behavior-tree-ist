@@ -29,7 +29,7 @@ export class UtilitySelector extends Composite {
         return composite;
     }
 
-    public override getState(): SerializableState {
+    public override getDisplayState(): SerializableState {
         return {
             lastScores: this.lastScores?.map(score => [score.index, score.score])
         };

@@ -1,6 +1,6 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult, SerializableState } from "../../base/types";
+import { NodeResult } from "../../base/types";
 
 export class Cooldown extends Decorator {
     public override name = "Cooldown";

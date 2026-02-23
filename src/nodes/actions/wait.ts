@@ -1,6 +1,6 @@
 import { TickContext } from "../../base";
 import { Action } from "../../base/action";
-import { NodeResult, SerializableState } from "../../base/types";
+import { NodeResult } from "../../base/types";
 
 export class WaitAction extends Action {
     public override name = "WaitAction";

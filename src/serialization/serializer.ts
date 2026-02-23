@@ -8,7 +8,7 @@ export function serializeTree(root: BTNode): SerializableNode {
         displayName: root.displayName
     };
 
-    serialized.state = root.getState?.();
+    serialized.state = root.getDisplayState?.();
 
     const children = root.getChildren();
     if (children && children.length > 0) {
