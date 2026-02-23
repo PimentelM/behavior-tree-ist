@@ -1,13 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { BTNode } from "./node";
-import { NodeResult, NodeType } from "./types";
+import { NodeResult, NodeFlags } from "./types";
 import { createTickContext, StubAction } from "../test-helpers";
 import { Inverter } from "../nodes/decorators/inverter";
 import { AlwaysSucceed } from "../nodes/decorators/always-succeed";
 
 class ConcreteNode extends BTNode {
-    public readonly NODE_TYPE: NodeType = "Action";
+    public readonly defaultName = "Action";
     public result: NodeResult = NodeResult.Succeeded;
+
+    constructor(name?: string) {
+        super(name);
+        this.addFlags(NodeFlags.Leaf, NodeFlags.Action);
+    }
 
     public tickedResults: NodeResult[] = [];
     public successCallCount = 0;
@@ -54,7 +59,7 @@ describe("BTNode", () => {
         expect(node.displayName).toBe("MyNode");
     });
 
-    it("falls back to NODE_TYPE as displayName when no name provided", () => {
+    it("falls back to defaultName as displayName when no name provided", () => {
         const node = new ConcreteNode();
 
         expect(node.displayName).toBe("Action");

@@ -3,10 +3,10 @@ import { BehaviourTree } from "../tree";
 import { Action } from "../base/action";
 import { Decorator } from "../base/decorator";
 import { Composite } from "../base/composite";
-import { NodeResult, NodeType, SerializableState, TickContext, BTNode } from "../base";
+import { NodeResult, NodeFlags, SerializableState, TickContext, BTNode } from "../base";
 
 class MockAction extends Action {
-    public override name = "MockAction";
+    public override readonly defaultName = "MockAction";
     public customState = { active: false };
 
     protected override onTick(_ctx: TickContext): NodeResult {
@@ -20,7 +20,7 @@ class MockAction extends Action {
 }
 
 class MockDecorator extends Decorator {
-    public override name = "MockDecorator";
+    public override readonly defaultName = "MockDecorator";
     public customState = { counts: 0 };
 
     public override get displayName(): string {
@@ -39,11 +39,11 @@ class MockDecorator extends Decorator {
 }
 
 class MockSequence extends Composite {
-    public readonly NODE_TYPE: NodeType = "Sequence"; // Lie about type for testing
-    public override name = "MockSequence";
+    public override readonly defaultName = "MockSequence";
 
     constructor(children: BTNode[]) {
         super();
+        this.addFlags(NodeFlags.Sequence);
         children.forEach(c => this.addNode(c));
     }
 
@@ -66,18 +66,18 @@ describe("Serialization", () => {
 
         expect(serialized).toMatchObject({
             id: expect.any(Number),
-            type: "Sequence",
+            nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
             displayName: "MockSequence",
             children: [{
                 id: expect.any(Number),
-                type: "Decorator",
+                nodeFlags: NodeFlags.Decorator,
                 displayName: "MockDecorator (0)",
                 state: {
                     counts: 0
                 },
                 children: [{
                     id: expect.any(Number),
-                    type: "Action",
+                    nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
                     displayName: "MockAction",
                     state: {
                         active: false

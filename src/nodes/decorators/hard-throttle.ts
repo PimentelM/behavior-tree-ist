@@ -1,9 +1,9 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class HardThrottle extends Decorator {
-    public override name = "HardThrottle";
+    public override readonly defaultName = "HardThrottle";
     private lastTriggeredAt: number | undefined = undefined;
     private lastNow: number = 0;
 
@@ -13,6 +13,7 @@ export class HardThrottle extends Decorator {
         private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
+        this.addFlags(NodeFlags.Stateful);
     }
 
     private get remainingThrottleMs(): number {

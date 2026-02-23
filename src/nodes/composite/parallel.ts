@@ -1,5 +1,5 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeType } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 interface ParallelPolicy {
@@ -34,7 +34,7 @@ export const AlwaysRunningParallelPolicy: ParallelPolicy = {
 }
 
 export class Parallel extends Composite {
-    public readonly NODE_TYPE: NodeType = "Parallel";
+    public override readonly defaultName = "Parallel";
 
     public static from(nodes: BTNode[]): Parallel
     public static from(name: string, nodes: BTNode[], policy?: ParallelPolicy): Parallel
@@ -46,8 +46,9 @@ export class Parallel extends Composite {
         return composite;
     }
 
-    constructor(name: string, private policy: ParallelPolicy = DefaultParallelPolicy) {
+    constructor(name?: string, private policy: ParallelPolicy = DefaultParallelPolicy) {
         super(name);
+        this.addFlags(NodeFlags.Parallel);
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

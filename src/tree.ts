@@ -43,7 +43,6 @@ export class BehaviourTree {
                     tickNumber: ctx.tickNumber,
                     timestampMs: ctx.now,
                     nodeId: node.id,
-                    nodeType: node.NODE_TYPE,
                     nodeDisplayName: node.displayName,
                     result
                 });

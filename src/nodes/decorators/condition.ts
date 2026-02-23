@@ -1,11 +1,13 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class Condition extends Decorator {
+    public override readonly defaultName = "Condition";
 
     constructor(child: BTNode, public override name: string, public readonly condition: (ctx: TickContext) => boolean) {
         super(child);
+        this.addFlags(NodeFlags.Guard);
     }
 
     protected onTick(ctx: TickContext): NodeResult {

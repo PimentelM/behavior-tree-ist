@@ -82,7 +82,6 @@ describe("BehaviourTree", () => {
                 tickNumber: 1,
                 timestampMs: 100,
                 nodeId: root.id,
-                nodeType: "Action",
                 nodeDisplayName: "StubAction",
                 result: NodeResult.Succeeded,
             });
@@ -141,20 +140,20 @@ describe("BehaviourTree", () => {
             const tree = new BehaviourTree(subtree).enableTrace();
 
             const events1 = tree.tick({ now: 1 });
-            expect(events1.map(e => [e.nodeDisplayName, e.result, e.nodeType])).toEqual([
-                ["isReady", NodeResult.Succeeded, "Condition"],
-                ["doSomething", NodeResult.Succeeded, "Action"],
-                ["decoratedNode", NodeResult.Succeeded, "Action"],
-                ["Throttle (1000ms)", NodeResult.Succeeded, "Decorator"],
-                ["root", NodeResult.Succeeded, "Sequence"],
+            expect(events1.map(e => [e.nodeDisplayName, e.result])).toEqual([
+                ["isReady", NodeResult.Succeeded],
+                ["doSomething", NodeResult.Succeeded],
+                ["decoratedNode", NodeResult.Succeeded],
+                ["Throttle (1000ms)", NodeResult.Succeeded],
+                ["root", NodeResult.Succeeded],
             ])
 
             const events2 = tree.tick({ now: 2 });
-            expect(events2.map(e => [e.nodeDisplayName, e.result, e.nodeType])).toEqual([
-                ["isReady", NodeResult.Succeeded, "Condition"],
-                ["doSomething", NodeResult.Succeeded, "Action"],
-                ["Throttle (999ms)", NodeResult.Failed, "Decorator"],
-                ["root", NodeResult.Failed, "Sequence"],
+            expect(events2.map(e => [e.nodeDisplayName, e.result])).toEqual([
+                ["isReady", NodeResult.Succeeded],
+                ["doSomething", NodeResult.Succeeded],
+                ["Throttle (999ms)", NodeResult.Failed],
+                ["root", NodeResult.Failed],
             ])
         })
     })

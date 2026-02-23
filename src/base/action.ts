@@ -1,8 +1,13 @@
 import { BTNode, TickContext } from "./node";
-import { NodeResult, NodeType } from "./types";
+import { NodeResult, NodeFlags } from "./types";
 
 export abstract class Action extends BTNode {
-    public readonly NODE_TYPE: NodeType = "Action";
+    public readonly defaultName: string = "Action";
+
+    constructor(name?: string) {
+        super(name);
+        this.addFlags(NodeFlags.Leaf, NodeFlags.Action);
+    }
 
     static from(name: string, fn: (ctx: TickContext) => NodeResult): Action {
         class LambdaAction extends Action {

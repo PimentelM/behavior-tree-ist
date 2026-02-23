@@ -1,5 +1,5 @@
 import { TickTraceEvent } from "./types";
-import { NodeResult, NodeType, SerializableState } from "./types";
+import { NodeResult, NodeFlags, SerializableState } from "./types";
 
 type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];
 
@@ -21,7 +21,15 @@ type ValidateDecoratorSpecs<Specs extends readonly AnyDecoratorSpec[]> = {
 export abstract class BTNode {
     private static NEXT_ID = 1;
     public readonly id: number = BTNode.NEXT_ID++;
-    public abstract readonly NODE_TYPE: NodeType;
+    public abstract readonly defaultName: string;
+
+    private _nodeFlags: NodeFlags = 0;
+    public get nodeFlags(): NodeFlags { return this._nodeFlags; }
+    protected addFlags(...flags: number[]): void {
+        for (const flag of flags) {
+            this._nodeFlags |= flag;
+        }
+    }
 
     public name: string = "";
     constructor(name?: string) {
@@ -43,7 +51,7 @@ export abstract class BTNode {
             return this.name;
         }
 
-        return `${this.NODE_TYPE}`;
+        return this.defaultName;
     }
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {

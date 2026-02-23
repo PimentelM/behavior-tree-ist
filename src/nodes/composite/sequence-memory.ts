@@ -1,13 +1,18 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeType, SerializableState } from "../../base/types";
+import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export class SequenceMemory extends Composite {
-    public readonly NODE_TYPE: NodeType = "SequenceMemory";
+    public override readonly defaultName = "SequenceMemory";
     private _runningChildIndex: number | undefined;
 
     public get runningChildIndex(): number | undefined {
         return this._runningChildIndex;
+    }
+
+    constructor(name?: string) {
+        super(name);
+        this.addFlags(NodeFlags.Sequence, NodeFlags.Memory);
     }
 
     public static from(nodes: BTNode[]): SequenceMemory

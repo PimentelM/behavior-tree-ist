@@ -1,12 +1,13 @@
 import { TickContext } from "../../base";
 import { Action } from "../../base/action";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class WaitAction extends Action {
-    public override name = "WaitAction";
+    public override readonly defaultName = "WaitAction";
 
     constructor(public duration: number) {
         super();
+        this.addFlags(NodeFlags.Stateful);
     }
 
     public override get displayName(): string {

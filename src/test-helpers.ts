@@ -32,7 +32,6 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
                 tickNumber: overrides.tickNumber ?? 1,
                 timestampMs: overrides.now ?? 0,
                 nodeId: node.id,
-                nodeType: node.NODE_TYPE,
                 nodeDisplayName: node.displayName,
                 result,
             });
@@ -41,7 +40,7 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
 }
 
 export class StubAction extends Action {
-    public override name = "StubAction";
+    public override readonly defaultName = "StubAction";
     public abortCount = 0;
     public tickCount = 0;
     private resultQueue: NodeResult[];

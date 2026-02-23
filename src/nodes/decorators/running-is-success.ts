@@ -1,9 +1,14 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class RunningIsSuccess extends Decorator {
-    public override name = "RunningIsSuccess";
+    public override readonly defaultName = "RunningIsSuccess";
+
+    constructor(child: BTNode) {
+        super(child);
+        this.addFlags(NodeFlags.ResultTransformer);
+    }
 
     protected override onTick(ctx: TickContext): NodeResult {
         const status = BTNode.Tick(this.child, ctx);

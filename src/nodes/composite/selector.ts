@@ -1,9 +1,14 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeType } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export class Selector extends Composite {
-    public readonly NODE_TYPE: NodeType = "Selector";
+    public override readonly defaultName = "Selector";
+
+    constructor(name?: string) {
+        super(name);
+        this.addFlags(NodeFlags.Selector);
+    }
 
     public static from(nodes: BTNode[]): Selector
     public static from(name: string, nodes: BTNode[]): Selector

@@ -1,9 +1,9 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class Retry extends Decorator {
-    public override name = "Retry";
+    public override readonly defaultName = "Retry";
     private failedCount: number = 0;
 
     constructor(
@@ -12,6 +12,7 @@ export class Retry extends Decorator {
         private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
+        this.addFlags(NodeFlags.Repeating);
     }
 
     public override get displayName(): string {

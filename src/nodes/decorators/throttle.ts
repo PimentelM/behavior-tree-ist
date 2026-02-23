@@ -1,11 +1,13 @@
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 
 export class Throttle extends Decorator {
-    public override name = "Throttle";
+    public override readonly defaultName = "Throttle";
+
     constructor(child: BTNode, public readonly throttleMs: number, private options: { resetOnAbort?: boolean } = {}) {
         super(child);
+        this.addFlags(NodeFlags.Stateful);
     }
 
     private lastTriggeredAt: number | undefined = undefined;

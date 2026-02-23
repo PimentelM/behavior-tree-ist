@@ -1,8 +1,13 @@
 import { BTNode, TickContext } from "./node";
-import { NodeType } from "./types";
+import { NodeFlags } from "./types";
 
 export abstract class Composite extends BTNode {
-    public readonly NODE_TYPE: NodeType = "Composite";
+    public readonly defaultName: string = "Composite";
+
+    constructor(name?: string) {
+        super(name);
+        this.addFlags(NodeFlags.Composite);
+    }
 
     protected readonly _nodes: BTNode[] = [];
     public get nodes(): ReadonlyArray<BTNode> {

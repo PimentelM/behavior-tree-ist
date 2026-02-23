@@ -1,9 +1,9 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class Debounce extends Decorator {
-    public override name = "Debounce";
+    public override readonly defaultName = "Debounce";
     private firstSuccessAt: number | undefined = undefined;
     private lastNow: number = 0;
 
@@ -13,6 +13,7 @@ export class Debounce extends Decorator {
         private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
+        this.addFlags(NodeFlags.Stateful);
     }
 
     private get successDurationMs(): number {

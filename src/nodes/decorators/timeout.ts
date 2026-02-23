@@ -1,13 +1,14 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class Timeout extends Decorator {
-    public override name = "Timeout";
+    public override readonly defaultName = "Timeout";
 
 
     constructor(child: BTNode, public readonly timeoutMs: number) {
         super(child);
+        this.addFlags(NodeFlags.Stateful);
     }
 
     public override get displayName(): string {

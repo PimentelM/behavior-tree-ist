@@ -1,5 +1,5 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeType, SerializableState } from "../../base/types";
+import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export type UtilityScorer = (ctx: TickContext) => number;
@@ -10,10 +10,15 @@ export interface UtilityNodeSpec {
 }
 
 export class UtilitySelector extends Composite {
-    public readonly NODE_TYPE: NodeType = "UtilitySelector";
+    public override readonly defaultName = "UtilitySelector";
     private specs: UtilityNodeSpec[] = [];
     private currentlyRunningIndex: number | undefined = undefined;
     private lastScores: { index: number; score: number }[] | undefined = undefined;
+
+    constructor(name?: string) {
+        super(name);
+        this.addFlags(NodeFlags.Selector, NodeFlags.Utility);
+    }
 
     public static from(specs: UtilityNodeSpec[]): UtilitySelector
     public static from(name: string, specs: UtilityNodeSpec[]): UtilitySelector

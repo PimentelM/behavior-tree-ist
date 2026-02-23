@@ -5,26 +5,36 @@ export const NodeResult = {
 } as const;
 export type NodeResult = (typeof NodeResult)[keyof typeof NodeResult];
 
-export const NodeType = {
-    Action: "Action",
-    Condition: "Condition",
-    Selector: "Selector",
-    Sequence: "Sequence",
-    Parallel: "Parallel",
-    Decorator: "Decorator",
-    Composite: "Composite", // Fallback for generic composite types
-    UtilitySelector: "UtilitySelector",
-    SequenceMemory: "SequenceMemory",
-    SelectorMemory: "SelectorMemory"
+export const NodeFlags = {
+    Leaf: 1 << 0,   // 0x001  — no children
+    Composite: 1 << 1,   // 0x002  — multiple children
+    Decorator: 1 << 2,   // 0x004  — wraps one child
+    Action: 1 << 3,   // 0x008  — performs work (leaf sub-kind)
+    Condition: 1 << 4,   // 0x010  — pure check (leaf sub-kind)
+    Sequence: 1 << 5,   // 0x020  — AND-like flow
+    Selector: 1 << 6,   // 0x040  — OR-like flow
+    Parallel: 1 << 7,   // 0x080  — concurrent children
+    Memory: 1 << 8,   // 0x100  — remembers last running child
+    Stateful: 1 << 9,   // 0x200  — has time/counter state
+    Utility: 1 << 10,  // 0x400  — uses utility scoring
+    Repeating: 1 << 11,  // 0x800  — loops child execution
+    ResultTransformer: 1 << 12,  // 0x1000 — remaps child result
+    Guard: 1 << 13,  // 0x2000 — conditionally gates child
+    Lifecycle: 1 << 14,  // 0x4000 — lifecycle hook side-effect
 } as const;
-export type NodeType = (typeof NodeType)[keyof typeof NodeType];
+export type NodeFlags = number;
+
+export function hasFlag(nodeFlags: NodeFlags, flag: number): boolean {
+    return (nodeFlags & flag) === flag;
+}
 
 export type SerializableValue = string | number | boolean | null | undefined | SerializableValue[] | { [key: string]: SerializableValue };
 export type SerializableState = Record<string, SerializableValue>;
 
 export interface SerializableNode {
     id: number;
-    type: NodeType;
+    nodeFlags: NodeFlags;
+    defaultName: string;
     displayName: string;
     state?: SerializableState;
     children?: SerializableNode[];
@@ -35,7 +45,6 @@ export type TickTraceEvent = {
     tickNumber: number;
     nodeId: number;
     timestampMs: number;
-    nodeType: NodeType;
     nodeDisplayName: string;
     result: NodeResult;
 };

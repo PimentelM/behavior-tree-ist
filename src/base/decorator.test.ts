@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { Decorator } from "./decorator";
 import { BTNode } from "./node";
-import { NodeResult, NodeType } from "./types";
+import { NodeResult } from "./types";
 import { createTickContext, StubAction } from "../test-helpers";
 
 class ConcreteDecorator extends Decorator {
-    public readonly NODE_TYPE: NodeType = "Decorator";
+    public override readonly defaultName = "Decorator";
 
     protected override onTick(): NodeResult {
         return BTNode.Tick(this.child, createTickContext());

@@ -1,9 +1,9 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 
 export class Cooldown extends Decorator {
-    public override name = "Cooldown";
+    public override readonly defaultName = "Cooldown";
     private lastFinishedAt: number | undefined = undefined;
     private lastNow: number = 0;
 
@@ -13,6 +13,7 @@ export class Cooldown extends Decorator {
         private options: { resetOnAbort?: boolean } = {}
     ) {
         super(child);
+        this.addFlags(NodeFlags.Stateful);
     }
 
     private get remainingCooldownMs(): number {

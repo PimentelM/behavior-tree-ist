@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { Composite } from "./composite";
 import { BTNode } from "./node";
-import { NodeResult, NodeType } from "./types";
+import { NodeResult } from "./types";
 import { createTickContext, StubAction } from "../test-helpers";
 
 class ConcreteComposite extends Composite {
-    public readonly NODE_TYPE: NodeType = "Composite";
+    public override readonly defaultName = "Composite";
 
     protected override onTick(): NodeResult {
         return NodeResult.Succeeded;

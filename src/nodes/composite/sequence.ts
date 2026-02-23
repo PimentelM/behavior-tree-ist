@@ -1,9 +1,14 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeType } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export class Sequence extends Composite {
-    public readonly NODE_TYPE: NodeType = "Sequence";
+    public override readonly defaultName = "Sequence";
+
+    constructor(name?: string) {
+        super(name);
+        this.addFlags(NodeFlags.Sequence);
+    }
 
     public static from(nodes: BTNode[]): Sequence
     public static from(name: string, nodes: BTNode[]): Sequence

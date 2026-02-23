@@ -1,11 +1,12 @@
 import { BTNode, TickContext } from "./node";
-import { NodeType } from "./types";
+import { NodeFlags } from "./types";
 
 export abstract class Decorator extends BTNode {
-    public readonly NODE_TYPE: NodeType = "Decorator";
+    public readonly defaultName: string = "Decorator";
 
     constructor(public child: BTNode) {
         super();
+        this.addFlags(NodeFlags.Decorator);
     }
 
     public override getChildren(): BTNode[] {

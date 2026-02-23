@@ -4,7 +4,8 @@ import { SerializableNode } from "../base/types";
 export function serializeTree(root: BTNode): SerializableNode {
     const serialized: SerializableNode = {
         id: root.id,
-        type: root.NODE_TYPE,
+        nodeFlags: root.nodeFlags,
+        defaultName: root.defaultName,
         displayName: root.displayName
     };
 
