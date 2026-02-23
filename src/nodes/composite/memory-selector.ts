@@ -24,7 +24,7 @@ export class MemorySelector extends Composite {
 
     constructor(name?: string) {
         super(name);
-        this.addFlags(NodeFlags.Selector, NodeFlags.Memory);
+        this.addFlags(NodeFlags.Selector, NodeFlags.Memory, NodeFlags.Stateful);
     }
 
     public static from(nodes: BTNode[]): MemorySelector

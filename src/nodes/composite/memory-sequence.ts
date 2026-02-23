@@ -24,7 +24,7 @@ export class MemorySequence extends Composite {
 
     constructor(name?: string) {
         super(name);
-        this.addFlags(NodeFlags.Sequence, NodeFlags.Memory);
+        this.addFlags(NodeFlags.Sequence, NodeFlags.Memory, NodeFlags.Stateful);
     }
 
     public static from(nodes: BTNode[]): MemorySequence

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
+import { BTNode } from "../../base/node";
 import { NodeResult } from "../../base/types";
-import { StubAction, tickNode } from "../../test-helpers";
+import { StubAction, tickNode, createTickContext } from "../../test-helpers";
 import { OnTicked } from "./on-ticked";
 import { OnSuccess } from "./on-success";
 import { OnFailure } from "./on-failure";
@@ -8,6 +9,8 @@ import { OnRunning } from "./on-running";
 import { OnSuccessOrRunning } from "./on-success-or-running";
 import { OnFailedOrRunning } from "./on-failed-or-running";
 import { OnFinished } from "./on-finished";
+import { OnReset } from "./on-reset";
+import { OnAbort } from "./on-abort";
 
 describe("Lifecycle hook decorators", () => {
     describe("OnTicked", () => {
@@ -110,6 +113,56 @@ describe("Lifecycle hook decorators", () => {
             expect(cb).toHaveBeenCalledTimes(2);
             expect(cb.mock.calls[0][0]).toBe(NodeResult.Succeeded);
             expect(cb.mock.calls[1][0]).toBe(NodeResult.Failed);
+        });
+    });
+
+    describe("OnReset", () => {
+        it("fires when child transitions out of Running", () => {
+            const cb = vi.fn();
+            const child = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
+            const node = new OnReset(child, cb);
+
+            tickNode(node); // Running — no reset yet
+            expect(cb).not.toHaveBeenCalled();
+
+            tickNode(node); // Succeeded — was Running → reset fires
+            expect(cb).toHaveBeenCalledTimes(1);
+        });
+
+        it("does not fire when child never returned Running", () => {
+            const cb = vi.fn();
+            const child = new StubAction([NodeResult.Succeeded, NodeResult.Failed]);
+            const node = new OnReset(child, cb);
+
+            tickNode(node);
+            tickNode(node);
+
+            expect(cb).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("OnAbort", () => {
+        it("fires on abort and propagates to child", () => {
+            const cb = vi.fn();
+            const child = new StubAction(NodeResult.Running);
+            const node = new OnAbort(child, cb);
+
+            tickNode(node); // Running
+            BTNode.Abort(node, createTickContext());
+
+            expect(cb).toHaveBeenCalledTimes(1);
+            expect(child.abortCount).toBe(1);
+        });
+
+        it("does not fire when not running", () => {
+            const cb = vi.fn();
+            const child = new StubAction(NodeResult.Succeeded);
+            const node = new OnAbort(child, cb);
+
+            tickNode(node); // Succeeded — not running
+            BTNode.Abort(node, createTickContext());
+
+            expect(cb).not.toHaveBeenCalled();
         });
     });
 });
