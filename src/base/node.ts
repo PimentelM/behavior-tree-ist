@@ -30,9 +30,7 @@ export abstract class BTNode {
         }
     }
 
-    public getState(): SerializableState | undefined {
-        return undefined;
-    }
+    public getState?(): SerializableState | undefined
 
     public getChildren(): readonly BTNode[] | undefined {
         return undefined;

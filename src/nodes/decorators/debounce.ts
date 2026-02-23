@@ -26,13 +26,6 @@ export class Debounce extends Decorator {
         return `Debounce${this.successDurationMs < this.debounceMs ? ` (${this.debounceMs - this.successDurationMs}ms left)` : ""}`;
     }
 
-    public override getState(): SerializableState {
-        return {
-            firstSuccessAt: this.firstSuccessAt,
-            lastNow: this.lastNow
-        };
-    }
-
     protected override onAbort(ctx: TickContext): void {
         if (this.options.resetOnAbort) {
             this.firstSuccessAt = undefined;

@@ -26,13 +26,6 @@ export class Cooldown extends Decorator {
         return `Cooldown${this.remainingCooldownMs > 0 ? ` (${this.remainingCooldownMs}ms)` : ""}`;
     }
 
-    public override getState(): SerializableState {
-        return {
-            lastFinishedAt: this.lastFinishedAt,
-            lastNow: this.lastNow
-        };
-    }
-
     private hasCooldown(): boolean {
         return this.remainingCooldownMs > 0;
     }

@@ -25,15 +25,6 @@ export class Timeout extends Decorator {
         return Math.max(0, this.timeoutMs - this.elapsedMs);
     }
 
-    public override getState(): SerializableState {
-        return {
-            lastChildResult: this.lastChildResult,
-            startedAtMs: this.startedAtMs,
-            lastNow: this.lastNow
-        };
-    }
-
-
     private lastChildResult: NodeResult | undefined = undefined;
     private startedAtMs: number | undefined;
     private lastNow: number = 0;

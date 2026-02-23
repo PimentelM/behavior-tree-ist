@@ -20,13 +20,6 @@ export class WaitAction extends Action {
         return this.duration - (this.lastNow - this.startTime);
     }
 
-    public override getState(): SerializableState {
-        return {
-            startTime: this.startTime,
-            lastNow: this.lastNow
-        };
-    }
-
     private startTime: number | undefined = undefined;
     private lastNow: number = 0;
 

@@ -22,13 +22,6 @@ export class Throttle extends Decorator {
         return `Throttle${this.remainingThrottleMs > 0 ? ` (${this.remainingThrottleMs}ms)` : ""}`;
     }
 
-    public override getState(): SerializableState {
-        return {
-            lastTriggeredAt: this.lastTriggeredAt,
-            lastNow: this.lastNow
-        };
-    }
-
     private hasThrottle(): boolean {
         return this.remainingThrottleMs > 0;
     }
