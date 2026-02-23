@@ -13,7 +13,9 @@ export const NodeType = {
     Parallel: "Parallel",
     Decorator: "Decorator",
     Composite: "Composite", // Fallback for generic composite types
-    UtilitySelector: "UtilitySelector"
+    UtilitySelector: "UtilitySelector",
+    SequenceMemory: "SequenceMemory",
+    SelectorMemory: "SelectorMemory"
 } as const;
 export type NodeType = (typeof NodeType)[keyof typeof NodeType];
 

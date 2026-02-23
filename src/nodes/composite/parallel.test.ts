@@ -28,28 +28,91 @@ describe("Parallel", () => {
         expect(result).toBe(NodeResult.Succeeded);
     });
 
-    it("SuccessThresholdParallelPolicy succeeds when success+running >= threshold", () => {
+    it("aborts Running children when policy returns terminal result", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Running);
-        const child3 = new StubAction(NodeResult.Failed);
-        const policy = new SuccessThresholdParallelPolicy(2);
-        const parallel = Parallel.from("test", [child1, child2, child3], policy);
+        const child3 = new StubAction(NodeResult.Running);
+        const parallel = Parallel.from("test", [child1, child2, child3]);
 
-        const result = BTNode.Tick(parallel, createTickContext());
+        BTNode.Tick(parallel, createTickContext());
 
-        expect(result).toBe(NodeResult.Succeeded);
+        // DefaultParallelPolicy returns Succeeded, so Running children should be aborted
+        expect(child2.abortCount).toBe(1);
+        expect(child3.abortCount).toBe(1);
+        expect(child1.abortCount).toBe(0);
     });
 
-    it("SuccessThresholdParallelPolicy fails when success+running < threshold", () => {
-        const child1 = new StubAction(NodeResult.Failed);
-        const child2 = new StubAction(NodeResult.Failed);
-        const child3 = new StubAction(NodeResult.Succeeded);
-        const policy = new SuccessThresholdParallelPolicy(3);
-        const parallel = Parallel.from("test", [child1, child2, child3], policy);
+    it("does not abort Running children when policy returns Running", () => {
+        const child1 = new StubAction(NodeResult.Succeeded);
+        const child2 = new StubAction(NodeResult.Running);
+        const parallel = Parallel.from("test", [child1, child2], AlwaysRunningParallelPolicy);
 
-        const result = BTNode.Tick(parallel, createTickContext());
+        BTNode.Tick(parallel, createTickContext());
 
-        expect(result).toBe(NodeResult.Failed);
+        expect(child2.abortCount).toBe(0);
+    });
+
+    describe("SuccessThresholdParallelPolicy", () => {
+        it("succeeds when actual successes meet threshold", () => {
+            const child1 = new StubAction(NodeResult.Succeeded);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const child3 = new StubAction(NodeResult.Failed);
+            const policy = new SuccessThresholdParallelPolicy(2);
+            const parallel = Parallel.from("test", [child1, child2, child3], policy);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            expect(result).toBe(NodeResult.Succeeded);
+        });
+
+        it("returns Running when threshold is still reachable but not yet met", () => {
+            const child1 = new StubAction(NodeResult.Succeeded);
+            const child2 = new StubAction(NodeResult.Running);
+            const child3 = new StubAction(NodeResult.Failed);
+            const policy = new SuccessThresholdParallelPolicy(2);
+            const parallel = Parallel.from("test", [child1, child2, child3], policy);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            expect(result).toBe(NodeResult.Running);
+        });
+
+        it("fails when threshold is impossible to meet", () => {
+            const child1 = new StubAction(NodeResult.Failed);
+            const child2 = new StubAction(NodeResult.Failed);
+            const child3 = new StubAction(NodeResult.Succeeded);
+            const policy = new SuccessThresholdParallelPolicy(3);
+            const parallel = Parallel.from("test", [child1, child2, child3], policy);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            expect(result).toBe(NodeResult.Failed);
+        });
+
+        it("aborts Running children when threshold is impossible to meet", () => {
+            const child1 = new StubAction(NodeResult.Failed);
+            const child2 = new StubAction(NodeResult.Failed);
+            const child3 = new StubAction(NodeResult.Running);
+            const policy = new SuccessThresholdParallelPolicy(3);
+            const parallel = Parallel.from("test", [child1, child2, child3], policy);
+
+            BTNode.Tick(parallel, createTickContext());
+
+            expect(child3.abortCount).toBe(1);
+        });
+
+        it("does not abort Running children when threshold is still reachable", () => {
+            const child1 = new StubAction(NodeResult.Succeeded);
+            const child2 = new StubAction(NodeResult.Running);
+            const child3 = new StubAction(NodeResult.Running);
+            const policy = new SuccessThresholdParallelPolicy(2);
+            const parallel = Parallel.from("test", [child1, child2, child3], policy);
+
+            BTNode.Tick(parallel, createTickContext());
+
+            expect(child2.abortCount).toBe(0);
+            expect(child3.abortCount).toBe(0);
+        });
     });
 
     it("AlwaysRunningParallelPolicy always returns Running", () => {

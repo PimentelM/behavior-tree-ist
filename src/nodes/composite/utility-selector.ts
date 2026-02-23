@@ -36,11 +36,23 @@ export class UtilitySelector extends Composite {
         };
     }
 
+    public override addNode(_node: BTNode): never {
+        throw new Error("Use setUtilityNodes() to add nodes to a UtilitySelector");
+    }
+
+    public override setNodes(_nodes: BTNode[]): never {
+        throw new Error("Use setUtilityNodes() to set nodes on a UtilitySelector");
+    }
+
+    public override clearNodes(): never {
+        throw new Error("Use setUtilityNodes() to manage nodes on a UtilitySelector");
+    }
+
     public setUtilityNodes(specs: UtilityNodeSpec[]): void {
-        this.clearNodes();
+        super.clearNodes();
         this.specs = specs;
         for (const spec of specs) {
-            this.addNode(spec.node);
+            super.addNode(spec.node);
         }
     }
 

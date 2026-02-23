@@ -66,4 +66,48 @@ describe("UtilitySelector", () => {
         const selector = UtilitySelector.from([]);
         expect(() => tickNode(selector)).toThrow();
     });
+
+    describe("mutation protection", () => {
+        it("addNode throws directing to setUtilityNodes", () => {
+            const selector = UtilitySelector.from([
+                { node: new StubAction(), scorer: () => 1 }
+            ]);
+
+            expect(() => selector.addNode(new StubAction())).toThrow("setUtilityNodes");
+        });
+
+        it("setNodes throws directing to setUtilityNodes", () => {
+            const selector = UtilitySelector.from([
+                { node: new StubAction(), scorer: () => 1 }
+            ]);
+
+            expect(() => selector.setNodes([new StubAction()])).toThrow("setUtilityNodes");
+        });
+
+        it("clearNodes throws directing to setUtilityNodes", () => {
+            const selector = UtilitySelector.from([
+                { node: new StubAction(), scorer: () => 1 }
+            ]);
+
+            expect(() => selector.clearNodes()).toThrow("setUtilityNodes");
+        });
+
+        it("setUtilityNodes still works after construction", () => {
+            const child1 = new StubAction(NodeResult.Succeeded);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const selector = UtilitySelector.from([
+                { node: child1, scorer: () => 1 }
+            ]);
+
+            selector.setUtilityNodes([
+                { node: child2, scorer: () => 10 }
+            ]);
+
+            const result = tickNode(selector);
+
+            expect(result).toBe(NodeResult.Succeeded);
+            expect(child2.tickCount).toBe(1);
+            expect(child1.tickCount).toBe(0);
+        });
+    });
 });

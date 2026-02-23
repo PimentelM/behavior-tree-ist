@@ -16,8 +16,14 @@ export class SuccessThresholdParallelPolicy implements ParallelPolicy {
     constructor(public successThreshold: number = 0) {
     }
 
-    getResult(successCount: number, _: number, runningCount: number): NodeResult {
-        return successCount + runningCount >= this.successThreshold ? NodeResult.Succeeded : NodeResult.Failed;
+    getResult(successCount: number, _failureCount: number, runningCount: number): NodeResult {
+        if (successCount >= this.successThreshold) {
+            return NodeResult.Succeeded;
+        }
+        if (successCount + runningCount < this.successThreshold) {
+            return NodeResult.Failed;
+        }
+        return NodeResult.Running;
     }
 }
 
@@ -52,14 +58,24 @@ export class Parallel extends Composite {
         let successCount = 0;
         let failureCount = 0;
         let runningCount = 0;
+        const runningIndexes: number[] = [];
 
-        for (const node of this.nodes) {
-            const status = BTNode.Tick(node, ctx);
+        for (let i = 0; i < this.nodes.length; i++) {
+            const status = BTNode.Tick(this.nodes[i], ctx);
             if (status === NodeResult.Succeeded) successCount++;
             else if (status === NodeResult.Failed) failureCount++;
-            else runningCount++;
+            else {
+                runningCount++;
+                runningIndexes.push(i);
+            }
         }
 
-        return this.policy.getResult(successCount, failureCount, runningCount);
+        const result = this.policy.getResult(successCount, failureCount, runningCount);
+
+        if (result !== NodeResult.Running && runningIndexes.length > 0) {
+            this.abortChildrenByIndex(runningIndexes, ctx);
+        }
+
+        return result;
     }
 }
