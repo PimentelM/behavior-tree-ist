@@ -31,7 +31,6 @@ export class UtilitySelector extends Composite {
 
     public override getState(): SerializableState {
         return {
-            currentlyRunningIndex: this.currentlyRunningIndex,
             lastScores: this.lastScores?.map(score => [score.index, score.score])
         };
     }

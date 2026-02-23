@@ -73,7 +73,7 @@ export abstract class BTNode {
     }
 
     public static Abort(node: BTNode, ctx: TickContext): void {
-        node.onAbort(ctx);
+        node.onAbort?.(ctx);
     }
 
     public decorate<const Specs extends readonly AnyDecoratorSpec[]>(...specs: Specs & ValidateDecoratorSpecs<Specs>): BTNode {
@@ -87,7 +87,8 @@ export abstract class BTNode {
     }
 
     protected abstract onTick(ctx: TickContext): NodeResult;
-    protected onAbort(_ctx: TickContext): void { };
+    /** Implementation must be idempotent. */
+    protected onAbort?(_ctx: TickContext): void;
 
     // Some helper methods that could be done inside onTick but are here for convenience
     protected onTicked?(_result: NodeResult, _ctx: TickContext): void { };

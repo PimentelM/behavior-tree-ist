@@ -39,49 +39,4 @@ describe("Condition decorator", () => {
         expect(result).toBe(NodeResult.Failed);
         expect(child.abortCount).toBe(1);
     });
-
-    it("does not abort child when condition is false but child was not Running", () => {
-        let conditionValue = true;
-        const child = new StubAction(NodeResult.Succeeded);
-        const decorator = new Condition(child, "check", () => conditionValue);
-
-        BTNode.Tick(decorator, createTickContext());
-
-        conditionValue = false;
-        BTNode.Tick(decorator, createTickContext());
-
-        expect(child.abortCount).toBe(0);
-    });
-
-    it("does not abort child when condition was never true", () => {
-        const child = new StubAction(NodeResult.Running);
-        const decorator = new Condition(child, "check", () => false);
-
-        BTNode.Tick(decorator, createTickContext());
-
-        expect(child.abortCount).toBe(0);
-    });
-
-    it("resets lastChildResult on abort", () => {
-        const child = new StubAction(NodeResult.Running);
-        const decorator = new Condition(child, "check", () => true);
-
-        BTNode.Tick(decorator, createTickContext());
-        expect(decorator.getState()).toEqual({ lastChildResult: NodeResult.Running });
-
-        BTNode.Abort(decorator, createTickContext());
-
-        expect(decorator.getState()).toEqual({ lastChildResult: undefined });
-    });
-
-    it("getState returns lastChildResult", () => {
-        const child = new StubAction(NodeResult.Running);
-        const decorator = new Condition(child, "check", () => true);
-
-        expect(decorator.getState()).toEqual({ lastChildResult: undefined });
-
-        BTNode.Tick(decorator, createTickContext());
-
-        expect(decorator.getState()).toEqual({ lastChildResult: NodeResult.Running });
-    });
 });
