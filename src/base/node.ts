@@ -23,6 +23,10 @@ export abstract class BTNode {
     public readonly id: number = BTNode.NEXT_ID++;
     public abstract readonly defaultName: string;
 
+    /** Whether this node returned Running on its last tick */
+    private _wasRunning: boolean = false;
+    public get wasRunning(): boolean { return this._wasRunning; }
+
     private _nodeFlags: NodeFlags = 0;
     public get nodeFlags(): NodeFlags { return this._nodeFlags; }
     protected addFlags(...flags: number[]): void {
@@ -56,6 +60,15 @@ export abstract class BTNode {
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
         const result = node.onTick(ctx);
+
+        // If node was Running and now reached terminal state, call onReset
+        if (node._wasRunning && result !== NodeResult.Running) {
+            node.onReset?.(ctx);
+        }
+
+        // Track for next tick
+        node._wasRunning = result === NodeResult.Running;
+
         node.onTicked?.(result, ctx);
 
         if (result === NodeResult.Succeeded) {
@@ -81,7 +94,11 @@ export abstract class BTNode {
     }
 
     public static Abort(node: BTNode, ctx: TickContext): void {
-        node.onAbort?.(ctx);
+        if (node._wasRunning) {
+            node.onReset?.(ctx);
+            node.onAbort?.(ctx);
+            node._wasRunning = false;
+        }
     }
 
     public decorate<const Specs extends readonly AnyDecoratorSpec[]>(...specs: Specs & ValidateDecoratorSpecs<Specs>): BTNode {
@@ -95,7 +112,19 @@ export abstract class BTNode {
     }
 
     protected abstract onTick(ctx: TickContext): NodeResult;
-    /** Implementation must be idempotent. */
+
+    /**
+     * Called when the node transitions OUT of Running state.
+     * This happens when:
+     *   - Node was Running and now returns Succeeded/Failed (natural completion)
+     *   - Node was Running and is aborted (interrupted)
+     *
+     * Use this for state cleanup that should happen regardless of how
+     * the node stopped running. Implementation must be idempotent.
+     */
+    protected onReset?(_ctx: TickContext): void;
+
+    /** Implementation must be idempotent. Called after onReset on abort. */
     protected onAbort?(_ctx: TickContext): void;
 
     // Some helper methods that could be done inside onTick but are here for convenience

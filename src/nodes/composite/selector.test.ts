@@ -40,7 +40,7 @@ describe("Selector", () => {
         expect(child2.tickCount).toBe(1);
     });
 
-    it("stops ticking and aborts remaining children after Succeeded", () => {
+    it("stops ticking remaining children after Succeeded", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Failed);
         const selector = Selector.from([child1, child2]);
@@ -48,10 +48,11 @@ describe("Selector", () => {
         BTNode.Tick(selector, createTickContext());
 
         expect(child2.tickCount).toBe(0);
-        expect(child2.abortCount).toBe(1);
+        // child2 was never Running, so abort is a no-op
+        expect(child2.abortCount).toBe(0);
     });
 
-    it("stops ticking and aborts remaining children after Running", () => {
+    it("stops ticking remaining children after Running", () => {
         const child1 = new StubAction(NodeResult.Running);
         const child2 = new StubAction(NodeResult.Failed);
         const selector = Selector.from([child1, child2]);
@@ -59,6 +60,20 @@ describe("Selector", () => {
         BTNode.Tick(selector, createTickContext());
 
         expect(child2.tickCount).toBe(0);
+        // child2 was never Running, so abort is a no-op
+        expect(child2.abortCount).toBe(0);
+    });
+
+    it("aborts previously-running children when earlier child succeeds", () => {
+        // Tick 1: child1 fails, child2 returns Running
+        // Tick 2: child1 succeeds, child2 should be aborted
+        const child1 = new StubAction([NodeResult.Failed, NodeResult.Succeeded]);
+        const child2 = new StubAction(NodeResult.Running);
+        const selector = Selector.from([child1, child2]);
+
+        BTNode.Tick(selector, createTickContext()); // child2 is Running
+        BTNode.Tick(selector, createTickContext()); // child1 succeeds, child2 aborted
+
         expect(child2.abortCount).toBe(1);
     });
 

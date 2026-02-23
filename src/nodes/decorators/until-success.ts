@@ -10,7 +10,7 @@ import { NodeResult, NodeFlags } from "../../base/types";
  *
  * - Child returns Succeeded → Return Succeeded (loop complete)
  * - Child returns Running → Return Running (wait for child)
- * - Child returns Failed → Abort child, return Running (loop continues)
+ * - Child returns Failed → Reset child state, return Running (loop continues)
  */
 export class UntilSuccess extends Decorator {
     public override readonly defaultName = "UntilSuccess";
@@ -28,7 +28,8 @@ export class UntilSuccess extends Decorator {
         }
 
         if (result === NodeResult.Failed) {
-            // Abort child to reset its state for the next iteration
+            // Child state already reset via onReset (triggered by Tick).
+            // Abort is a no-op if child was never Running.
             BTNode.Abort(this.child, ctx);
             return NodeResult.Running;
         }

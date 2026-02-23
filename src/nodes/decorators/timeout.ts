@@ -30,11 +30,10 @@ export class Timeout extends Decorator {
     private startedAtMs: number | undefined;
     private lastNow: number = 0;
 
-    protected override onAbort(ctx: TickContext): void {
+    protected override onReset(): void {
         this.lastChildResult = undefined;
         this.startedAtMs = undefined;
         this.lastNow = 0;
-        super.onAbort(ctx);
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
@@ -44,9 +43,10 @@ export class Timeout extends Decorator {
             this.startedAtMs = ctx.now;
         }
 
-        // If last result was running, check if we timed out
+        // If last result was running, check if we timed out.
+        // Note: lastChildResult is not cleared here — onReset (called by BTNode.Tick
+        // after this returns Failed) handles the cleanup of all stateful fields.
         if (this.lastChildResult === NodeResult.Running && this.elapsedMs >= this.timeoutMs) {
-            this.lastChildResult = undefined;
             BTNode.Abort(this.child, ctx);
             return NodeResult.Failed;
         }

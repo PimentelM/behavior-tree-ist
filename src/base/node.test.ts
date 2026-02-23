@@ -19,6 +19,7 @@ class ConcreteNode extends BTNode {
     public failedCallCount = 0;
     public finishedResults: NodeResult[] = [];
     public abortCallCount = 0;
+    public resetCallCount = 0;
 
     protected override onTick(): NodeResult {
         return this.result;
@@ -42,6 +43,10 @@ class ConcreteNode extends BTNode {
 
     protected override onAbort(): void {
         this.abortCallCount++;
+    }
+
+    protected override onReset(): void {
+        this.resetCallCount++;
     }
 }
 
@@ -153,14 +158,116 @@ describe("BTNode", () => {
         });
     });
 
+    describe("onReset", () => {
+        it("is called when transitioning from Running to Succeeded", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx); // Running
+            expect(node.resetCallCount).toBe(0);
+
+            node.result = NodeResult.Succeeded;
+            BTNode.Tick(node, ctx); // Running -> Succeeded
+
+            expect(node.resetCallCount).toBe(1);
+        });
+
+        it("is called when transitioning from Running to Failed", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx); // Running
+            expect(node.resetCallCount).toBe(0);
+
+            node.result = NodeResult.Failed;
+            BTNode.Tick(node, ctx); // Running -> Failed
+
+            expect(node.resetCallCount).toBe(1);
+        });
+
+        it("is NOT called when node succeeds without being Running first", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Succeeded;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(node.resetCallCount).toBe(0);
+        });
+
+        it("is NOT called when node fails without being Running first", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Failed;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(node.resetCallCount).toBe(0);
+        });
+
+        it("is called when aborting a Running node", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx); // Make it Running
+            BTNode.Abort(node, ctx);
+
+            expect(node.resetCallCount).toBe(1);
+        });
+
+        it("is called before onAbort when aborting", () => {
+            const callOrder: string[] = [];
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+
+            node["onReset"] = () => {
+                callOrder.push("onReset");
+            };
+            node["onAbort"] = () => {
+                callOrder.push("onAbort");
+            };
+
+            const ctx = createTickContext();
+            BTNode.Tick(node, ctx); // Make it Running
+            BTNode.Abort(node, ctx);
+
+            expect(callOrder).toEqual(["onReset", "onAbort"]);
+        });
+    });
+
     describe("Abort", () => {
-        it("calls onAbort on the node", () => {
+        it("calls onAbort on a Running node", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx); // Make it Running
+            BTNode.Abort(node, ctx);
+
+            expect(node.abortCallCount).toBe(1);
+        });
+
+        it("is a no-op on a node that was never Running", () => {
             const node = new ConcreteNode();
             const ctx = createTickContext();
 
             BTNode.Abort(node, ctx);
 
-            expect(node.abortCallCount).toBe(1);
+            expect(node.abortCallCount).toBe(0);
+        });
+
+        it("is a no-op on a node that already completed", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Succeeded;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx); // Completed, wasRunning is false
+            BTNode.Abort(node, ctx);
+
+            expect(node.abortCallCount).toBe(0);
         });
     });
 

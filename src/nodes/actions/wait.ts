@@ -24,7 +24,7 @@ export class WaitAction extends Action {
     private startTime: number | undefined = undefined;
     private lastNow: number = 0;
 
-    protected override onAbort(): void {
+    protected override onReset(): void {
         this.startTime = undefined;
         this.lastNow = 0;
     }
@@ -37,7 +37,6 @@ export class WaitAction extends Action {
         }
 
         if (this.remainingTime <= 0) {
-            this.startTime = undefined;
             return NodeResult.Succeeded;
         }
 

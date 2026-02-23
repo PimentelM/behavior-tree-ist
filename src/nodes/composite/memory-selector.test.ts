@@ -75,7 +75,8 @@ describe("MemorySelector", () => {
         expect(sel.runningChildIndex).toBeUndefined();
     });
 
-    it("aborts children after the running child", () => {
+    it("only aborts Running children after the current child", () => {
+        // child2 and child3 were never ticked (never Running), so abort is a no-op
         const child1 = new StubAction(NodeResult.Running);
         const child2 = new StubAction(NodeResult.Succeeded);
         const child3 = new StubAction(NodeResult.Succeeded);
@@ -83,8 +84,22 @@ describe("MemorySelector", () => {
 
         BTNode.Tick(sel, createTickContext());
 
+        expect(child2.abortCount).toBe(0);
+        expect(child3.abortCount).toBe(0);
+    });
+
+    it("aborts running child when selector is aborted", () => {
+        // When MemorySelector is aborted, it propagates to running children
+        const child1 = new StubAction(NodeResult.Failed);
+        const child2 = new StubAction(NodeResult.Running);
+        const sel = MemorySelector.from([child1, child2]);
+
+        BTNode.Tick(sel, createTickContext()); // child1 fails, child2 Running, selector Running
+        BTNode.Abort(sel, createTickContext()); // selector aborted, child2 aborted
+
         expect(child2.abortCount).toBe(1);
-        expect(child3.abortCount).toBe(1);
+        // child1 was never Running, so not aborted
+        expect(child1.abortCount).toBe(0);
     });
 
     it("onAbort resets runningChildIndex", () => {

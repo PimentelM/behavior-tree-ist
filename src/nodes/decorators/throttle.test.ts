@@ -65,11 +65,12 @@ describe("Throttle", () => {
     });
 
     it("resetOnAbort true resets throttle state on abort", () => {
-        const child = new StubAction(NodeResult.Succeeded);
+        // Throttle must be Running for abort to be effective
+        const child = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
         const throttle = new Throttle(child, 1000, { resetOnAbort: true });
 
-        BTNode.Tick(throttle, createTickContext({ now: 5000 }));
-        BTNode.Abort(throttle, createTickContext());
+        BTNode.Tick(throttle, createTickContext({ now: 5000 })); // child Running, throttle Running
+        BTNode.Abort(throttle, createTickContext()); // abort resets throttle state
         const result = BTNode.Tick(throttle, createTickContext({ now: 5100 }));
 
         expect(result).toBe(NodeResult.Succeeded);
@@ -77,11 +78,12 @@ describe("Throttle", () => {
     });
 
     it("resetOnAbort false (default) preserves throttle state on abort but still aborts child", () => {
-        const child = new StubAction(NodeResult.Succeeded);
+        // Throttle must be Running for abort to be effective
+        const child = new StubAction(NodeResult.Running);
         const throttle = new Throttle(child, 1000);
 
-        BTNode.Tick(throttle, createTickContext({ now: 5000 }));
-        BTNode.Abort(throttle, createTickContext());
+        BTNode.Tick(throttle, createTickContext({ now: 5000 })); // child Running, throttle Running
+        BTNode.Abort(throttle, createTickContext()); // throttle state preserved, but child aborted
         // Throttle state preserved, still within window
         const result = BTNode.Tick(throttle, createTickContext({ now: 5100 }));
 

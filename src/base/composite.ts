@@ -18,35 +18,35 @@ export abstract class Composite extends BTNode {
         return this._nodes;
     }
 
-    protected abortChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {
+
+    /** Abort only children that were actually Running */
+    protected abortRunningChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {
         for (let i = startIndexInclusive; i < this._nodes.length; i++) {
             const node = this._nodes[i];
-            BTNode.Abort(node, ctx);
+            if (node.wasRunning) {
+                BTNode.Abort(node, ctx);
+            }
         }
     }
 
-    protected abortChildrenExcept(indexToKeep: number, ctx: TickContext): void {
+    /** Abort only children that were actually Running, except one */
+    protected abortRunningChildrenExcept(indexToKeep: number, ctx: TickContext): void {
         for (let i = 0; i < this._nodes.length; i++) {
             if (i === indexToKeep) continue;
             const node = this._nodes[i];
-            BTNode.Abort(node, ctx);
+            if (node.wasRunning) {
+                BTNode.Abort(node, ctx);
+            }
         }
     }
 
-    protected abortAllChildren(ctx: TickContext): void {
-        this.abortChildrenFrom(0, ctx);
-    }
-
-    protected abortChildrenByIndex(indexes: number[], ctx: TickContext): void {
-        for (const index of indexes) {
-            const node = this._nodes[index];
-            if (!node) continue;
-            BTNode.Abort(node, ctx);
-        }
+    /** Abort all children that were actually Running */
+    protected abortAllRunningChildren(ctx: TickContext): void {
+        this.abortRunningChildrenFrom(0, ctx);
     }
 
     protected override onAbort(ctx: TickContext): void {
-        this.abortAllChildren(ctx);
+        this.abortAllRunningChildren(ctx);
     }
 
     public clearNodes(): void {

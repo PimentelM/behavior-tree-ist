@@ -12,29 +12,31 @@ import { ConditionNode } from "../base/condition";
 describe("Stateful decorators in context", () => {
     describe("Throttle inside a Selector", () => {
         it("throttled branch is aborted when higher-priority branch succeeds", () => {
+            // lowPriority must return Running for abort to be effective
             const highPriority = new StubAction([NodeResult.Failed, NodeResult.Succeeded]);
-            const lowPriority = new StubAction(NodeResult.Succeeded);
+            const lowPriority = new StubAction(NodeResult.Running);
             const throttledLow = new Throttle(lowPriority, 1000);
             const selector = Selector.from([highPriority, throttledLow]);
             const tree = new BehaviourTree(selector);
 
-            // Tick 1: highPriority fails, lowPriority succeeds through throttle
+            // Tick 1: highPriority fails, lowPriority Running through throttle
             tree.tick({ now: 5000 });
 
-            // Tick 2: highPriority succeeds, throttledLow aborted
+            // Tick 2: highPriority succeeds, throttledLow (which was Running) is aborted
             tree.tick({ now: 5100 });
 
             expect(lowPriority.abortCount).toBe(1);
         });
 
         it("resetOnAbort true restarts throttle after abort by selector", () => {
+            // Throttle must be Running for abort to be effective
             const highPriority = new StubAction([NodeResult.Failed, NodeResult.Succeeded, NodeResult.Failed]);
-            const lowPriority = new StubAction(NodeResult.Succeeded);
+            const lowPriority = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
             const throttledLow = new Throttle(lowPriority, 1000, { resetOnAbort: true });
             const selector = Selector.from([highPriority, throttledLow]);
             const tree = new BehaviourTree(selector);
 
-            tree.tick({ now: 5000 });     // highPriority fails, throttle ticks child
+            tree.tick({ now: 5000 });     // highPriority fails, throttle ticks child (Running)
             tree.tick({ now: 5100 });      // highPriority succeeds, throttle aborted+reset
             tree.tick({ now: 5200 });      // highPriority fails, throttle should tick child again (reset)
 

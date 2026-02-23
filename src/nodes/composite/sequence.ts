@@ -29,7 +29,7 @@ export class Sequence extends Composite {
             const node = this.nodes[i];
             const status = BTNode.Tick(node, ctx);
             if (status === NodeResult.Failed || status === NodeResult.Running) {
-                this.abortChildrenFrom(i + 1, ctx);
+                this.abortRunningChildrenFrom(i + 1, ctx);
                 return status;
             }
         }

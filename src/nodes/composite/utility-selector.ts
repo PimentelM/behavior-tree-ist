@@ -100,8 +100,11 @@ export class UtilitySelector extends Composite {
         return finalResult;
     }
 
-    protected override onAbort(ctx: TickContext): void {
+    protected override onReset(): void {
         this.currentlyRunningIndex = undefined;
+    }
+
+    protected override onAbort(ctx: TickContext): void {
         this.lastScores = undefined;
         super.onAbort(ctx);
     }

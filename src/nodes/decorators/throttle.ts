@@ -33,9 +33,14 @@ export class Throttle extends Decorator {
 
     private lastChildResult: NodeResult | undefined = undefined;
 
+    protected override onReset(): void {
+        // Always reset child result tracking when exiting Running state
+        this.lastChildResult = undefined;
+    }
+
     protected override onAbort(ctx: TickContext): void {
         if (this.options.resetOnAbort) {
-            this.lastChildResult = undefined;
+            // Reset throttle window on abort
             this.lastTriggeredAt = undefined;
             this.lastNow = 0;
         }

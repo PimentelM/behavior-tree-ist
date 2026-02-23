@@ -11,7 +11,9 @@ describe("Repeat", () => {
         const result1 = tickNode(repeat);
         expect(result1).toBe(NodeResult.Running);
         expect(child.tickCount).toBe(1);
-        expect(child.abortCount).toBe(1); // Aborted to reset
+        // Child completed naturally (never was Running), so abort is a no-op
+        // State reset happens via onReset when transitioning out of Running
+        expect(child.abortCount).toBe(0);
 
         const result2 = tickNode(repeat);
         expect(result2).toBe(NodeResult.Running);

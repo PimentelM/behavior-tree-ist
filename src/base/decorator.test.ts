@@ -21,13 +21,24 @@ describe("Decorator", () => {
         expect(decorator.child).toBe(child);
     });
 
-    it("onAbort aborts the child", () => {
+    it("onAbort aborts a Running child", () => {
+        const child = new StubAction(NodeResult.Running);
+        const decorator = new ConcreteDecorator(child);
+        const ctx = createTickContext();
+
+        BTNode.Tick(decorator, ctx); // Make decorator and child Running
+        BTNode.Abort(decorator, ctx);
+
+        expect(child.abortCount).toBe(1);
+    });
+
+    it("abort is a no-op when decorator was never Running", () => {
         const child = new StubAction();
         const decorator = new ConcreteDecorator(child);
         const ctx = createTickContext();
 
         BTNode.Abort(decorator, ctx);
 
-        expect(child.abortCount).toBe(1);
+        expect(child.abortCount).toBe(0);
     });
 });

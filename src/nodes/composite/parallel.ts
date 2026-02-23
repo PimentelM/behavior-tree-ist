@@ -65,22 +65,19 @@ export class Parallel extends Composite {
         let successCount = 0;
         let failureCount = 0;
         let runningCount = 0;
-        const runningIndexes: number[] = [];
 
         for (let i = 0; i < this.nodes.length; i++) {
             const status = BTNode.Tick(this.nodes[i], ctx);
             if (status === NodeResult.Succeeded) successCount++;
             else if (status === NodeResult.Failed) failureCount++;
-            else {
-                runningCount++;
-                runningIndexes.push(i);
-            }
+            else runningCount++;
         }
 
         const result = this.policy.getResult(successCount, failureCount, runningCount);
 
-        if (result !== NodeResult.Running && runningIndexes.length > 0) {
-            this.abortChildrenByIndex(runningIndexes, ctx);
+        if (result !== NodeResult.Running) {
+            // Abort only children that are still running (wasRunning check happens in Abort)
+            this.abortAllRunningChildren(ctx);
         }
 
         return result;

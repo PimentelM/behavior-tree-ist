@@ -8,7 +8,7 @@ import { NodeResult, NodeFlags } from "../../base/types";
  * This is a common looping pattern in BT literature (Ögren's "Repeat until failure").
  * Useful for actions that should be performed repeatedly until a condition changes.
  *
- * - Child returns Succeeded → Abort child, return Running (loop continues)
+ * - Child returns Succeeded → Reset child state, return Running (loop continues)
  * - Child returns Running → Return Running (wait for child)
  * - Child returns Failed → Return Succeeded (loop complete)
  */
@@ -28,7 +28,8 @@ export class UntilFail extends Decorator {
         }
 
         if (result === NodeResult.Succeeded) {
-            // Abort child to reset its state for the next iteration
+            // Child state already reset via onReset (triggered by Tick).
+            // Abort is a no-op if child was never Running.
             BTNode.Abort(this.child, ctx);
             return NodeResult.Running;
         }

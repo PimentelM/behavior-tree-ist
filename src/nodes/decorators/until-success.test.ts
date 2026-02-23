@@ -23,13 +23,16 @@ describe("UntilSuccess", () => {
         expect(result).toBe(NodeResult.Running);
     });
 
-    it("aborts child after failure to reset for next iteration", () => {
+    it("child state is reset via onReset when failing", () => {
+        // With new abort semantics, child that completed naturally (never was Running)
+        // has its state reset via onReset, and the explicit Abort call is a no-op
         const child = new StubAction(NodeResult.Failed);
         const untilSuccess = new UntilSuccess(child);
 
         BTNode.Tick(untilSuccess, createTickContext());
 
-        expect(child.abortCount).toBe(1);
+        // Child was never Running, so abort is a no-op
+        expect(child.abortCount).toBe(0);
     });
 
     it("returns Running when child is Running", () => {

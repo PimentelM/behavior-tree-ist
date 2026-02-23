@@ -36,7 +36,7 @@ describe("Sequence", () => {
         expect(result).toBe(NodeResult.Running);
     });
 
-    it("stops ticking and aborts remaining children after Failed", () => {
+    it("stops ticking remaining children after Failed", () => {
         const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Succeeded);
         const sequence = Sequence.from([child1, child2]);
@@ -44,10 +44,11 @@ describe("Sequence", () => {
         BTNode.Tick(sequence, createTickContext());
 
         expect(child2.tickCount).toBe(0);
-        expect(child2.abortCount).toBe(1);
+        // child2 was never Running, so abort is a no-op
+        expect(child2.abortCount).toBe(0);
     });
 
-    it("stops ticking and aborts remaining children after Running", () => {
+    it("stops ticking remaining children after Running", () => {
         const child1 = new StubAction(NodeResult.Running);
         const child2 = new StubAction(NodeResult.Succeeded);
         const sequence = Sequence.from([child1, child2]);
@@ -55,6 +56,20 @@ describe("Sequence", () => {
         BTNode.Tick(sequence, createTickContext());
 
         expect(child2.tickCount).toBe(0);
+        // child2 was never Running, so abort is a no-op
+        expect(child2.abortCount).toBe(0);
+    });
+
+    it("aborts previously-running children when earlier child fails", () => {
+        // Tick 1: child1 succeeds, child2 returns Running
+        // Tick 2: child1 fails, child2 should be aborted
+        const child1 = new StubAction([NodeResult.Succeeded, NodeResult.Failed]);
+        const child2 = new StubAction(NodeResult.Running);
+        const sequence = Sequence.from([child1, child2]);
+
+        BTNode.Tick(sequence, createTickContext()); // child2 is Running
+        BTNode.Tick(sequence, createTickContext()); // child1 fails, child2 aborted
+
         expect(child2.abortCount).toBe(1);
     });
 

@@ -53,23 +53,20 @@ export class MemorySelector extends Composite {
 
             if (status === NodeResult.Running) {
                 this._runningChildIndex = i;
-                this.abortChildrenFrom(i + 1, ctx);
+                this.abortRunningChildrenFrom(i + 1, ctx);
                 return NodeResult.Running;
             }
 
             if (status === NodeResult.Succeeded) {
-                this._runningChildIndex = undefined;
-                this.abortChildrenFrom(i + 1, ctx);
+                this.abortRunningChildrenFrom(i + 1, ctx);
                 return NodeResult.Succeeded;
             }
         }
 
-        this._runningChildIndex = undefined;
         return NodeResult.Failed;
     }
 
-    protected override onAbort(ctx: TickContext): void {
+    protected override onReset(): void {
         this._runningChildIndex = undefined;
-        super.onAbort(ctx);
     }
 }
