@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { BehaviourTree } from "../tree";
-import { NodeResult } from "../base/types";
-import { StubAction } from "../test-helpers";
-import { Selector } from "../nodes/composite/selector";
-import { Sequence } from "../nodes/composite/sequence";
-import { Throttle } from "../nodes/decorators/throttle";
-import { Timeout } from "../nodes/decorators/timeout";
-import { WaitAction } from "../nodes/actions/wait";
-import { ConditionNode } from "../base/condition";
+import { BehaviourTree } from "../../tree";
+import { NodeResult } from "../../base/types";
+import { StubAction } from "../../test-helpers";
+import { Selector } from "../composite/selector";
+import { Sequence } from "../composite/sequence";
+import { Throttle } from "./throttle";
+import { Timeout } from "./timeout";
+import { WaitAction } from "../actions/wait";
+import { ConditionNode } from "../../base/condition";
 
 describe("Stateful decorators in context", () => {
     describe("Throttle inside a Selector", () => {
