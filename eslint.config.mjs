@@ -18,6 +18,13 @@ export default tseslint.config(
           "caughtErrorsIgnorePattern": "^_",
           "ignoreRestSiblings": true
         }
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          "selector": "TSImportType",
+          "message": "Dynamic type imports are forbidden. Use a regular import instead."
+        }
       ]
     },
   },
