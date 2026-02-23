@@ -25,6 +25,16 @@
         "types": "./dist/builder.d.ts",
         "default": "./dist/builder.js"
       }
+    },
+    "./tsx": {
+      "import": {
+        "types": "./dist/tsx.d.mts",
+        "default": "./dist/tsx.mjs"
+      },
+      "require": {
+        "types": "./dist/tsx.d.ts",
+        "default": "./dist/tsx.js"
+      }
     }
   },
   "files": [

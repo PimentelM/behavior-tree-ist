@@ -3,7 +3,8 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
-    builder: 'src/subtree-builder.ts',
+    builder: 'src/builder/index.ts',
+    tsx: 'src/tsx/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

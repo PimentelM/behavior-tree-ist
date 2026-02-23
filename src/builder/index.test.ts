@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, selector, parallel, action, condition, guard } from "./subtree-builder";
-import { NodeResult } from "./base/types";
-import { tickNode } from "./test-helpers";
+import { sequence, selector, parallel, action, condition, guard } from "./index";
+import { NodeResult } from "../base/types";
+import { tickNode } from "../test-helpers";
 
 
 describe("Subtree Builder Factory", () => {

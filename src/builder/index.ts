@@ -1,7 +1,7 @@
-import { Action, BTNode, NodeResult, TickContext } from "./base";
-import { ConditionNode } from "./base/condition";
-import { Parallel, Selector, Sequence } from "./nodes";
-import * as Decorators from "./nodes/decorators";
+import { ConditionNode } from "../base/condition";
+import { Action, BTNode, NodeResult, TickContext } from "../base";
+import { Parallel, Selector, Sequence } from "../nodes";
+import * as Decorators from "../nodes/decorators";
 
 export interface NodeProps {
     name?: string;

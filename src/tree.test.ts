@@ -3,7 +3,7 @@ import { BehaviourTree } from "./tree";
 import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
 import { Throttle } from "./nodes";
-import { selector, sequence, condition, action } from "./subtree-builder";
+import { selector, sequence, condition, action } from "./builder";
 import { Action } from "./base";
 
 describe("BehaviourTree", () => {
