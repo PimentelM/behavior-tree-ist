@@ -19,3 +19,5 @@ export class SucceedIf extends Decorator {
         return BTNode.Tick(this.child, ctx);
     }
 }
+
+export const SkipIf = SucceedIf;
