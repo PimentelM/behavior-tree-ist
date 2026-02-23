@@ -13,12 +13,8 @@ describe("Retry", () => {
         expect(child.tickCount).toBe(1);
 
         const result2 = tickNode(retry);
-        expect(result2).toBe(NodeResult.Running); // 2nd failure hidden
+        expect(result2).toBe(NodeResult.Failed); // 2nd failure passes through
         expect(child.tickCount).toBe(2);
-
-        const result3 = tickNode(retry);
-        expect(result3).toBe(NodeResult.Failed); // 3rd failure passes through (0, 1, 2)
-        expect(child.tickCount).toBe(3);
     });
 
     it("succeeds immediately if child succeeds", () => {

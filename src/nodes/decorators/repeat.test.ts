@@ -23,10 +23,10 @@ describe("Repeat", () => {
         expect(result3).toBe(NodeResult.Succeeded); // 3rd success triggers parent success
         expect(child.tickCount).toBe(3);
 
-        // Next tick should just return succeeded
+        // Next tick should start a new repeat cycle
         const result4 = tickNode(repeat);
-        expect(result4).toBe(NodeResult.Succeeded);
-        expect(child.tickCount).toBe(3); // Child not ticked again
+        expect(result4).toBe(NodeResult.Running);
+        expect(child.tickCount).toBe(4); // Child is ticked again for the new cycle
     });
 
     it("fails immediately if child fails", () => {

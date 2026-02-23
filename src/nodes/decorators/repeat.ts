@@ -21,9 +21,8 @@ export class Repeat extends Decorator {
         return `Repeat (${this.successfulCount}/${this.times})`;
     }
 
-    protected override onAbort(ctx: TickContext): void {
+    protected override onReset(): void {
         this.successfulCount = 0;
-        super.onAbort(ctx);
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

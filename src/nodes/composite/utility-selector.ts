@@ -17,7 +17,7 @@ export class UtilitySelector extends Composite {
 
     constructor(name?: string) {
         super(name);
-        this.addFlags(NodeFlags.Selector, NodeFlags.Utility);
+        this.addFlags(NodeFlags.Selector, NodeFlags.Utility, NodeFlags.Stateful);
     }
 
     public static from(specs: UtilityNodeSpec[]): UtilitySelector

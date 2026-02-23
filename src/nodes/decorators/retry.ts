@@ -21,13 +21,12 @@ export class Retry extends Decorator {
         return `Retry (${this.failedCount}/${this.maxRetries})`;
     }
 
-    protected override onAbort(ctx: TickContext): void {
+    protected override onReset(): void {
         this.failedCount = 0;
-        super.onAbort(ctx);
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
-        if (this.maxRetries !== -1 && this.failedCount > this.maxRetries) {
+        if (this.maxRetries !== -1 && this.failedCount >= this.maxRetries) {
             return NodeResult.Failed;
         }
 
@@ -35,7 +34,7 @@ export class Retry extends Decorator {
 
         if (result === NodeResult.Failed) {
             this.failedCount++;
-            if (this.maxRetries !== -1 && this.failedCount > this.maxRetries) {
+            if (this.maxRetries !== -1 && this.failedCount >= this.maxRetries) {
                 return NodeResult.Failed;
             }
 

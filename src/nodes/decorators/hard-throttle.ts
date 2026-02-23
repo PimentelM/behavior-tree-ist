@@ -52,8 +52,10 @@ export class HardThrottle extends Decorator {
 
         const result = BTNode.Tick(this.child, ctx);
 
-        // Start throttle immediately regardless of result.
-        this.startThrottle();
+        // Start throttle only when the child is completely done.
+        if (result !== NodeResult.Running) {
+            this.startThrottle();
+        }
 
         return result;
     }

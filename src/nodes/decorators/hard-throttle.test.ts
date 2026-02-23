@@ -24,16 +24,16 @@ describe("HardThrottle", () => {
         expect(child.tickCount).toBe(1);
     });
 
-    it("returns failed and aborts trailing running state while throttling", () => {
+    it("does not abort running state while throttling", () => {
         const child = new StubAction(NodeResult.Running);
         const throttle = new HardThrottle(child, 100);
 
         tickNode(throttle, { now: 0 }); // ticks child, returns Running
-        const result = tickNode(throttle, { now: 50 }); // throttles even if running
+        const result = tickNode(throttle, { now: 50 }); // doesn't start throttle yet since it's running
 
-        expect(result).toBe(NodeResult.Failed);
-        expect(child.tickCount).toBe(1); // Not ticked again
-        expect(child.abortCount).toBe(1); // Properly aborted state loss
+        expect(result).toBe(NodeResult.Running);
+        expect(child.tickCount).toBe(2); // Ticked again
+        expect(child.abortCount).toBe(0); // Not aborted
     });
 
     it("ticks again after throttle expires", () => {
