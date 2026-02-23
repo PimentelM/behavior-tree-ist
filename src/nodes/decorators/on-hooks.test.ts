@@ -11,6 +11,7 @@ import { OnFailedOrRunning } from "./on-failed-or-running";
 import { OnFinished } from "./on-finished";
 import { OnReset } from "./on-reset";
 import { OnAbort } from "./on-abort";
+import { OnEnter } from "./on-enter";
 
 describe("Lifecycle hook decorators", () => {
     describe("OnTicked", () => {
@@ -163,6 +164,46 @@ describe("Lifecycle hook decorators", () => {
             BTNode.Abort(node, createTickContext());
 
             expect(cb).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("OnEnter", () => {
+        it("fires on first tick", () => {
+            const cb = vi.fn();
+            const child = new StubAction(NodeResult.Succeeded);
+            const node = new OnEnter(child, cb);
+
+            tickNode(node);
+
+            expect(cb).toHaveBeenCalledTimes(1);
+        });
+
+        it("fires again after Running → terminal → next tick", () => {
+            const cb = vi.fn();
+            const child = new StubAction([NodeResult.Running, NodeResult.Succeeded, NodeResult.Failed]);
+            const node = new OnEnter(child, cb);
+
+            tickNode(node); // enter fires (first tick), child Running
+            expect(cb).toHaveBeenCalledTimes(1);
+
+            tickNode(node); // Running → Succeeded, reset
+            // enter does NOT fire on this tick (was Running)
+            expect(cb).toHaveBeenCalledTimes(1);
+
+            tickNode(node); // fresh execution, enter fires again
+            expect(cb).toHaveBeenCalledTimes(2);
+        });
+
+        it("does not fire on continuation ticks", () => {
+            const cb = vi.fn();
+            const child = new StubAction(NodeResult.Running);
+            const node = new OnEnter(child, cb);
+
+            tickNode(node); // enter fires
+            tickNode(node); // continuation
+            tickNode(node); // continuation
+
+            expect(cb).toHaveBeenCalledTimes(1);
         });
     });
 });

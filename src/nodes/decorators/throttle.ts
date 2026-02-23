@@ -31,13 +31,6 @@ export class Throttle extends Decorator {
         this.lastTriggeredAt = this.lastNow;
     }
 
-    private lastChildResult: NodeResult | undefined = undefined;
-
-    protected override onReset(): void {
-        // Always reset child result tracking when exiting Running state
-        this.lastChildResult = undefined;
-    }
-
     protected override onAbort(ctx: TickContext): void {
         if (this.options.resetOnAbort) {
             // Reset throttle window on abort
@@ -50,16 +43,15 @@ export class Throttle extends Decorator {
     protected override onTick(ctx: TickContext): NodeResult {
         this.lastNow = ctx.now;
 
-        if (this.hasThrottle() && this.lastChildResult !== NodeResult.Running) {
+        if (this.hasThrottle() && !this.wasRunning) {
             return NodeResult.Failed;
         }
 
-        if (this.lastChildResult !== NodeResult.Running) {
+        if (!this.wasRunning) {
             this.startThrottle();
         }
 
         const result = BTNode.Tick(this.child, ctx);
-        this.lastChildResult = result;
         return result;
     }
 }

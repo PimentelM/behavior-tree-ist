@@ -17,6 +17,7 @@ export * from './on-success-or-running';
 export * from './on-failed-or-running';
 export * from './on-finished';
 export * from './on-reset';
+export * from './on-enter';
 export * from './on-abort';
 export * from './running-is-failure';
 export * from './running-is-success';

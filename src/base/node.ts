@@ -59,6 +59,10 @@ export abstract class BTNode {
     }
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
+        if (!node._wasRunning) {
+            node.onEnter?.(ctx);
+        }
+
         const result = node.onTick(ctx);
 
         // If node was Running and now reached terminal state, call onReset
@@ -112,6 +116,13 @@ export abstract class BTNode {
     }
 
     protected abstract onTick(ctx: TickContext): NodeResult;
+
+    /**
+     * Called on the first tick of a fresh execution (when the node was not
+     * previously Running). Symmetric counterpart to onReset.
+     * Use this for initializing state, recording start time, acquiring resources, etc.
+     */
+    protected onEnter?(_ctx: TickContext): void;
 
     /**
      * Called when the node transitions OUT of Running state.

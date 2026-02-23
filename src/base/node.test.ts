@@ -20,6 +20,7 @@ class ConcreteNode extends BTNode {
     public finishedResults: NodeResult[] = [];
     public abortCallCount = 0;
     public resetCallCount = 0;
+    public enterCallCount = 0;
 
     protected override onTick(): NodeResult {
         return this.result;
@@ -47,6 +48,10 @@ class ConcreteNode extends BTNode {
 
     protected override onReset(): void {
         this.resetCallCount++;
+    }
+
+    protected override onEnter(): void {
+        this.enterCallCount++;
     }
 }
 
@@ -156,6 +161,23 @@ describe("BTNode", () => {
 
             expect(callOrder).toEqual(["onTick", "onTicked", "onSuccess", "onFinished", "trace"]);
         });
+
+        it("calls onEnter before onTick on first tick", () => {
+            const callOrder: string[] = [];
+            const node = new ConcreteNode();
+            node.result = NodeResult.Succeeded;
+
+            node["onEnter"] = () => { callOrder.push("onEnter"); };
+            node["onTick"] = () => {
+                callOrder.push("onTick");
+                return NodeResult.Succeeded;
+            };
+
+            const ctx = createTickContext();
+            BTNode.Tick(node, ctx);
+
+            expect(callOrder).toEqual(["onEnter", "onTick"]);
+        });
     });
 
     describe("onReset", () => {
@@ -235,6 +257,57 @@ describe("BTNode", () => {
             BTNode.Abort(node, ctx);
 
             expect(callOrder).toEqual(["onReset", "onAbort"]);
+        });
+    });
+
+    describe("onEnter", () => {
+        it("fires on the first tick of a fresh node", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Succeeded;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(node.enterCallCount).toBe(1);
+        });
+
+        it("fires again after reset (Running → terminal → next tick)", () => {
+            const node = new ConcreteNode();
+            const ctx = createTickContext();
+
+            node.result = NodeResult.Running;
+            BTNode.Tick(node, ctx); // enter fires, now Running
+            expect(node.enterCallCount).toBe(1);
+
+            node.result = NodeResult.Succeeded;
+            BTNode.Tick(node, ctx); // Running → Succeeded, reset fires
+
+            BTNode.Tick(node, ctx); // fresh execution, enter fires again
+            expect(node.enterCallCount).toBe(2);
+        });
+
+        it("does NOT fire on continuation ticks (Running → Running)", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Running;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx); // enter fires
+            BTNode.Tick(node, ctx); // continuation, no enter
+            BTNode.Tick(node, ctx); // continuation, no enter
+
+            expect(node.enterCallCount).toBe(1);
+        });
+
+        it("fires on each fresh execution when node always returns terminal", () => {
+            const node = new ConcreteNode();
+            node.result = NodeResult.Succeeded;
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+            BTNode.Tick(node, ctx);
+            BTNode.Tick(node, ctx);
+
+            expect(node.enterCallCount).toBe(3);
         });
     });
 
