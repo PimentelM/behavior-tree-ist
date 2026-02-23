@@ -29,12 +29,12 @@ export class WaitAction extends Action {
         this.lastNow = 0;
     }
 
+    protected override onEnter(ctx: TickContext): void {
+        this.startTime = ctx.now;
+    }
+
     protected override onTick(ctx: TickContext): NodeResult {
         this.lastNow = ctx.now;
-
-        if (!this.startTime) {
-            this.startTime = ctx.now;
-        }
 
         if (this.remainingTime <= 0) {
             return NodeResult.Succeeded;

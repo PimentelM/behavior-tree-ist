@@ -38,8 +38,8 @@ export class Repeat extends Decorator {
                 return NodeResult.Succeeded;
             }
 
-            // Abort child to reset its state for the next internal loop if we're repeating
-            BTNode.Abort(this.child, ctx);
+            // We are repeating. Return Running to our parent.
+            // No need to Abort the child since it already gracefully succeeded and reset its state.
             return NodeResult.Running;
         }
 
