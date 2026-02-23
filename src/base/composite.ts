@@ -10,7 +10,7 @@ export abstract class Composite extends BTNode {
     }
 
     public override getChildren(): BTNode[] {
-        return [...this._nodes];
+        return this._nodes;
     }
 
     protected abortChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {

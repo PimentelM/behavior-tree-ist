@@ -10,7 +10,7 @@ export function serializeTree(root: BTNode): SerializableNode {
 
     serialized.state = root.getDisplayState?.();
 
-    const children = root.getChildren();
+    const children = root.getChildren?.();
     if (children && children.length > 0) {
         serialized.children = children.map(child => serializeTree(child));
     }

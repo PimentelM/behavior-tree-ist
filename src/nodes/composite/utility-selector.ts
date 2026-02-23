@@ -15,10 +15,6 @@ export class UtilitySelector extends Composite {
     private currentlyRunningIndex: number | undefined = undefined;
     private lastScores: { index: number; score: number }[] | undefined = undefined;
 
-    public override getChildren(): BTNode[] {
-        return this.specs.map(spec => spec.node);
-    }
-
     public static from(specs: UtilityNodeSpec[]): UtilitySelector
     public static from(name: string, specs: UtilityNodeSpec[]): UtilitySelector
     public static from(nameOrSpecs: string | UtilityNodeSpec[], possiblySpecs?: UtilityNodeSpec[]): UtilitySelector {

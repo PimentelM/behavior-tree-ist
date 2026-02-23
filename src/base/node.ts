@@ -36,9 +36,7 @@ export abstract class BTNode {
     */
     public getDisplayState?(): SerializableState | undefined
 
-    public getChildren(): readonly BTNode[] | undefined {
-        return undefined;
-    }
+    public getChildren?(): ReadonlyArray<BTNode>;
 
     public get displayName(): string {
         if (this.name) {
