@@ -2,6 +2,18 @@ import { Composite } from "../../base/composite";
 import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
+/**
+ * A Selector that remembers which child was running and resumes from there.
+ *
+ * **Reactivity Trade-off**: This variant skips re-evaluation of higher-priority
+ * children before the running child index. This improves performance but breaks
+ * reactivity - if a higher-priority condition becomes true, it won't preempt
+ * the currently running lower-priority child.
+ *
+ * Use standard Selector when reactivity to higher-priority alternatives is required.
+ * Use MemorySelector when children are expensive to evaluate and you want
+ * "finish what you started" behavior rather than immediate preemption.
+ */
 export class MemorySelector extends Composite {
     public override readonly defaultName = "MemorySelector";
     private _runningChildIndex: number | undefined;

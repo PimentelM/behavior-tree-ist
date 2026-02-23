@@ -2,6 +2,13 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
+/**
+ * A decorator that gates child execution based on a condition predicate.
+ * If the condition returns true, the child is ticked and its result returned.
+ * If the condition returns false, the child is aborted and Failed is returned.
+ *
+ * This implements the classical "condition guard" pattern from Ögren's BT formalism.
+ */
 export class Condition extends Decorator {
     public override readonly defaultName = "Condition";
 
@@ -19,3 +26,6 @@ export class Condition extends Decorator {
         return NodeResult.Failed;
     }
 }
+
+/** Alias for Condition - the classical guard pattern from BT literature. */
+export const Guard = Condition;

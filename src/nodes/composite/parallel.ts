@@ -6,8 +6,14 @@ interface ParallelPolicy {
     getResult(successCount: number, failureCount: number, runningCount: number): NodeResult;
 }
 
+/**
+ * Default policy: Succeed when all children succeed, fail when any child fails.
+ * This matches the "Parallel Sequence" (∧) semantics from Ögren's BT formalism.
+ */
 const DefaultParallelPolicy: ParallelPolicy = {
-    getResult(): NodeResult {
+    getResult(successCount: number, failureCount: number, runningCount: number): NodeResult {
+        if (failureCount > 0) return NodeResult.Failed;
+        if (runningCount > 0) return NodeResult.Running;
         return NodeResult.Succeeded;
     }
 }

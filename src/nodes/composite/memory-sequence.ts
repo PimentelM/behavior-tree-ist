@@ -2,6 +2,18 @@ import { Composite } from "../../base/composite";
 import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
+/**
+ * A Sequence that remembers which child was running and resumes from there.
+ *
+ * **Reactivity Trade-off**: This variant skips re-evaluation of children before
+ * the running child index. This improves performance but breaks reactivity - if
+ * a condition that guards earlier actions changes, it won't be detected until
+ * the sequence completes or fails.
+ *
+ * Use standard Sequence when reactivity to changing conditions is required.
+ * Use MemorySequence when children are expensive to evaluate and conditions
+ * are stable, or when you explicitly want "resume from where we left off" behavior.
+ */
 export class MemorySequence extends Composite {
     public override readonly defaultName = "MemorySequence";
     private _runningChildIndex: number | undefined;

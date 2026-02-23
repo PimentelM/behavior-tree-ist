@@ -70,7 +70,7 @@ describe("buildSubtree", () => {
         const node = buildSubtree([
             "parallel", "myPar",
             ["action", "a1", () => NodeResult.Succeeded],
-            ["action", "a2", () => NodeResult.Failed],
+            ["action", "a2", () => NodeResult.Succeeded],
         ]);
 
         const result = BTNode.Tick(node, createTickContext());

@@ -18,9 +18,9 @@ describe("Parallel", () => {
         expect(child3.tickCount).toBe(1);
     });
 
-    it("DefaultParallelPolicy always returns Succeeded", () => {
-        const child1 = new StubAction(NodeResult.Failed);
-        const child2 = new StubAction(NodeResult.Running);
+    it("DefaultParallelPolicy succeeds when all children succeed", () => {
+        const child1 = new StubAction(NodeResult.Succeeded);
+        const child2 = new StubAction(NodeResult.Succeeded);
         const parallel = Parallel.from("test", [child1, child2]);
 
         const result = BTNode.Tick(parallel, createTickContext());
@@ -28,15 +28,35 @@ describe("Parallel", () => {
         expect(result).toBe(NodeResult.Succeeded);
     });
 
-    it("aborts Running children when policy returns terminal result", () => {
+    it("DefaultParallelPolicy fails when any child fails", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
+        const child2 = new StubAction(NodeResult.Failed);
+        const parallel = Parallel.from("test", [child1, child2]);
+
+        const result = BTNode.Tick(parallel, createTickContext());
+
+        expect(result).toBe(NodeResult.Failed);
+    });
+
+    it("DefaultParallelPolicy returns Running when any child is Running and none failed", () => {
+        const child1 = new StubAction(NodeResult.Succeeded);
+        const child2 = new StubAction(NodeResult.Running);
+        const parallel = Parallel.from("test", [child1, child2]);
+
+        const result = BTNode.Tick(parallel, createTickContext());
+
+        expect(result).toBe(NodeResult.Running);
+    });
+
+    it("aborts Running children when policy returns terminal result", () => {
+        const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Running);
         const child3 = new StubAction(NodeResult.Running);
         const parallel = Parallel.from("test", [child1, child2, child3]);
 
         BTNode.Tick(parallel, createTickContext());
 
-        // DefaultParallelPolicy returns Succeeded, so Running children should be aborted
+        // DefaultParallelPolicy returns Failed when any child fails, so Running children should be aborted
         expect(child2.abortCount).toBe(1);
         expect(child3.abortCount).toBe(1);
         expect(child1.abortCount).toBe(0);

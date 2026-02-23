@@ -20,3 +20,5 @@ export * from './running-is-failure';
 export * from './running-is-success';
 export * from './succeed-if';
 export * from './fail-if';
+export * from './until-fail';
+export * from './until-success';
