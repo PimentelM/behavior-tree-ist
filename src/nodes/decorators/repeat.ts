@@ -21,6 +21,10 @@ export class Repeat extends Decorator {
         return `Repeat (${this.successfulCount}/${this.times})`;
     }
 
+    public override getDisplayState() {
+        return { successfulCount: this.successfulCount };
+    }
+
     protected override onReset(): void {
         this.successfulCount = 0;
     }

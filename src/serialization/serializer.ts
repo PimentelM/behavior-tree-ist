@@ -6,7 +6,8 @@ export function serializeTree(root: BTNode): SerializableNode {
         id: root.id,
         nodeFlags: root.nodeFlags,
         defaultName: root.defaultName,
-        displayName: root.displayName
+        displayName: root.displayName,
+        name: root.name,
     };
 
     serialized.state = root.getDisplayState?.();

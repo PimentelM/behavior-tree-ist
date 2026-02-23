@@ -26,6 +26,10 @@ export class Cooldown extends Decorator {
         return `Cooldown${this.remainingCooldownMs > 0 ? ` (${this.remainingCooldownMs}ms)` : ""}`;
     }
 
+    public override getDisplayState() {
+        return { remainingCooldownMs: this.remainingCooldownMs };
+    }
+
     private hasCooldown(): boolean {
         return this.remainingCooldownMs > 0;
     }

@@ -14,8 +14,12 @@ export class WaitAction extends Action {
         return `Wait (${this.remainingTime}ms)`;
     }
 
+    public override getDisplayState() {
+        return { remainingTimeMs: Math.max(0, this.remainingTime) };
+    }
+
     private get remainingTime(): number {
-        if (!this.startTime) {
+        if (this.startTime === undefined) {
             return this.duration;
         }
         return this.duration - (this.lastNow - this.startTime);

@@ -32,7 +32,6 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
                 tickNumber: overrides.tickNumber ?? 1,
                 timestampMs: overrides.now ?? 0,
                 nodeId: node.id,
-                nodeDisplayName: node.displayName,
                 result,
             });
         },

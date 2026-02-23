@@ -26,6 +26,9 @@ export class Debounce extends Decorator {
         return `Debounce${this.successDurationMs < this.debounceMs ? ` (${this.debounceMs - this.successDurationMs}ms left)` : ""}`;
     }
 
+    public override getDisplayState() {
+        return { remainingDebounceMs: Math.max(0, this.debounceMs - this.successDurationMs) };
+    }
 
     protected override onTick(ctx: TickContext): NodeResult {
         this.lastNow = ctx.now;

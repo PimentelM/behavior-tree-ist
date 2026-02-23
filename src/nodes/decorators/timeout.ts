@@ -15,8 +15,12 @@ export class Timeout extends Decorator {
         return `Timeout (${this.remainingMs}ms)`;
     }
 
+    public override getDisplayState() {
+        return { remainingMs: this.remainingMs };
+    }
+
     private get elapsedMs(): number {
-        if (!this.startedAtMs) {
+        if (this.startedAtMs === undefined) {
             return 0;
         }
         return this.lastNow - this.startedAtMs;

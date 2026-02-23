@@ -30,6 +30,10 @@ export class Throttle extends Decorator {
         return `Throttle${this.remainingThrottleMs > 0 ? ` (${this.remainingThrottleMs}ms)` : ""}`;
     }
 
+    public override getDisplayState() {
+        return { remainingThrottleMs: this.remainingThrottleMs };
+    }
+
     private hasThrottle(): boolean {
         return this.remainingThrottleMs > 0;
     }

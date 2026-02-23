@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { BehaviourTree } from "./tree";
 import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
-import { Throttle } from "./nodes";
+import { Throttle, WaitAction } from "./nodes";
 import { selector, sequence, condition, action } from "./builder";
 import { Action } from "./base";
 
@@ -82,7 +82,6 @@ describe("BehaviourTree", () => {
                 tickNumber: 1,
                 timestampMs: 100,
                 nodeId: root.id,
-                nodeDisplayName: "StubAction",
                 result: NodeResult.Succeeded,
             });
         });
@@ -98,61 +97,72 @@ describe("BehaviourTree", () => {
 
 
         it('should contain events for all and only nodes that were ticked', () => {
-            const subtree = selector({ name: "root" }, [
-                sequence({ name: "seq1" }, [
-                    condition({ name: "cond1", eval: () => false }),
-                    action({ name: "unreachable1", execute: () => NodeResult.Succeeded }),
-                ]),
-                sequence({ name: "seq2" }, [
-                    condition({ name: "cond2", eval: () => true }),
-                    action({ name: "act2", execute: () => NodeResult.Succeeded }),
-                    action({ name: "act3", execute: () => NodeResult.Failed }),
-                    action({ name: "unreachable2", execute: () => NodeResult.Succeeded })
-                ]),
-                action({ name: "fallback1", execute: () => NodeResult.Succeeded })
-            ])
-            const tree = new BehaviourTree(subtree).enableTrace();
+            const cond1 = condition({ name: "cond1", eval: () => false });
+            const unreachable1 = action({ name: "unreachable1", execute: () => NodeResult.Succeeded });
+            const seq1 = sequence({ name: "seq1" }, [cond1, unreachable1]);
+
+            const cond2 = condition({ name: "cond2", eval: () => true });
+            const act2 = action({ name: "act2", execute: () => NodeResult.Succeeded });
+            const act3 = action({ name: "act3", execute: () => NodeResult.Failed });
+            const unreachable2 = action({ name: "unreachable2", execute: () => NodeResult.Succeeded });
+            const seq2 = sequence({ name: "seq2" }, [cond2, act2, act3, unreachable2]);
+
+            const fallback1 = action({ name: "fallback1", execute: () => NodeResult.Succeeded });
+            const root = selector({ name: "root" }, [seq1, seq2, fallback1]);
+
+            const tree = new BehaviourTree(root).enableTrace();
 
             const events = tree.tick({ now: 0 });
 
-            expect(events.map(e => [e.nodeDisplayName, e.result])).toEqual([
-                ["cond1", NodeResult.Failed],
-                ["seq1", NodeResult.Failed],
-                ["cond2", NodeResult.Succeeded],
-                ["act2", NodeResult.Succeeded],
-                ["act3", NodeResult.Failed],
-                ["seq2", NodeResult.Failed],
-                ["fallback1", NodeResult.Succeeded],
-                ["root", NodeResult.Succeeded],
-            ])
+            expect(events.map(e => [e.nodeId, e.result])).toEqual([
+                [cond1.id, NodeResult.Failed],
+                [seq1.id, NodeResult.Failed],
+                [cond2.id, NodeResult.Succeeded],
+                [act2.id, NodeResult.Succeeded],
+                [act3.id, NodeResult.Failed],
+                [seq2.id, NodeResult.Failed],
+                [fallback1.id, NodeResult.Succeeded],
+                [root.id, NodeResult.Succeeded],
+            ]);
         })
 
         it('Should include trace for decorators in the trace events', () => {
-            const decoratedNode = Action.from("decoratedNode", () => NodeResult.Succeeded)
-                .decorate([Throttle, 1000])
-            const subtree = sequence({ name: "root" }, [
-                condition({ name: "isReady", eval: () => true }),
-                action({ name: "doSomething", execute: () => NodeResult.Succeeded }),
-                decoratedNode
-            ]);
-            const tree = new BehaviourTree(subtree).enableTrace();
+            const isReady = condition({ name: "isReady", eval: () => true });
+            const doSomething = action({ name: "doSomething", execute: () => NodeResult.Succeeded });
+            const innerAction = Action.from("decoratedNode", () => NodeResult.Succeeded);
+            const throttle = new Throttle(innerAction, 1000);
+            const root = sequence({ name: "root" }, [isReady, doSomething, throttle]);
+            const tree = new BehaviourTree(root).enableTrace();
 
             const events1 = tree.tick({ now: 1 });
-            expect(events1.map(e => [e.nodeDisplayName, e.result])).toEqual([
-                ["isReady", NodeResult.Succeeded],
-                ["doSomething", NodeResult.Succeeded],
-                ["decoratedNode", NodeResult.Succeeded],
-                ["Throttle (1000ms)", NodeResult.Succeeded],
-                ["root", NodeResult.Succeeded],
-            ])
+            expect(events1.map(e => [e.nodeId, e.result])).toEqual([
+                [isReady.id, NodeResult.Succeeded],
+                [doSomething.id, NodeResult.Succeeded],
+                [innerAction.id, NodeResult.Succeeded],
+                [throttle.id, NodeResult.Succeeded],
+                [root.id, NodeResult.Succeeded],
+            ]);
+            expect(events1.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottleMs: 1000 });
 
             const events2 = tree.tick({ now: 2 });
-            expect(events2.map(e => [e.nodeDisplayName, e.result])).toEqual([
-                ["isReady", NodeResult.Succeeded],
-                ["doSomething", NodeResult.Succeeded],
-                ["Throttle (999ms)", NodeResult.Failed],
-                ["root", NodeResult.Failed],
-            ])
+            expect(events2.map(e => [e.nodeId, e.result])).toEqual([
+                [isReady.id, NodeResult.Succeeded],
+                [doSomething.id, NodeResult.Succeeded],
+                [throttle.id, NodeResult.Failed],
+                [root.id, NodeResult.Failed],
+            ]);
+            expect(events2.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottleMs: 999 });
         })
+
+        it('includes state in trace events for stateful nodes', () => {
+            const wait = new WaitAction(500);
+            const tree = new BehaviourTree(wait).enableTrace();
+
+            const events1 = tree.tick({ now: 0 });
+            expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTimeMs: 500 });
+
+            const events2 = tree.tick({ now: 200 });
+            expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTimeMs: 300 });
+        });
     })
 })

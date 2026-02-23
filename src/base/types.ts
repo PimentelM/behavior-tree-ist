@@ -36,6 +36,7 @@ export interface SerializableNode {
     nodeFlags: NodeFlags;
     defaultName: string;
     displayName: string;
+    name: string;
     state?: SerializableState;
     children?: SerializableNode[];
 }
@@ -45,8 +46,8 @@ export type TickTraceEvent = {
     tickNumber: number;
     nodeId: number;
     timestampMs: number;
-    nodeDisplayName: string;
     result: NodeResult;
+    state?: SerializableState;
 };
 
 export type Tail<T extends readonly unknown[]> = T extends readonly [unknown, ...infer Rest] ? Rest : never;

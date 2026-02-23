@@ -21,6 +21,10 @@ export class Retry extends Decorator {
         return `Retry (${this.failedCount}/${this.maxRetries})`;
     }
 
+    public override getDisplayState() {
+        return { failedCount: this.failedCount };
+    }
+
     protected override onReset(): void {
         this.failedCount = 0;
     }
