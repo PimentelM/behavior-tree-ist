@@ -3,7 +3,7 @@ import { BehaviourTree } from "./tree";
 import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
 import { Throttle } from "./nodes";
-import { buildSubtree } from "./subtree-builder";
+import { selector, sequence, condition, action } from "./subtree-builder";
 import { Action } from "./base";
 
 describe("BehaviourTree", () => {
@@ -98,19 +98,18 @@ describe("BehaviourTree", () => {
 
 
         it('should contain events for all and only nodes that were ticked', () => {
-            const subtree = buildSubtree([
-                "selector", "root",
-                ["sequence", "seq1",
-                    ["condition", "cond1", () => false],
-                    ["action", "unreachable1", () => NodeResult.Succeeded],
-                ],
-                ["sequence", "seq2",
-                    ["condition", "cond2", () => true],
-                    ["action", "act2", () => NodeResult.Succeeded],
-                    ["action", "act3", () => NodeResult.Failed],
-                    ["action", "unreachable2", () => NodeResult.Succeeded]
-                ],
-                ["action", "fallback1", () => NodeResult.Succeeded]
+            const subtree = selector({ name: "root" }, [
+                sequence({ name: "seq1" }, [
+                    condition({ name: "cond1", eval: () => false }),
+                    action({ name: "unreachable1", execute: () => NodeResult.Succeeded }),
+                ]),
+                sequence({ name: "seq2" }, [
+                    condition({ name: "cond2", eval: () => true }),
+                    action({ name: "act2", execute: () => NodeResult.Succeeded }),
+                    action({ name: "act3", execute: () => NodeResult.Failed }),
+                    action({ name: "unreachable2", execute: () => NodeResult.Succeeded })
+                ]),
+                action({ name: "fallback1", execute: () => NodeResult.Succeeded })
             ])
             const tree = new BehaviourTree(subtree).enableTrace();
 
@@ -131,10 +130,9 @@ describe("BehaviourTree", () => {
         it('Should include trace for decorators in the trace events', () => {
             const decoratedNode = Action.from("decoratedNode", () => NodeResult.Succeeded)
                 .decorate([Throttle, 1000])
-            const subtree = buildSubtree([
-                "sequence", "root",
-                ["condition", "isReady", () => true],
-                ["action", "doSomething", () => NodeResult.Succeeded],
+            const subtree = sequence({ name: "root" }, [
+                condition({ name: "isReady", eval: () => true }),
+                action({ name: "doSomething", execute: () => NodeResult.Succeeded }),
                 decoratedNode
             ]);
             const tree = new BehaviourTree(subtree).enableTrace();

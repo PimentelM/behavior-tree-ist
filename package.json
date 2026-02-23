@@ -15,6 +15,16 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
       }
+    },
+    "./builder": {
+      "import": {
+        "types": "./dist/builder.d.mts",
+        "default": "./dist/builder.mjs"
+      },
+      "require": {
+        "types": "./dist/builder.d.ts",
+        "default": "./dist/builder.js"
+      }
     }
   },
   "files": [

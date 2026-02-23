@@ -1,12 +1,15 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: {
+    index: 'src/index.ts',
+    builder: 'src/subtree-builder.ts',
+  },
   format: ['esm', 'cjs'],
   dts: true,
   clean: true,
   sourcemap: true,
   target: 'es2020',
-  splitting: false,
+  splitting: true, // Enable splitting to avoid duplicating internal code across both entrypoints
   treeshake: true,
 })
