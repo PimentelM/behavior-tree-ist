@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { BTNode, NodeResult, TickContext } from "../base";
-import { Sequence, MemorySequence, MemorySelector } from "../nodes";
+import { Sequence, MemorySequence, MemorySelector, Selector } from "../nodes";
 import { ConditionNode } from "../base/condition";
 import { Action } from "../base";
 import { Decorator } from "../base/decorator";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BT } from "./index"; // This will be the alias we use for JSX factory -> JSXFactory: "BT.createElement"
+import { NodeProps } from "../builder";
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 
@@ -64,6 +65,21 @@ describe("TSX Adapter", () => {
         const children = tree.getChildren?.() ?? [];
         expect(children[0]?.name).toBe("Follow Enemy");
     });
+
+    it('supports using default props in functional components', () => {
+        const SubTree = (props: NodeProps & { customProp?: string }) => {
+            return <selector {...props}>
+                <action name={props.customProp ?? "DefaultName"} execute={() => NodeResult.Succeeded} />
+            </selector>
+        }
+
+        const tree = <SubTree name="CustomSelectorSubTree" customProp="CustomPropName" />;
+        expect(tree).toBeInstanceOf(Selector);
+        expect(tree.name).toBe("CustomSelectorSubTree");
+        const [child] = tree.getChildren?.() ?? [];
+        expect(child).toBeInstanceOf(Action);
+        expect(child.name).toBe("CustomPropName");
+    })
 
     it("applies decorators passed as props", () => {
         // Here we test the fact that since tsx-adapter delegates to subtree-builder,
