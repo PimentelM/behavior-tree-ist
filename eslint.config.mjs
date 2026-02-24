@@ -24,6 +24,10 @@ export default tseslint.config(
         {
           "selector": "TSImportType",
           "message": "Dynamic type imports are forbidden. Use a regular import instead."
+        },
+        {
+          "selector": "UnaryExpression[operator='!'] > MemberExpression[object.type='ThisExpression'][property.name=/^(startedAt|lastTriggeredAt|lastFinishedAt|firstSuccessAt|startTime|lastNow)$/]",
+          "message": "Use === undefined instead of falsy check on sentinel timing fields. Falsy checks treat 0 as unset."
         }
       ]
     },

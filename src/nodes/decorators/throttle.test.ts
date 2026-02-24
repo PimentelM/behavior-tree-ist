@@ -108,6 +108,16 @@ describe("Throttle", () => {
         expect(throttle.displayName).toBe("Throttle (700)");
     });
 
+    it("displays correct remaining time when triggered at tick 0", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const throttle = new Throttle(child, 1000);
+
+        BTNode.Tick(throttle, createTickContext({ now: 0 }));
+        BTNode.Tick(throttle, createTickContext({ now: 300 }));
+
+        expect(throttle.displayName).toBe("Throttle (700)");
+    });
+
     it("displayName shows decreasing remaining time during throttle window", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const throttle = new Throttle(child, 1000);

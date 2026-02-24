@@ -104,11 +104,11 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
         if (Array.isArray(props.decorate) && props.decorate.length > 0) {
             if (Array.isArray(props.decorate[0])) {
                 // Array of specs
-                // @ts-ignore - dynamic spread for generic specs
+                // @ts-expect-error - dynamic spread for generic specs
                 current = current.decorate(...props.decorate);
             } else {
                 // Single spec
-                // @ts-ignore - dynamic spread for generic specs
+                // @ts-expect-error - dynamic spread for generic specs
                 current = current.decorate(props.decorate);
             }
         }

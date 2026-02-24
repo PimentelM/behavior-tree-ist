@@ -84,4 +84,13 @@ describe("WaitAction", () => {
 
         expect(wait.displayName).toBe("Wait (700)");
     });
+
+    it("displays correct remaining time when started at tick 0", () => {
+        const wait = new WaitAction(1000);
+
+        BTNode.Tick(wait, createTickContext({ now: 0 }));
+        BTNode.Tick(wait, createTickContext({ now: 300 }));
+
+        expect(wait.displayName).toBe("Wait (700)");
+    });
 });

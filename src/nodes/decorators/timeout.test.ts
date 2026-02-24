@@ -118,4 +118,14 @@ describe("Timeout", () => {
 
         expect(timeout.displayName).toBe("Timeout (700)");
     });
+
+    it("displays correct remaining time when started at tick 0", () => {
+        const child = new StubAction(NodeResult.Running);
+        const timeout = new Timeout(child, 1000);
+
+        BTNode.Tick(timeout, createTickContext({ now: 0 }));
+        BTNode.Tick(timeout, createTickContext({ now: 300 }));
+
+        expect(timeout.displayName).toBe("Timeout (700)");
+    });
 });
