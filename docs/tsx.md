@@ -1,6 +1,6 @@
-# Using Behaviourist with TSX
+# Using behavior-tree-ist with TSX
 
-Behaviourist provides first-class support for defining behavior trees using TSX (JSX for TypeScript). This allows you to compose your trees visually using a familiar XML-like syntax while maintaining 100% type safety and IDE autocomplete.
+behavior-tree-ist provides first-class support for defining behavior trees using TSX (JSX for TypeScript). This allows you to compose your trees visually using a familiar XML-like syntax while maintaining 100% type safety and IDE autocomplete.
 
 ## Setup
 
@@ -25,7 +25,7 @@ Since TSX tags implicitly use the `BT` namespace during compilation, your linter
 You can configure ESLint to ignore this, or simply disable the rule on the import line:
 ```tsx
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { BT } from 'behaviourist/tsx';
+import { BT } from 'behavior-tree-ist/tsx';
 /* eslint-enable @typescript-eslint/no-unused-vars */
 ```
 
@@ -34,8 +34,8 @@ import { BT } from 'behaviourist/tsx';
 To build a tree, create a `.tsx` file, import the factory, and start writing!
 
 ```tsx
-import { BehaviourTree, NodeResult } from 'behaviourist';
-import { BT } from 'behaviourist/tsx';
+import { BehaviourTree, NodeResult } from 'behavior-tree-ist';
+import { BT } from 'behavior-tree-ist/tsx';
 
 // 1. Define your dependencies (e.g. injected services or state)
 const hero = new HeroEntity();

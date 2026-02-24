@@ -1,5 +1,5 @@
 {
-  "name": "behaviourist",
+  "name": "behavior-tree-ist",
   "version": "0.1.0",
   "description": "A behaviour tree library for TypeScript",
   "main": "./dist/index.js",

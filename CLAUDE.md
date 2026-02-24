@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Behaviourist is a TypeScript behaviour tree library for game AI / agent systems. It's published as an npm package with dual ESM/CJS output.
+behavior-tree-ist is a TypeScript behaviour tree library for game AI / agent systems. It's published as an npm package with dual ESM/CJS output.
 
 ## Commands
 
