@@ -6,7 +6,6 @@ export function createTickContext(overrides: Partial<TickContext> = {}): TickCon
     const mockTickId = Date.now();
     return {
         tickId: mockTickId,
-        tickNumber: mockTickId,
         now: Date.now(),
         events: [],
         trace: () => { },
@@ -22,14 +21,12 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
     const events = overrides.events ?? [];
     return {
         tickId: 1,
-        tickNumber: 1,
         now: 0,
         ...overrides,
         events,
         trace: (node: BTNode, result: NodeResult, _startedAt?: number, _finishedAt?: number) => {
             events.push({
                 tickId: overrides.tickId ?? 1,
-                tickNumber: overrides.tickNumber ?? 1,
                 timestamp: overrides.now ?? 0,
                 nodeId: node.id,
                 result,
