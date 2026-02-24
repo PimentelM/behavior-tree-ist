@@ -43,6 +43,24 @@ describe("Debounce", () => {
         expect(events[events.length - 1].result).toBe(NodeResult.Failed); // not met yet
     });
 
+    it("works correctly when first success at tick 0", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const debounce = new Debounce(child, 100);
+        const tree = new BehaviourTree(debounce).enableTrace();
+
+        // First success at now=0 — sentinel check must use === undefined, not falsy
+        const e1 = tree.tick({ now: 0 });
+        expect(e1[e1.length - 1].result).toBe(NodeResult.Failed); // debounced
+
+        // Still within debounce window
+        const e2 = tree.tick({ now: 50 });
+        expect(e2[e2.length - 1].result).toBe(NodeResult.Failed); // still debounced
+
+        // Exactly at debounce boundary — passes through
+        const e3 = tree.tick({ now: 100 });
+        expect(e3[e3.length - 1].result).toBe(NodeResult.Succeeded);
+    });
+
     it("resets debounce timer if child fails", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const debounce = new Debounce(child, 100);

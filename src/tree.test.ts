@@ -28,25 +28,14 @@ describe("BehaviourTree", () => {
         expect(events2[0].tickId).toBe(2);
     });
 
-    it("uses provided tickNumber and now", () => {
+    it("uses provided now", () => {
         const root = new StubAction(NodeResult.Succeeded);
         const tree = new BehaviourTree(root);
         tree.enableTrace();
 
-        const events = tree.tick({ tickNumber: 42, now: 999 });
+        const events = tree.tick({ now: 999 });
 
-        expect(events[0].tickNumber).toBe(42);
-        expect(events[0].timestampMs).toBe(999);
-    });
-
-    it("defaults tickNumber to tickId when not provided", () => {
-        const root = new StubAction(NodeResult.Succeeded);
-        const tree = new BehaviourTree(root);
-        tree.enableTrace();
-
-        const events = tree.tick({ now: 0 });
-
-        expect(events[0].tickNumber).toBe(1);
+        expect(events[0].timestamp).toBe(999);
     });
 
     it("returns empty events when tracing disabled", () => {
@@ -79,8 +68,7 @@ describe("BehaviourTree", () => {
 
             expect(events[0]).toEqual({
                 tickId: 1,
-                tickNumber: 1,
-                timestampMs: 100,
+                timestamp: 100,
                 nodeId: root.id,
                 result: NodeResult.Succeeded,
             });
@@ -142,7 +130,7 @@ describe("BehaviourTree", () => {
                 [throttle.id, NodeResult.Succeeded],
                 [root.id, NodeResult.Succeeded],
             ]);
-            expect(events1.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottleMs: 1000 });
+            expect(events1.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottle: 1000 });
 
             const events2 = tree.tick({ now: 2 });
             expect(events2.map(e => [e.nodeId, e.result])).toEqual([
@@ -151,7 +139,7 @@ describe("BehaviourTree", () => {
                 [throttle.id, NodeResult.Failed],
                 [root.id, NodeResult.Failed],
             ]);
-            expect(events2.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottleMs: 999 });
+            expect(events2.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottle: 999 });
         })
 
         it('includes state in trace events for stateful nodes', () => {
@@ -159,10 +147,105 @@ describe("BehaviourTree", () => {
             const tree = new BehaviourTree(wait).enableTrace();
 
             const events1 = tree.tick({ now: 0 });
-            expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTimeMs: 500 });
+            expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 500 });
 
             const events2 = tree.tick({ now: 200 });
-            expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTimeMs: 300 });
+            expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 300 });
+        });
+    })
+
+    describe('profiling', () => {
+        it("includes startedAt/finishedAt when profiling enabled", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            let clock = 0;
+            tree.enableProfiling(() => clock++);
+
+            const events = tree.tick({ now: 0 });
+
+            expect(events).toHaveLength(1);
+            expect(events[0].startedAt).toBeDefined();
+            expect(events[0].finishedAt).toBeDefined();
+        });
+
+        it("enableProfiling implicitly enables tracing", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            tree.enableProfiling(() => 0);
+
+            const events = tree.tick({ now: 0 });
+
+            expect(events).toHaveLength(1);
+        });
+
+        it("disableProfiling stops profiling data but keeps tracing", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            tree.enableProfiling(() => 0);
+            tree.disableProfiling();
+
+            const events = tree.tick({ now: 0 });
+
+            expect(events).toHaveLength(1);
+            expect(events[0].startedAt).toBeUndefined();
+            expect(events[0].finishedAt).toBeUndefined();
+        });
+
+        it("disableTrace also disables profiling", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            tree.enableProfiling(() => 0);
+            tree.disableTrace();
+
+            const events = tree.tick({ now: 0 });
+
+            expect(events).toHaveLength(0);
+        });
+
+        it("re-enabling trace after disableTrace does not restore profiling", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            tree.enableProfiling(() => 0);
+            tree.disableTrace();
+            tree.enableTrace();
+
+            const events = tree.tick({ now: 0 });
+
+            expect(events).toHaveLength(1);
+            expect(events[0].startedAt).toBeUndefined();
+            expect(events[0].finishedAt).toBeUndefined();
+        });
+
+        it("nested node timing: parent startedAt < child startedAt, parent finishedAt > child finishedAt", () => {
+            const child = new StubAction(NodeResult.Succeeded);
+            const root = sequence({ name: "root" }, [child]);
+            const tree = new BehaviourTree(root);
+            let clock = 0;
+            tree.enableProfiling(() => clock++);
+
+            const events = tree.tick({ now: 0 });
+
+            const childEvent = events.find(e => e.nodeId === child.id)!;
+            const rootEvent = events.find(e => e.nodeId === root.id)!;
+
+            expect(rootEvent.startedAt).toBeDefined();
+            expect(rootEvent.finishedAt).toBeDefined();
+            expect(childEvent.startedAt).toBeDefined();
+            expect(childEvent.finishedAt).toBeDefined();
+            expect(rootEvent.startedAt!).toBeLessThan(childEvent.startedAt!);
+            expect(rootEvent.finishedAt!).toBeGreaterThan(childEvent.finishedAt!);
+        });
+
+        it("no startedAt/finishedAt when only tracing (no profiling)", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            tree.enableTrace();
+
+            const events = tree.tick({ now: 0 });
+
+            expect(events).toHaveLength(1);
+            expect(events[0].startedAt).toBeUndefined();
+            expect(events[0].finishedAt).toBeUndefined();
         });
     })
 })

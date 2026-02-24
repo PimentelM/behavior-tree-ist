@@ -11,11 +11,11 @@ export class WaitAction extends Action {
     }
 
     public override get displayName(): string {
-        return `Wait (${this.remainingTime}ms)`;
+        return `Wait (${this.remainingTime})`;
     }
 
     public override getDisplayState() {
-        return { remainingTimeMs: Math.max(0, this.remainingTime) };
+        return { remainingTime: Math.max(0, this.remainingTime) };
     }
 
     private get remainingTime(): number {

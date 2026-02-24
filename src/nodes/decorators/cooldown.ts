@@ -9,29 +9,29 @@ export class Cooldown extends Decorator {
 
     constructor(
         child: BTNode,
-        public readonly cooldownMs: number,
+        public readonly cooldown: number,
     ) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
     }
 
-    private get remainingCooldownMs(): number {
+    private get remainingCooldown(): number {
         if (this.lastFinishedAt === undefined) {
             return 0;
         }
-        return Math.max(0, this.cooldownMs - (this.lastNow - this.lastFinishedAt));
+        return Math.max(0, this.cooldown - (this.lastNow - this.lastFinishedAt));
     }
 
     public override get displayName(): string {
-        return `Cooldown${this.remainingCooldownMs > 0 ? ` (${this.remainingCooldownMs}ms)` : ""}`;
+        return `Cooldown${this.remainingCooldown > 0 ? ` (${this.remainingCooldown})` : ""}`;
     }
 
     public override getDisplayState() {
-        return { remainingCooldownMs: this.remainingCooldownMs };
+        return { remainingCooldown: this.remainingCooldown };
     }
 
     private hasCooldown(): boolean {
-        return this.remainingCooldownMs > 0;
+        return this.remainingCooldown > 0;
     }
 
 

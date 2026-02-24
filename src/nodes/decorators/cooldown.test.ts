@@ -35,6 +35,25 @@ describe("Cooldown", () => {
         expect(child.tickCount).toBe(1);
     });
 
+    it("works correctly when child finishes at tick 0", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const cooldown = new Cooldown(child, 100);
+
+        // Child succeeds at now=0 — sentinel check must use === undefined, not falsy
+        const r1 = tickNode(cooldown, { now: 0 });
+        expect(r1).toBe(NodeResult.Succeeded);
+
+        // Still within cooldown window
+        const r2 = tickNode(cooldown, { now: 50 });
+        expect(r2).toBe(NodeResult.Failed);
+        expect(child.tickCount).toBe(1);
+
+        // Exactly at cooldown boundary — allows again
+        const r3 = tickNode(cooldown, { now: 100 });
+        expect(r3).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(2);
+    });
+
     it("ticks again after cooldown expires", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const cooldown = new Cooldown(child, 100);

@@ -4,14 +4,14 @@ import { BTNode, TickContext } from "../../base/node";
 
 /**
  * A decorator that prevents the child node from being executed more than once within a specified time window.
- * 
+ *
  * @param child The child node to execute.
- * @param throttleMs The time window in milliseconds to wait before allowing the child to be executed again.
+ * @param throttle The time window to wait before allowing the child to be executed again.
  */
 export class Throttle extends Decorator {
     public override readonly defaultName = "Throttle";
 
-    constructor(child: BTNode, public readonly throttleMs: number) {
+    constructor(child: BTNode, public readonly throttle: number) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
     }
@@ -19,23 +19,23 @@ export class Throttle extends Decorator {
     private lastTriggeredAt: number | undefined = undefined;
     private lastNow: number = 0;
 
-    private get remainingThrottleMs(): number {
+    private get remainingThrottle(): number {
         if (this.lastTriggeredAt === undefined) {
             return 0;
         }
-        return Math.max(0, this.throttleMs - (this.lastNow - this.lastTriggeredAt));
+        return Math.max(0, this.throttle - (this.lastNow - this.lastTriggeredAt));
     }
 
     public override get displayName(): string {
-        return `Throttle${this.remainingThrottleMs > 0 ? ` (${this.remainingThrottleMs}ms)` : ""}`;
+        return `Throttle${this.remainingThrottle > 0 ? ` (${this.remainingThrottle})` : ""}`;
     }
 
     public override getDisplayState() {
-        return { remainingThrottleMs: this.remainingThrottleMs };
+        return { remainingThrottle: this.remainingThrottle };
     }
 
     private hasThrottle(): boolean {
-        return this.remainingThrottleMs > 0;
+        return this.remainingThrottle > 0;
     }
     private startThrottle(): void {
         this.lastTriggeredAt = this.lastNow;

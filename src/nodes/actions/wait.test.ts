@@ -32,6 +32,22 @@ describe("WaitAction", () => {
         expect(result).toBe(NodeResult.Succeeded);
     });
 
+    it("works correctly when started at tick 0", () => {
+        const wait = new WaitAction(100);
+
+        // Start at now=0 — sentinel check must use === undefined, not falsy
+        const r1 = BTNode.Tick(wait, createTickContext({ now: 0 }));
+        expect(r1).toBe(NodeResult.Running);
+
+        // Still waiting
+        const r2 = BTNode.Tick(wait, createTickContext({ now: 50 }));
+        expect(r2).toBe(NodeResult.Running);
+
+        // Exactly at duration boundary
+        const r3 = BTNode.Tick(wait, createTickContext({ now: 100 }));
+        expect(r3).toBe(NodeResult.Succeeded);
+    });
+
     it("resets start time after succeeding so it is reusable", () => {
         const wait = new WaitAction(100);
 
@@ -61,11 +77,11 @@ describe("WaitAction", () => {
     it("displays remaining time in displayName", () => {
         const wait = new WaitAction(1000);
 
-        expect(wait.displayName).toBe("Wait (1000ms)");
+        expect(wait.displayName).toBe("Wait (1000)");
 
         BTNode.Tick(wait, createTickContext({ now: 100 }));
         BTNode.Tick(wait, createTickContext({ now: 400 }));
 
-        expect(wait.displayName).toBe("Wait (700ms)");
+        expect(wait.displayName).toBe("Wait (700)");
     });
 });

@@ -9,13 +9,13 @@ export class Debounce extends Decorator {
 
     constructor(
         child: BTNode,
-        public readonly debounceMs: number,
+        public readonly debounce: number,
     ) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
     }
 
-    private get successDurationMs(): number {
+    private get successDuration(): number {
         if (this.firstSuccessAt === undefined) {
             return 0;
         }
@@ -23,11 +23,11 @@ export class Debounce extends Decorator {
     }
 
     public override get displayName(): string {
-        return `Debounce${this.successDurationMs < this.debounceMs ? ` (${this.debounceMs - this.successDurationMs}ms left)` : ""}`;
+        return `Debounce${this.successDuration < this.debounce ? ` (${this.debounce - this.successDuration} left)` : ""}`;
     }
 
     public override getDisplayState() {
-        return { remainingDebounceMs: Math.max(0, this.debounceMs - this.successDurationMs) };
+        return { remainingDebounce: Math.max(0, this.debounce - this.successDuration) };
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
@@ -40,7 +40,7 @@ export class Debounce extends Decorator {
                 this.firstSuccessAt = this.lastNow;
             }
 
-            if (this.successDurationMs >= this.debounceMs) {
+            if (this.successDuration >= this.debounce) {
                 return NodeResult.Succeeded;
             }
 

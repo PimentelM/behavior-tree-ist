@@ -3,7 +3,6 @@ import { NodeFlags, hasFlag } from "./base/types";
 import { serializeTree } from "./serialization/serializer";
 
 type PublicTickContext = {
-    tickNumber?: number;
     now?: number;
 }
 
@@ -11,6 +10,7 @@ export class BehaviourTree {
     private currentTickId: number = 1;
     private root: BTNode;
     private traceEnabled: boolean = false;
+    private profilingTimeProvider: (() => number) | undefined;
 
     constructor(root: BTNode) {
         this.root = root;
@@ -23,6 +23,18 @@ export class BehaviourTree {
 
     public disableTrace(): BehaviourTree {
         this.traceEnabled = false;
+        this.profilingTimeProvider = undefined;
+        return this;
+    }
+
+    public enableProfiling(getTime: () => number): BehaviourTree {
+        this.profilingTimeProvider = getTime;
+        this.traceEnabled = true;
+        return this;
+    }
+
+    public disableProfiling(): BehaviourTree {
+        this.profilingTimeProvider = undefined;
         return this;
     }
 
@@ -34,15 +46,13 @@ export class BehaviourTree {
         const events: TickTraceEvent[] = [];
         const ctx: TickContext = {
             tickId: this.currentTickId,
-            tickNumber: pCtx.tickNumber ?? this.currentTickId,
             now: pCtx.now ?? Date.now(),
             events,
-            trace: (node, result) => {
+            trace: (node, result, startedAt, finishedAt) => {
                 if (!this.traceEnabled) return;
                 const event: TickTraceEvent = {
                     tickId: ctx.tickId,
-                    tickNumber: ctx.tickNumber,
-                    timestampMs: ctx.now,
+                    timestamp: ctx.now,
                     nodeId: node.id,
                     result
                 };
@@ -54,8 +64,14 @@ export class BehaviourTree {
                     }
                 }
 
+                if (startedAt !== undefined && finishedAt !== undefined) {
+                    event.startedAt = startedAt;
+                    event.finishedAt = finishedAt;
+                }
+
                 events.push(event);
             },
+            getTime: this.profilingTimeProvider,
         }
 
         BTNode.Tick(this.root, ctx);

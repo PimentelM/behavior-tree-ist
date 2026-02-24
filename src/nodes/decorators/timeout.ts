@@ -6,39 +6,39 @@ export class Timeout extends Decorator {
     public override readonly defaultName = "Timeout";
 
 
-    constructor(child: BTNode, public readonly timeoutMs: number) {
+    constructor(child: BTNode, public readonly timeout: number) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
     }
 
     public override get displayName(): string {
-        return `Timeout (${this.remainingMs}ms)`;
+        return `Timeout (${this.remaining})`;
     }
 
     public override getDisplayState() {
-        return { remainingMs: this.remainingMs };
+        return { remaining: this.remaining };
     }
 
-    private get elapsedMs(): number {
-        if (this.startedAtMs === undefined) {
+    private get elapsed(): number {
+        if (this.startedAt === undefined) {
             return 0;
         }
-        return this.lastNow - this.startedAtMs;
+        return this.lastNow - this.startedAt;
     }
 
-    private get remainingMs(): number {
-        return Math.max(0, this.timeoutMs - this.elapsedMs);
+    private get remaining(): number {
+        return Math.max(0, this.timeout - this.elapsed);
     }
 
-    private startedAtMs: number | undefined;
+    private startedAt: number | undefined;
     private lastNow: number = 0;
 
     protected override onEnter(ctx: TickContext): void {
-        this.startedAtMs = ctx.now;
+        this.startedAt = ctx.now;
     }
 
     protected override onReset(): void {
-        this.startedAtMs = undefined;
+        this.startedAt = undefined;
         this.lastNow = 0;
     }
 
@@ -46,7 +46,7 @@ export class Timeout extends Decorator {
         this.lastNow = ctx.now;
 
         // If child was Running last tick, check if we timed out.
-        if (this.wasRunning && this.elapsedMs >= this.timeoutMs) {
+        if (this.wasRunning && this.elapsed >= this.timeout) {
             BTNode.Abort(this.child, ctx);
             return NodeResult.Failed;
         }

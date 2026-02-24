@@ -29,10 +29,10 @@ export interface NodeProps {
     retry?: number; // max retries
 
     // Timing decorators
-    debounce?: number; // ms
-    cooldown?: number; // ms
-    throttle?: number; // ms
-    timeout?: number; // ms
+    debounce?: number;
+    cooldown?: number;
+    throttle?: number;
+    timeout?: number;
 
     // Hooks
     onEnter?: (ctx: TickContext) => void;

@@ -78,6 +78,26 @@ describe("Throttle", () => {
         expect(child.abortCount).toBe(1);
     });
 
+    it("works correctly when triggered at tick 0", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const throttle = new Throttle(child, 100);
+
+        // Trigger at now=0 — sentinel check must use === undefined, not falsy
+        const r1 = BTNode.Tick(throttle, createTickContext({ now: 0 }));
+        expect(r1).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(1);
+
+        // Still within throttle window
+        const r2 = BTNode.Tick(throttle, createTickContext({ now: 50 }));
+        expect(r2).toBe(NodeResult.Failed);
+        expect(child.tickCount).toBe(1);
+
+        // Exactly at throttle boundary — fires again
+        const r3 = BTNode.Tick(throttle, createTickContext({ now: 100 }));
+        expect(r3).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(2);
+    });
+
     it("displays remaining time in displayName when throttled", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const throttle = new Throttle(child, 1000);
@@ -85,7 +105,7 @@ describe("Throttle", () => {
         BTNode.Tick(throttle, createTickContext({ now: 5000 }));
         BTNode.Tick(throttle, createTickContext({ now: 5300 }));
 
-        expect(throttle.displayName).toBe("Throttle (700ms)");
+        expect(throttle.displayName).toBe("Throttle (700)");
     });
 
     it("displayName shows decreasing remaining time during throttle window", () => {
@@ -96,10 +116,10 @@ describe("Throttle", () => {
 
         // Throttled tick at 5300 updates lastNow, remaining = 700
         BTNode.Tick(throttle, createTickContext({ now: 5300 }));
-        expect(throttle.displayName).toBe("Throttle (700ms)");
+        expect(throttle.displayName).toBe("Throttle (700)");
 
         // Throttled tick at 5800, remaining = 200
         BTNode.Tick(throttle, createTickContext({ now: 5800 }));
-        expect(throttle.displayName).toBe("Throttle (200ms)");
+        expect(throttle.displayName).toBe("Throttle (200)");
     });
 });

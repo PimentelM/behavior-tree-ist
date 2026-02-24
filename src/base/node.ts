@@ -59,6 +59,8 @@ export abstract class BTNode {
     }
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
+        const startedAt = ctx.getTime?.();
+
         if (!node._wasRunning) {
             node.onEnter?.(ctx);
         } else {
@@ -95,7 +97,8 @@ export abstract class BTNode {
             node.onFailedOrRunning?.(ctx);
         }
 
-        ctx.trace(node, result);
+        const finishedAt = ctx.getTime?.();
+        ctx.trace(node, result, startedAt, finishedAt);
         return result;
     }
 
@@ -159,8 +162,8 @@ export abstract class BTNode {
 
 export interface TickContext {
     tickId: number;
-    tickNumber: number;
     now: number;
     events: TickTraceEvent[];
-    trace: (node: BTNode, result: NodeResult) => void;
+    trace: (node: BTNode, result: NodeResult, startedAt?: number, finishedAt?: number) => void;
+    getTime?: () => number;
 };

@@ -91,6 +91,24 @@ describe("Timeout", () => {
         expect(child.abortCount).toBe(1);
     });
 
+    it("works correctly when started at tick 0", () => {
+        const child = new StubAction(NodeResult.Running);
+        const timeout = new Timeout(child, 100);
+
+        // Start at now=0 — sentinel check must use === undefined, not falsy
+        const r1 = BTNode.Tick(timeout, createTickContext({ now: 0 }));
+        expect(r1).toBe(NodeResult.Running);
+
+        // Still within timeout
+        const r2 = BTNode.Tick(timeout, createTickContext({ now: 50 }));
+        expect(r2).toBe(NodeResult.Running);
+
+        // Exactly at timeout boundary
+        const r3 = BTNode.Tick(timeout, createTickContext({ now: 100 }));
+        expect(r3).toBe(NodeResult.Failed);
+        expect(child.abortCount).toBe(1);
+    });
+
     it("displays remaining time in displayName", () => {
         const child = new StubAction(NodeResult.Running);
         const timeout = new Timeout(child, 1000);
@@ -98,6 +116,6 @@ describe("Timeout", () => {
         BTNode.Tick(timeout, createTickContext({ now: 100 }));
         BTNode.Tick(timeout, createTickContext({ now: 400 }));
 
-        expect(timeout.displayName).toBe("Timeout (700ms)");
+        expect(timeout.displayName).toBe("Timeout (700)");
     });
 });
