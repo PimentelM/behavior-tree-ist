@@ -37,3 +37,5 @@ export class Selector extends Composite {
         return NodeResult.Failed;
     }
 }
+
+export const Fallback = Selector;

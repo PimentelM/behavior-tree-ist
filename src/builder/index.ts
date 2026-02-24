@@ -1,10 +1,14 @@
 import { ConditionNode } from "../base/condition";
 import { Action, BTNode, NodeResult, TickContext } from "../base";
-import { Parallel, Selector, Sequence } from "../nodes";
+import { Parallel, Selector, Sequence, MemorySequence, MemorySelector } from "../nodes";
 import * as Decorators from "../nodes/decorators";
+import { AnyDecoratorSpec } from "../base/node";
 
 export interface NodeProps {
     name?: string;
+
+    // Generic decorators array application
+    decorate?: AnyDecoratorSpec | readonly AnyDecoratorSpec[];
 
     // Condition decorators
     guard?: { name?: string, condition: (ctx: TickContext) => boolean };
@@ -95,6 +99,21 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     if (props.onFailedOrRunning) current = current.decorate([Decorators.OnFailedOrRunning, props.onFailedOrRunning]);
     if (props.onFinished) current = current.decorate([Decorators.OnFinished, props.onFinished]);
 
+    // 6. Generic decorators
+    if (props.decorate) {
+        if (Array.isArray(props.decorate) && props.decorate.length > 0) {
+            if (Array.isArray(props.decorate[0])) {
+                // Array of specs
+                // @ts-ignore - dynamic spread for generic specs
+                current = current.decorate(...props.decorate);
+            } else {
+                // Single spec
+                // @ts-ignore - dynamic spread for generic specs
+                current = current.decorate(props.decorate);
+            }
+        }
+    }
+
     return current;
 }
 
@@ -108,6 +127,14 @@ export function selector(props: NodeProps, children: BTNode[]): BTNode {
 
 export function parallel(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(Parallel.from(props.name || "Parallel", children), props);
+}
+
+export function memorySequence(props: NodeProps, children: BTNode[]): BTNode {
+    return applyDecorators(MemorySequence.from(props.name || "MemorySequence", children), props);
+}
+
+export function memorySelector(props: NodeProps, children: BTNode[]): BTNode {
+    return applyDecorators(MemorySelector.from(props.name || "MemorySelector", children), props);
 }
 
 export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeResult }): BTNode {

@@ -32,6 +32,11 @@ export function createElement(
             return Builder.selector(safeProps, flatChildren);
         case "parallel":
             return Builder.parallel(safeProps, flatChildren);
+        case "memory-sequence":
+            return Builder.memorySequence(safeProps, flatChildren);
+        case "memory-selector":
+        case "memory-fallback":
+            return Builder.memorySelector(safeProps, flatChildren);
         case "action":
             // Action requires an execute prop
             if (typeof safeProps.execute !== "function") {
@@ -65,6 +70,9 @@ declare global {
             sequence: Builder.NodeProps & { children?: Element | Element[] };
             selector: Builder.NodeProps & { children?: Element | Element[] };
             parallel: Builder.NodeProps & { children?: Element | Element[] };
+            "memory-sequence": Builder.NodeProps & { children?: Element | Element[] };
+            "memory-selector": Builder.NodeProps & { children?: Element | Element[] };
+            "memory-fallback": Builder.NodeProps & { children?: Element | Element[] };
             action: Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
             condition: Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
         }

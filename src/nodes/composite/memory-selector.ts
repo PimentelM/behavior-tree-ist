@@ -70,3 +70,5 @@ export class MemorySelector extends Composite {
         this._runningChildIndex = undefined;
     }
 }
+
+export const MemoryFallback = MemorySelector;

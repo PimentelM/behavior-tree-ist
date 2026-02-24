@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { BTNode, NodeResult } from "../base";
-import { Sequence } from "../nodes";
+import { BTNode, NodeResult, TickContext } from "../base";
+import { Sequence, MemorySequence, MemorySelector } from "../nodes";
 import { ConditionNode } from "../base/condition";
 import { Action } from "../base";
+import { Decorator } from "../base/decorator";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BT } from "./index"; // This will be the alias we use for JSX factory -> JSXFactory: "BT.createElement"
 /* eslint-enable @typescript-eslint/no-unused-vars */
@@ -102,5 +103,66 @@ describe("TSX Adapter", () => {
         // The TSX-created instance follows
         expect(children[1]).toBeInstanceOf(Action);
         expect(children[1].name).toBe("TSX Action");
+    });
+    it("can create memory composite nodes", () => {
+        const tree = (
+            <memory-sequence name="MemSeq">
+                <memory-selector name="MemSel">
+                    <action execute={() => NodeResult.Succeeded} />
+                </memory-selector>
+                <memory-fallback name="MemFall">
+                    <action execute={() => NodeResult.Succeeded} />
+                </memory-fallback>
+            </memory-sequence>
+        );
+
+        expect(tree).toBeInstanceOf(MemorySequence);
+        expect(tree.name).toBe("MemSeq");
+
+        const children = tree.getChildren?.() ?? [];
+        expect(children.length).toBe(2);
+
+        expect(children[0]).toBeInstanceOf(MemorySelector);
+        expect(children[0].name).toBe("MemSel");
+
+        expect(children[1]).toBeInstanceOf(MemorySelector);
+        expect(children[1].name).toBe("MemFall");
+    });
+
+    it("can apply generic decorators using the decorate prop", () => {
+        class DummyDecorator extends Decorator {
+            constructor(child: BTNode, public readonly value: number) {
+                super(child);
+                this.name = "Dummy";
+            }
+            protected onTick(ctx: TickContext): NodeResult {
+                return BTNode.Tick(this.child, ctx);
+            }
+        }
+
+        const tree = (
+            <action
+                decorate={[DummyDecorator, 42]}
+                execute={() => NodeResult.Succeeded}
+            />
+        );
+
+        expect(tree).toBeInstanceOf(DummyDecorator);
+        expect((tree as DummyDecorator).value).toBe(42);
+
+        const multiDecorated = (
+            <action
+                decorate={[
+                    [DummyDecorator, 1],
+                    [DummyDecorator, 2]
+                ]}
+                execute={() => NodeResult.Succeeded}
+            />
+        );
+
+        expect(multiDecorated).toBeInstanceOf(DummyDecorator);
+        expect((multiDecorated as DummyDecorator).value).toBe(1);
+        expect(multiDecorated.getChildren?.()[0]).toBeInstanceOf(DummyDecorator);
+        expect((multiDecorated.getChildren?.()[0] as DummyDecorator).value).toBe(2);
     });
 });

@@ -1,9 +1,9 @@
 import { TickTraceEvent } from "./types";
 import { NodeResult, NodeFlags, SerializableState } from "./types";
 
-type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];
+export type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];
 
-type ValidateDecoratorSpec<Spec extends AnyDecoratorSpec> =
+export type ValidateDecoratorSpec<Spec extends AnyDecoratorSpec> =
     Spec extends readonly [infer Ctor, ...infer Args]
     ? Ctor extends abstract new (...ctorArgs: infer CtorArgs) => BTNode
     ? CtorArgs extends readonly [BTNode, ...infer TailArgs]
@@ -14,7 +14,7 @@ type ValidateDecoratorSpec<Spec extends AnyDecoratorSpec> =
     : never
     : never;
 
-type ValidateDecoratorSpecs<Specs extends readonly AnyDecoratorSpec[]> = {
+export type ValidateDecoratorSpecs<Specs extends readonly AnyDecoratorSpec[]> = {
     [K in keyof Specs]: Specs[K] extends AnyDecoratorSpec ? ValidateDecoratorSpec<Specs[K]> : never;
 };
 
