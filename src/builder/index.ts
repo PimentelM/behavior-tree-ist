@@ -7,6 +7,9 @@ import { AnyDecoratorSpec } from "../base/node";
 export interface NodeProps {
     name?: string;
 
+    tag?: string;
+    tags?: string[];
+
     // Generic decorators array application
     decorate?: AnyDecoratorSpec | readonly AnyDecoratorSpec[];
 
@@ -112,6 +115,13 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
                 current = current.decorate(props.decorate);
             }
         }
+    }
+
+    if (props.tag) {
+        current.addTags([props.tag]);
+    }
+    if (props.tags && props.tags.length > 0) {
+        current.addTags(props.tags);
     }
 
     return current;

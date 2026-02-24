@@ -13,6 +13,15 @@ export abstract class Decorator extends BTNode {
         return [this.child];
     }
 
+    public override get tags(): readonly string[] {
+        return [];
+    }
+
+    public override addTags(tags: string[]): this {
+        this.child.addTags(tags);
+        return this;
+    }
+
     protected override onAbort(ctx: TickContext): void {
         BTNode.Abort(this.child, ctx);
     }

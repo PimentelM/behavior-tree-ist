@@ -181,4 +181,21 @@ describe("TSX Adapter", () => {
         expect(multiDecorated.getChildren?.()[0]).toBeInstanceOf(DummyDecorator);
         expect((multiDecorated.getChildren?.()[0] as DummyDecorator).value).toBe(2);
     });
+
+    it("applies tags from props directly to the node", () => {
+        const tree = (
+            <action
+                name="TaggedAction"
+                tag="testTag"
+                tags={["tag1", "tag2"]}
+                execute={() => NodeResult.Succeeded}
+            />
+        );
+
+        expect(tree).toBeInstanceOf(Action);
+        expect(tree.tags).toContain("testTag");
+        expect(tree.tags).toContain("tag1");
+        expect(tree.tags).toContain("tag2");
+        expect(tree.tags.length).toBe(3);
+    });
 });

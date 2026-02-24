@@ -23,6 +23,16 @@ export abstract class BTNode {
     public readonly id: number = BTNode.NEXT_ID++;
     public abstract readonly defaultName: string;
 
+    private _tags: string[] = [];
+    public get tags(): readonly string[] {
+        return this._tags;
+    }
+
+    public addTags(tags: string[]): this {
+        this._tags = Array.from(new Set([...this._tags, ...tags]));
+        return this;
+    }
+
     /** Whether this node returned Running on its last tick */
     private _wasRunning: boolean = false;
     public get wasRunning(): boolean { return this._wasRunning; }

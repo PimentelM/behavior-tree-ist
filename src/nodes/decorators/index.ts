@@ -25,3 +25,4 @@ export * from './succeed-if';
 export * from './fail-if';
 export * from './until-fail';
 export * from './until-success';
+export * from './tag';

@@ -58,8 +58,10 @@ class MockSequence extends Composite {
 describe("Serialization", () => {
     it("serializes an unexplored tree structure correctly", () => {
         const action = new MockAction();
+        action.addTags(["test-action"]);
         const decorator = new MockDecorator(action);
         const composite = new MockSequence([decorator]);
+        composite.addTags(["test-composite"]);
         const tree = new BehaviourTree(composite);
 
         const serialized = tree.serialize();
@@ -68,6 +70,7 @@ describe("Serialization", () => {
             id: expect.any(Number),
             nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
             displayName: "MockSequence",
+            tags: ["test-composite"],
             children: [{
                 id: expect.any(Number),
                 nodeFlags: NodeFlags.Decorator,
@@ -79,6 +82,7 @@ describe("Serialization", () => {
                     id: expect.any(Number),
                     nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
                     displayName: "MockAction",
+                    tags: ["test-action"],
                     state: {
                         active: false
                     }
