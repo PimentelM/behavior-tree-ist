@@ -1,5 +1,5 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 /**
@@ -14,6 +14,10 @@ import { BTNode, TickContext } from "../../base/node";
  * Use MemorySequence when children are expensive to evaluate and conditions
  * are stable, or when you explicitly want "resume from where we left off" behavior.
  */
+
+export type MemorySequenceState = {
+    runningChildIndex: number | undefined;
+};
 export class MemorySequence extends Composite {
     public override readonly defaultName = "MemorySequence";
     private _runningChildIndex: number | undefined;
@@ -37,7 +41,7 @@ export class MemorySequence extends Composite {
         return composite;
     }
 
-    public override getDisplayState(): SerializableState {
+    public override getDisplayState(): MemorySequenceState {
         return { runningChildIndex: this._runningChildIndex };
     }
 

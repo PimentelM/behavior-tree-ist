@@ -1,6 +1,10 @@
 import { TickContext } from "../../base";
 import { Action } from "../../base/action";
 import { NodeResult, NodeFlags } from "../../base/types";
+export type WaitActionState = {
+    remainingTime: number;
+};
+
 
 export class WaitAction extends Action {
     public override readonly defaultName = "WaitAction";
@@ -14,7 +18,7 @@ export class WaitAction extends Action {
         return `Wait (${this.remainingTime})`;
     }
 
-    public override getDisplayState() {
+    public override getDisplayState(): WaitActionState {
         return { remainingTime: Math.max(0, this.remainingTime) };
     }
 

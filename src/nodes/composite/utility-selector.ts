@@ -1,5 +1,5 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export type UtilityScorer = (ctx: TickContext) => number;
@@ -8,6 +8,10 @@ export interface UtilityNodeSpec {
     node: BTNode;
     scorer: UtilityScorer;
 }
+export type UtilitySelectorState = {
+    lastScores: [number, number][] | undefined;
+};
+
 
 export class UtilitySelector extends Composite {
     public override readonly defaultName = "UtilitySelector";
@@ -30,7 +34,7 @@ export class UtilitySelector extends Composite {
         return composite;
     }
 
-    public override getDisplayState(): SerializableState {
+    public override getDisplayState(): UtilitySelectorState {
         return {
             lastScores: this.lastScores?.map(score => [score.index, score.score])
         };
