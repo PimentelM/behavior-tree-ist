@@ -1,6 +1,6 @@
 import { ConditionNode } from "../base/condition";
 import { Action, BTNode, NodeResult, TickContext } from "../base";
-import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep } from "../nodes";
+import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse } from "../nodes";
 import * as Decorators from "../nodes/decorators";
 import { AnyDecoratorSpec } from "../base/node";
 
@@ -141,6 +141,10 @@ export function fallback(props: NodeProps, children: BTNode[]): BTNode {
 
 export function parallel(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(Parallel.from(props.name || "Parallel", children), props);
+}
+
+export function ifThenElse(props: NodeProps, children: BTNode[]): BTNode {
+    return applyDecorators(IfThenElse.from(props.name || "IfThenElse", children as any), props);
 }
 
 export function sequenceWithMemory(props: NodeProps, children: BTNode[]): BTNode {

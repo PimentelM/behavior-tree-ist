@@ -34,6 +34,8 @@ export function createElement(
             return Builder.fallback(safeProps, flatChildren);
         case "parallel":
             return Builder.parallel(safeProps, flatChildren);
+        case "if-then-else":
+            return Builder.ifThenElse(safeProps, flatChildren);
         case "sequence-with-memory":
             return Builder.sequenceWithMemory(safeProps, flatChildren);
         case "fallback-with-memory":
@@ -86,6 +88,7 @@ declare global {
             fallback: DefaultCompositeProps;
             "reactive-fallback": DefaultCompositeProps;
             parallel: DefaultCompositeProps;
+            "if-then-else": DefaultCompositeProps;
             "sequence-with-memory": DefaultCompositeProps;
             "fallback-with-memory": DefaultCompositeProps;
             action: Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
