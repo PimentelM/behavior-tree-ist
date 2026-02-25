@@ -51,7 +51,7 @@ describe("Stateful decorators in context", () => {
             tree.enableTrace();
 
             tree.tick({ now: 100 });       // wait Running, timeout starts
-            const events1 = tree.tick({ now: 300 });  // 200ms elapsed -> timeout fires, aborts wait
+            const { events: events1 } = tree.tick({ now: 300 });  // 200ms elapsed -> timeout fires, aborts wait
 
             expect(events1.find(e => e.nodeId === timeout.id)?.result).toBe(NodeResult.Failed);
         });
@@ -63,7 +63,7 @@ describe("Stateful decorators in context", () => {
             tree.enableTrace();
 
             tree.tick({ now: 100 });
-            const events = tree.tick({ now: 200 });
+            const { events } = tree.tick({ now: 200 });
 
             expect(events.find(e => e.nodeId === timeout.id)?.result).toBe(NodeResult.Succeeded);
         });
@@ -80,7 +80,7 @@ describe("Stateful decorators in context", () => {
 
             // Second run: timeout should start fresh
             tree.tick({ now: 1000 });
-            const events = tree.tick({ now: 1100 });
+            const { events } = tree.tick({ now: 1100 });
 
             expect(events.find(e => e.nodeId === timeout.id)?.result).toBe(NodeResult.Succeeded);
         });
@@ -142,7 +142,7 @@ describe("Stateful decorators in context", () => {
             tree.enableTrace();
 
             tree.tick({ now: 5000 });     // condition passes, action succeeds
-            const events = tree.tick({ now: 5100 });  // condition passes, throttle -> Failed
+            const { events } = tree.tick({ now: 5100 });  // condition passes, throttle -> Failed
 
             expect(events.find(e => e.nodeId === sequence.id)?.result).toBe(NodeResult.Failed);
         });
@@ -156,7 +156,7 @@ describe("Stateful decorators in context", () => {
             tree.enableTrace();
 
             tree.tick({ now: 5000 });
-            const events = tree.tick({ now: 6000 });
+            const { events } = tree.tick({ now: 6000 });
 
             expect(events.find(e => e.nodeId === sequence.id)?.result).toBe(NodeResult.Succeeded);
             expect(action.tickCount).toBe(2);
@@ -210,7 +210,7 @@ describe("Stateful decorators in context", () => {
             tree.tick({ now: 5000 });
 
             // Both throttled within window -> both return Failed -> selector Failed
-            const events = tree.tick({ now: 5500 });
+            const { events } = tree.tick({ now: 5500 });
 
             expect(events.find(e => e.nodeId === selector.id)?.result).toBe(NodeResult.Failed);
         });
@@ -240,7 +240,7 @@ describe("Stateful decorators in context", () => {
             tree.enableTrace();
 
             tree.tick({ now: 100 });
-            const events = tree.tick({ now: 600 });
+            const { events } = tree.tick({ now: 600 });
 
             expect(events.find(e => e.nodeId === timeout.id)?.result).toBe(NodeResult.Succeeded);
         });
@@ -257,7 +257,7 @@ describe("Stateful decorators in context", () => {
             tree.tick({ now: 100 });       // Running, timer starts at 100
             tree.tick({ now: 150 });       // Succeeded, timer resets
             tree.tick({ now: 1000 });      // Running, new timer starts at 1000
-            const events = tree.tick({ now: 1050 }); // Running, 50ms elapsed (< 100ms)
+            const { events } = tree.tick({ now: 1050 }); // Running, 50ms elapsed (< 100ms)
 
             expect(events.find(e => e.nodeId === timeout.id)?.result).toBe(NodeResult.Running);
         });
@@ -269,7 +269,7 @@ describe("Stateful decorators in context", () => {
             tree.enableTrace();
 
             tree.tick({ now: 100 });
-            const events = tree.tick({ now: 200 });
+            const { events } = tree.tick({ now: 200 });
 
             expect(events.find(e => e.nodeId === timeout.id)?.result).toBe(NodeResult.Failed);
         });

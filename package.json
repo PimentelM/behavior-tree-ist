@@ -35,6 +35,16 @@
         "types": "./dist/tsx.d.ts",
         "default": "./dist/tsx.js"
       }
+    },
+    "./inspector": {
+      "import": {
+        "types": "./dist/inspector.d.mts",
+        "default": "./dist/inspector.mjs"
+      },
+      "require": {
+        "types": "./dist/inspector.d.ts",
+        "default": "./dist/inspector.js"
+      }
     }
   },
   "files": [

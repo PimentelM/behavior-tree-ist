@@ -1,4 +1,4 @@
-import { BTNode, TickContext, TickTraceEvent, SerializableNode } from "./base";
+import { BTNode, TickContext, TickTraceEvent, SerializableNode, TickRecord } from "./base";
 import { NodeFlags, hasFlag } from "./base/types";
 import { serializeTree } from "./serialization/serializer";
 
@@ -42,11 +42,13 @@ export class BehaviourTree {
         return serializeTree(this.root);
     }
 
-    public tick(pCtx: PublicTickContext = {}): TickTraceEvent[] {
+    public tick(pCtx: PublicTickContext = {}): TickRecord {
         const events: TickTraceEvent[] = [];
+        const now = pCtx.now ?? Date.now();
+        const tickId = this.currentTickId;
         const ctx: TickContext = {
-            tickId: this.currentTickId,
-            now: pCtx.now ?? Date.now(),
+            tickId,
+            now,
             events,
             trace: (node, result, startedAt, finishedAt) => {
                 if (!this.traceEnabled) return;
@@ -77,7 +79,7 @@ export class BehaviourTree {
         BTNode.Tick(this.root, ctx);
 
         this.currentTickId++;
-        return events;
+        return { tickId, timestamp: now, events };
     }
 
 }

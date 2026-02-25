@@ -21,11 +21,11 @@ describe("BehaviourTree", () => {
         const tree = new BehaviourTree(root);
         tree.enableTrace();
 
-        const events1 = tree.tick({ now: 0 });
-        const events2 = tree.tick({ now: 100 });
+        const tick1 = tree.tick({ now: 0 });
+        const tick2 = tree.tick({ now: 100 });
 
-        expect(events1[0].tickId).toBe(1);
-        expect(events2[0].tickId).toBe(2);
+        expect(tick1.tickId).toBe(1);
+        expect(tick2.tickId).toBe(2);
     });
 
     it("uses provided now", () => {
@@ -33,16 +33,16 @@ describe("BehaviourTree", () => {
         const tree = new BehaviourTree(root);
         tree.enableTrace();
 
-        const events = tree.tick({ now: 999 });
+        const tick = tree.tick({ now: 999 });
 
-        expect(events[0].timestamp).toBe(999);
+        expect(tick.timestamp).toBe(999);
     });
 
     it("returns empty events when tracing disabled", () => {
         const root = new StubAction(NodeResult.Succeeded);
         const tree = new BehaviourTree(root);
 
-        const events = tree.tick({ now: 0 });
+        const { events } = tree.tick({ now: 0 });
 
         expect(events).toEqual([]);
     });
@@ -53,7 +53,7 @@ describe("BehaviourTree", () => {
             const tree = new BehaviourTree(root);
             tree.enableTrace();
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
             expect(events[0].result).toBe(NodeResult.Succeeded);
@@ -64,7 +64,7 @@ describe("BehaviourTree", () => {
             const tree = new BehaviourTree(root);
             tree.enableTrace();
 
-            const events = tree.tick({ now: 100 });
+            const { events } = tree.tick({ now: 100 });
 
             expect(events[0]).toEqual({
                 tickId: 1,
@@ -100,7 +100,7 @@ describe("BehaviourTree", () => {
 
             const tree = new BehaviourTree(root).enableTrace();
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events.map(e => [e.nodeId, e.result])).toEqual([
                 [cond1.id, NodeResult.Failed],
@@ -122,7 +122,7 @@ describe("BehaviourTree", () => {
             const root = sequence({ name: "root" }, [isReady, doSomething, throttle]);
             const tree = new BehaviourTree(root).enableTrace();
 
-            const events1 = tree.tick({ now: 1 });
+            const { events: events1 } = tree.tick({ now: 1 });
             expect(events1.map(e => [e.nodeId, e.result])).toEqual([
                 [isReady.id, NodeResult.Succeeded],
                 [doSomething.id, NodeResult.Succeeded],
@@ -132,7 +132,7 @@ describe("BehaviourTree", () => {
             ]);
             expect(events1.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottle: 1000 });
 
-            const events2 = tree.tick({ now: 2 });
+            const { events: events2 } = tree.tick({ now: 2 });
             expect(events2.map(e => [e.nodeId, e.result])).toEqual([
                 [isReady.id, NodeResult.Succeeded],
                 [doSomething.id, NodeResult.Succeeded],
@@ -146,10 +146,10 @@ describe("BehaviourTree", () => {
             const wait = new WaitAction(500);
             const tree = new BehaviourTree(wait).enableTrace();
 
-            const events1 = tree.tick({ now: 0 });
+            const { events: events1 } = tree.tick({ now: 0 });
             expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 500 });
 
-            const events2 = tree.tick({ now: 200 });
+            const { events: events2 } = tree.tick({ now: 200 });
             expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 300 });
         });
     })
@@ -161,7 +161,7 @@ describe("BehaviourTree", () => {
             let clock = 0;
             tree.enableProfiling(() => clock++);
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
             expect(events[0].startedAt).toBeDefined();
@@ -173,7 +173,7 @@ describe("BehaviourTree", () => {
             const tree = new BehaviourTree(root);
             tree.enableProfiling(() => 0);
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
         });
@@ -184,7 +184,7 @@ describe("BehaviourTree", () => {
             tree.enableProfiling(() => 0);
             tree.disableProfiling();
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
             expect(events[0].startedAt).toBeUndefined();
@@ -197,7 +197,7 @@ describe("BehaviourTree", () => {
             tree.enableProfiling(() => 0);
             tree.disableTrace();
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(0);
         });
@@ -209,7 +209,7 @@ describe("BehaviourTree", () => {
             tree.disableTrace();
             tree.enableTrace();
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
             expect(events[0].startedAt).toBeUndefined();
@@ -223,7 +223,7 @@ describe("BehaviourTree", () => {
             let clock = 0;
             tree.enableProfiling(() => clock++);
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             const childEvent = events.find(e => e.nodeId === child.id)!;
             const rootEvent = events.find(e => e.nodeId === root.id)!;
@@ -241,7 +241,7 @@ describe("BehaviourTree", () => {
             const tree = new BehaviourTree(root);
             tree.enableTrace();
 
-            const events = tree.tick({ now: 0 });
+            const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
             expect(events[0].startedAt).toBeUndefined();

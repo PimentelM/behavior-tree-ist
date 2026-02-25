@@ -6,15 +6,12 @@ export function serializeTree(root: BTNode): SerializableNode {
         id: root.id,
         nodeFlags: root.nodeFlags,
         defaultName: root.defaultName,
-        displayName: root.displayName,
         name: root.name,
     };
 
     if (root.tags && root.tags.length > 0) {
         serialized.tags = root.tags;
     }
-
-    serialized.state = root.getDisplayState?.();
 
     const children = root.getChildren?.();
     if (children && children.length > 0) {

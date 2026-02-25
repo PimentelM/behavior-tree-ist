@@ -56,7 +56,7 @@ class MockSequence extends Composite {
 }
 
 describe("Serialization", () => {
-    it("serializes an unexplored tree structure correctly", () => {
+    it("serializes tree structure without state or displayName", () => {
         const action = new MockAction();
         action.addTags(["test-action"]);
         const decorator = new MockDecorator(action);
@@ -69,45 +69,42 @@ describe("Serialization", () => {
         expect(serialized).toMatchObject({
             id: expect.any(Number),
             nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
-            displayName: "MockSequence",
+            defaultName: "MockSequence",
+            name: "",
             tags: ["test-composite"],
             children: [{
                 id: expect.any(Number),
                 nodeFlags: NodeFlags.Decorator,
-                displayName: "MockDecorator (0)",
-                state: {
-                    counts: 0
-                },
+                defaultName: "MockDecorator",
+                name: "",
                 children: [{
                     id: expect.any(Number),
                     nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
-                    displayName: "MockAction",
+                    defaultName: "MockAction",
+                    name: "",
                     tags: ["test-action"],
-                    state: {
-                        active: false
-                    }
                 }]
             }]
         });
+
+        // Verify state and displayName are NOT present
+        expect(serialized).not.toHaveProperty("state");
+        expect(serialized).not.toHaveProperty("displayName");
+        expect(serialized.children![0]).not.toHaveProperty("state");
+        expect(serialized.children![0]).not.toHaveProperty("displayName");
     });
 
-    it("serializes tree with active state correctly after ticking", () => {
+    it("serialized tree does not change after ticking", () => {
         const action = new MockAction();
         const decorator = new MockDecorator(action);
         const composite = new MockSequence([decorator]);
         const tree = new BehaviourTree(composite);
 
+        const beforeTick = tree.serialize();
         tree.tick();
-        const serialized = tree.serialize();
+        const afterTick = tree.serialize();
 
-        const serializedDecorator = serialized.children![0];
-        const serializedAction = serializedDecorator.children![0];
-        expect(serializedDecorator).toMatchObject({
-            displayName: "MockDecorator (1)",
-            state: { counts: 1 }
-        });
-        expect(serializedAction.state).toMatchObject({
-            active: true
-        });
+        // Structure should be identical — no state leaks into serialization
+        expect(beforeTick).toEqual(afterTick);
     });
 });
