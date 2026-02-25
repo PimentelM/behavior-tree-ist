@@ -1,6 +1,10 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
+export type CooldownState = {
+    remainingCooldown: number;
+};
+
 
 export class Cooldown extends Decorator {
     public override readonly defaultName = "Cooldown";
@@ -26,7 +30,7 @@ export class Cooldown extends Decorator {
         return `Cooldown${this.remainingCooldown > 0 ? ` (${this.remainingCooldown})` : ""}`;
     }
 
-    public override getDisplayState() {
+    public override getDisplayState(): CooldownState {
         return { remainingCooldown: this.remainingCooldown };
     }
 

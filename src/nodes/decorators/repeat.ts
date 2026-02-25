@@ -1,6 +1,10 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
+export type RepeatState = {
+    successfulCount: number;
+};
+
 
 export class Repeat extends Decorator {
     public override readonly defaultName = "Repeat";
@@ -21,7 +25,7 @@ export class Repeat extends Decorator {
         return `Repeat (${this.successfulCount}/${this.times})`;
     }
 
-    public override getDisplayState() {
+    public override getDisplayState(): RepeatState {
         return { successfulCount: this.successfulCount };
     }
 

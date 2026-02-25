@@ -1,6 +1,10 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
+export type DebounceState = {
+    remainingDebounce: number;
+};
+
 
 export class Debounce extends Decorator {
     public override readonly defaultName = "Debounce";
@@ -26,7 +30,7 @@ export class Debounce extends Decorator {
         return `Debounce${this.successDuration < this.debounce ? ` (${this.debounce - this.successDuration} left)` : ""}`;
     }
 
-    public override getDisplayState() {
+    public override getDisplayState(): DebounceState {
         return { remainingDebounce: Math.max(0, this.debounce - this.successDuration) };
     }
 

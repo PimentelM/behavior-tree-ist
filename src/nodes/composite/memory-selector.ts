@@ -1,5 +1,5 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 /**
@@ -14,6 +14,10 @@ import { BTNode, TickContext } from "../../base/node";
  * Use MemorySelector when children are expensive to evaluate and you want
  * "finish what you started" behavior rather than immediate preemption.
  */
+
+export type MemorySelectorState = {
+    runningChildIndex: number | undefined;
+};
 export class MemorySelector extends Composite {
     public override readonly defaultName = "MemorySelector";
     private _runningChildIndex: number | undefined;
@@ -37,7 +41,7 @@ export class MemorySelector extends Composite {
         return composite;
     }
 
-    public override getDisplayState(): SerializableState {
+    public override getDisplayState(): MemorySelectorState {
         return { runningChildIndex: this._runningChildIndex };
     }
 

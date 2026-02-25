@@ -8,6 +8,10 @@ import { BTNode, TickContext } from "../../base/node";
  * @param child The child node to execute.
  * @param throttle The time window to wait before allowing the child to be executed again.
  */
+
+export type ThrottleState = {
+    remainingThrottle: number;
+};
 export class Throttle extends Decorator {
     public override readonly defaultName = "Throttle";
 
@@ -30,7 +34,7 @@ export class Throttle extends Decorator {
         return `Throttle${this.remainingThrottle > 0 ? ` (${this.remainingThrottle})` : ""}`;
     }
 
-    public override getDisplayState() {
+    public override getDisplayState(): ThrottleState {
         return { remainingThrottle: this.remainingThrottle };
     }
 
