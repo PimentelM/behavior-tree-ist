@@ -26,3 +26,5 @@ export * from './fail-if';
 export * from './keep-running-until-failure';
 export * from './until-success';
 export * from './tag';
+export * from './delay';
+export * from './run-once';

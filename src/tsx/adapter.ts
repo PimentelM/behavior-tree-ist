@@ -45,6 +45,12 @@ export function createElement(
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return Builder.action(safeProps as unknown as any);
+        case "always-success":
+            return Builder.alwaysSuccess(safeProps);
+        case "always-failure":
+            return Builder.alwaysFailure(safeProps);
+        case "always-running":
+            return Builder.alwaysRunning(safeProps);
         case "condition":
             // Condition requires an eval prop
             if (typeof safeProps.eval !== "function") {
@@ -52,6 +58,12 @@ export function createElement(
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return Builder.condition(safeProps as unknown as any);
+        case "sleep":
+            if (typeof safeProps.duration !== "number") {
+                throw new Error(`<sleep> requires a "duration" prop of type number.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return Builder.sleep(safeProps as unknown as any);
         default:
             throw new Error(`Unknown intrinsic behavior tree node type: <${type}>`);
     }
@@ -78,6 +90,10 @@ declare global {
             "fallback-with-memory": DefaultCompositeProps;
             action: Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
             condition: Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
+            "always-success": Builder.NodeProps;
+            "always-failure": Builder.NodeProps;
+            "always-running": Builder.NodeProps;
+            sleep: Builder.NodeProps & { duration: number };
         }
     }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, fallback, parallel, action, condition, precondition } from "./index";
+import { sequence, fallback, parallel, action, condition } from "./index";
 import { NodeResult } from "../base/types";
 import { tickNode } from "../test-helpers";
 
@@ -55,10 +55,4 @@ describe("Subtree Builder Factory", () => {
         expect(result).toBe(NodeResult.Succeeded);
     });
 
-    it("wraps a node in a precondition", () => {
-        const g = precondition({ eval: () => false }, action({ execute: () => NodeResult.Succeeded }));
-
-        const result = tickNode(g);
-        expect(result).toBe(NodeResult.Failed); // Guard blocks execution
-    });
 });

@@ -1,6 +1,6 @@
 import { ConditionNode } from "../base/condition";
 import { Action, BTNode, NodeResult, TickContext } from "../base";
-import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory } from "../nodes";
+import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep } from "../nodes";
 import * as Decorators from "../nodes/decorators";
 import { AnyDecoratorSpec } from "../base/node";
 
@@ -26,6 +26,7 @@ export interface NodeProps {
     runningIsSuccess?: boolean;
     keepRunningUntilFailure?: boolean;
     untilSuccess?: boolean;
+    runOnce?: boolean;
 
     // Retry / Repeat
     repeat?: number; // max iterations, or -1 for infinite
@@ -36,6 +37,7 @@ export interface NodeProps {
     cooldown?: number;
     throttle?: number;
     timeout?: number;
+    delay?: number;
 
     // Hooks
     onEnter?: (ctx: TickContext) => void;
@@ -73,6 +75,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     // 2. Control Flow modifiers
     if (props.keepRunningUntilFailure) current = current.decorate([Decorators.KeepRunningUntilFailure]);
     else if (props.untilSuccess) current = current.decorate([Decorators.UntilSuccess]);
+    if (props.runOnce) current = current.decorate([Decorators.RunOnce]);
 
     if (props.repeat !== undefined) current = current.decorate([Decorators.Repeat, props.repeat]);
     if (props.retryUntilSuccessful !== undefined) current = current.decorate([Decorators.RetryUntilSuccessful, props.retryUntilSuccessful]);
@@ -88,6 +91,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     if (props.cooldown !== undefined) current = current.decorate([Decorators.Cooldown, props.cooldown]);
     if (props.throttle !== undefined) current = current.decorate([Decorators.Throttle, props.throttle]);
     if (props.timeout !== undefined) current = current.decorate([Decorators.Timeout, props.timeout]);
+    if (props.delay !== undefined) current = current.decorate([Decorators.Delay, props.delay]);
 
     // 5. Hooks
     if (props.onEnter) current = current.decorate([Decorators.OnEnter, props.onEnter]);
@@ -155,6 +159,18 @@ export function condition(props: NodeProps & { eval: (ctx: TickContext) => boole
     return applyDecorators(ConditionNode.from(props.name || "Condition", props.eval), props);
 }
 
-export function precondition(props: NodeProps & { eval: (ctx: TickContext) => boolean }, child: BTNode): BTNode {
-    return applyDecorators(new Decorators.Precondition(child, props.name || "Precondition", props.eval), props);
+export function alwaysRunning(props: NodeProps = {}): BTNode {
+    return applyDecorators(new AlwaysRunning(), props);
+}
+
+export function alwaysSuccess(props: NodeProps = {}): BTNode {
+    return applyDecorators(new AlwaysSuccess(), props);
+}
+
+export function alwaysFailure(props: NodeProps = {}): BTNode {
+    return applyDecorators(new AlwaysFailure(), props);
+}
+
+export function sleep(props: NodeProps & { duration: number }): BTNode {
+    return applyDecorators(new Sleep(props.duration), props);
 }
