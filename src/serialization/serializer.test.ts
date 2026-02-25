@@ -117,6 +117,7 @@ describe("Serialization", () => {
                 const composite = new MockSequence([decorator]);
                 composite.addTags(["test-composite"]);
                 const tree = new BehaviourTree(composite);
+                tree.tick();
 
                 const serialized = tree.serialize({ includeState: true });
 
@@ -131,6 +132,9 @@ describe("Serialization", () => {
                         nodeFlags: NodeFlags.Decorator,
                         defaultName: "MockDecorator",
                         name: "",
+                        state: {
+                            counts: 1
+                        },
                         children: [{
                             id: expect.any(Number),
                             nodeFlags: NodeFlags.Leaf | NodeFlags.Action,

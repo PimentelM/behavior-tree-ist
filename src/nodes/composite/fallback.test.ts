@@ -1,15 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { Selector } from "./selector";
+import { Fallback } from "./fallback";
 import { BTNode } from "../../base/node";
 import { NodeResult } from "../../base/types";
 import { createTickContext, StubAction } from "../../test-helpers";
 
-describe("Selector", () => {
+describe("Fallback", () => {
     it("returns Succeeded on first child success", () => {
         const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Succeeded);
         const child3 = new StubAction(NodeResult.Failed);
-        const selector = Selector.from([child1, child2, child3]);
+        const selector = Fallback.from([child1, child2, child3]);
 
         const result = BTNode.Tick(selector, createTickContext());
 
@@ -19,7 +19,7 @@ describe("Selector", () => {
     it("returns Failed when all children fail", () => {
         const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Failed);
-        const selector = Selector.from([child1, child2]);
+        const selector = Fallback.from([child1, child2]);
 
         const result = BTNode.Tick(selector, createTickContext());
 
@@ -31,7 +31,7 @@ describe("Selector", () => {
     it("returns Running when a child returns Running", () => {
         const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Running);
-        const selector = Selector.from([child1, child2]);
+        const selector = Fallback.from([child1, child2]);
 
         const result = BTNode.Tick(selector, createTickContext());
 
@@ -43,7 +43,7 @@ describe("Selector", () => {
     it("stops ticking remaining children after Succeeded", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Failed);
-        const selector = Selector.from([child1, child2]);
+        const selector = Fallback.from([child1, child2]);
 
         BTNode.Tick(selector, createTickContext());
 
@@ -55,7 +55,7 @@ describe("Selector", () => {
     it("stops ticking remaining children after Running", () => {
         const child1 = new StubAction(NodeResult.Running);
         const child2 = new StubAction(NodeResult.Failed);
-        const selector = Selector.from([child1, child2]);
+        const selector = Fallback.from([child1, child2]);
 
         BTNode.Tick(selector, createTickContext());
 
@@ -69,7 +69,7 @@ describe("Selector", () => {
         // Tick 2: child1 succeeds, child2 should be aborted
         const child1 = new StubAction([NodeResult.Failed, NodeResult.Succeeded]);
         const child2 = new StubAction(NodeResult.Running);
-        const selector = Selector.from([child1, child2]);
+        const selector = Fallback.from([child1, child2]);
 
         BTNode.Tick(selector, createTickContext()); // child2 is Running
         BTNode.Tick(selector, createTickContext()); // child1 succeeds, child2 aborted
@@ -78,19 +78,19 @@ describe("Selector", () => {
     });
 
     it("throws when no children", () => {
-        const selector = Selector.from([]);
+        const selector = Fallback.from([]);
 
         expect(() => BTNode.Tick(selector, createTickContext())).toThrow("has no nodes");
     });
 
     it("from factory works with name", () => {
-        const selector = Selector.from("mySelector", [new StubAction()]);
+        const selector = Fallback.from("mySelector", [new StubAction()]);
 
         expect(selector.name).toBe("mySelector");
     });
 
     it("from factory works without name", () => {
-        const selector = Selector.from([new StubAction()]);
+        const selector = Fallback.from([new StubAction()]);
 
         expect(selector.nodes).toHaveLength(1);
     });

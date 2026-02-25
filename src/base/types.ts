@@ -13,6 +13,7 @@ export const NodeFlags = {
     Condition: 1 << 4,   // 0x010  — pure check (leaf sub-kind)
     Sequence: 1 << 5,   // 0x020  — AND-like flow
     Selector: 1 << 6,   // 0x040  — OR-like flow
+    Fallback: 1 << 6,   // 0x040  — alias for Selector (BT.CPP naming)
     Parallel: 1 << 7,   // 0x080  — concurrent children
     Memory: 1 << 8,   // 0x100  — remembers last running child
     Stateful: 1 << 9,   // 0x200  — has time/counter state
@@ -37,6 +38,7 @@ export interface SerializableNode {
     defaultName: string;
     name: string;
     children?: SerializableNode[];
+    state?: SerializableState;
     tags?: readonly string[];
 }
 

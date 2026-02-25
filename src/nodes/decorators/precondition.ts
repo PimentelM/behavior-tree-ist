@@ -9,8 +9,8 @@ import { NodeResult, NodeFlags } from "../../base/types";
  *
  * This implements the classical "condition guard" pattern from Ögren's BT formalism.
  */
-export class Condition extends Decorator {
-    public override readonly defaultName = "Condition";
+export class Precondition extends Decorator {
+    public override readonly defaultName = "Precondition";
 
     constructor(child: BTNode, public override name: string, public readonly condition: (ctx: TickContext) => boolean) {
         super(child);
@@ -26,6 +26,3 @@ export class Condition extends Decorator {
         return NodeResult.Failed;
     }
 }
-
-/** Alias for Condition - the classical guard pattern from BT literature. */
-export const Guard = Condition;

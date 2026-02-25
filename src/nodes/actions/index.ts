@@ -1,2 +1,2 @@
-export * from './wait';
-export * from './idle';
+export * from './sleep';
+export * from './always-running';

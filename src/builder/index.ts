@@ -1,6 +1,6 @@
 import { ConditionNode } from "../base/condition";
 import { Action, BTNode, NodeResult, TickContext } from "../base";
-import { Parallel, Selector, Sequence, MemorySequence, MemorySelector } from "../nodes";
+import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory } from "../nodes";
 import * as Decorators from "../nodes/decorators";
 import { AnyDecoratorSpec } from "../base/node";
 
@@ -14,22 +14,22 @@ export interface NodeProps {
     decorate?: AnyDecoratorSpec | readonly AnyDecoratorSpec[];
 
     // Condition decorators
-    guard?: { name?: string, condition: (ctx: TickContext) => boolean };
+    precondition?: { name?: string, condition: (ctx: TickContext) => boolean };
     succeedIf?: { name?: string, condition: (ctx: TickContext) => boolean };
     failIf?: { name?: string, condition: (ctx: TickContext) => boolean };
 
     // Behavior modifiers
-    alwaysSucceed?: boolean;
-    alwaysFail?: boolean;
+    forceSuccess?: boolean;
+    forceFailure?: boolean;
     inverter?: boolean;
     runningIsFailure?: boolean;
     runningIsSuccess?: boolean;
-    untilFail?: boolean;
+    keepRunningUntilFailure?: boolean;
     untilSuccess?: boolean;
 
     // Retry / Repeat
     repeat?: number; // max iterations, or -1 for infinite
-    retry?: number; // max retries
+    retryUntilSuccessful?: number; // max retries
 
     // Timing decorators
     debounce?: number;
@@ -55,31 +55,31 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     let current = node;
 
     // Validation
-    if (props.alwaysSucceed && props.alwaysFail) throw new Error("Cannot use both alwaysSucceed and alwaysFail");
+    if (props.forceSuccess && props.forceFailure) throw new Error("Cannot use both forceSuccess and forceFailure");
     if (props.succeedIf && props.failIf) throw new Error("Cannot use both succeedIf and failIf");
     if (props.runningIsFailure && props.runningIsSuccess) throw new Error("Cannot use both runningIsFailure and runningIsSuccess");
-    if (props.untilFail && props.untilSuccess) throw new Error("Cannot use both untilFail and untilSuccess");
+    if (props.keepRunningUntilFailure && props.untilSuccess) throw new Error("Cannot use both keepRunningUntilFailure and untilSuccess");
 
 
     // Order (Innermost to Outermost):
     // 1. Behavior modifications
-    if (props.alwaysSucceed) current = current.decorate([Decorators.AlwaysSucceed]);
-    else if (props.alwaysFail) current = current.decorate([Decorators.AlwaysFail]);
+    if (props.forceSuccess) current = current.decorate([Decorators.ForceSuccess]);
+    else if (props.forceFailure) current = current.decorate([Decorators.ForceFailure]);
 
     if (props.inverter) current = current.decorate([Decorators.Inverter]);
     if (props.runningIsFailure) current = current.decorate([Decorators.RunningIsFailure]);
     else if (props.runningIsSuccess) current = current.decorate([Decorators.RunningIsSuccess]);
 
     // 2. Control Flow modifiers
-    if (props.untilFail) current = current.decorate([Decorators.UntilFail]);
+    if (props.keepRunningUntilFailure) current = current.decorate([Decorators.KeepRunningUntilFailure]);
     else if (props.untilSuccess) current = current.decorate([Decorators.UntilSuccess]);
 
     if (props.repeat !== undefined) current = current.decorate([Decorators.Repeat, props.repeat]);
-    if (props.retry !== undefined) current = current.decorate([Decorators.Retry, props.retry]);
+    if (props.retryUntilSuccessful !== undefined) current = current.decorate([Decorators.RetryUntilSuccessful, props.retryUntilSuccessful]);
 
     // 3. Guards / Condition overrides
-    if (props.guard) current = current.decorate([Decorators.Guard, props.guard.name ?? "Guard", props.guard.condition]);
-    // After the guard, we have the succeedIf and failIf decorators which are also guards but with different semantics
+    if (props.precondition) current = current.decorate([Decorators.Precondition, props.precondition.name ?? "Precondition", props.precondition.condition]);
+    // After the precondition, we have the succeedIf and failIf decorators which are also guards but with different semantics
     if (props.succeedIf) current = current.decorate([Decorators.SucceedIf, props.succeedIf.name ?? "SucceedIf", props.succeedIf.condition]);
     else if (props.failIf) current = current.decorate([Decorators.FailIf, props.failIf.name ?? "FailIf", props.failIf.condition]);
 
@@ -131,20 +131,20 @@ export function sequence(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(Sequence.from(props.name || "Sequence", children), props);
 }
 
-export function selector(props: NodeProps, children: BTNode[]): BTNode {
-    return applyDecorators(Selector.from(props.name || "Selector", children), props);
+export function fallback(props: NodeProps, children: BTNode[]): BTNode {
+    return applyDecorators(Fallback.from(props.name || "Fallback", children), props);
 }
 
 export function parallel(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(Parallel.from(props.name || "Parallel", children), props);
 }
 
-export function memorySequence(props: NodeProps, children: BTNode[]): BTNode {
-    return applyDecorators(MemorySequence.from(props.name || "MemorySequence", children), props);
+export function sequenceWithMemory(props: NodeProps, children: BTNode[]): BTNode {
+    return applyDecorators(SequenceWithMemory.from(props.name || "SequenceWithMemory", children), props);
 }
 
-export function memorySelector(props: NodeProps, children: BTNode[]): BTNode {
-    return applyDecorators(MemorySelector.from(props.name || "MemorySelector", children), props);
+export function fallbackWithMemory(props: NodeProps, children: BTNode[]): BTNode {
+    return applyDecorators(FallbackWithMemory.from(props.name || "FallbackWithMemory", children), props);
 }
 
 export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeResult }): BTNode {
@@ -155,6 +155,6 @@ export function condition(props: NodeProps & { eval: (ctx: TickContext) => boole
     return applyDecorators(ConditionNode.from(props.name || "Condition", props.eval), props);
 }
 
-export function guard(props: NodeProps & { eval: (ctx: TickContext) => boolean }, child: BTNode): BTNode {
-    return applyDecorators(new Decorators.Guard(child, props.name || "Guard", props.eval), props);
+export function precondition(props: NodeProps & { eval: (ctx: TickContext) => boolean }, child: BTNode): BTNode {
+    return applyDecorators(new Decorators.Precondition(child, props.name || "Precondition", props.eval), props);
 }

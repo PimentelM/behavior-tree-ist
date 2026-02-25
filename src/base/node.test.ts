@@ -3,7 +3,7 @@ import { BTNode } from "./node";
 import { NodeResult, NodeFlags } from "./types";
 import { createTickContext, StubAction } from "../test-helpers";
 import { Inverter } from "../nodes/decorators/inverter";
-import { AlwaysSucceed } from "../nodes/decorators/always-succeed";
+import { ForceSuccess } from "../nodes/decorators/force-success";
 
 class ConcreteNode extends BTNode {
     public readonly defaultName = "Action";
@@ -409,11 +409,11 @@ describe("BTNode", () => {
 
             const decorated = action.decorate(
                 [Inverter],
-                [AlwaysSucceed],
+                [ForceSuccess],
             );
 
-            // Inner: AlwaysSucceed wraps action, Outer: Inverter wraps AlwaysSucceed
-            // action -> Succeeded -> AlwaysSucceed -> Succeeded -> Inverter -> Failed
+            // Inner: ForceSuccess wraps action, Outer: Inverter wraps ForceSuccess
+            // action -> Succeeded -> ForceSuccess -> Succeeded -> Inverter -> Failed
             const ctx = createTickContext();
             const result = BTNode.Tick(decorated, ctx);
 

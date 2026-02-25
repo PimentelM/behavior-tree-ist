@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { UntilFail } from "./until-fail";
+import { KeepRunningUntilFailure } from "./keep-running-until-failure";
 import { BTNode } from "../../base/node";
 import { NodeResult } from "../../base/types";
 import { createTickContext, StubAction } from "../../test-helpers";
 
-describe("UntilFail", () => {
+describe("KeepRunningUntilFailure", () => {
     it("returns Running when child succeeds", () => {
         const child = new StubAction(NodeResult.Succeeded);
-        const untilFail = new UntilFail(child);
+        const untilFail = new KeepRunningUntilFailure(child);
 
         const result = BTNode.Tick(untilFail, createTickContext());
 
@@ -18,7 +18,7 @@ describe("UntilFail", () => {
         // With new abort semantics, child that completed naturally (never was Running)
         // has its state reset via onReset, and the explicit Abort call is a no-op
         const child = new StubAction(NodeResult.Succeeded);
-        const untilFail = new UntilFail(child);
+        const untilFail = new KeepRunningUntilFailure(child);
 
         BTNode.Tick(untilFail, createTickContext());
 
@@ -29,7 +29,7 @@ describe("UntilFail", () => {
     it("aborts running child after it succeeds", () => {
         // When child transitions from Running to Succeeded, abort is effective
         const child = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
-        const untilFail = new UntilFail(child);
+        const untilFail = new KeepRunningUntilFailure(child);
 
         BTNode.Tick(untilFail, createTickContext()); // child Running
         BTNode.Tick(untilFail, createTickContext()); // child Succeeded, was Running
@@ -42,7 +42,7 @@ describe("UntilFail", () => {
 
     it("returns Succeeded when child fails", () => {
         const child = new StubAction(NodeResult.Failed);
-        const untilFail = new UntilFail(child);
+        const untilFail = new KeepRunningUntilFailure(child);
 
         const result = BTNode.Tick(untilFail, createTickContext());
 
@@ -51,7 +51,7 @@ describe("UntilFail", () => {
 
     it("returns Running when child is Running", () => {
         const child = new StubAction(NodeResult.Running);
-        const untilFail = new UntilFail(child);
+        const untilFail = new KeepRunningUntilFailure(child);
 
         const result = BTNode.Tick(untilFail, createTickContext());
 
@@ -64,7 +64,7 @@ describe("UntilFail", () => {
             NodeResult.Succeeded,
             NodeResult.Failed
         ]);
-        const untilFail = new UntilFail(child);
+        const untilFail = new KeepRunningUntilFailure(child);
         const ctx = createTickContext();
 
         // First tick: child succeeds, return Running

@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import { BehaviourTree } from "../../tree";
 import { NodeResult } from "../../base/types";
 import { StubAction } from "../../test-helpers";
-import { Selector } from "../composite/selector";
+import { Fallback } from "../composite/fallback";
 import { Sequence } from "../composite/sequence";
 import { Throttle } from "./throttle";
 import { Timeout } from "./timeout";
-import { WaitAction } from "../actions/wait";
+import { Sleep } from "../actions/sleep";
 import { ConditionNode } from "../../base/condition";
 
 describe("Stateful decorators in context", () => {
@@ -16,7 +16,7 @@ describe("Stateful decorators in context", () => {
             const highPriority = new StubAction([NodeResult.Failed, NodeResult.Succeeded]);
             const lowPriority = new StubAction(NodeResult.Running);
             const throttledLow = new Throttle(lowPriority, 1000);
-            const selector = Selector.from([highPriority, throttledLow]);
+            const selector = Fallback.from([highPriority, throttledLow]);
             const tree = new BehaviourTree(selector);
 
             // Tick 1: highPriority fails, lowPriority Running through throttle
@@ -32,7 +32,7 @@ describe("Stateful decorators in context", () => {
             const highPriority = new StubAction([NodeResult.Failed, NodeResult.Succeeded, NodeResult.Failed]);
             const lowPriority = new StubAction(NodeResult.Succeeded);
             const throttledLow = new Throttle(lowPriority, 1000);
-            const selector = Selector.from([highPriority, throttledLow]);
+            const selector = Fallback.from([highPriority, throttledLow]);
             const tree = new BehaviourTree(selector);
 
             tree.tick({ now: 5000 });     // highPriority fails, throttle ticks child
@@ -45,7 +45,7 @@ describe("Stateful decorators in context", () => {
 
     describe("Timeout wrapping a WaitAction", () => {
         it("timeout fires before wait completes, aborts and resets WaitAction", () => {
-            const wait = new WaitAction(500);
+            const wait = new Sleep(500);
             const timeout = new Timeout(wait, 200);
             const tree = new BehaviourTree(timeout);
             tree.enableTrace();
@@ -57,7 +57,7 @@ describe("Stateful decorators in context", () => {
         });
 
         it("wait completes before timeout when duration < timeout", () => {
-            const wait = new WaitAction(100);
+            const wait = new Sleep(100);
             const timeout = new Timeout(wait, 500);
             const tree = new BehaviourTree(timeout);
             tree.enableTrace();
@@ -69,7 +69,7 @@ describe("Stateful decorators in context", () => {
         });
 
         it("timeout resets on next execution after wait completes", () => {
-            const wait = new WaitAction(100);
+            const wait = new Sleep(100);
             const timeout = new Timeout(wait, 500);
             const tree = new BehaviourTree(timeout);
             tree.enableTrace();
@@ -187,7 +187,7 @@ describe("Stateful decorators in context", () => {
             const action2 = new StubAction(NodeResult.Succeeded);
             const throttle1 = new Throttle(action1, 1000);
             const throttle2 = new Throttle(action2, 500);
-            const selector = Selector.from([throttle1, throttle2]);
+            const selector = Fallback.from([throttle1, throttle2]);
             const tree = new BehaviourTree(selector);
 
             tree.tick({ now: 5000 });      // throttle1 ticks action1 (Succeeded)
@@ -202,7 +202,7 @@ describe("Stateful decorators in context", () => {
             const action2 = new StubAction(NodeResult.Failed);
             const throttle1 = new Throttle(action1, 1000);
             const throttle2 = new Throttle(action2, 1000);
-            const selector = Selector.from([throttle1, throttle2]);
+            const selector = Fallback.from([throttle1, throttle2]);
             const tree = new BehaviourTree(selector);
             tree.enableTrace();
 
@@ -220,7 +220,7 @@ describe("Stateful decorators in context", () => {
             const action2 = new StubAction(NodeResult.Succeeded);
             const throttle1 = new Throttle(action1, 1000);
             const throttle2 = new Throttle(action2, 500);
-            const selector = Selector.from([throttle1, throttle2]);
+            const selector = Fallback.from([throttle1, throttle2]);
             const tree = new BehaviourTree(selector);
 
             tree.tick({ now: 5000 });      // throttle1 ticks (succeeds)

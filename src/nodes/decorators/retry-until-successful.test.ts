@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { Retry } from "./retry";
+import { RetryUntilSuccessful } from "./retry-until-successful";
 import { NodeResult } from "../../base";
 import { StubAction, tickNode } from "../../test-helpers";
 
-describe("Retry", () => {
+describe("RetryUntilSuccessful", () => {
     it("retries failed child n times and returns Running during", () => {
         const child = new StubAction(NodeResult.Failed);
-        const retry = new Retry(child, 2);
+        const retry = new RetryUntilSuccessful(child, 2);
 
         const result1 = tickNode(retry);
         expect(result1).toBe(NodeResult.Running); // 1st failure hidden
@@ -19,7 +19,7 @@ describe("Retry", () => {
 
     it("succeeds immediately if child succeeds", () => {
         const child = new StubAction(NodeResult.Succeeded);
-        const retry = new Retry(child, 3);
+        const retry = new RetryUntilSuccessful(child, 3);
 
         const result = tickNode(retry);
         expect(result).toBe(NodeResult.Succeeded);
@@ -28,7 +28,7 @@ describe("Retry", () => {
 
     it("passes through running state", () => {
         const child = new StubAction(NodeResult.Running);
-        const retry = new Retry(child, 3);
+        const retry = new RetryUntilSuccessful(child, 3);
 
         const result = tickNode(retry);
         expect(result).toBe(NodeResult.Running);
@@ -36,7 +36,7 @@ describe("Retry", () => {
 
     it("retries infinitely if maxRetries is -1", () => {
         const child = new StubAction(NodeResult.Failed);
-        const retry = new Retry(child, -1);
+        const retry = new RetryUntilSuccessful(child, -1);
 
         for (let i = 0; i < 10; i++) {
             const result = tickNode(retry);

@@ -2,8 +2,8 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-export class AlwaysFail extends Decorator {
-    public override readonly defaultName = "AlwaysFail";
+export class ForceFailure extends Decorator {
+    public override readonly defaultName = "ForceFailure";
 
     constructor(child: BTNode) {
         super(child);
@@ -18,3 +18,5 @@ export class AlwaysFail extends Decorator {
         return NodeResult.Failed;
     }
 }
+
+export const AlwaysFail = ForceFailure;

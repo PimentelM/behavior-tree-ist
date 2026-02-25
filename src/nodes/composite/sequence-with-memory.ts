@@ -11,15 +11,15 @@ import { BTNode, TickContext } from "../../base/node";
  * the sequence completes or fails.
  *
  * Use standard Sequence when reactivity to changing conditions is required.
- * Use MemorySequence when children are expensive to evaluate and conditions
+ * Use SequenceWithMemory when children are expensive to evaluate and conditions
  * are stable, or when you explicitly want "resume from where we left off" behavior.
  */
 
-export type MemorySequenceState = {
+export type SequenceWithMemoryState = {
     runningChildIndex: number | undefined;
 };
-export class MemorySequence extends Composite {
-    public override readonly defaultName = "MemorySequence";
+export class SequenceWithMemory extends Composite {
+    public override readonly defaultName = "SequenceWithMemory";
     private _runningChildIndex: number | undefined;
 
     public get runningChildIndex(): number | undefined {
@@ -31,23 +31,23 @@ export class MemorySequence extends Composite {
         this.addFlags(NodeFlags.Sequence, NodeFlags.Memory, NodeFlags.Stateful);
     }
 
-    public static from(nodes: BTNode[]): MemorySequence
-    public static from(name: string, nodes: BTNode[]): MemorySequence
-    public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): MemorySequence {
+    public static from(nodes: BTNode[]): SequenceWithMemory
+    public static from(name: string, nodes: BTNode[]): SequenceWithMemory
+    public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): SequenceWithMemory {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "";
         const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
-        const composite = new MemorySequence(name);
+        const composite = new SequenceWithMemory(name);
         composite.setNodes(nodes);
         return composite;
     }
 
-    public override getDisplayState(): MemorySequenceState {
+    public override getDisplayState(): SequenceWithMemoryState {
         return { runningChildIndex: this._runningChildIndex };
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`MemorySequence node ${this.name} has no nodes`);
+            throw new Error(`SequenceWithMemory node ${this.name} has no nodes`);
         }
 
         const startIndex = this._runningChildIndex ?? 0;

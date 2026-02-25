@@ -37,3 +37,5 @@ export class Sequence extends Composite {
         return NodeResult.Succeeded;
     }
 }
+
+export const ReactiveSequence = Sequence;

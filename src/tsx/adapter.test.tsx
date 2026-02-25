@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { BTNode, NodeResult, TickContext } from "../base";
-import { Sequence, MemorySequence, MemorySelector, Selector } from "../nodes";
+import { Sequence, SequenceWithMemory, FallbackWithMemory, Fallback } from "../nodes";
 import { ConditionNode } from "../base/condition";
 import { Action } from "../base";
 import { Decorator } from "../base/decorator";
@@ -68,13 +68,13 @@ describe("TSX Adapter", () => {
 
     it('supports using default props in functional components', () => {
         const SubTree = (props: NodeProps & { customProp?: string }) => {
-            return <selector {...props}>
+            return <fallback {...props}>
                 <action name={props.customProp ?? "DefaultName"} execute={() => NodeResult.Succeeded} />
-            </selector>
+            </fallback>
         }
 
         const tree = <SubTree name="CustomSelectorSubTree" customProp="CustomPropName" />;
-        expect(tree).toBeInstanceOf(Selector);
+        expect(tree).toBeInstanceOf(Fallback);
         expect(tree.name).toBe("CustomSelectorSubTree");
         const [child] = tree.getChildren?.() ?? [];
         expect(child).toBeInstanceOf(Action);
@@ -122,26 +122,26 @@ describe("TSX Adapter", () => {
     });
     it("can create memory composite nodes", () => {
         const tree = (
-            <memory-sequence name="MemSeq">
-                <memory-selector name="MemSel">
+            <sequence-with-memory name="MemSeq">
+                <fallback-with-memory name="MemSel">
                     <action execute={() => NodeResult.Succeeded} />
-                </memory-selector>
-                <memory-fallback name="MemFall">
+                </fallback-with-memory>
+                <fallback-with-memory name="MemFall">
                     <action execute={() => NodeResult.Succeeded} />
-                </memory-fallback>
-            </memory-sequence>
+                </fallback-with-memory>
+            </sequence-with-memory>
         );
 
-        expect(tree).toBeInstanceOf(MemorySequence);
+        expect(tree).toBeInstanceOf(SequenceWithMemory);
         expect(tree.name).toBe("MemSeq");
 
         const children = tree.getChildren?.() ?? [];
         expect(children.length).toBe(2);
 
-        expect(children[0]).toBeInstanceOf(MemorySelector);
+        expect(children[0]).toBeInstanceOf(FallbackWithMemory);
         expect(children[0].name).toBe("MemSel");
 
-        expect(children[1]).toBeInstanceOf(MemorySelector);
+        expect(children[1]).toBeInstanceOf(FallbackWithMemory);
         expect(children[1].name).toBe("MemFall");
     });
 

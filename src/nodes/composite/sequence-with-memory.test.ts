@@ -1,14 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { MemorySequence } from "./memory-sequence";
+import { SequenceWithMemory } from "./sequence-with-memory";
 import { BTNode } from "../../base/node";
 import { NodeResult } from "../../base/types";
 import { createTickContext, StubAction } from "../../test-helpers";
 
-describe("MemorySequence", () => {
+describe("SequenceWithMemory", () => {
     it("returns Succeeded when all children succeed", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Succeeded);
-        const seq = MemorySequence.from([child1, child2]);
+        const seq = SequenceWithMemory.from([child1, child2]);
 
         const result = BTNode.Tick(seq, createTickContext());
 
@@ -18,7 +18,7 @@ describe("MemorySequence", () => {
     it("returns Failed when a child fails", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Failed);
-        const seq = MemorySequence.from([child1, child2]);
+        const seq = SequenceWithMemory.from([child1, child2]);
 
         const result = BTNode.Tick(seq, createTickContext());
 
@@ -28,7 +28,7 @@ describe("MemorySequence", () => {
     it("returns Running when a child is Running", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Running);
-        const seq = MemorySequence.from([child1, child2]);
+        const seq = SequenceWithMemory.from([child1, child2]);
 
         const result = BTNode.Tick(seq, createTickContext());
 
@@ -39,7 +39,7 @@ describe("MemorySequence", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
         const child3 = new StubAction(NodeResult.Succeeded);
-        const seq = MemorySequence.from([child1, child2, child3]);
+        const seq = SequenceWithMemory.from([child1, child2, child3]);
 
         BTNode.Tick(seq, createTickContext()); // child1 succeeds, child2 running
         expect(child1.tickCount).toBe(1);
@@ -55,7 +55,7 @@ describe("MemorySequence", () => {
     it("resets running index after completion (Succeeded)", () => {
         const child1 = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
         const child2 = new StubAction(NodeResult.Succeeded);
-        const seq = MemorySequence.from([child1, child2]);
+        const seq = SequenceWithMemory.from([child1, child2]);
 
         BTNode.Tick(seq, createTickContext()); // child1 running
         BTNode.Tick(seq, createTickContext()); // child1 succeeds, child2 succeeds
@@ -68,7 +68,7 @@ describe("MemorySequence", () => {
 
     it("resets running index after completion (Failed)", () => {
         const child1 = new StubAction([NodeResult.Running, NodeResult.Failed]);
-        const seq = MemorySequence.from([child1]);
+        const seq = SequenceWithMemory.from([child1]);
 
         BTNode.Tick(seq, createTickContext());
         BTNode.Tick(seq, createTickContext());
@@ -81,7 +81,7 @@ describe("MemorySequence", () => {
         const child1 = new StubAction(NodeResult.Running);
         const child2 = new StubAction(NodeResult.Succeeded);
         const child3 = new StubAction(NodeResult.Succeeded);
-        const seq = MemorySequence.from([child1, child2, child3]);
+        const seq = SequenceWithMemory.from([child1, child2, child3]);
 
         BTNode.Tick(seq, createTickContext());
 
@@ -90,10 +90,10 @@ describe("MemorySequence", () => {
     });
 
     it("aborts running child when sequence is aborted", () => {
-        // When MemorySequence is aborted, it propagates to running children
+        // When SequenceWithMemory is aborted, it propagates to running children
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Running);
-        const seq = MemorySequence.from([child1, child2]);
+        const seq = SequenceWithMemory.from([child1, child2]);
 
         BTNode.Tick(seq, createTickContext()); // child1 succeeds, child2 Running, sequence Running
         BTNode.Abort(seq, createTickContext()); // sequence aborted, child2 aborted
@@ -105,7 +105,7 @@ describe("MemorySequence", () => {
 
     it("onAbort resets runningChildIndex", () => {
         const child1 = new StubAction(NodeResult.Running);
-        const seq = MemorySequence.from([child1]);
+        const seq = SequenceWithMemory.from([child1]);
 
         BTNode.Tick(seq, createTickContext());
         expect(seq.runningChildIndex).toBe(0);
@@ -118,7 +118,7 @@ describe("MemorySequence", () => {
     it("tracks runningChildIndex", () => {
         const child1 = new StubAction(NodeResult.Succeeded);
         const child2 = new StubAction(NodeResult.Running);
-        const seq = MemorySequence.from([child1, child2]);
+        const seq = SequenceWithMemory.from([child1, child2]);
 
         expect(seq.runningChildIndex).toBeUndefined();
 
@@ -128,20 +128,20 @@ describe("MemorySequence", () => {
     });
 
     it("from factory works with name", () => {
-        const seq = MemorySequence.from("test", [new StubAction()]);
+        const seq = SequenceWithMemory.from("test", [new StubAction()]);
 
         expect(seq.name).toBe("test");
         expect(seq.nodes).toHaveLength(1);
     });
 
     it("from factory works without name", () => {
-        const seq = MemorySequence.from([new StubAction()]);
+        const seq = SequenceWithMemory.from([new StubAction()]);
 
         expect(seq.nodes).toHaveLength(1);
     });
 
     it("throws when no children", () => {
-        const seq = MemorySequence.from([]);
+        const seq = SequenceWithMemory.from([]);
 
         expect(() => BTNode.Tick(seq, createTickContext())).toThrow("has no nodes");
     });

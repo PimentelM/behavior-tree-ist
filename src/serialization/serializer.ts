@@ -22,7 +22,7 @@ export function serializeTree(root: BTNode, options?: { includeState?: boolean }
 
     const children = root.getChildren?.();
     if (children && children.length > 0) {
-        serialized.children = children.map(child => serializeTree(child));
+        serialized.children = children.map(child => serializeTree(child, options));
     }
 
     return serialized;

@@ -12,8 +12,8 @@ import { NodeResult, NodeFlags } from "../../base/types";
  * - Child returns Running → Return Running (wait for child)
  * - Child returns Failed → Return Succeeded (loop complete)
  */
-export class UntilFail extends Decorator {
-    public override readonly defaultName = "UntilFail";
+export class KeepRunningUntilFailure extends Decorator {
+    public override readonly defaultName = "KeepRunningUntilFailure";
 
     constructor(child: BTNode) {
         super(child);

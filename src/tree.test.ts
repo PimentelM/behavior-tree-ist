@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { BehaviourTree } from "./tree";
 import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
-import { Throttle, WaitAction } from "./nodes";
-import { selector, sequence, condition, action } from "./builder";
+import { Throttle, Sleep } from "./nodes";
+import { fallback, sequence, condition, action } from "./builder";
 import { Action } from "./base";
 
 describe("BehaviourTree", () => {
@@ -20,7 +20,7 @@ describe("BehaviourTree", () => {
         const sharedAction = action({ name: "shared", execute: () => NodeResult.Succeeded });
         const seq1 = sequence({ name: "seq1" }, [sharedAction]);
         const seq2 = sequence({ name: "seq2" }, [sharedAction]);
-        const root = selector({ name: "root" }, [seq1, seq2]);
+        const root = fallback({ name: "root" }, [seq1, seq2]);
 
         expect(() => new BehaviourTree(root)).toThrow(/Duplicate appearance of node in the tree: shared.*/);
     });
@@ -105,7 +105,7 @@ describe("BehaviourTree", () => {
             const seq2 = sequence({ name: "seq2" }, [cond2, act2, act3, unreachable2]);
 
             const fallback1 = action({ name: "fallback1", execute: () => NodeResult.Succeeded });
-            const root = selector({ name: "root" }, [seq1, seq2, fallback1]);
+            const root = fallback({ name: "root" }, [seq1, seq2, fallback1]);
 
             const tree = new BehaviourTree(root).enableTrace();
 
@@ -152,7 +152,7 @@ describe("BehaviourTree", () => {
         })
 
         it('includes state in trace events for stateful nodes', () => {
-            const wait = new WaitAction(500);
+            const wait = new Sleep(500);
             const tree = new BehaviourTree(wait).enableTrace();
 
             const { events: events1 } = tree.tick({ now: 0 });

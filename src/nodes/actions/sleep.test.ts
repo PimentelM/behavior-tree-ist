@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { WaitAction } from "./wait";
+import { Sleep } from "./sleep";
 import { BTNode } from "../../base/node";
 import { NodeResult } from "../../base/types";
 import { createTickContext } from "../../test-helpers";
 
-describe("WaitAction", () => {
+describe("Sleep", () => {
     it("returns Running before duration elapsed", () => {
-        const wait = new WaitAction(1000);
+        const wait = new Sleep(1000);
         const ctx = createTickContext({ now: 0 });
 
         const result = BTNode.Tick(wait, ctx);
@@ -15,7 +15,7 @@ describe("WaitAction", () => {
     });
 
     it("returns Succeeded when duration met", () => {
-        const wait = new WaitAction(1000);
+        const wait = new Sleep(1000);
 
         BTNode.Tick(wait, createTickContext({ now: 100 }));
         const result = BTNode.Tick(wait, createTickContext({ now: 1100 }));
@@ -24,7 +24,7 @@ describe("WaitAction", () => {
     });
 
     it("returns Succeeded at exact boundary", () => {
-        const wait = new WaitAction(500);
+        const wait = new Sleep(500);
 
         BTNode.Tick(wait, createTickContext({ now: 100 }));
         const result = BTNode.Tick(wait, createTickContext({ now: 600 }));
@@ -33,7 +33,7 @@ describe("WaitAction", () => {
     });
 
     it("works correctly when started at tick 0", () => {
-        const wait = new WaitAction(100);
+        const wait = new Sleep(100);
 
         // Start at now=0 — sentinel check must use === undefined, not falsy
         const r1 = BTNode.Tick(wait, createTickContext({ now: 0 }));
@@ -49,7 +49,7 @@ describe("WaitAction", () => {
     });
 
     it("resets start time after succeeding so it is reusable", () => {
-        const wait = new WaitAction(100);
+        const wait = new Sleep(100);
 
         BTNode.Tick(wait, createTickContext({ now: 0 }));
         BTNode.Tick(wait, createTickContext({ now: 100 }));
@@ -61,7 +61,7 @@ describe("WaitAction", () => {
     });
 
     it("resets state on abort for a fresh wait", () => {
-        const wait = new WaitAction(100);
+        const wait = new Sleep(100);
 
         BTNode.Tick(wait, createTickContext({ now: 100 }));
         BTNode.Tick(wait, createTickContext({ now: 150 }));
@@ -75,22 +75,22 @@ describe("WaitAction", () => {
     });
 
     it("displays remaining time in displayName", () => {
-        const wait = new WaitAction(1000);
+        const wait = new Sleep(1000);
 
-        expect(wait.displayName).toBe("Wait (1000)");
+        expect(wait.displayName).toBe("Sleep (1000)");
 
         BTNode.Tick(wait, createTickContext({ now: 100 }));
         BTNode.Tick(wait, createTickContext({ now: 400 }));
 
-        expect(wait.displayName).toBe("Wait (700)");
+        expect(wait.displayName).toBe("Sleep (700)");
     });
 
     it("displays correct remaining time when started at tick 0", () => {
-        const wait = new WaitAction(1000);
+        const wait = new Sleep(1000);
 
         BTNode.Tick(wait, createTickContext({ now: 0 }));
         BTNode.Tick(wait, createTickContext({ now: 300 }));
 
-        expect(wait.displayName).toBe("Wait (700)");
+        expect(wait.displayName).toBe("Sleep (700)");
     });
 });

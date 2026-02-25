@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, selector, parallel, action, condition, guard } from "./index";
+import { sequence, fallback, parallel, action, condition, precondition } from "./index";
 import { NodeResult } from "../base/types";
 import { tickNode } from "../test-helpers";
 
@@ -28,15 +28,15 @@ describe("Subtree Builder Factory", () => {
     it("throws when using conflicting decorators", () => {
         expect(() => {
             sequence({
-                alwaysSucceed: true,
-                alwaysFail: true
+                forceSuccess: true,
+                forceFailure: true
             }, []);
-        }).toThrow("Cannot use both alwaysSucceed and alwaysFail");
+        }).toThrow("Cannot use both forceSuccess and forceFailure");
 
     });
 
-    it("builds a basic selector", () => {
-        const sel = selector({ name: "MySelector" }, [
+    it("builds a basic fallback", () => {
+        const sel = fallback({ name: "MySelector" }, [
             action({ execute: () => NodeResult.Failed }),
             action({ execute: () => NodeResult.Succeeded })
         ]);
@@ -55,8 +55,8 @@ describe("Subtree Builder Factory", () => {
         expect(result).toBe(NodeResult.Succeeded);
     });
 
-    it("wraps a node in a guard", () => {
-        const g = guard({ eval: () => false }, action({ execute: () => NodeResult.Succeeded }));
+    it("wraps a node in a precondition", () => {
+        const g = precondition({ eval: () => false }, action({ execute: () => NodeResult.Succeeded }));
 
         const result = tickNode(g);
         expect(result).toBe(NodeResult.Failed); // Guard blocks execution

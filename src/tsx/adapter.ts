@@ -27,16 +27,17 @@ export function createElement(
     // 2. Intrinsic Engine Elements (like "sequence", "action")
     switch (type) {
         case "sequence":
+        case "reactive-sequence":
             return Builder.sequence(safeProps, flatChildren);
-        case "selector":
-            return Builder.selector(safeProps, flatChildren);
+        case "fallback":
+        case "reactive-fallback":
+            return Builder.fallback(safeProps, flatChildren);
         case "parallel":
             return Builder.parallel(safeProps, flatChildren);
-        case "memory-sequence":
-            return Builder.memorySequence(safeProps, flatChildren);
-        case "memory-selector":
-        case "memory-fallback":
-            return Builder.memorySelector(safeProps, flatChildren);
+        case "sequence-with-memory":
+            return Builder.sequenceWithMemory(safeProps, flatChildren);
+        case "fallback-with-memory":
+            return Builder.fallbackWithMemory(safeProps, flatChildren);
         case "action":
             // Action requires an execute prop
             if (typeof safeProps.execute !== "function") {
@@ -65,14 +66,16 @@ declare global {
         // eslint-disable-next-line @typescript-eslint/no-empty-object-type
         type ElementChildrenAttribute = { children: {} };
 
+        type DefaultCompositeProps = Builder.NodeProps & { children?: Element | Element[] };
+
         // Defines our built-in tag names and the props they accept
         interface IntrinsicElements {
-            sequence: Builder.NodeProps & { children?: Element | Element[] };
-            selector: Builder.NodeProps & { children?: Element | Element[] };
-            parallel: Builder.NodeProps & { children?: Element | Element[] };
-            "memory-sequence": Builder.NodeProps & { children?: Element | Element[] };
-            "memory-selector": Builder.NodeProps & { children?: Element | Element[] };
-            "memory-fallback": Builder.NodeProps & { children?: Element | Element[] };
+            sequence: DefaultCompositeProps;
+            fallback: DefaultCompositeProps;
+            "reactive-fallback": DefaultCompositeProps;
+            parallel: DefaultCompositeProps;
+            "sequence-with-memory": DefaultCompositeProps;
+            "fallback-with-memory": DefaultCompositeProps;
             action: Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
             condition: Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
         }
