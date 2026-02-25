@@ -107,4 +107,43 @@ describe("Serialization", () => {
         // Structure should be identical — no state leaks into serialization
         expect(beforeTick).toEqual(afterTick);
     });
+
+    describe('Options', () => {
+        describe('include state', () => {
+            it('includes state when enabled', () => {
+                const action = new MockAction();
+                action.addTags(["test-action"]);
+                const decorator = new MockDecorator(action);
+                const composite = new MockSequence([decorator]);
+                composite.addTags(["test-composite"]);
+                const tree = new BehaviourTree(composite);
+
+                const serialized = tree.serialize({ includeState: true });
+
+                expect(serialized).toMatchObject({
+                    id: expect.any(Number),
+                    nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
+                    defaultName: "MockSequence",
+                    name: "",
+                    tags: ["test-composite"],
+                    children: [{
+                        id: expect.any(Number),
+                        nodeFlags: NodeFlags.Decorator,
+                        defaultName: "MockDecorator",
+                        name: "",
+                        children: [{
+                            id: expect.any(Number),
+                            nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
+                            defaultName: "MockAction",
+                            name: "",
+                            tags: ["test-action"],
+                            state: {
+                                active: true
+                            }
+                        }]
+                    }]
+                });
+            })
+        })
+    })
 });

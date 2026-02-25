@@ -1,7 +1,7 @@
 import { BTNode } from "../base/node";
 import { SerializableNode } from "../base/types";
 
-export function serializeTree(root: BTNode): SerializableNode {
+export function serializeTree(root: BTNode, options?: { includeState?: boolean }): SerializableNode {
     const serialized: SerializableNode = {
         id: root.id,
         nodeFlags: root.nodeFlags,
@@ -11,6 +11,13 @@ export function serializeTree(root: BTNode): SerializableNode {
 
     if (root.tags && root.tags.length > 0) {
         serialized.tags = root.tags;
+    }
+
+    if (options?.includeState) {
+        const state = root.getDisplayState?.();
+        if (state) {
+            serialized.state = state;
+        }
     }
 
     const children = root.getChildren?.();

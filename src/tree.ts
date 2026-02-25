@@ -59,8 +59,12 @@ export class BehaviourTree {
         return this;
     }
 
-    public serialize(): SerializableNode {
-        return serializeTree(this.root);
+    public serialize(options?: { includeState?: boolean }): SerializableNode {
+        return serializeTree(this.root, options);
+    }
+
+    public toJSON(): SerializableNode {
+        return this.serialize({ includeState: true });
     }
 
     public tick(pCtx: PublicTickContext = {}): TickRecord {
