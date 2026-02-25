@@ -39,3 +39,4 @@ export class Fallback extends Composite {
 }
 
 export const ReactiveFallback = Fallback;
+export const Selector = Fallback;

@@ -1,15 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { UtilitySelector } from "./utility-selector";
+import { UtilityFallback } from "./utility-fallback";
 import { NodeResult } from "../../base";
 import { StubAction, tickNode } from "../../test-helpers";
 
-describe("UtilitySelector", () => {
+describe("UtilityFallback", () => {
     it("ticks nodes in order of highest score", () => {
         const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Succeeded);
         const child3 = new StubAction(NodeResult.Failed);
 
-        const selector = UtilitySelector.from([
+        const selector = UtilityFallback.from([
             { node: child1, scorer: () => 10 },
             { node: child2, scorer: () => 5 },
             { node: child3, scorer: () => 50 } // Highest, but will return Failed initially (so we fall to next)
@@ -28,7 +28,7 @@ describe("UtilitySelector", () => {
         let child1Score = 50;
         let child2Score = 10;
 
-        const selector = UtilitySelector.from([
+        const selector = UtilityFallback.from([
             { node: child1, scorer: () => child1Score },
             { node: child2, scorer: () => child2Score }
         ]);
@@ -51,7 +51,7 @@ describe("UtilitySelector", () => {
         const child1 = new StubAction(NodeResult.Failed);
         const child2 = new StubAction(NodeResult.Failed);
 
-        const selector = UtilitySelector.from([
+        const selector = UtilityFallback.from([
             { node: child1, scorer: () => 10 },
             { node: child2, scorer: () => 20 }
         ]);
@@ -63,13 +63,13 @@ describe("UtilitySelector", () => {
     });
 
     it("throws if there are no nodes", () => {
-        const selector = UtilitySelector.from([]);
+        const selector = UtilityFallback.from([]);
         expect(() => tickNode(selector)).toThrow();
     });
 
     describe("mutation protection", () => {
         it("addNode throws directing to setUtilityNodes", () => {
-            const selector = UtilitySelector.from([
+            const selector = UtilityFallback.from([
                 { node: new StubAction(), scorer: () => 1 }
             ]);
 
@@ -77,7 +77,7 @@ describe("UtilitySelector", () => {
         });
 
         it("setNodes throws directing to setUtilityNodes", () => {
-            const selector = UtilitySelector.from([
+            const selector = UtilityFallback.from([
                 { node: new StubAction(), scorer: () => 1 }
             ]);
 
@@ -85,7 +85,7 @@ describe("UtilitySelector", () => {
         });
 
         it("clearNodes throws directing to setUtilityNodes", () => {
-            const selector = UtilitySelector.from([
+            const selector = UtilityFallback.from([
                 { node: new StubAction(), scorer: () => 1 }
             ]);
 
@@ -95,7 +95,7 @@ describe("UtilitySelector", () => {
         it("setUtilityNodes still works after construction", () => {
             const child1 = new StubAction(NodeResult.Succeeded);
             const child2 = new StubAction(NodeResult.Succeeded);
-            const selector = UtilitySelector.from([
+            const selector = UtilityFallback.from([
                 { node: child1, scorer: () => 1 }
             ]);
 

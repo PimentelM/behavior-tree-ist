@@ -1,6 +1,7 @@
 import { ConditionNode } from "../base/condition";
 import { Action, BTNode, NodeResult, TickContext } from "../base";
 import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse } from "../nodes";
+import { UtilityFallback, UtilityNodeSpec } from "../nodes/composite/utility-fallback";
 import * as Decorators from "../nodes/decorators";
 import { AnyDecoratorSpec } from "../base/node";
 
@@ -139,12 +140,20 @@ export function fallback(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(Fallback.from(props.name || "Fallback", children), props);
 }
 
+export const selector = fallback;
+
 export function parallel(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(Parallel.from(props.name || "Parallel", children), props);
 }
 
+export function utilityFallback(props: NodeProps, specs: UtilityNodeSpec[]): BTNode {
+    return applyDecorators(UtilityFallback.from(props.name || "UtilityFallback", specs), props);
+}
+
+export const utilitySelector = utilityFallback;
+
 export function ifThenElse(props: NodeProps, children: BTNode[]): BTNode {
-    return applyDecorators(IfThenElse.from(props.name || "IfThenElse", children as any), props);
+    return applyDecorators(IfThenElse.from(props.name || "IfThenElse", children as [BTNode, BTNode, BTNode]), props);
 }
 
 export function sequenceWithMemory(props: NodeProps, children: BTNode[]): BTNode {
@@ -154,6 +163,8 @@ export function sequenceWithMemory(props: NodeProps, children: BTNode[]): BTNode
 export function fallbackWithMemory(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(FallbackWithMemory.from(props.name || "FallbackWithMemory", children), props);
 }
+
+export const selectorWithMemory = fallbackWithMemory;
 
 export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeResult }): BTNode {
     return applyDecorators(Action.from(props.name || "Action", props.execute), props);

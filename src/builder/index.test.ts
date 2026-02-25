@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, fallback, parallel, action, condition } from "./index";
+import { sequence, fallback, parallel, action, condition, utilityFallback } from "./index";
 import { NodeResult } from "../base/types";
+import { TickContext } from "../base/node";
 import { tickNode } from "../test-helpers";
 
 
@@ -55,4 +56,24 @@ describe("Subtree Builder Factory", () => {
         expect(result).toBe(NodeResult.Succeeded);
     });
 
+    it("builds a utility fallback", () => {
+        let action1CallCount = 0;
+        let action2CallCount = 0;
+        const us = utilityFallback({ name: "MyUtilityFallback" }, [
+            {
+                scorer: (_ctx: TickContext) => 10,
+                node: action({ execute: () => { action1CallCount++; return NodeResult.Succeeded; } })
+            },
+            {
+                scorer: (_ctx: TickContext) => 20,
+                node: action({ execute: () => { action2CallCount++; return NodeResult.Succeeded; } })
+            }
+        ]);
+
+        const result = tickNode(us);
+
+        expect(result).toBe(NodeResult.Succeeded);
+        expect(action1CallCount).toBe(0);
+        expect(action2CallCount).toBe(1);
+    });
 });

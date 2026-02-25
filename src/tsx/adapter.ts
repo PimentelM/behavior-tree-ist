@@ -1,4 +1,5 @@
 import { BTNode, NodeResult, TickContext } from "../base";
+import { UtilityScorer } from "../nodes/composite/utility-fallback";
 import * as Builder from "../builder";
 
 export function Fragment(_props: unknown, ...children: BTNode[]): BTNode[] {
@@ -31,6 +32,7 @@ export function createElement(
             return Builder.sequence(safeProps, flatChildren);
         case "fallback":
         case "reactive-fallback":
+        case "selector":
             return Builder.fallback(safeProps, flatChildren);
         case "parallel":
             return Builder.parallel(safeProps, flatChildren);
@@ -39,7 +41,29 @@ export function createElement(
         case "sequence-with-memory":
             return Builder.sequenceWithMemory(safeProps, flatChildren);
         case "fallback-with-memory":
+        case "selector-with-memory":
             return Builder.fallbackWithMemory(safeProps, flatChildren);
+        case "utility-fallback":
+        case "utility-selector": {
+            const specs = flatChildren.map(child => {
+                if (!("__scorer" in child)) {
+                    throw new Error("Children of <utility-fallback> must be wrapped in <utility-node scorer={...}>");
+                }
+                const scorer = (child as Record<string, unknown>).__scorer as UtilityScorer;
+                delete (child as Record<string, unknown>).__scorer; // Clean up the metadata
+                return { node: child, scorer };
+            });
+            return Builder.utilityFallback(safeProps, specs);
+        }
+        case "utility-node": {
+            if (flatChildren.length !== 1) {
+                throw new Error(`<utility-node> must have exactly one child node, but got ${flatChildren.length}.`);
+            }
+            const child = flatChildren[0];
+            // Attach scorer metadata to the child node, which will be extracted by <utility-fallback>
+            (child as unknown as Record<string, unknown>).__scorer = safeProps.scorer;
+            return child;
+        }
         case "action":
             // Action requires an execute prop
             if (typeof safeProps.execute !== "function") {
@@ -84,19 +108,25 @@ declare global {
 
         // Defines our built-in tag names and the props they accept
         interface IntrinsicElements {
-            sequence: DefaultCompositeProps;
-            fallback: DefaultCompositeProps;
+            "sequence": DefaultCompositeProps;
+            "reactive-sequence": DefaultCompositeProps;
+            "fallback": DefaultCompositeProps;
             "reactive-fallback": DefaultCompositeProps;
-            parallel: DefaultCompositeProps;
+            "selector": DefaultCompositeProps; // alias for fallback
+            "parallel": DefaultCompositeProps;
             "if-then-else": DefaultCompositeProps;
             "sequence-with-memory": DefaultCompositeProps;
             "fallback-with-memory": DefaultCompositeProps;
-            action: Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
-            condition: Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
+            "selector-with-memory": DefaultCompositeProps; // alias for fallback-with-memory
+            "utility-fallback": DefaultCompositeProps;
+            "utility-selector": DefaultCompositeProps; // alias for utility-fallback
+            "utility-node": { scorer: UtilityScorer; children?: Element | Element[] };
+            "action": Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
+            "condition": Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
             "always-success": Builder.NodeProps;
             "always-failure": Builder.NodeProps;
             "always-running": Builder.NodeProps;
-            sleep: Builder.NodeProps & { duration: number };
+            "sleep": Builder.NodeProps & { duration: number };
         }
     }
 }

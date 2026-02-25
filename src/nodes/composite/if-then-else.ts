@@ -1,5 +1,5 @@
 import { Composite } from "../../base/composite";
-import { NodeResult, NodeFlags } from "../../base/types";
+import { NodeResult } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export class IfThenElse extends Composite {

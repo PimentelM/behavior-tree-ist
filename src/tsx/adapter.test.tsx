@@ -7,6 +7,8 @@ import { Decorator } from "../base/decorator";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BT } from "./index"; // This will be the alias we use for JSX factory -> JSXFactory: "BT.createElement"
 import { NodeProps } from "../builder";
+import { UtilityFallback } from "../nodes/composite/utility-fallback";
+import { tickNode } from "../test-helpers";
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 
@@ -197,5 +199,58 @@ describe("TSX Adapter", () => {
         expect(tree.tags).toContain("tag1");
         expect(tree.tags).toContain("tag2");
         expect(tree.tags.length).toBe(3);
+    });
+
+    it("can create utility fallbacks and wrap children in utility-node", () => {
+        const tree = (
+            <utility-fallback name="MyUtilityFallback">
+                <utility-node scorer={(_ctx: TickContext) => 10}>
+                    <action name="Action10" execute={() => NodeResult.Succeeded} />
+                </utility-node>
+                <utility-node scorer={(_ctx: TickContext) => 20}>
+                    <action name="Action20" execute={() => NodeResult.Succeeded} />
+                </utility-node>
+            </utility-fallback>
+        );
+
+        expect(tree).toBeInstanceOf(UtilityFallback);
+        expect(tree.name).toBe("MyUtilityFallback");
+
+        const children = tree.getChildren?.() ?? [];
+        expect(children.length).toBe(2);
+
+        expect(children[0]).toBeInstanceOf(Action);
+        expect(children[0].name).toBe("Action10");
+
+        expect(children[1]).toBeInstanceOf(Action);
+        expect(children[1].name).toBe("Action20");
+
+        // Let's tick it to make sure the scorer 20 is chosen
+        let executionCount10 = 0;
+        let executionCount20 = 0;
+
+        const testTree = (
+            <utility-fallback>
+                <utility-node scorer={() => 10}>
+                    <action execute={() => { executionCount10++; return NodeResult.Succeeded; }} />
+                </utility-node>
+                <utility-node scorer={() => 20}>
+                    <action execute={() => { executionCount20++; return NodeResult.Succeeded; }} />
+                </utility-node>
+            </utility-fallback>
+        );
+
+        const result = tickNode(testTree);
+        expect(result).toBe(NodeResult.Succeeded);
+        expect(executionCount10).toBe(0);
+        expect(executionCount20).toBe(1);
+    });
+
+    it("throws an error if a child of utility-fallback is not wrapped in utility-node", () => {
+        expect(() => {
+            <utility-fallback>
+                <action execute={() => NodeResult.Succeeded} />
+            </utility-fallback>;
+        }).toThrow("Children of <utility-fallback> must be wrapped in <utility-node scorer={...}>");
     });
 });

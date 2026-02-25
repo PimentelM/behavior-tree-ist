@@ -8,13 +8,15 @@ export interface UtilityNodeSpec {
     node: BTNode;
     scorer: UtilityScorer;
 }
-export type UtilitySelectorState = {
+export type UtilitySelectorState = UtilityFallbackState;
+
+export type UtilityFallbackState = {
     lastScores: [number, number][] | undefined;
 };
 
 
-export class UtilitySelector extends Composite {
-    public override readonly defaultName = "UtilitySelector";
+export class UtilityFallback extends Composite {
+    public override readonly defaultName = "UtilityFallback";
     private specs: UtilityNodeSpec[] = [];
     private currentlyRunningIndex: number | undefined = undefined;
     private lastScores: { index: number; score: number }[] | undefined = undefined;
@@ -24,32 +26,32 @@ export class UtilitySelector extends Composite {
         this.addFlags(NodeFlags.Selector, NodeFlags.Utility, NodeFlags.Stateful);
     }
 
-    public static from(specs: UtilityNodeSpec[]): UtilitySelector
-    public static from(name: string, specs: UtilityNodeSpec[]): UtilitySelector
-    public static from(nameOrSpecs: string | UtilityNodeSpec[], possiblySpecs?: UtilityNodeSpec[]): UtilitySelector {
+    public static from(specs: UtilityNodeSpec[]): UtilityFallback
+    public static from(name: string, specs: UtilityNodeSpec[]): UtilityFallback
+    public static from(nameOrSpecs: string | UtilityNodeSpec[], possiblySpecs?: UtilityNodeSpec[]): UtilityFallback {
         const name = typeof nameOrSpecs === "string" ? nameOrSpecs : "";
         const specs = Array.isArray(nameOrSpecs) ? nameOrSpecs : possiblySpecs!;
-        const composite = new UtilitySelector(name);
+        const composite = new UtilityFallback(name);
         composite.setUtilityNodes(specs);
         return composite;
     }
 
-    public override getDisplayState(): UtilitySelectorState {
+    public override getDisplayState(): UtilityFallbackState {
         return {
             lastScores: this.lastScores?.map(score => [score.index, score.score])
         };
     }
 
     public override addNode(_node: BTNode): never {
-        throw new Error("Use setUtilityNodes() to add nodes to a UtilitySelector");
+        throw new Error("Use setUtilityNodes() to add nodes to a UtilityFallback");
     }
 
     public override setNodes(_nodes: BTNode[]): never {
-        throw new Error("Use setUtilityNodes() to set nodes on a UtilitySelector");
+        throw new Error("Use setUtilityNodes() to set nodes on a UtilityFallback");
     }
 
     public override clearNodes(): never {
-        throw new Error("Use setUtilityNodes() to manage nodes on a UtilitySelector");
+        throw new Error("Use setUtilityNodes() to manage nodes on a UtilityFallback");
     }
 
     public setUtilityNodes(specs: UtilityNodeSpec[]): void {
@@ -62,7 +64,7 @@ export class UtilitySelector extends Composite {
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`UtilitySelector node ${this.name} has no nodes`);
+            throw new Error(`UtilityFallback node ${this.name} has no nodes`);
         }
 
         // Evaluate scores every tick
@@ -113,3 +115,5 @@ export class UtilitySelector extends Composite {
         super.onAbort(ctx);
     }
 }
+
+export const UtilitySelector = UtilityFallback;
