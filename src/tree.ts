@@ -14,6 +14,27 @@ export class BehaviourTree {
 
     constructor(root: BTNode) {
         this.root = root;
+        this.validateNoDuplicates(root);
+    }
+
+    private validateNoDuplicates(root: BTNode) {
+        const visited = new Set<BTNode>();
+        const queue: BTNode[] = [root];
+
+        while (queue.length > 0) {
+            const node = queue.shift()!;
+            if (visited.has(node)) {
+                throw new Error(`Duplicate appearance of node in the tree: ${node.displayName} (id: ${node.id})`);
+            }
+            visited.add(node);
+
+            const children = node.getChildren?.();
+            if (children) {
+                for (const child of children) {
+                    queue.push(child);
+                }
+            }
+        }
     }
 
     public enableTrace(): BehaviourTree {

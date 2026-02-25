@@ -16,6 +16,15 @@ describe("BehaviourTree", () => {
         expect(root.tickCount).toBe(1);
     });
 
+    it("throws an error if a node appears more than once in the tree", () => {
+        const sharedAction = action({ name: "shared", execute: () => NodeResult.Succeeded });
+        const seq1 = sequence({ name: "seq1" }, [sharedAction]);
+        const seq2 = sequence({ name: "seq2" }, [sharedAction]);
+        const root = selector({ name: "root" }, [seq1, seq2]);
+
+        expect(() => new BehaviourTree(root)).toThrow(/Duplicate appearance of node in the tree: shared.*/);
+    });
+
     it("increments tickId each tick", () => {
         const root = new StubAction(NodeResult.Succeeded);
         const tree = new BehaviourTree(root);
