@@ -22,6 +22,7 @@ export const NodeFlags = {
     ResultTransformer: 1 << 12,  // 0x1000 — remaps child result
     Guard: 1 << 13,  // 0x2000 — conditionally gates child
     Lifecycle: 1 << 14,  // 0x4000 — lifecycle hook side-effect
+    Async: 1 << 15,  // 0x8000 — asynchronous/promise-based node
 } as const;
 export type NodeFlags = number;
 

@@ -1,5 +1,5 @@
 import { ConditionNode } from "../base/condition";
-import { Action, BTNode, NodeResult, TickContext } from "../base";
+import { Action, AsyncAction, BTNode, CancellationSignal, NodeResult, TickContext } from "../base";
 import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse } from "../nodes";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
@@ -183,6 +183,10 @@ export function utility(props: NodeProps & { scorer: UtilityScorer }, child: BTN
 
 export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeResult }): BTNode {
     return applyDecorators(Action.from(props.name || "Action", props.execute), props);
+}
+
+export function asyncAction(props: NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | void> }): BTNode {
+    return applyDecorators(AsyncAction.from(props.name || "AsyncAction", props.execute), props);
 }
 
 export function condition(props: NodeProps & { eval: (ctx: TickContext) => boolean }): BTNode {

@@ -1,4 +1,4 @@
-import { BTNode, NodeResult, TickContext } from "../base";
+import { BTNode, CancellationSignal, NodeResult, TickContext } from "../base";
 import { UtilityScorer } from "../base/utility";
 import * as Builder from "../builder";
 import { Utility as UtilityNode } from "../nodes/decorators/utility";
@@ -72,6 +72,13 @@ export function createElement(
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return Builder.action(safeProps as unknown as any);
+        case "async-action":
+            // AsyncAction requires an execute prop
+            if (typeof safeProps.execute !== "function") {
+                throw new Error(`<async-action> requires an "execute" prop of type function.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return Builder.asyncAction(safeProps as unknown as any);
         case "always-success":
             return Builder.alwaysSuccess(safeProps);
         case "always-failure":
@@ -124,6 +131,7 @@ declare global {
             "utility-sequence": DefaultCompositeProps;
             "utility-node": Builder.NodeProps & { scorer: UtilityScorer; children?: Element | Element[] };
             "action": Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
+            "async-action": Builder.NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | void> };
             "condition": Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
             "always-success": Builder.NodeProps;
             "always-failure": Builder.NodeProps;

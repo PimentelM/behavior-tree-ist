@@ -44,6 +44,40 @@ const patrol = Action.from('Patrol', (ctx) => {
 });
 ```
 
+## AsyncAction
+
+`AsyncAction` is an abstract base class for asynchronous work (e.g., HTTP requests, file I/O). It runs `execute(ctx, signal)` which returns a Promise. The node natively bridges this Promise into the tick lifecycle, returning `Running` while pending, and appropriately `Succeeded` or `Failed` when settled.
+
+**Flags**: `Leaf`, `Action`, `Stateful`
+
+### Extending AsyncAction
+
+```typescript
+import { AsyncAction, CancellationSignal, NodeResult, TickContext } from 'behavior-tree-ist';
+
+class FetchData extends AsyncAction {
+  protected async execute(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult | void> {
+    // Note: To use native fetch with CancellationSignal, you can convert it or map onAbort
+    const controller = new AbortController();
+    signal.onAbort(() => controller.abort());
+    
+    const res = await fetch('https://api.example.com/data', { signal: controller.signal });
+    if (!res.ok) throw new Error('Fetch failed');
+    return NodeResult.Succeeded; // returning undefined is also Succeeded
+  }
+}
+```
+
+### AsyncAction.from() Factory
+
+```typescript
+import { AsyncAction, NodeResult } from 'behavior-tree-ist';
+
+const waitAndSucceed = AsyncAction.from('Wait a bit', async (ctx, signal) => {
+  await new Promise(resolve => setTimeout(resolve, 1000));
+});
+```
+
 ## ConditionNode
 
 `ConditionNode` evaluates a boolean check. Returns `Succeeded` if the check is true, `Failed` if false. Conditions **never return Running** -- they are pure, synchronous checks.

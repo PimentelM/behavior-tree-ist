@@ -102,6 +102,7 @@ These accept `NodeProps` + `children`:
 | Element | Required props | Behavior |
 |---|---|---|
 | `<action>` | `execute: (ctx) => NodeResult` | Performs work |
+| `<async-action>` | `execute: (ctx, signal) => Promise<NodeResult \| void>` | Performs asynchronous work |
 | `<condition>` | `eval: (ctx) => boolean` | Pure boolean check |
 | `<always-success>` | -- | Always returns Succeeded |
 | `<always-failure>` | -- | Always returns Failed |

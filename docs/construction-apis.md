@@ -96,6 +96,7 @@ const root = fallback({ name: 'AI' }, [
 | Function | Required prop | Node type |
 |---|---|---|
 | `action(props & { execute })` | `execute: (ctx) => NodeResult` | `Action` |
+| `asyncAction(props & { execute })` | `execute: (ctx, signal) => Promise<NodeResult \| void>` | `AsyncAction` |
 | `condition(props & { eval })` | `eval: (ctx) => boolean` | `ConditionNode` |
 | `alwaysSuccess(props?)` | -- | `AlwaysSuccess` |
 | `alwaysFailure(props?)` | -- | `AlwaysFailure` |
