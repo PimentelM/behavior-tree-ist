@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { BTNode } from "./node";
 import { NodeResult, NodeFlags } from "./types";
-import { createTickContext, StubAction } from "../test-helpers";
+import { createNodeTicker, createTickContext, StubAction } from "../test-helpers";
 import { Inverter } from "../nodes/decorators/inverter";
 import { ForceSuccess } from "../nodes/decorators/force-success";
 
@@ -84,9 +84,9 @@ describe("BTNode", () => {
         it("calls onTick and returns the result", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            const result = BTNode.Tick(node, ctx);
+            const result = ticker.tick(node);
 
             expect(result).toBe(NodeResult.Running);
         });
@@ -94,9 +94,9 @@ describe("BTNode", () => {
         it("calls onSuccess when result is Succeeded", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Succeeded;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
 
             expect(node.successCallCount).toBe(1);
             expect(node.failedCallCount).toBe(0);
@@ -105,9 +105,9 @@ describe("BTNode", () => {
         it("calls onFailed when result is Failed", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Failed;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
 
             expect(node.failedCallCount).toBe(1);
             expect(node.successCallCount).toBe(0);
@@ -115,18 +115,18 @@ describe("BTNode", () => {
 
         it("calls onFinished for Succeeded and Failed but not Running", () => {
             const node = new ConcreteNode();
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
             node.result = NodeResult.Succeeded;
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
             expect(node.finishedResults).toEqual(["Succeeded"]);
 
             node.result = NodeResult.Failed;
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
             expect(node.finishedResults).toEqual(["Succeeded", "Failed"]);
 
             node.result = NodeResult.Running;
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
             expect(node.finishedResults).toEqual(["Succeeded", "Failed"]);
         });
 
@@ -178,8 +178,8 @@ describe("BTNode", () => {
                 return NodeResult.Succeeded;
             };
 
-            const ctx = createTickContext();
-            BTNode.Tick(node, ctx);
+            const ticker = createNodeTicker();
+            ticker.tick(node);
 
             expect(callOrder).toEqual(["onEnter", "onTick"]);
         });
@@ -202,13 +202,13 @@ describe("BTNode", () => {
         it("is called when transitioning from Running to Succeeded", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx); // Running
+            ticker.tick(node); // Running
             expect(node.resetCallCount).toBe(0);
 
             node.result = NodeResult.Succeeded;
-            BTNode.Tick(node, ctx); // Running -> Succeeded
+            ticker.tick(node); // Running -> Succeeded
 
             expect(node.resetCallCount).toBe(1);
         });
@@ -216,13 +216,13 @@ describe("BTNode", () => {
         it("is called when transitioning from Running to Failed", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx); // Running
+            ticker.tick(node); // Running
             expect(node.resetCallCount).toBe(0);
 
             node.result = NodeResult.Failed;
-            BTNode.Tick(node, ctx); // Running -> Failed
+            ticker.tick(node); // Running -> Failed
 
             expect(node.resetCallCount).toBe(1);
         });
@@ -230,9 +230,9 @@ describe("BTNode", () => {
         it("is NOT called when node succeeds without being Running first", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Succeeded;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
 
             expect(node.resetCallCount).toBe(0);
         });
@@ -240,9 +240,9 @@ describe("BTNode", () => {
         it("is NOT called when node fails without being Running first", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Failed;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
 
             expect(node.resetCallCount).toBe(0);
         });
@@ -250,10 +250,10 @@ describe("BTNode", () => {
         it("is called when aborting a Running node", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx); // Make it Running
-            BTNode.Abort(node, ctx);
+            ticker.tick(node); // Make it Running
+            ticker.abort(node);
 
             expect(node.resetCallCount).toBe(1);
         });
@@ -270,9 +270,9 @@ describe("BTNode", () => {
                 callOrder.push("onAbort");
             };
 
-            const ctx = createTickContext();
-            BTNode.Tick(node, ctx); // Make it Running
-            BTNode.Abort(node, ctx);
+            const ticker = createNodeTicker();
+            ticker.tick(node); // Make it Running
+            ticker.abort(node);
 
             expect(callOrder).toEqual(["onAbort", "onReset"]);
         });
@@ -282,36 +282,36 @@ describe("BTNode", () => {
         it("fires on the first tick of a fresh node", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Succeeded;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
 
             expect(node.enterCallCount).toBe(1);
         });
 
         it("fires again after reset (Running → terminal → next tick)", () => {
             const node = new ConcreteNode();
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
             node.result = NodeResult.Running;
-            BTNode.Tick(node, ctx); // enter fires, now Running
+            ticker.tick(node); // enter fires, now Running
             expect(node.enterCallCount).toBe(1);
 
             node.result = NodeResult.Succeeded;
-            BTNode.Tick(node, ctx); // Running → Succeeded, reset fires
+            ticker.tick(node); // Running → Succeeded, reset fires
 
-            BTNode.Tick(node, ctx); // fresh execution, enter fires again
+            ticker.tick(node); // fresh execution, enter fires again
             expect(node.enterCallCount).toBe(2);
         });
 
         it("does NOT fire on continuation ticks (Running → Running)", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx); // enter fires
-            BTNode.Tick(node, ctx); // continuation, no enter
-            BTNode.Tick(node, ctx); // continuation, no enter
+            ticker.tick(node); // enter fires
+            ticker.tick(node); // continuation, no enter
+            ticker.tick(node); // continuation, no enter
 
             expect(node.enterCallCount).toBe(1);
         });
@@ -319,11 +319,11 @@ describe("BTNode", () => {
         it("fires on each fresh execution when node always returns terminal", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Succeeded;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
-            BTNode.Tick(node, ctx);
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
+            ticker.tick(node);
+            ticker.tick(node);
 
             expect(node.enterCallCount).toBe(3);
         });
@@ -333,11 +333,11 @@ describe("BTNode", () => {
         it("fires on continuation ticks (Running → Running)", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx); // first tick, onEnter fires
-            BTNode.Tick(node, ctx); // continuation, onResume fires
-            BTNode.Tick(node, ctx); // continuation, onResume fires
+            ticker.tick(node); // first tick, onEnter fires
+            ticker.tick(node); // continuation, onResume fires
+            ticker.tick(node); // continuation, onResume fires
 
             expect(node.resumeCallCount).toBe(2);
         });
@@ -345,9 +345,9 @@ describe("BTNode", () => {
         it("does NOT fire on first tick", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
 
             expect(node.resumeCallCount).toBe(0);
         });
@@ -355,10 +355,10 @@ describe("BTNode", () => {
         it("does NOT fire when node always returns terminal", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Succeeded;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx);
-            BTNode.Tick(node, ctx);
+            ticker.tick(node);
+            ticker.tick(node);
 
             expect(node.resumeCallCount).toBe(0);
         });
@@ -374,10 +374,10 @@ describe("BTNode", () => {
                 return NodeResult.Running;
             };
 
-            const ctx = createTickContext();
-            BTNode.Tick(node, ctx); // first tick
+            const ticker = createNodeTicker();
+            ticker.tick(node); // first tick
             callOrder.length = 0;
-            BTNode.Tick(node, ctx); // continuation
+            ticker.tick(node); // continuation
 
             expect(callOrder).toEqual(["onResume", "onTick"]);
         });
@@ -387,19 +387,19 @@ describe("BTNode", () => {
         it("calls onAbort on a Running node", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx); // Make it Running
-            BTNode.Abort(node, ctx);
+            ticker.tick(node); // Make it Running
+            ticker.abort(node);
 
             expect(node.abortCallCount).toBe(1);
         });
 
         it("is a no-op on a node that was never Running", () => {
             const node = new ConcreteNode();
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Abort(node, ctx);
+            ticker.abort(node);
 
             expect(node.abortCallCount).toBe(0);
         });
@@ -407,10 +407,10 @@ describe("BTNode", () => {
         it("is a no-op on a node that already completed", () => {
             const node = new ConcreteNode();
             node.result = NodeResult.Succeeded;
-            const ctx = createTickContext();
+            const ticker = createNodeTicker();
 
-            BTNode.Tick(node, ctx); // Completed, wasRunning is false
-            BTNode.Abort(node, ctx);
+            ticker.tick(node); // Completed, wasRunning is false
+            ticker.abort(node);
 
             expect(node.abortCallCount).toBe(0);
         });
@@ -427,8 +427,8 @@ describe("BTNode", () => {
 
             // Inner: ForceSuccess wraps action, Outer: Inverter wraps ForceSuccess
             // action -> Succeeded -> ForceSuccess -> Succeeded -> Inverter -> Failed
-            const ctx = createTickContext();
-            const result = BTNode.Tick(decorated, ctx);
+            const ticker = createNodeTicker();
+            const result = ticker.tick(decorated);
 
             expect(result).toBe(NodeResult.Failed);
         });

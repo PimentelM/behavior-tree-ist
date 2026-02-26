@@ -2,23 +2,23 @@ import { describe, it, expect } from "vitest";
 import { ConditionNode } from "./condition";
 import { BTNode, TickContext } from "./node";
 import { NodeResult } from "./types";
-import { createTickContext } from "../test-helpers";
+import { createNodeTicker, createTickContext } from "../test-helpers";
 
 describe("ConditionNode", () => {
     it("returns Succeeded when predicate is true", () => {
         const condition = ConditionNode.from("isTrue", () => true);
-        const ctx = createTickContext();
+        const ticker = createNodeTicker();
 
-        const result = BTNode.Tick(condition, ctx);
+        const result = ticker.tick(condition);
 
         expect(result).toBe(NodeResult.Succeeded);
     });
 
     it("returns Failed when predicate is false", () => {
         const condition = ConditionNode.from("isFalse", () => false);
-        const ctx = createTickContext();
+        const ticker = createNodeTicker();
 
-        const result = BTNode.Tick(condition, ctx);
+        const result = ticker.tick(condition);
 
         expect(result).toBe(NodeResult.Failed);
     });
