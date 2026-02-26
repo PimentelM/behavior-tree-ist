@@ -3,3 +3,4 @@ export * from './composite';
 export * from './action';
 export * from './decorator';
 export * from './types';
+export * from './utility';

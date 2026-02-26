@@ -3,29 +3,22 @@ import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 import { Utility } from "../decorators/utility";
 
-export type UtilitySelectorState = UtilityFallbackState;
-
-export type UtilityFallbackState = {
-    lastScores: [number, number][] | undefined;
-};
-
-
-export class UtilityFallback extends Composite {
-    public override readonly defaultName = "UtilityFallback";
+export class UtilitySequence extends Composite {
+    public override readonly defaultName = "UtilitySequence";
     private currentlyRunningIndex: number | undefined = undefined;
     private scoreBuffer: { index: number; score: number }[] = [];
 
     constructor(name?: string) {
         super(name);
-        this.addFlags(NodeFlags.Selector, NodeFlags.Utility, NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Sequence, NodeFlags.Utility, NodeFlags.Stateful);
     }
 
-    public static from(nodes: Utility[]): UtilityFallback
-    public static from(name: string, nodes: Utility[]): UtilityFallback
-    public static from(nameOrNodes: string | Utility[], possiblyNodes?: Utility[]): UtilityFallback {
-        const name = typeof nameOrNodes === "string" ? nameOrNodes : "UtilityFallback";
+    public static from(nodes: Utility[]): UtilitySequence
+    public static from(name: string, nodes: Utility[]): UtilitySequence
+    public static from(nameOrNodes: string | Utility[], possiblyNodes?: Utility[]): UtilitySequence {
+        const name = typeof nameOrNodes === "string" ? nameOrNodes : "UtilitySequence";
         const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
-        const composite = new UtilityFallback(name);
+        const composite = new UtilitySequence(name);
         composite.setNodes(nodes);
         return composite;
     }
@@ -33,7 +26,7 @@ export class UtilityFallback extends Composite {
 
     public override addNode(node: Utility): this {
         if (!(node instanceof Utility)) {
-            throw new Error(`UtilityFallback ${this.name} only accepts Utility nodes as children.`);
+            throw new Error(`UtilitySequence ${this.name} only accepts Utility nodes as children.`);
         }
         super.addNode(node);
         this.scoreBuffer.push({ index: this.nodes.length - 1, score: 0 });
@@ -43,7 +36,7 @@ export class UtilityFallback extends Composite {
     public override setNodes(nodes: Utility[]): this {
         for (const node of nodes) {
             if (!(node instanceof Utility)) {
-                throw new Error(`UtilityFallback ${this.name} only accepts Utility nodes as children.`);
+                throw new Error(`UtilitySequence ${this.name} only accepts Utility nodes as children.`);
             }
         }
         super.setNodes(nodes);
@@ -59,7 +52,7 @@ export class UtilityFallback extends Composite {
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`UtilityFallback node ${this.name} has no nodes`);
+            throw new Error(`UtilitySequence node ${this.name} has no nodes`);
         }
 
         // Evaluate scores every tick without allocating new objects (zero-allocation hot path)
@@ -76,32 +69,29 @@ export class UtilityFallback extends Composite {
             return a.index - b.index;
         });
 
-        let finalResult: NodeResult = NodeResult.Failed;
-        let runningOrSucceededIndex: number | undefined = undefined;
+        let finalResult: NodeResult = NodeResult.Succeeded;
+        let newRunningIndex: number | undefined = undefined;
 
         for (let i = 0; i < this.scoreBuffer.length; i++) {
             const index = this.scoreBuffer[i].index;
             const node = this.nodes[index];
             const result = BTNode.Tick(node, ctx);
 
-            if (result === NodeResult.Succeeded || result === NodeResult.Running) {
+            if (result === NodeResult.Failed || result === NodeResult.Running) {
                 finalResult = result;
-                runningOrSucceededIndex = index;
+                if (result === NodeResult.Running) {
+                    newRunningIndex = index;
+                }
                 break;
             }
         }
 
-        // Abort any node that was previously running but isn't the one we just ticked and returned running/succeeded.
-        // Also abort it if we completely failed out.
-        if (this.currentlyRunningIndex !== undefined && this.currentlyRunningIndex !== runningOrSucceededIndex) {
+        // Only abort the previously running node if it's no longer the actively running node
+        if (this.currentlyRunningIndex !== undefined && this.currentlyRunningIndex !== newRunningIndex) {
             BTNode.Abort(this.nodes[this.currentlyRunningIndex], ctx);
         }
 
-        if (finalResult === NodeResult.Running) {
-            this.currentlyRunningIndex = runningOrSucceededIndex;
-        } else {
-            this.currentlyRunningIndex = undefined;
-        }
+        this.currentlyRunningIndex = newRunningIndex;
 
         return finalResult;
     }
@@ -114,5 +104,3 @@ export class UtilityFallback extends Composite {
         super.onAbort(ctx);
     }
 }
-
-export const UtilitySelector = UtilityFallback;

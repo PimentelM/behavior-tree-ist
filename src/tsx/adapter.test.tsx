@@ -8,7 +8,9 @@ import { Decorator } from "../base/decorator";
 import { BT } from "./index"; // This will be the alias we use for JSX factory -> JSXFactory: "BT.createElement"
 import { NodeProps } from "../builder";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
+import { UtilitySequence } from "../nodes/composite/utility-sequence";
 import { tickNode } from "../test-helpers";
+import { Utility } from "../nodes/decorators/utility";
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 
@@ -219,11 +221,17 @@ describe("TSX Adapter", () => {
         const children = tree.getChildren?.() ?? [];
         expect(children.length).toBe(2);
 
-        expect(children[0]).toBeInstanceOf(Action);
-        expect(children[0].name).toBe("Action10");
+        expect(children[0]).toBeInstanceOf(Utility);
+        expect(children[0].displayName).toBe("Utility");
+        const action10 = children[0].getChildren?.()[0];
+        expect(action10).toBeInstanceOf(Action);
+        expect(action10?.displayName).toBe("Action10");
 
-        expect(children[1]).toBeInstanceOf(Action);
-        expect(children[1].name).toBe("Action20");
+        expect(children[1]).toBeInstanceOf(Utility);
+        expect(children[1].displayName).toBe("Utility");
+        const action20 = children[1].getChildren?.()[0];
+        expect(action20).toBeInstanceOf(Action);
+        expect(action20?.displayName).toBe("Action20");
 
         // Let's tick it to make sure the scorer 20 is chosen
         let executionCount10 = 0;
@@ -252,5 +260,63 @@ describe("TSX Adapter", () => {
                 <action execute={() => NodeResult.Succeeded} />
             </utility-fallback>;
         }).toThrow("Children of <utility-fallback> must be wrapped in <utility-node scorer={...}>");
+    });
+
+    it("can create utility sequences and wrap children in utility-node", () => {
+        const tree = (
+            <utility-sequence name="MyUtilitySequence">
+                <utility-node scorer={(_ctx: TickContext) => 10}>
+                    <action name="Action10" execute={() => NodeResult.Succeeded} />
+                </utility-node>
+                <utility-node scorer={(_ctx: TickContext) => 20}>
+                    <action name="Action20" execute={() => NodeResult.Succeeded} />
+                </utility-node>
+            </utility-sequence>
+        );
+
+        expect(tree).toBeInstanceOf(UtilitySequence);
+        expect(tree.name).toBe("MyUtilitySequence");
+
+        const children = tree.getChildren?.() ?? [];
+        expect(children.length).toBe(2);
+
+        expect(children[0]).toBeInstanceOf(Utility);
+        expect(children[0].displayName).toBe("Utility");
+        const action10 = children[0].getChildren?.()[0];
+        expect(action10).toBeInstanceOf(Action);
+        expect(action10?.displayName).toBe("Action10");
+
+        expect(children[1]).toBeInstanceOf(Utility);
+        expect(children[1].displayName).toBe("Utility");
+        const action20 = children[1].getChildren?.()[0];
+        expect(action20).toBeInstanceOf(Action);
+        expect(action20?.displayName).toBe("Action20");
+
+        let executionCount10 = 0;
+        let executionCount20 = 0;
+
+        const testTree = (
+            <utility-sequence>
+                <utility-node scorer={() => 10}>
+                    <action execute={() => { executionCount10++; return NodeResult.Succeeded; }} />
+                </utility-node>
+                <utility-node scorer={() => 20}>
+                    <action execute={() => { executionCount20++; return NodeResult.Succeeded; }} />
+                </utility-node>
+            </utility-sequence>
+        );
+
+        const result = tickNode(testTree);
+        expect(result).toBe(NodeResult.Succeeded);
+        expect(executionCount10).toBe(1);
+        expect(executionCount20).toBe(1);
+    });
+
+    it("throws an error if a child of utility-sequence is not wrapped in utility-node", () => {
+        expect(() => {
+            <utility-sequence>
+                <action execute={() => NodeResult.Succeeded} />
+            </utility-sequence>;
+        }).toThrow("Children of <utility-sequence> must be wrapped in <utility-node scorer={...}>");
     });
 });

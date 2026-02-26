@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, fallback, parallel, action, condition, utilityFallback } from "./index";
+import { sequence, fallback, parallel, action, condition, utilityFallback, utilitySequence, utility } from "./index";
 import { NodeResult } from "../base/types";
-import { TickContext } from "../base/node";
 import { tickNode } from "../test-helpers";
 
 
@@ -59,21 +58,40 @@ describe("Subtree Builder Factory", () => {
     it("builds a utility fallback", () => {
         let action1CallCount = 0;
         let action2CallCount = 0;
-        const us = utilityFallback({ name: "MyUtilityFallback" }, [
-            {
-                scorer: (_ctx: TickContext) => 10,
-                node: action({ execute: () => { action1CallCount++; return NodeResult.Succeeded; } })
-            },
-            {
-                scorer: (_ctx: TickContext) => 20,
-                node: action({ execute: () => { action2CallCount++; return NodeResult.Succeeded; } })
-            }
+        const uf = utilityFallback({ name: "MyUtilityFallback" }, [
+            utility({ scorer: () => 10 },
+                action({ execute: () => { action1CallCount++; return NodeResult.Succeeded; } })
+            ),
+            utility({ scorer: () => 20 },
+                action({ execute: () => { action2CallCount++; return NodeResult.Succeeded; } })
+            )
+        ]);
+
+        const result = tickNode(uf);
+
+        expect(result).toBe(NodeResult.Succeeded);
+        expect(action1CallCount).toBe(0);
+        expect(action2CallCount).toBe(1);
+    });
+
+    it("builds a utility sequence", () => {
+        let action1CallCount = 0;
+        let action2CallCount = 0;
+        const calledOrder: string[] = [];
+        const us = utilitySequence({ name: "MyUtilitySequence" }, [
+            utility({ scorer: () => 10 },
+                action({ execute: () => { action1CallCount++; calledOrder.push('10'); return NodeResult.Succeeded; } })
+            ),
+            utility({ scorer: () => 20 },
+                action({ execute: () => { action2CallCount++; calledOrder.push('20'); return NodeResult.Succeeded; } })
+            )
         ]);
 
         const result = tickNode(us);
 
         expect(result).toBe(NodeResult.Succeeded);
-        expect(action1CallCount).toBe(0);
+        expect(action1CallCount).toBe(1); // Since it's a sequence, both get ticked if both succeed
         expect(action2CallCount).toBe(1);
+        expect(calledOrder).toEqual(['20', '10']);
     });
 });

@@ -1,6 +1,7 @@
 import { BTNode, NodeResult, TickContext } from "../base";
-import { UtilityScorer } from "../nodes/composite/utility-fallback";
+import { UtilityScorer } from "../base/utility";
 import * as Builder from "../builder";
+import { Utility as UtilityNode } from "../nodes/decorators/utility";
 
 export function Fragment(_props: unknown, ...children: BTNode[]): BTNode[] {
     return children;
@@ -13,7 +14,7 @@ export function createElement(
     ...children: (BTNode | BTNode[])[]
 ): BTNode | BTNode[] {
     // Flatten children in case Fragment returned an array of nodes
-    const flatChildren = children.flat(Infinity) as BTNode[];
+    const flatChildren = children.flat(Number.MAX_SAFE_INTEGER) as BTNode[];
     const safeProps = props || {};
 
     // 1. Functional Components
@@ -44,25 +45,25 @@ export function createElement(
         case "selector-with-memory":
             return Builder.fallbackWithMemory(safeProps, flatChildren);
         case "utility-fallback":
-        case "utility-selector": {
-            const specs = flatChildren.map(child => {
-                if (!("__scorer" in child)) {
-                    throw new Error("Children of <utility-fallback> must be wrapped in <utility-node scorer={...}>");
-                }
-                const scorer = (child as Record<string, unknown>).__scorer as UtilityScorer;
-                delete (child as Record<string, unknown>).__scorer; // Clean up the metadata
-                return { node: child, scorer };
-            });
-            return Builder.utilityFallback(safeProps, specs);
-        }
+        case "utility-selector":
+            if (flatChildren.some((child) => !(child instanceof UtilityNode))) {
+                throw new Error(`Children of <${type}> must be wrapped in <utility-node scorer={...}>.`);
+            }
+            return Builder.utilityFallback(safeProps, flatChildren as UtilityNode[]);
+        case "utility-sequence":
+            if (flatChildren.some((child) => !(child instanceof UtilityNode))) {
+                throw new Error(`Children of <${type}> must be wrapped in <utility-node scorer={...}>.`);
+            }
+            return Builder.utilitySequence(safeProps, flatChildren as UtilityNode[]);
         case "utility-node": {
             if (flatChildren.length !== 1) {
                 throw new Error(`<utility-node> must have exactly one child node, but got ${flatChildren.length}.`);
             }
-            const child = flatChildren[0];
-            // Attach scorer metadata to the child node, which will be extracted by <utility-fallback>
-            (child as unknown as Record<string, unknown>).__scorer = safeProps.scorer;
-            return child;
+            if (typeof safeProps.scorer !== "function") {
+                throw new Error(`<utility-node> requires a "scorer" prop of type function.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return Builder.utility(safeProps as unknown as any, flatChildren[0]);
         }
         case "action":
             // Action requires an execute prop
@@ -120,7 +121,8 @@ declare global {
             "selector-with-memory": DefaultCompositeProps; // alias for fallback-with-memory
             "utility-fallback": DefaultCompositeProps;
             "utility-selector": DefaultCompositeProps; // alias for utility-fallback
-            "utility-node": { scorer: UtilityScorer; children?: Element | Element[] };
+            "utility-sequence": DefaultCompositeProps;
+            "utility-node": Builder.NodeProps & { scorer: UtilityScorer; children?: Element | Element[] };
             "action": Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
             "condition": Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
             "always-success": Builder.NodeProps;

@@ -1,7 +1,10 @@
 import { ConditionNode } from "../base/condition";
 import { Action, BTNode, NodeResult, TickContext } from "../base";
 import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse } from "../nodes";
-import { UtilityFallback, UtilityNodeSpec } from "../nodes/composite/utility-fallback";
+import { UtilityFallback } from "../nodes/composite/utility-fallback";
+import { UtilitySequence } from "../nodes/composite/utility-sequence";
+import { UtilityScorer } from "../base/utility";
+import { Utility } from "../nodes/decorators/utility";
 import * as Decorators from "../nodes/decorators";
 import { AnyDecoratorSpec } from "../base/node";
 
@@ -146,11 +149,19 @@ export function parallel(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(Parallel.from(props.name || "Parallel", children), props);
 }
 
-export function utilityFallback(props: NodeProps, specs: UtilityNodeSpec[]): BTNode {
-    return applyDecorators(UtilityFallback.from(props.name || "UtilityFallback", specs), props);
+export function utilityFallback(props: NodeProps, children: Utility[]): BTNode {
+    const fallback = new UtilityFallback(props.name || "UtilityFallback");
+    fallback.setNodes(children);
+    return applyDecorators(fallback, props);
 }
 
 export const utilitySelector = utilityFallback;
+
+export function utilitySequence(props: NodeProps, children: Utility[]): BTNode {
+    const seq = new UtilitySequence(props.name || "UtilitySequence");
+    seq.setNodes(children);
+    return applyDecorators(seq, props);
+}
 
 export function ifThenElse(props: NodeProps, children: BTNode[]): BTNode {
     return applyDecorators(IfThenElse.from(props.name || "IfThenElse", children as [BTNode, BTNode, BTNode]), props);
@@ -165,6 +176,10 @@ export function fallbackWithMemory(props: NodeProps, children: BTNode[]): BTNode
 }
 
 export const selectorWithMemory = fallbackWithMemory;
+
+export function utility(props: NodeProps & { scorer: UtilityScorer }, child: BTNode): Utility {
+    return new Utility(child, props.scorer);
+}
 
 export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeResult }): BTNode {
     return applyDecorators(Action.from(props.name || "Action", props.execute), props);
