@@ -19,11 +19,29 @@ export type ValidateDecoratorSpecs<Specs extends readonly AnyDecoratorSpec[]> = 
 };
 
 export abstract class BTNode {
+    // =========================================================================
+    // Properties & Initialization
+    // =========================================================================
+
     private static NEXT_ID = 1;
     public readonly id: number = BTNode.NEXT_ID++;
+
+    public name: string = "";
     public abstract readonly defaultName: string;
 
     private _tags: string[] = [];
+    private _nodeFlags: NodeFlags = 0;
+
+    constructor(name?: string) {
+        if (name) {
+            this.name = name;
+        }
+    }
+
+    public get displayName(): string {
+        return this.name || this.defaultName;
+    }
+
     public get tags(): readonly string[] {
         return this._tags;
     }
@@ -33,24 +51,19 @@ export abstract class BTNode {
         return this;
     }
 
-    /** Whether this node returned Running on its last tick */
-    private _wasRunning: boolean = false;
-    public get wasRunning(): boolean { return this._wasRunning; }
+    public get nodeFlags(): NodeFlags {
+        return this._nodeFlags;
+    }
 
-    private _nodeFlags: NodeFlags = 0;
-    public get nodeFlags(): NodeFlags { return this._nodeFlags; }
     protected addFlags(...flags: number[]): void {
         for (const flag of flags) {
             this._nodeFlags |= flag;
         }
     }
 
-    public name: string = "";
-    constructor(name?: string) {
-        if (name) {
-            this.name = name;
-        }
-    }
+    // =========================================================================
+    // Tree Hierarchy
+    // =========================================================================
 
     private parent?: BTNode;
 
@@ -65,6 +78,25 @@ export abstract class BTNode {
         this.parent = undefined;
     }
 
+    /** Returns the children of this node, if it's a structural node */
+    public getChildren?(): ReadonlyArray<BTNode>;
+
+    // =========================================================================
+    // State & Serialization
+    // =========================================================================
+
+    /** Whether this node returned Running on its last tick */
+    private _wasRunning: boolean = false;
+    public get wasRunning(): boolean {
+        return this._wasRunning;
+    }
+
+    /* 
+        We do not need to provide the whole state of a node here, just the essential
+        for debugging and visualization purposes. 
+    */
+    public getDisplayState?(): SerializableState | undefined;
+
     public toJSON() {
         return {
             id: this.id,
@@ -77,21 +109,9 @@ export abstract class BTNode {
         };
     }
 
-    /* 
-        We do not need to provide the whole state of a node here, just the essential
-        for debugging and visualization purposes. 
-    */
-    public getDisplayState?(): SerializableState | undefined
-
-    public getChildren?(): ReadonlyArray<BTNode>;
-
-    public get displayName(): string {
-        if (this.name) {
-            return this.name;
-        }
-
-        return this.defaultName;
-    }
+    // =========================================================================
+    // Core Execution API
+    // =========================================================================
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
         const startedAt = ctx.getTime?.();
@@ -155,7 +175,22 @@ export abstract class BTNode {
         return current;
     }
 
+    // =========================================================================
+    // Protected Lifecycle Hooks
+    // =========================================================================
+
     protected abstract onTick(ctx: TickContext): NodeResult;
+
+    /**
+     * ------------------------------------------------------------------------
+     * Abort-only hook
+     * ------------------------------------------------------------------------
+     * This hook is NOT part of BTNode.Tick. It is only invoked by BTNode.Abort
+     * when an external interrupt explicitly aborts a running node.
+     *
+     * Implementation must be idempotent. Called before onReset on abort.
+     */
+    protected onAbort?(_ctx: TickContext): void;
 
     /**
      * ------------------------------------------------------------------------
@@ -190,25 +225,13 @@ export abstract class BTNode {
      */
     protected onReset?(_ctx: TickContext): void;
 
-    /**
-     * ------------------------------------------------------------------------
-     * Abort-only hook
-     * ------------------------------------------------------------------------
-     * This hook is NOT part of BTNode.Tick. It is only invoked by BTNode.Abort
-     * when an external interrupt explicitly aborts a running node.
-     *
-     * Implementation must be idempotent. Called before onReset on abort.
-     */
-    protected onAbort?(_ctx: TickContext): void;
-
-    // Some helper methods that could be done inside onTick but are here for convenience
-    protected onTicked?(_result: NodeResult, _ctx: TickContext): void { };
-    protected onSuccess?(_ctx: TickContext): void { };
-    protected onFailed?(_ctx: TickContext): void { };
-    protected onRunning?(_ctx: TickContext): void { };
-    protected onSuccessOrRunning?(_ctx: TickContext): void { };
-    protected onFailedOrRunning?(_ctx: TickContext): void { };
-    protected onFinished?(_result: NodeResult & ('Succeeded' | 'Failed'), _ctx: TickContext): void { };
+    protected onTicked?(_result: NodeResult, _ctx: TickContext): void { }
+    protected onSuccess?(_ctx: TickContext): void { }
+    protected onFailed?(_ctx: TickContext): void { }
+    protected onRunning?(_ctx: TickContext): void { }
+    protected onSuccessOrRunning?(_ctx: TickContext): void { }
+    protected onFailedOrRunning?(_ctx: TickContext): void { }
+    protected onFinished?(_result: NodeResult & ('Succeeded' | 'Failed'), _ctx: TickContext): void { }
 }
 
 export interface TickContext {
