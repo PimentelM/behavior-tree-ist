@@ -7,9 +7,10 @@ export abstract class Decorator extends BTNode {
     constructor(public child: BTNode) {
         super();
         this.addFlags(NodeFlags.Decorator);
+        this.child.attachToParent(this);
     }
 
-    public override getChildren(): BTNode[] {
+    public override getChildren(): ReadonlyArray<BTNode> {
         return [this.child];
     }
 

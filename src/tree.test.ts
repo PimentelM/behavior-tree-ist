@@ -16,13 +16,10 @@ describe("BehaviourTree", () => {
         expect(root.tickCount).toBe(1);
     });
 
-    it("throws an error if a node appears more than once in the tree", () => {
+    it("throws an error if a node is attached to multiple parents", () => {
         const sharedAction = action({ name: "shared", execute: () => NodeResult.Succeeded });
-        const seq1 = sequence({ name: "seq1" }, [sharedAction]);
-        const seq2 = sequence({ name: "seq2" }, [sharedAction]);
-        const root = fallback({ name: "root" }, [seq1, seq2]);
-
-        expect(() => new BehaviourTree(root)).toThrow(/Duplicate appearance of node in the tree: shared.*/);
+        sequence({ name: "seq1" }, [sharedAction]);
+        expect(() => sequence({ name: "seq2" }, [sharedAction])).toThrow(/Node shared \(id: \d+\) already has a parent \(seq1\). Nodes cannot be shared between multiple parents./);
     });
 
     it("increments tickId each tick", () => {

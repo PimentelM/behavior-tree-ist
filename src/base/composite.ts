@@ -14,7 +14,7 @@ export abstract class Composite extends BTNode {
         return this._nodes;
     }
 
-    public override getChildren(): BTNode[] {
+    public override getChildren(): ReadonlyArray<BTNode> {
         return this._nodes;
     }
 
@@ -43,10 +43,14 @@ export abstract class Composite extends BTNode {
     }
 
     public clearNodes(): void {
+        for (const node of this._nodes) {
+            node.detachFromParent();
+        }
         this._nodes.length = 0;
     }
 
     public addNode(node: BTNode): void {
+        node.attachToParent(this);
         this._nodes.push(node);
     }
 

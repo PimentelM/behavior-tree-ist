@@ -52,6 +52,31 @@ export abstract class BTNode {
         }
     }
 
+    private parent?: BTNode;
+
+    public attachToParent(parent: BTNode): void {
+        if (this.parent) {
+            throw new Error(`Node ${this.displayName} (id: ${this.id}) already has a parent (${this.parent.displayName}). Nodes cannot be shared between multiple parents.`);
+        }
+        this.parent = parent;
+    }
+
+    public detachFromParent(): void {
+        this.parent = undefined;
+    }
+
+    public toJSON() {
+        return {
+            id: this.id,
+            name: this.name || undefined,
+            defaultName: this.defaultName,
+            nodeFlags: this.nodeFlags,
+            tags: this.tags.length > 0 ? this.tags : undefined,
+            children: this.getChildren?.(),
+            state: this.getDisplayState?.(),
+        };
+    }
+
     /* 
         We do not need to provide the whole state of a node here, just the essential
         for debugging and visualization purposes. 
