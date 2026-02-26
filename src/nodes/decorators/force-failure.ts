@@ -19,4 +19,3 @@ export class ForceFailure extends Decorator {
     }
 }
 
-export const AlwaysFail = ForceFailure;

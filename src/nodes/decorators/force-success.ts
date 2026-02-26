@@ -19,4 +19,3 @@ export class ForceSuccess extends Decorator {
     }
 }
 
-export const AlwaysSucceed = ForceSuccess;

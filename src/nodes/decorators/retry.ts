@@ -2,12 +2,12 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-export type RetryUntilSuccessfulState = {
+export type RetryState = {
     failedCount: number;
 };
 
-export class RetryUntilSuccessful extends Decorator {
-    public override readonly defaultName = "RetryUntilSuccessful";
+export class Retry extends Decorator {
+    public override readonly defaultName = "Retry";
     private failedCount: number = 0;
 
     constructor(
@@ -20,12 +20,12 @@ export class RetryUntilSuccessful extends Decorator {
 
     public override get displayName(): string {
         if (this.maxRetries === -1) {
-            return "RetryUntilSuccessful (Infinite)";
+            return "Retry (Infinite)";
         }
-        return `RetryUntilSuccessful (${this.failedCount}/${this.maxRetries})`;
+        return `Retry (${this.failedCount}/${this.maxRetries})`;
     }
 
-    public override getDisplayState(): RetryUntilSuccessfulState {
+    public override getDisplayState(): RetryState {
         return { failedCount: this.failedCount };
     }
 

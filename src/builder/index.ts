@@ -29,12 +29,11 @@ export interface NodeProps {
     runningIsFailure?: boolean;
     runningIsSuccess?: boolean;
     keepRunningUntilFailure?: boolean;
-    untilSuccess?: boolean;
     runOnce?: boolean;
 
     // Retry / Repeat
     repeat?: number; // max iterations, or -1 for infinite
-    retryUntilSuccessful?: number; // max retries
+    retry?: number; // max retries
 
     // Timing decorators
     requireSustainedSuccess?: number;
@@ -66,7 +65,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     if (props.forceSuccess && props.forceFailure) throw new Error("Cannot use both forceSuccess and forceFailure");
     if (props.succeedIf && props.failIf) throw new Error("Cannot use both succeedIf and failIf");
     if (props.runningIsFailure && props.runningIsSuccess) throw new Error("Cannot use both runningIsFailure and runningIsSuccess");
-    if (props.keepRunningUntilFailure && props.untilSuccess) throw new Error("Cannot use both keepRunningUntilFailure and untilSuccess");
+
 
 
     // Order (Innermost to Outermost):
@@ -80,11 +79,10 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
 
     // 2. Control Flow modifiers
     if (props.keepRunningUntilFailure) current = current.decorate([Decorators.KeepRunningUntilFailure]);
-    else if (props.untilSuccess) current = current.decorate([Decorators.UntilSuccess]);
     if (props.runOnce) current = current.decorate([Decorators.RunOnce]);
 
     if (props.repeat !== undefined) current = current.decorate([Decorators.Repeat, props.repeat]);
-    if (props.retryUntilSuccessful !== undefined) current = current.decorate([Decorators.RetryUntilSuccessful, props.retryUntilSuccessful]);
+    if (props.retry !== undefined) current = current.decorate([Decorators.Retry, props.retry]);
 
     // 3. Guards / Condition overrides
     if (props.precondition) current = current.decorate([Decorators.Precondition, props.precondition.name ?? "Precondition", props.precondition.condition]);
