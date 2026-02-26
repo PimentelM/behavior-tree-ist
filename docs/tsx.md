@@ -102,10 +102,8 @@ One of the most powerful features of the TSX adapter is how it handles decorator
 - `timeout={number}` (ms)
 
 **Hooks:**
-- `onEnter={fn}`
-- `onResume={fn}`
-- `onFinished={fn}`
-...and all other standard library hooks!
+- **Tick-managed (automatic during `BTNode.Tick`)**: `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure`, `onRunning`, `onSuccessOrRunning`, `onFailedOrRunning`, `onFinished`
+- **Abort-only (manual interrupt path)**: `onAbort` (called by `BTNode.Abort`, not by `BTNode.Tick`)
 
 ## Dependency Injection vs Context (`ctx`)
 

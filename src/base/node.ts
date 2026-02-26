@@ -133,6 +133,14 @@ export abstract class BTNode {
     protected abstract onTick(ctx: TickContext): NodeResult;
 
     /**
+     * ------------------------------------------------------------------------
+     * Tick-managed lifecycle hooks
+     * ------------------------------------------------------------------------
+     * These hooks are part of the normal BTNode.Tick lifecycle and are invoked
+     * automatically while ticking the tree.
+     */
+
+    /**
      * Called on the first tick of a fresh execution (when the node was not
      * previously Running). Symmetric counterpart to onReset.
      * Use this for initializing state, recording start time, acquiring resources, etc.
@@ -157,7 +165,15 @@ export abstract class BTNode {
      */
     protected onReset?(_ctx: TickContext): void;
 
-    /** Implementation must be idempotent. Called before onReset on abort. */
+    /**
+     * ------------------------------------------------------------------------
+     * Abort-only hook
+     * ------------------------------------------------------------------------
+     * This hook is NOT part of BTNode.Tick. It is only invoked by BTNode.Abort
+     * when an external interrupt explicitly aborts a running node.
+     *
+     * Implementation must be idempotent. Called before onReset on abort.
+     */
     protected onAbort?(_ctx: TickContext): void;
 
     // Some helper methods that could be done inside onTick but are here for convenience
