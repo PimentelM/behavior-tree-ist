@@ -58,3 +58,21 @@ Four entry points: main (`"."`), `"./builder"`, `"./tsx"`, `"./inspector"`.
 - **`getDisplayState()`**: stateful decorators override this to expose debugging info for the inspector/serializer.
 - **Test helpers** (src/test-helpers.ts): prefer `createNodeTicker()` over manually creating a TickContext — it handles tick ID incrementing and provides both `tick()` and `abort()` methods. Use `StubAction` for configurable result queues with lifecycle counters.
 - Unused parameters are prefixed with `_`. No explicit `any` allowed.
+- **Documentation**: After every code change (new nodes, renamed props, changed behavior, new exports, etc.), update the corresponding docs in `docs/` and `README.md` to stay in sync. See the doc-to-source mapping below.
+
+## Documentation
+
+Docs live in `docs/` with a root `README.md`. After any code change, update the relevant doc files:
+
+| Source area | Doc files to update |
+|---|---|
+| `src/base/node.ts`, `src/base/types.ts` | `docs/core-concepts.md`, `docs/node-flags.md` |
+| `src/base/action.ts`, `src/base/condition.ts`, `src/nodes/actions/` | `docs/leaf-nodes.md` |
+| `src/nodes/composite/` | `docs/composite-nodes.md` |
+| `src/nodes/decorators/` | `docs/decorators.md` |
+| `src/builder/index.ts` (NodeProps, builder functions) | `docs/construction-apis.md` |
+| `src/tsx/` | `docs/tsx.md` |
+| `src/inspector/` | `docs/inspector.md` |
+| `src/tree.ts` | `docs/behaviour-tree-class.md` |
+| New node types or base class changes | `docs/custom-nodes.md` |
+| Package exports, major features | `README.md` |

@@ -1,13 +1,12 @@
-# Using behavior-tree-ist with TSX
+# TSX
 
-behavior-tree-ist provides first-class support for defining behavior trees using TSX (JSX for TypeScript). This allows you to compose your trees visually using a familiar XML-like syntax while maintaining 100% type safety and IDE autocomplete.
+behavior-tree-ist provides first-class JSX/TSX support for defining behavior trees with a declarative, visual syntax while maintaining full type safety and IDE autocomplete.
 
 ## Setup
 
-To start using TSX to build behavior trees, you only need to update your TypeScript configuration and import the builder namespace.
-
 ### 1. Configure `tsconfig.json`
-You need to tell the TypeScript compiler how to transform the TSX tags into function calls. Add the following to your `compilerOptions`:
+
+Tell TypeScript to use the behavior-tree-ist JSX factory:
 
 ```json
 {
@@ -19,122 +18,239 @@ You need to tell the TypeScript compiler how to transform the TSX tags into func
 }
 ```
 
-### 2. Configure Your Linter (Optional but Recommended)
-Since TSX tags implicitly use the `BT` namespace during compilation, your linter (like ESLint) might incorrectly warn you that the `BT` import is unused. 
+### 2. Configure Your Linter (Optional)
 
-You can configure ESLint to ignore this, or simply disable the rule on the import line:
+Since TSX compilation implicitly uses the `BT` namespace, your linter may warn about an unused import. Suppress it:
+
 ```tsx
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { BT } from 'behavior-tree-ist/tsx';
-/* eslint-enable @typescript-eslint/no-unused-vars */
 ```
 
 ## Basic Usage
 
-To build a tree, create a `.tsx` file, import the factory, and start writing!
+Create `.tsx` files, import the factory, and compose trees visually:
 
 ```tsx
 import { BehaviourTree, NodeResult } from 'behavior-tree-ist';
 import { BT } from 'behavior-tree-ist/tsx';
 
-// 1. Define your dependencies (e.g. injected services or state)
-const hero = new HeroEntity();
+const hero = { health: 100, target: null as string | null };
 
-// 2. Define your tree visually using those dependencies via closures
 const heroBrain = (
-    <sequence name="Hero Logic">
-        <condition name="Has Health" eval={() => hero.health > 0} />
-        <action name="Attack Enemy" execute={() => {
-            hero.attack();
-            return NodeResult.Succeeded;
+  <sequence name="Hero Logic">
+    <condition name="Is alive?" eval={() => hero.health > 0} />
+    <fallback name="Combat or Patrol">
+      <sequence name="Attack">
+        <condition name="Has target?" eval={() => hero.target !== null} />
+        <action name="Strike" execute={() => {
+          console.log(`Attacking ${hero.target}`);
+          return NodeResult.Succeeded;
         }} />
-    </sequence>
+      </sequence>
+      <action name="Patrol" execute={() => NodeResult.Running} />
+    </fallback>
+  </sequence>
 );
 
-// 3. Pass it into the BehaviourTree runner just like any normal node!
 const tree = new BehaviourTree(heroBrain);
 ```
 
-### Intrinsic Nodes
-The core behavior tree control flow nodes are built-in and fully typed:
-- `<sequence>`
-- `<selector>`
-- `<parallel>`
-- `<action>` (Requires the `execute` prop)
-- `<condition>` (Requires the `eval` prop)
+## Intrinsic Elements
 
-## Decorators as Props
+All built-in elements and the props they accept:
 
-One of the most powerful features of the TSX adapter is how it handles decorators. Instead of manually wrapping nodes, you apply them directly as props on any node!
+### Composite Elements
+
+These accept `NodeProps` + `children`:
+
+| Element | Behavior |
+|---|---|
+| `<sequence>` | Ticks children in order, fails on first failure |
+| `<reactive-sequence>` | Alias for `<sequence>` |
+| `<fallback>` | Ticks children in order, succeeds on first success |
+| `<reactive-fallback>` | Alias for `<fallback>` |
+| `<selector>` | Alias for `<fallback>` |
+| `<parallel>` | Ticks all children every tick |
+| `<if-then-else>` | Conditional: expects 3 children (condition, then, else) |
+| `<sequence-with-memory>` | Sequence that resumes from last running child |
+| `<fallback-with-memory>` | Fallback that resumes from last running child |
+| `<selector-with-memory>` | Alias for `<fallback-with-memory>` |
+
+### Utility Elements
+
+| Element | Props | Behavior |
+|---|---|---|
+| `<utility-fallback>` | `NodeProps + children` | Fallback sorted by utility score. Children must be `<utility-node>` |
+| `<utility-selector>` | `NodeProps + children` | Alias for `<utility-fallback>` |
+| `<utility-sequence>` | `NodeProps + children` | Sequence sorted by utility score. Children must be `<utility-node>` |
+| `<utility-node>` | `NodeProps + { scorer } + children` | Wraps exactly one child with a scoring function |
 
 ```tsx
-<action 
-    name="Patrol Sequence"
-    repeat={3}                  // Repeat Decorator
-    debounce={500}              // Debounce Decorator
-    onEnter={() => playSound()} // Lifecycle Hook
-    execute={() => NodeResult.Succeeded} 
+<utility-fallback>
+  <utility-node scorer={() => hungerLevel}>
+    <action name="Eat" execute={() => NodeResult.Succeeded} />
+  </utility-node>
+  <utility-node scorer={() => tiredness}>
+    <action name="Sleep" execute={() => NodeResult.Succeeded} />
+  </utility-node>
+</utility-fallback>
+```
+
+### Leaf Elements
+
+| Element | Required props | Behavior |
+|---|---|---|
+| `<action>` | `execute: (ctx) => NodeResult` | Performs work |
+| `<condition>` | `eval: (ctx) => boolean` | Pure boolean check |
+| `<always-success>` | -- | Always returns Succeeded |
+| `<always-failure>` | -- | Always returns Failed |
+| `<always-running>` | -- | Always returns Running |
+| `<sleep>` | `duration: number` | Returns Running for `duration` ms, then Succeeded |
+
+## Decorator Props
+
+All elements accept [NodeProps](construction-apis.md#nodeprops-reference) for automatic decorator application. These are the same props available in the builder API.
+
+### Result Transformers
+
+```tsx
+<action execute={fn} forceSuccess />
+<action execute={fn} forceFailure />
+<action execute={fn} inverter />
+<action execute={fn} runningIsSuccess />
+<action execute={fn} runningIsFailure />
+```
+
+### Guards
+
+```tsx
+<action execute={fn} precondition={{ condition: () => hasMana }} />
+<action execute={fn} precondition={{ name: 'Has mana?', condition: () => hasMana }} />
+<action execute={fn} succeedIf={{ condition: () => alreadyDone }} />
+<action execute={fn} failIf={{ condition: () => isDisabled }} />
+```
+
+### Timing (milliseconds)
+
+```tsx
+<action execute={fn} timeout={5000} />
+<action execute={fn} delay={1000} />
+<action execute={fn} cooldown={3000} />
+<action execute={fn} throttle={500} />
+<action execute={fn} requireSustainedSuccess={2000} />
+```
+
+### Control Flow
+
+```tsx
+<action execute={fn} repeat={5} />
+<action execute={fn} retry={3} />
+<action execute={fn} keepRunningUntilFailure />
+<action execute={fn} runOnce />
+```
+
+### Lifecycle Hooks
+
+```tsx
+<action
+  name="Attack"
+  execute={() => NodeResult.Succeeded}
+  onEnter={(ctx) => console.log('Starting...')}
+  onSuccess={(ctx) => console.log('Hit!')}
+  onFailure={(ctx) => console.log('Missed!')}
+  onAbort={(ctx) => console.log('Interrupted!')}
 />
 ```
 
-### Supported Decorator Props
+All hooks: `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure`, `onRunning`, `onFinished`, `onSuccessOrRunning`, `onFailedOrRunning`, `onAbort`.
 
-**Condition/Guards:**
-- `guard={{ condition: () => boolean }}`
-- `succeedIf={{ condition: () => boolean }}`
-- `failIf={{ condition: () => boolean }}`
-
-**Behavior Modifiers:**
-- `alwaysSucceed={true}`
-- `alwaysFail={true}`
-- `inverter={true}`
-- `runningIsFailure={true}`
-- `runningIsSuccess={true}`
-- `untilFail={true}`
-- `untilSuccess={true}`
-
-**Flow & Timing:**
-- `repeat={number}`
-- `retry={number}`
-- `debounce={number}` (ms)
-- `cooldown={number}` (ms)
-- `throttle={number}` (ms)
-- `timeout={number}` (ms)
-
-**Hooks:**
-- **Tick-managed (automatic during `BTNode.Tick`)**: `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure`, `onRunning`, `onSuccessOrRunning`, `onFailedOrRunning`, `onFinished`
-- **Abort-only (manual interrupt path)**: `onAbort` (called by `BTNode.Abort`, not by `BTNode.Tick`)
-
-## Dependency Injection vs Context (`ctx`)
-
-**Important Note:** The `TickContext` (`ctx`) provided to the `execute` and `eval` callbacks is strictly meant for passing timing/delta information required for ticking the core tree engine. It is **not** intended to be a global state block or blackboards for passing application logic around. 
-
-Because TSX files compile down to ordinary functions returning `BTNode` objects, the canonical and recommended way to share state and methods across your nodes is through **Dependency Injection** by wrapping subtrees in higher-order functions:
+### Naming & Tags
 
 ```tsx
-export function createCombatSubtree(movementPlugin: Movement, targetingPlugin: Radar) {
-    return (
-        <selector name="Combat">
-            {/* Functional components work perfectly in TSX! */}
-            <FleeBehaviour threshold={0.2} />
-            
-            <sequence name="Attack Flow">
-                <condition name="Enemy Sighted" eval={() => targetingPlugin.hasTarget()} />
-                <action name="Move to Enemy" execute={() => movementPlugin.approach()} />
-                <action name="Strike" execute={() => targetingPlugin.strike()} />
-            </sequence>
-        </selector>
-    );
-}
+<sequence name="Combat" tag="ai" />
+<action name="Attack" tags={['combat', 'offensive']} execute={fn} />
 ```
 
-Then simply inject your dependencies when you assemble your main game tree:
+### Generic Decorator Specs
+
+Apply arbitrary decorators with the `decorate` prop:
 
 ```tsx
-const mainTree = (
-    <sequence>
-        { createCombatSubtree(myMovement, myRadar) }
-        <action name="Idle" execute={() => NodeResult.Running} />
+import { Timeout, Repeat } from 'behavior-tree-ist';
+
+<action execute={fn} decorate={[[Timeout, 1000], [Repeat, 3]]} />
+```
+
+## Fragments
+
+Use fragments to return multiple nodes without a wrapper:
+
+```tsx
+const CombatNodes = () => (
+  <>
+    <condition name="Has target?" eval={() => hasTarget} />
+    <action name="Attack" execute={() => NodeResult.Succeeded} />
+  </>
+);
+
+// Use inside a composite
+<sequence>
+  <CombatNodes />
+</sequence>
+```
+
+## Functional Components
+
+Create reusable subtree components as plain functions:
+
+```tsx
+interface CombatProps {
+  entity: { health: number; target: string | null };
+}
+
+function CombatBehaviour({ entity }: CombatProps) {
+  return (
+    <sequence name="Combat">
+      <condition name="Is alive?" eval={() => entity.health > 0} />
+      <condition name="Has target?" eval={() => entity.target !== null} />
+      <action name="Attack" execute={() => NodeResult.Succeeded} />
     </sequence>
+  );
+}
+
+// Usage
+const tree = (
+  <fallback>
+    <CombatBehaviour entity={hero} />
+    <action name="Idle" execute={() => NodeResult.Running} />
+  </fallback>
+);
+```
+
+## Dependency Injection
+
+The `TickContext` (`ctx`) is for engine timing data only, not for application state. Use closures and function parameters for dependency injection:
+
+```tsx
+function createCombatSubtree(movement: Movement, radar: Radar) {
+  return (
+    <selector name="Combat">
+      <sequence name="Attack">
+        <condition name="Enemy sighted" eval={() => radar.hasTarget()} />
+        <action name="Approach" execute={() => movement.approach()} />
+        <action name="Strike" execute={() => radar.strike()} />
+      </sequence>
+      <action name="Search" execute={() => movement.patrol()} />
+    </selector>
+  );
+}
+
+// Inject dependencies when assembling
+const mainTree = (
+  <sequence>
+    {createCombatSubtree(myMovement, myRadar)}
+    <action name="Idle" execute={() => NodeResult.Running} />
+  </sequence>
 );
 ```
