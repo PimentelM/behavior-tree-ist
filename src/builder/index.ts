@@ -43,11 +43,10 @@ export interface NodeProps {
     timeout?: number;
     delay?: number;
 
-    // Hooks
+    // Tick-managed lifecycle hooks (invoked automatically via BTNode.Tick)
     onEnter?: (ctx: TickContext) => void;
     onResume?: (ctx: TickContext) => void;
     onReset?: (ctx: TickContext) => void;
-    onAbort?: (ctx: TickContext) => void;
     onTicked?: (result: NodeResult, ctx: TickContext) => void;
     onSuccess?: (ctx: TickContext) => void;
     onFailure?: (ctx: TickContext) => void;
@@ -55,6 +54,9 @@ export interface NodeProps {
     onSuccessOrRunning?: (ctx: TickContext) => void;
     onFailedOrRunning?: (ctx: TickContext) => void;
     onFinished?: (result: NodeResult & ('Succeeded' | 'Failed'), ctx: TickContext) => void;
+
+    // Abort-only hook (invoked by BTNode.Abort, not by BTNode.Tick)
+    onAbort?: (ctx: TickContext) => void;
 }
 
 export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
@@ -97,7 +99,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     if (props.timeout !== undefined) current = current.decorate([Decorators.Timeout, props.timeout]);
     if (props.delay !== undefined) current = current.decorate([Decorators.Delay, props.delay]);
 
-    // 5. Hooks
+    // 5. Hooks (tick-managed first, then abort-only)
     if (props.onEnter) current = current.decorate([Decorators.OnEnter, props.onEnter]);
     if (props.onResume) current = current.decorate([Decorators.OnResume, props.onResume]);
     if (props.onReset) current = current.decorate([Decorators.OnReset, props.onReset]);

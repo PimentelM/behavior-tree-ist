@@ -183,6 +183,19 @@ describe("BTNode", () => {
 
             expect(callOrder).toEqual(["onEnter", "onTick"]);
         });
+
+        it("does not call onAbort during BTNode.Tick", () => {
+            const node = new ConcreteNode();
+            const ctx = createTickContext();
+
+            node.result = NodeResult.Running;
+            BTNode.Tick(node, ctx);
+
+            node.result = NodeResult.Succeeded;
+            BTNode.Tick(node, ctx);
+
+            expect(node.abortCallCount).toBe(0);
+        });
     });
 
     describe("onReset", () => {
