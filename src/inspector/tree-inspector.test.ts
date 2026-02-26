@@ -145,7 +145,7 @@ describe("TreeInspector", () => {
 
         const data = inspector.getNodeProfilingData(1);
         expect(data).toBeDefined();
-        expect(data!.totalTime).toBe(30);
+        expect(data!.totalCpuTime).toBe(30);
         expect(data!.tickCount).toBe(2);
     });
 
@@ -157,7 +157,7 @@ describe("TreeInspector", () => {
 
         // Tick 1 was evicted, profiling should reflect ticks 2 and 3 only
         const data = inspector.getNodeProfilingData(1)!;
-        expect(data.totalTime).toBe(50);
+        expect(data.totalCpuTime).toBe(50);
         expect(data.tickCount).toBe(2);
     });
 

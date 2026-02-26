@@ -54,7 +54,7 @@ class TreeInspector {
 
   // Profiling
   getNodeProfilingData(nodeId: number): NodeProfilingData | undefined;
-  getHotNodes(): NodeProfilingData[]; // Sorted by totalTime descending
+  getHotNodes(): NodeProfilingData[]; // Sorted by totalCpuTime descending
   getFlameGraphFrames(tickId: number): FlameGraphFrame[];
 
   // Statistics
@@ -158,9 +158,9 @@ inspector.ingestTick(tree.tick());
 
 // Per-node timing
 const data = inspector.getNodeProfilingData(nodeId);
-// { nodeId, totalTime, tickCount, minTime, maxTime, lastTime }
+// { nodeId, totalCpuTime, tickCount, minCpuTime, maxCpuTime, lastCpuTime, totalRunningTime, ... }
 
-// Hottest nodes (sorted by total time)
+// Hottest nodes (sorted by CPU time)
 const hot = inspector.getHotNodes();
 ```
 
@@ -169,11 +169,20 @@ const hot = inspector.getHotNodes();
 ```typescript
 interface NodeProfilingData {
   nodeId: number;
-  totalTime: number;  // Sum of all execution times (ms)
-  tickCount: number;  // Number of ticks with timing data
-  minTime: number;    // Minimum execution time (ms)
-  maxTime: number;    // Maximum execution time (ms)
-  lastTime: number;   // Most recent execution time (ms)
+  
+  // Instantaneous tick CPU execution times (ms)
+  totalCpuTime: number;
+  tickCount: number;
+  minCpuTime: number;
+  maxCpuTime: number;
+  lastCpuTime: number;
+
+  // True duration spans (wall-clock time from first returning Running to Succeeded/Failed)
+  totalRunningTime: number;
+  runningTimeCount: number;
+  minRunningTime: number;
+  maxRunningTime: number;
+  lastRunningTime: number;
 }
 ```
 
@@ -232,7 +241,8 @@ const stats = inspector.getStats();
 //   nodeCount: number,
 //   storedTickCount: number,
 //   totalTickCount: number,        // Total ever ingested
-//   totalProfilingTime: number,
+//   totalProfilingCpuTime: number,
+//   totalProfilingRunningTime: number,
 //   oldestTickId: number | undefined,
 //   newestTickId: number | undefined,
 // }
@@ -269,7 +279,7 @@ console.log(`Nodes: ${stats.nodeCount}, Ticks: ${stats.storedTickCount}`);
 const hot = inspector.getHotNodes();
 for (const node of hot.slice(0, 5)) {
   const indexed = inspector.tree!.getById(node.nodeId)!;
-  console.log(`${indexed.name}: avg ${(node.totalTime / node.tickCount).toFixed(2)}ms`);
+  console.log(`${indexed.name}: avg ${(node.totalCpuTime / node.tickCount).toFixed(2)}ms`);
 }
 
 // Time-travel: inspect tick 50

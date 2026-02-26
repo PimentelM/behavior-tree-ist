@@ -1,4 +1,4 @@
-import { TickTraceEvent } from "../base/types";
+import { NodeResult, TickTraceEvent } from "../base/types";
 import { NodeProfilingData, FlameGraphFrame } from "./types";
 import { TreeIndex } from "./tree-index";
 
@@ -10,12 +10,23 @@ interface TimingEntry {
 
 export class Profiler {
     private readonly data = new Map<number, NodeProfilingData>();
-    private _totalTime = 0;
+    private _totalCpuTime = 0;
     private _tickCount = 0;
     private lastProcessedTickId = -1;
+    private _totalRunningTime = 0;
 
-    get totalTime(): number {
-        return this._totalTime;
+    // nodeId -> exact startedAt timestamp when node first transitioned to Running
+    private runningStartTimes = new Map<number, number>();
+
+    // tickId -> Map<nodeId, runningTime> for handling eviction of spanning durations
+    private runningTimesByTick = new Map<number, Map<number, number>>();
+
+    get totalCpuTime(): number {
+        return this._totalCpuTime;
+    }
+
+    get totalRunningTime(): number {
+        return this._totalRunningTime;
     }
 
     get tickCount(): number {
@@ -32,29 +43,72 @@ export class Profiler {
         this.lastProcessedTickId = tickId;
         this._tickCount++;
 
-        for (const event of events) {
-            if (event.startedAt === undefined || event.finishedAt === undefined) continue;
-            const time = event.finishedAt - event.startedAt;
+        const currentTickNodes = new Set<number>();
+        const tickRunningTimes = new Map<number, number>();
 
-            const existing = this.data.get(event.nodeId);
+        for (const event of events) {
+            currentTickNodes.add(event.nodeId);
+
+            if (event.startedAt === undefined || event.finishedAt === undefined) continue;
+            const cpuTime = event.finishedAt - event.startedAt;
+
+            let existing = this.data.get(event.nodeId);
             if (existing) {
-                existing.totalTime += time;
+                existing.totalCpuTime += cpuTime;
                 existing.tickCount++;
-                existing.lastTime = time;
-                if (time < existing.minTime) existing.minTime = time;
-                if (time > existing.maxTime) existing.maxTime = time;
+                existing.lastCpuTime = cpuTime;
+                if (cpuTime < existing.minCpuTime) existing.minCpuTime = cpuTime;
+                if (cpuTime > existing.maxCpuTime) existing.maxCpuTime = cpuTime;
             } else {
-                this.data.set(event.nodeId, {
+                existing = {
                     nodeId: event.nodeId,
-                    totalTime: time,
+                    totalCpuTime: cpuTime,
                     tickCount: 1,
-                    minTime: time,
-                    maxTime: time,
-                    lastTime: time,
-                });
+                    minCpuTime: cpuTime,
+                    maxCpuTime: cpuTime,
+                    lastCpuTime: cpuTime,
+                    totalRunningTime: 0,
+                    runningTimeCount: 0,
+                    minRunningTime: Number.MAX_VALUE,
+                    maxRunningTime: 0,
+                    lastRunningTime: 0,
+                };
+                this.data.set(event.nodeId, existing);
             }
 
-            this._totalTime += time;
+            this._totalCpuTime += cpuTime;
+
+            // Handle RunningTime tracking
+            if (event.result === NodeResult.Running) {
+                if (!this.runningStartTimes.has(event.nodeId)) {
+                    this.runningStartTimes.set(event.nodeId, event.startedAt);
+                }
+            } else if (event.result === NodeResult.Succeeded || event.result === NodeResult.Failed) {
+                const initialStartedAt = this.runningStartTimes.get(event.nodeId) ?? event.startedAt;
+                const runningTime = event.finishedAt - initialStartedAt;
+
+                existing.totalRunningTime += runningTime;
+                existing.runningTimeCount++;
+                existing.lastRunningTime = runningTime;
+                if (runningTime < existing.minRunningTime) existing.minRunningTime = runningTime;
+                if (runningTime > existing.maxRunningTime) existing.maxRunningTime = runningTime;
+
+                this._totalRunningTime += runningTime;
+
+                tickRunningTimes.set(event.nodeId, runningTime);
+                this.runningStartTimes.delete(event.nodeId);
+            }
+        }
+
+        // Clean up aborted nodes (nodes that were running but not ticked in the current execution)
+        for (const nodeId of this.runningStartTimes.keys()) {
+            if (!currentTickNodes.has(nodeId)) {
+                this.runningStartTimes.delete(nodeId);
+            }
+        }
+
+        if (tickRunningTimes.size > 0) {
+            this.runningTimesByTick.set(tickId, tickRunningTimes);
         }
     }
 
@@ -64,40 +118,58 @@ export class Profiler {
      */
     removeTick(events: TickTraceEvent[]): void {
         if (events.length === 0) return;
+        const tickId = events[0].tickId;
         this._tickCount--;
+
+        const tickRunningTimes = this.runningTimesByTick.get(tickId);
 
         for (const event of events) {
             if (event.startedAt === undefined || event.finishedAt === undefined) continue;
-            const time = event.finishedAt - event.startedAt;
+            const cpuTime = event.finishedAt - event.startedAt;
 
             const existing = this.data.get(event.nodeId);
             if (!existing) continue;
 
-            existing.totalTime -= time;
+            existing.totalCpuTime -= cpuTime;
             existing.tickCount--;
-            this._totalTime -= time;
+            this._totalCpuTime -= cpuTime;
+
+            if (tickRunningTimes && tickRunningTimes.has(event.nodeId)) {
+                const runningTime = tickRunningTimes.get(event.nodeId)!;
+                existing.totalRunningTime -= runningTime;
+                existing.runningTimeCount--;
+                this._totalRunningTime -= runningTime;
+            }
 
             if (existing.tickCount <= 0) {
                 this.data.delete(event.nodeId);
             }
         }
+
+        this.runningTimesByTick.delete(tickId);
     }
 
     getNodeData(nodeId: number): NodeProfilingData | undefined {
         return this.data.get(nodeId);
     }
 
-    getAverageTime(nodeId: number): number | undefined {
+    getAverageCpuTime(nodeId: number): number | undefined {
         const d = this.data.get(nodeId);
         if (!d || d.tickCount === 0) return undefined;
-        return d.totalTime / d.tickCount;
+        return d.totalCpuTime / d.tickCount;
+    }
+
+    getAverageRunningTime(nodeId: number): number | undefined {
+        const d = this.data.get(nodeId);
+        if (!d || d.runningTimeCount === 0) return undefined;
+        return d.totalRunningTime / d.runningTimeCount;
     }
 
     /**
-     * Get all nodes sorted by total time descending.
+     * Get all nodes sorted by total CPU time descending.
      */
     getHotNodes(): NodeProfilingData[] {
-        return Array.from(this.data.values()).sort((a, b) => b.totalTime - a.totalTime);
+        return Array.from(this.data.values()).sort((a, b) => b.totalCpuTime - a.totalCpuTime);
     }
 
     /**
@@ -181,8 +253,11 @@ export class Profiler {
 
     clear(): void {
         this.data.clear();
-        this._totalTime = 0;
+        this._totalCpuTime = 0;
+        this._totalRunningTime = 0;
         this._tickCount = 0;
         this.lastProcessedTickId = -1;
+        this.runningStartTimes.clear();
+        this.runningTimesByTick.clear();
     }
 }

@@ -116,7 +116,8 @@ export class TreeInspector {
             nodeCount: this._tree?.size ?? 0,
             storedTickCount: this.store.size,
             totalTickCount: this.totalTickCount,
-            totalProfilingTime: this.profiler.totalTime,
+            totalProfilingCpuTime: this.profiler.totalCpuTime,
+            totalProfilingRunningTime: this.profiler.totalRunningTime,
             oldestTickId: this.store.oldestTickId,
             newestTickId: this.store.newestTickId,
         };

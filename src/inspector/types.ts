@@ -15,11 +15,16 @@ export interface IndexedNode {
 /** Per-node profiling accumulator */
 export interface NodeProfilingData {
     nodeId: number;
-    totalTime: number;
+    totalCpuTime: number;
     tickCount: number;
-    minTime: number;
-    maxTime: number;
-    lastTime: number;
+    minCpuTime: number;
+    maxCpuTime: number;
+    lastCpuTime: number;
+    totalRunningTime: number;
+    runningTimeCount: number;
+    minRunningTime: number;
+    maxRunningTime: number;
+    lastRunningTime: number;
 }
 
 /** Reconstructed node state at a specific tick */
@@ -60,7 +65,8 @@ export interface TreeStats {
     nodeCount: number;
     storedTickCount: number;
     totalTickCount: number;
-    totalProfilingTime: number;
+    totalProfilingCpuTime: number;
+    totalProfilingRunningTime: number;
     oldestTickId: number | undefined;
     newestTickId: number | undefined;
 }
