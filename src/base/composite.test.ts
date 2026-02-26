@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Composite } from "./composite";
 import { BTNode, TickContext } from "./node";
 import { NodeResult } from "./types";
-import { createTickContext, StubAction } from "../test-helpers";
+import { createNodeTicker, StubAction } from "../test-helpers";
 
 class ConcreteComposite extends Composite {
     public override readonly defaultName = "Composite";
@@ -61,12 +61,11 @@ describe("Composite", () => {
         composite.tickResult = NodeResult.Running;
         composite.addNode(child1);
         composite.addNode(child2);
-        const ctx = createTickContext();
+        const ticker = createNodeTicker();
 
-        BTNode.Tick(composite, ctx); // Make composite Running, tick children
-        BTNode.Abort(composite, ctx);
+        ticker.tick(composite);
+        ticker.abort(composite);
 
-        // Only child1 was Running, so only it is aborted
         expect(child1.abortCount).toBe(1);
         expect(child2.abortCount).toBe(0);
     });
@@ -77,9 +76,9 @@ describe("Composite", () => {
         const child2 = new StubAction();
         composite.addNode(child1);
         composite.addNode(child2);
-        const ctx = createTickContext();
+        const ticker = createNodeTicker();
 
-        BTNode.Abort(composite, ctx);
+        ticker.abort(composite);
 
         expect(child1.abortCount).toBe(0);
         expect(child2.abortCount).toBe(0);

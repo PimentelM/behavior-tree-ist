@@ -3,18 +3,42 @@ import { BTNode, TickContext } from "./base/node";
 import { NodeResult } from "./base/types";
 
 export function createTickContext(overrides: Partial<TickContext> = {}): TickContext {
-    const mockTickId = Date.now();
+    const mockTickId = overrides.tickId ?? 1;
     return {
         tickId: mockTickId,
-        now: Date.now(),
+        now: 0,
         events: [],
         trace: () => { },
         ...overrides,
     };
 }
 
+export type NodeTicker = {
+    tick: (node: BTNode, overrides?: Partial<TickContext>) => NodeResult;
+    abort: (node: BTNode, overrides?: Partial<TickContext>) => void;
+};
+
+export function createNodeTicker(startTickId: number = 1): NodeTicker {
+    let nextTickId = startTickId;
+
+    return {
+        tick(node: BTNode, overrides: Partial<TickContext> = {}): NodeResult {
+            return BTNode.Tick(node, createTickContext({
+                tickId: nextTickId++,
+                ...overrides,
+            }));
+        },
+        abort(node: BTNode, overrides: Partial<TickContext> = {}): void {
+            BTNode.Abort(node, createTickContext({
+                tickId: nextTickId++,
+                ...overrides,
+            }));
+        },
+    };
+}
+
 export function tickNode(node: BTNode, ctxOverrides: Partial<TickContext> = {}): NodeResult {
-    return BTNode.Tick(node, createTickContext(ctxOverrides));
+    return createNodeTicker().tick(node, ctxOverrides);
 }
 
 export function createTracingTickContext(overrides: Partial<TickContext> = {}): TickContext {

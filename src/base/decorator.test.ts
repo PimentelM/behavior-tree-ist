@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Decorator } from "./decorator";
 import { BTNode } from "./node";
 import { NodeResult } from "./types";
-import { createTickContext, StubAction } from "../test-helpers";
+import { createNodeTicker, createTickContext, StubAction } from "../test-helpers";
 
 class ConcreteDecorator extends Decorator {
     public override readonly defaultName = "Decorator";
@@ -24,10 +24,10 @@ describe("Decorator", () => {
     it("onAbort aborts a Running child", () => {
         const child = new StubAction(NodeResult.Running);
         const decorator = new ConcreteDecorator(child);
-        const ctx = createTickContext();
+        const ticker = createNodeTicker();
 
-        BTNode.Tick(decorator, ctx); // Make decorator and child Running
-        BTNode.Abort(decorator, ctx);
+        ticker.tick(decorator); // Make decorator and child Running
+        ticker.abort(decorator);
 
         expect(child.abortCount).toBe(1);
     });
@@ -35,9 +35,9 @@ describe("Decorator", () => {
     it("abort is a no-op when decorator was never Running", () => {
         const child = new StubAction();
         const decorator = new ConcreteDecorator(child);
-        const ctx = createTickContext();
+        const ticker = createNodeTicker();
 
-        BTNode.Abort(decorator, ctx);
+        ticker.abort(decorator);
 
         expect(child.abortCount).toBe(0);
     });
