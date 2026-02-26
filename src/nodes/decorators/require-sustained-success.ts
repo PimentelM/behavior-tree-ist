@@ -1,19 +1,20 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
-export type DebounceState = {
-    remainingDebounce: number;
+
+export type RequireSustainedSuccessState = {
+    remainingSustainedSuccess: number;
 };
 
 
-export class Debounce extends Decorator {
-    public override readonly defaultName = "Debounce";
+export class RequireSustainedSuccess extends Decorator {
+    public override readonly defaultName = "RequireSustainedSuccess";
     private firstSuccessAt: number | undefined = undefined;
     private lastNow: number = 0;
 
     constructor(
         child: BTNode,
-        public readonly debounce: number,
+        public readonly requireSustainedSuccess: number,
     ) {
         super(child);
         this.addFlags(NodeFlags.Stateful);
@@ -27,11 +28,11 @@ export class Debounce extends Decorator {
     }
 
     public override get displayName(): string {
-        return `Debounce${this.successDuration < this.debounce ? ` (${this.debounce - this.successDuration} left)` : ""}`;
+        return `RequireSustainedSuccess${this.successDuration < this.requireSustainedSuccess ? ` (${this.requireSustainedSuccess - this.successDuration} left)` : ""}`;
     }
 
-    public override getDisplayState(): DebounceState {
-        return { remainingDebounce: Math.max(0, this.debounce - this.successDuration) };
+    public override getDisplayState(): RequireSustainedSuccessState {
+        return { remainingSustainedSuccess: Math.max(0, this.requireSustainedSuccess - this.successDuration) };
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
@@ -44,15 +45,15 @@ export class Debounce extends Decorator {
                 this.firstSuccessAt = this.lastNow;
             }
 
-            if (this.successDuration >= this.debounce) {
+            if (this.successDuration >= this.requireSustainedSuccess) {
                 return NodeResult.Succeeded;
             }
 
-            // Still debouncing the success
+            // Still requiring sustained success
             return NodeResult.Failed;
         }
 
-        // Reset debounce timer if it fails or runs
+        // Reset sustained success timer if it fails or runs
         this.firstSuccessAt = undefined;
         return result;
     }

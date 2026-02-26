@@ -5,7 +5,7 @@ export * from './throttle';
 export * from './force-success';
 export * from './force-failure';
 export * from './cooldown';
-export * from './debounce';
+export * from './require-sustained-success';
 export * from './retry-until-successful';
 export * from './repeat';
 export * from './on-ticked';

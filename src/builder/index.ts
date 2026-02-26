@@ -37,7 +37,7 @@ export interface NodeProps {
     retryUntilSuccessful?: number; // max retries
 
     // Timing decorators
-    debounce?: number;
+    requireSustainedSuccess?: number;
     cooldown?: number;
     throttle?: number;
     timeout?: number;
@@ -93,7 +93,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     else if (props.failIf) current = current.decorate([Decorators.FailIf, props.failIf.name ?? "FailIf", props.failIf.condition]);
 
     // 4. Timing
-    if (props.debounce !== undefined) current = current.decorate([Decorators.Debounce, props.debounce]);
+    if (props.requireSustainedSuccess !== undefined) current = current.decorate([Decorators.RequireSustainedSuccess, props.requireSustainedSuccess]);
     if (props.cooldown !== undefined) current = current.decorate([Decorators.Cooldown, props.cooldown]);
     if (props.throttle !== undefined) current = current.decorate([Decorators.Throttle, props.throttle]);
     if (props.timeout !== undefined) current = current.decorate([Decorators.Timeout, props.timeout]);
