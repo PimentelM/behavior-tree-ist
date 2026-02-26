@@ -29,7 +29,7 @@ export class Fallback extends Composite {
             const node = this.nodes[i];
             const status = BTNode.Tick(node, ctx);
             if (status === NodeResult.Succeeded || status === NodeResult.Running) {
-                this.abortRunningChildrenFrom(i + 1, ctx);
+                this.abortChildrenFrom(i + 1, ctx);
                 return status;
             }
         }

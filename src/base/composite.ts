@@ -19,34 +19,27 @@ export abstract class Composite extends BTNode {
     }
 
 
-    /** Abort only children that were actually Running */
-    protected abortRunningChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {
+    protected abortChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {
         for (let i = startIndexInclusive; i < this._nodes.length; i++) {
             const node = this._nodes[i];
-            if (node.wasRunning) {
-                BTNode.Abort(node, ctx);
-            }
+            BTNode.Abort(node, ctx);
         }
     }
 
-    /** Abort only children that were actually Running, except one */
-    protected abortRunningChildrenExcept(indexToKeep: number, ctx: TickContext): void {
+    protected abortChildrenExcept(indexToKeep: number, ctx: TickContext): void {
         for (let i = 0; i < this._nodes.length; i++) {
             if (i === indexToKeep) continue;
             const node = this._nodes[i];
-            if (node.wasRunning) {
-                BTNode.Abort(node, ctx);
-            }
+            BTNode.Abort(node, ctx);
         }
     }
 
-    /** Abort all children that were actually Running */
-    protected abortAllRunningChildren(ctx: TickContext): void {
-        this.abortRunningChildrenFrom(0, ctx);
+    protected abortAllChildren(ctx: TickContext): void {
+        this.abortChildrenFrom(0, ctx);
     }
 
     protected override onAbort(ctx: TickContext): void {
-        this.abortAllRunningChildren(ctx);
+        this.abortAllChildren(ctx);
     }
 
     public clearNodes(): void {

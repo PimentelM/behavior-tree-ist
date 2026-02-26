@@ -57,12 +57,12 @@ export class SequenceWithMemory extends Composite {
 
             if (status === NodeResult.Running) {
                 this._runningChildIndex = i;
-                this.abortRunningChildrenFrom(i + 1, ctx);
+                this.abortChildrenFrom(i + 1, ctx);
                 return NodeResult.Running;
             }
 
             if (status === NodeResult.Failed) {
-                this.abortRunningChildrenFrom(i + 1, ctx);
+                this.abortChildrenFrom(i + 1, ctx);
                 return NodeResult.Failed;
             }
         }

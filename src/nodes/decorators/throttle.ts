@@ -2,12 +2,6 @@ import { NodeResult, NodeFlags } from "../../base/types";
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 
-/**
- * A decorator that prevents the child node from being executed more than once within a specified time window.
- *
- * @param child The child node to execute.
- * @param throttle The time window to wait before allowing the child to be executed again.
- */
 
 export type ThrottleState = {
     remainingThrottle: number;

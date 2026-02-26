@@ -74,5 +74,3 @@ export class FallbackWithMemory extends Composite {
         this._runningChildIndex = undefined;
     }
 }
-
-export const SelectorWithMemory = FallbackWithMemory;

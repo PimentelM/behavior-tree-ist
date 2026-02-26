@@ -2,16 +2,6 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-/**
- * Repeats the child until it returns Succeeded, then returns Succeeded.
- *
- * This is a common looping pattern in BT literature (Ögren's "Repeat until success").
- * Useful for retry-like behavior where you want to keep trying until something works.
- *
- * - Child returns Succeeded → Return Succeeded (loop complete)
- * - Child returns Running → Return Running (wait for child)
- * - Child returns Failed → Reset child state, return Running (loop continues)
- */
 export class UntilSuccess extends Decorator {
     public override readonly defaultName = "UntilSuccess";
 

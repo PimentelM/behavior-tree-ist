@@ -157,7 +157,7 @@ export abstract class BTNode {
      */
     protected onReset?(_ctx: TickContext): void;
 
-    /** Implementation must be idempotent. Called BEFORE onReset on abort. */
+    /** Implementation must be idempotent. Called before onReset on abort. */
     protected onAbort?(_ctx: TickContext): void;
 
     // Some helper methods that could be done inside onTick but are here for convenience
