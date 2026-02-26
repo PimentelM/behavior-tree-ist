@@ -1,6 +1,7 @@
 import { ConditionNode } from "../base/condition";
 import { Action, AsyncAction, BTNode, CancellationSignal, NodeResult, TickContext } from "../base";
 import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse } from "../nodes";
+import { ParallelPolicy } from "../nodes/composite/parallel";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
 import { UtilityScorer } from "../base/utility";
@@ -145,8 +146,8 @@ export function fallback(props: NodeProps, children: BTNode[]): BTNode {
 
 export const selector = fallback;
 
-export function parallel(props: NodeProps, children: BTNode[]): BTNode {
-    return applyDecorators(Parallel.from(props.name || "Parallel", children), props);
+export function parallel(props: NodeProps & { policy?: ParallelPolicy }, children: BTNode[]): BTNode {
+    return applyDecorators(Parallel.from(props.name || "Parallel", children, props.policy), props);
 }
 
 export function utilityFallback(props: NodeProps, children: Utility[]): BTNode {

@@ -71,7 +71,7 @@ These accept `NodeProps` + `children`:
 | `<fallback>` | Ticks children in order, succeeds on first success |
 | `<reactive-fallback>` | Alias for `<fallback>` |
 | `<selector>` | Alias for `<fallback>` |
-| `<parallel>` | Ticks all children every tick |
+| `<parallel>` | Ticks all children every tick. Result depends on the specified policy |
 | `<if-then-else>` | Conditional: expects 3 children (condition, then, else) |
 | `<sequence-with-memory>` | Sequence that resumes from last running child |
 | `<fallback-with-memory>` | Fallback that resumes from last running child |

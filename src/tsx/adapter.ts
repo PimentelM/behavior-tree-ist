@@ -1,6 +1,7 @@
 import { BTNode, CancellationSignal, NodeResult, TickContext } from "../base";
 import { UtilityScorer } from "../base/utility";
 import * as Builder from "../builder";
+import { ParallelPolicy } from "../nodes/composite/parallel";
 import { Utility as UtilityNode } from "../nodes/decorators/utility";
 
 export function Fragment(_props: unknown, ...children: BTNode[]): BTNode[] {
@@ -121,7 +122,7 @@ declare global {
             "fallback": DefaultCompositeProps;
             "reactive-fallback": DefaultCompositeProps;
             "selector": DefaultCompositeProps; // alias for fallback
-            "parallel": DefaultCompositeProps;
+            "parallel": DefaultCompositeProps & { policy?: ParallelPolicy };
             "if-then-else": DefaultCompositeProps;
             "sequence-with-memory": DefaultCompositeProps;
             "fallback-with-memory": DefaultCompositeProps;

@@ -132,18 +132,22 @@ const combat = Parallel.from('Combat', [moveToEnemy, playAnimation, dealDamage])
 
 | Policy | Succeeds when | Fails when |
 |---|---|---|
-| `DefaultParallelPolicy` | All children succeed | Any child fails |
-| `SuccessThresholdParallelPolicy(n)` | `n` or more children succeed | Any child fails |
-| `AlwaysRunningParallelPolicy` | Never | Never (always Running) |
+| `RequireAllSuccess` (default) | All children succeed | Any child fails |
+| `RequireOneSuccess` | At least 1 child succeeds | All children fail |
+| `SuccessThreshold(n)` | `n` or more children succeed | Any child fails or it becomes impossible to reach `n` successes |
+| `FailThreshold(n)` | It becomes impossible to reach `n` failures | `n` or more children fail |
+| `AlwaysRunningPolicy` | Never | Never (always returns `Running`) |
+| `AlwaysSucceedPolicy` | Always returns `Succeeded` | Never |
+| `AlwaysFailPolicy` | Never | Always returns `Failed` |
 
 ```typescript
-import { Parallel, SuccessThresholdParallelPolicy } from 'behavior-tree-ist';
+import { Parallel, SuccessThreshold } from 'behavior-tree-ist';
 
 // Succeed when at least 2 of 3 children succeed
 const parallel = Parallel.from(
   'Quorum',
   [taskA, taskB, taskC],
-  new SuccessThresholdParallelPolicy(2),
+  SuccessThreshold(2),
 );
 ```
 

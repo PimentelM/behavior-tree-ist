@@ -4,6 +4,7 @@ import { Sequence, SequenceWithMemory, FallbackWithMemory, Fallback } from "../n
 import { ConditionNode } from "../base/condition";
 import { Action } from "../base";
 import { Decorator } from "../base/decorator";
+import { AlwaysFailPolicy } from "../nodes/composite/parallel";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { BT } from "./index"; // This will be the alias we use for JSX factory -> JSXFactory: "BT.createElement"
 import { NodeProps } from "../builder";
@@ -147,6 +148,20 @@ describe("TSX Adapter", () => {
 
         expect(children[1]).toBeInstanceOf(FallbackWithMemory);
         expect(children[1].name).toBe("MemFall");
+    });
+
+    it("supports custom policies on parallel nodes", () => {
+        const tree = (
+            <parallel name="CustomParallel" policy={AlwaysFailPolicy}>
+                <action execute={() => NodeResult.Succeeded} />
+                <action execute={() => NodeResult.Succeeded} />
+            </parallel>
+        );
+
+        // the mock always fail policy will force the parallel node to Fail even if children succeed
+        const result = tickNode(tree);
+
+        expect(result).toBe(NodeResult.Failed);
     });
 
     it("can apply generic decorators using the decorate prop", () => {
