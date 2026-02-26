@@ -114,8 +114,8 @@ export abstract class BTNode {
 
     public static Abort(node: BTNode, ctx: TickContext): void {
         if (node._wasRunning) {
-            node.onReset?.(ctx);
             node.onAbort?.(ctx);
+            node.onReset?.(ctx);
             node._wasRunning = false;
         }
     }
@@ -157,7 +157,7 @@ export abstract class BTNode {
      */
     protected onReset?(_ctx: TickContext): void;
 
-    /** Implementation must be idempotent. Called after onReset on abort. */
+    /** Implementation must be idempotent. Called BEFORE onReset on abort. */
     protected onAbort?(_ctx: TickContext): void;
 
     // Some helper methods that could be done inside onTick but are here for convenience

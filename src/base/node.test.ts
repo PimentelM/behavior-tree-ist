@@ -245,7 +245,7 @@ describe("BTNode", () => {
             expect(node.resetCallCount).toBe(1);
         });
 
-        it("is called before onAbort when aborting", () => {
+        it("is called AFTER onAbort when aborting", () => {
             const callOrder: string[] = [];
             const node = new ConcreteNode();
             node.result = NodeResult.Running;
@@ -261,7 +261,7 @@ describe("BTNode", () => {
             BTNode.Tick(node, ctx); // Make it Running
             BTNode.Abort(node, ctx);
 
-            expect(callOrder).toEqual(["onReset", "onAbort"]);
+            expect(callOrder).toEqual(["onAbort", "onReset"]);
         });
     });
 
