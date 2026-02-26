@@ -4,39 +4,57 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-behavior-tree-ist is a TypeScript behaviour tree library for game AI / agent systems. It's published as an npm package with dual ESM/CJS output.
+**behavior-tree-ist** — a code-first TypeScript behaviour tree library focused on developer experience. Provides composable, type-safe nodes with lifecycle hooks, decorators, builder functions, JSX support, and runtime inspection.
 
 ## Commands
 
-- `yarn build` — Build with tsup (outputs to `dist/`)
-- `yarn test` — Run tests with vitest
-- `yarn test:watch` — Run tests in watch mode
-- `vitest run src/path/to/file.test.ts` — Run a single test file
-- `yarn lint` — Lint with ESLint
-- `yarn typecheck` — Type-check with `tsc --noEmit`
+```bash
+yarn test              # Run all tests (vitest)
+yarn test:watch        # Run tests in watch mode
+yarn test src/nodes/decorators/repeat.test.ts  # Run a single test file
+yarn build             # Build with tsup (ESM + CJS)
+yarn lint              # ESLint
+yarn typecheck         # TypeScript --noEmit
+```
+
+After making changes, validate with `yarn test && yarn lint`.
 
 ## Architecture
 
-The library is a classic behaviour tree implementation with these core abstractions in `src/base/`:
+### Node Type Hierarchy
 
-- **`BTNode`** — Abstract base for all nodes. Has a static `Tick(node, ctx)` method that drives execution and lifecycle hooks (`onTick`, `onSuccess`, `onFailed`, `onFinished`, `onAbort`). Nodes have auto-incrementing IDs and support a `.decorate()` fluent API for wrapping with decorators.
-- **`TickContext`** — Passed through every tick; carries `tickId`, `tickNumber`, `now` timestamp, and a `trace` function for optional event recording.
-- **`Composite`** — Base for nodes with multiple children (`_nodes` array). Provides child abort helpers.
-- **`Decorator`** — Base for single-child wrapper nodes.
-- **`Action`** — Leaf node base. Has a static `Action.from(name, fn)` factory for inline lambdas.
-- **`Condition`** — Leaf node that evaluates a boolean predicate.
+All nodes extend `BTNode` (src/base/node.ts):
+- **Leaf nodes**: `Action` (performs work, returns NodeResult) and `ConditionNode` (pure check, returns boolean mapped to Succeeded/Failed)
+- **Composite nodes** (src/nodes/composite/): Have multiple children — `Sequence` (AND), `Fallback` (OR), `Parallel`, memory variants, `IfThenElse`, utility-scored variants
+- **Decorator nodes** (src/nodes/decorators/): Wrap a single child — timing guards, result transformers, control flow, lifecycle hooks
 
-Built-in node implementations live in `src/nodes/`:
-- **Composites**: `Selector` (OR), `Sequence` (AND), `Parallel`
-- **Decorators**: `Inverter`, `AlwaysSucceed`, `AlwaysFail`, `Timeout`, `Throttle`, `ConditionDecorator`
-- **Actions**: `Idle`, `Wait`
+### Tick Lifecycle (BTNode.Tick)
 
-**`BehaviourTree`** (`src/tree.ts`) is the top-level runner — wraps a root node, manages tick IDs, and optionally records trace events.
+1. Not running → `onEnter`; was running → `onResume`
+2. `onTick()` (abstract — each node type implements this)
+3. If transitioning out of Running → `onReset`
+4. Post-tick hooks: `onTicked`, `onSuccess`/`onFailed`/`onRunning`/`onFinished`/etc.
 
-Node results are the enum-like const `NodeResult`: `Succeeded`, `Failed`, `Running`.
+`BTNode.Abort` is separate: calls `onAbort` then `onReset` (only if node was running). `onAbort` is the only hook not invoked during normal ticking.
+
+### NodeResult
+
+Three-valued: `Succeeded`, `Failed`, `Running`. Defined as a const object + type in src/base/types.ts.
+
+### Three APIs for Tree Construction
+
+1. **Direct instantiation + `.decorate()`** — type-safe decorator specs applied right-to-left: `node.decorate([Repeat, 3], [Timeout, 1000])`
+2. **Builder functions** (behavior-tree-ist/builder) — `sequence()`, `action()`, `condition()`, etc. Accept props that auto-apply decorators
+3. **JSX/TSX** (behavior-tree-ist/tsx) — `<sequence>`, `<action>` etc. with decorator props; uses custom factory `BT.createElement`
+
+### Package Exports
+
+Four entry points: main (`"."`), `"./builder"`, `"./tsx"`, `"./inspector"`.
 
 ## Conventions
 
-- `no-explicit-any` is enforced by ESLint — never use `any`
-- Tests go alongside source files as `*.test.ts` or `*.spec.ts` inside `src/`
-- Package manager is **yarn**
+- **NodeFlags**: bitfield classification system (Leaf, Composite, Decorator, Action, Condition, Sequence, Selector, Parallel, Memory, Stateful, Utility, Repeating, ResultTransformer, Guard, Lifecycle). Every concrete node calls `addFlags()` in its constructor. Flags have no impact on core BT functionality — they exist for external tooling, UI, and inspector integrations.
+- **Sentinel timing fields** (`startedAt`, `lastTriggeredAt`, `lastFinishedAt`, `firstSuccessAt`, `startTime`, `lastNow`): always compare with `=== undefined`, never use falsy checks (ESLint enforces this — `0` is a valid timestamp).
+- **`getDisplayState()`**: stateful decorators override this to expose debugging info for the inspector/serializer.
+- **Test helpers** (src/test-helpers.ts): prefer `createNodeTicker()` over manually creating a TickContext — it handles tick ID incrementing and provides both `tick()` and `abort()` methods. Use `StubAction` for configurable result queues with lifecycle counters.
+- Unused parameters are prefixed with `_`. No explicit `any` allowed.
