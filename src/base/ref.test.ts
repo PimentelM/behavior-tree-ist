@@ -64,8 +64,8 @@ describe("Ref", () => {
                 tickId: 5,
                 timestamp: 100,
                 refName: "counter",
-                oldValue: 0,
                 newValue: 1,
+                isAsync: false,
             });
         });
 
@@ -81,10 +81,10 @@ describe("Ref", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(2);
-            expect(ctx.refEvents[0].oldValue).toBe(0);
             expect(ctx.refEvents[0].newValue).toBe(1);
-            expect(ctx.refEvents[1].oldValue).toBe(1);
             expect(ctx.refEvents[1].newValue).toBe(2);
+            expect(ctx.refEvents[0].isAsync).toBe(false);
+            expect(ctx.refEvents[1].isAsync).toBe(false);
         });
 
         it("write outside tick produces no event and no error", () => {
@@ -131,8 +131,8 @@ describe("Ref", () => {
                 tickId: 1,
                 timestamp: 50,
                 refName: "started",
-                oldValue: false,
                 newValue: true,
+                isAsync: false,
             });
         });
 
@@ -161,8 +161,8 @@ describe("Ref", () => {
                 tickId: 2,
                 timestamp: 10,
                 refName: "aborted",
-                oldValue: false,
                 newValue: true,
+                isAsync: false,
             });
         });
 
@@ -211,8 +211,8 @@ describe("Ref", () => {
                 tickId: 10,
                 timestamp: 200,
                 refName: "counter",
-                oldValue: 0,
                 newValue: 42,
+                isAsync: false,
             });
         });
     });

@@ -1,4 +1,5 @@
 import { BTNode, TickContext } from "./node";
+import { RefChangeEvent } from "./types";
 
 export interface ReadonlyRef<T> {
     readonly value: T;
@@ -24,17 +25,28 @@ export class Ref<T> implements ReadonlyRef<T> {
 
     set(newValue: T, ctx?: TickContext): void {
         if (this._value === newValue) return;
-        const oldValue = this._value;
         this._value = newValue;
-        const traceCtx = ctx ?? BTNode.currentTickContext;
-        if (traceCtx && traceCtx.isTracingEnabled && this.name !== undefined) {
-            traceCtx.refEvents.push({
-                tickId: traceCtx.tickId,
-                timestamp: traceCtx.now,
-                refName: this.name,
-                oldValue: oldValue as unknown,
-                newValue: newValue as unknown,
-            });
+
+        const effectiveCtx = ctx ?? BTNode.currentTickContext;
+        if (!effectiveCtx || !effectiveCtx.isTracingEnabled || this.name === undefined) return;
+
+        const event: RefChangeEvent = {
+            tickId: effectiveCtx.tickId,
+            timestamp: effectiveCtx.now,
+            refName: this.name,
+            newValue: newValue as unknown,
+            isAsync: false,
+        };
+
+        const runtime = effectiveCtx.runtime;
+        if (runtime) {
+            if (runtime.isTickRunning) {
+                runtime.latest!.refEvents.push(event);
+            } else {
+                runtime.pendingRefEvents.push(event);
+            }
+        } else {
+            effectiveCtx.refEvents.push(event);
         }
     }
 

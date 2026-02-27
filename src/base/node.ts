@@ -260,4 +260,12 @@ export interface TickContext {
     isTracingEnabled: boolean;
     trace: (node: BTNode, result: NodeResult, startedAt?: number, finishedAt?: number) => void;
     getTime?: () => number;
+    runtime?: TickRuntime;
 };
+
+export interface TickRuntime {
+    readonly treeId: number;
+    latest: TickContext | null;
+    isTickRunning: boolean;
+    pendingRefEvents: RefChangeEvent[];
+}

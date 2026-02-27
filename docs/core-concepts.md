@@ -174,7 +174,8 @@ const sum = derivedRef(() => a.value + b.value, 'sum');
 
 `BTNode.Tick` and `BTNode.Abort` push the `TickContext` onto an internal stack before invoking hooks, and pop it in a `finally` block. This means any `ref.value = x` inside `onTick`, `onEnter`, `onAbort`, etc. automatically traces to the correct context — no ceremony needed.
 
-- **Named refs** produce `RefChangeEvent` entries with `oldValue` and `newValue`
+- **Named refs** produce `RefChangeEvent` entries with `newValue` and `isAsync` status
+- **Async Mutations**: When using `AsyncAction`, mutations made via an explicit `ctx` after the tick has finished are buffered and automatically attributed to the next tick of the same tree.
 - **Unnamed refs** are lightweight and untraced (no events even during ticks)
 - **Outside ticks** (no ambient context), writes succeed silently with no tracing
 - The stack design supports nested ticks (composite → children) and multiple concurrent tree instances

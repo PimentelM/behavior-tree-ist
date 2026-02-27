@@ -1,4 +1,4 @@
-import { BTNode, TickContext, TickTraceEvent, SerializableNode, TickRecord } from "./base";
+import { BTNode, TickContext, TickTraceEvent, SerializableNode, TickRecord, TickRuntime } from "./base";
 import { NodeFlags, hasFlag, RefChangeEvent } from "./base/types";
 import { serializeTree } from "./serialization/serializer";
 
@@ -7,10 +7,20 @@ type PublicTickContext = {
 }
 
 export class BehaviourTree {
+    private static NEXT_TREE_ID = 1;
+
+    public readonly treeId: number = BehaviourTree.NEXT_TREE_ID++;
     private currentTickId: number = 1;
     private root: BTNode;
     private traceEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
+
+    private runtime: TickRuntime = {
+        treeId: this.treeId,
+        latest: null,
+        isTickRunning: false,
+        pendingRefEvents: []
+    };
 
     constructor(root: BTNode) {
         this.root = root;
@@ -57,6 +67,7 @@ export class BehaviourTree {
             events,
             refEvents,
             isTracingEnabled: this.traceEnabled,
+            runtime: this.runtime,
             trace: (node, result, startedAt, finishedAt) => {
                 if (!this.traceEnabled) return;
                 const event: TickTraceEvent = {
@@ -83,7 +94,24 @@ export class BehaviourTree {
             getTime: this.profilingTimeProvider,
         }
 
-        BTNode.Tick(this.root, ctx);
+        // Pick up pending ref events from between ticks
+        if (this.runtime.pendingRefEvents.length > 0) {
+            for (const refEvent of this.runtime.pendingRefEvents) {
+                refEvent.tickId = tickId; // Attribute to this tick
+                refEvent.isAsync = true;
+                refEvent.timestamp = now;
+                refEvents.push(refEvent);
+            }
+            this.runtime.pendingRefEvents = [];
+        }
+
+        this.runtime.latest = ctx;
+        this.runtime.isTickRunning = true;
+        try {
+            BTNode.Tick(this.root, ctx);
+        } finally {
+            this.runtime.isTickRunning = false;
+        }
 
         this.currentTickId++;
         return { tickId, timestamp: now, events, refEvents };

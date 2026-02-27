@@ -4,7 +4,7 @@ import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
 import { Throttle, Sleep } from "./nodes";
 import { fallback, sequence, condition, action } from "./builder";
-import { Action, ref } from "./base";
+import { Action, AsyncAction, ref } from "./base";
 
 describe("BehaviourTree", () => {
     it("ticks root node", () => {
@@ -185,8 +185,8 @@ describe("BehaviourTree", () => {
                 tickId: 1,
                 timestamp: 100,
                 refName: "counter",
-                oldValue: 0,
                 newValue: 1,
+                isAsync: false,
             });
         });
 
@@ -212,6 +212,42 @@ describe("BehaviourTree", () => {
 
             expect(record.refEvents).toHaveLength(0);
         })
+
+        describe("AsyncAction Trace Recording", () => {
+            it("mutations to shared Refs during AsyncAction should be recorded in the trace", async () => {
+                const sharedRef = ref(0, "shared");
+
+                const asyncNode = AsyncAction.from("test", async (ctx) => {
+                    // Simulation of async work
+                    // @ts-expect-error setTimeout is not defined in this context
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    sharedRef.set(1, ctx);
+                    return NodeResult.Succeeded;
+                });
+
+                const tree = new BehaviourTree(asyncNode).enableTrace();
+
+                // Tick 1: Starts the async action
+                const tick1 = tree.tick();
+                expect(tick1.refEvents).toHaveLength(0);
+
+                // Wait for async work to complete
+                // @ts-expect-error setTimeout is not defined in this context
+                await new Promise(resolve => setTimeout(resolve, 30));
+
+                // Tick 2: Collects the result
+                const tick2 = tree.tick();
+
+                // The mutation happened after Tick 1 finished, but before Tick 2 started.
+                // It should be picked up by Tick 2.
+                expect(tick2.refEvents).toContainEqual(expect.objectContaining({
+                    refName: "shared",
+                    newValue: 1,
+                    isAsync: true
+                }));
+            });
+        });
+
     });
 
     describe('profiling', () => {

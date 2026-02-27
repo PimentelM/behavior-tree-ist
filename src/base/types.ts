@@ -57,8 +57,8 @@ export type RefChangeEvent = {
     tickId: number;
     timestamp: number;
     refName: string | undefined;
-    oldValue: unknown;
     newValue: unknown;
+    isAsync: boolean;
 };
 
 export interface TickRecord {
