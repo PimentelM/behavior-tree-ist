@@ -1,12 +1,12 @@
 # Inspector
 
-The inspector system provides runtime tree inspection, tick recording, state reconstruction, and performance profiling. Import from `behavior-tree-ist/inspector`.
+The inspector system provides runtime tree inspection, tick recording, state reconstruction, and performance profiling. Import from `@behavior-tree-ist/core/inspector`.
 
 ## Overview
 
 ```typescript
-import { BehaviourTree } from 'behavior-tree-ist';
-import { TreeInspector } from 'behavior-tree-ist/inspector';
+import { BehaviourTree } from '@behavior-tree-ist/core';
+import { TreeInspector } from '@behavior-tree-ist/core/inspector';
 
 // 1. Create tree with tracing enabled
 const tree = new BehaviourTree(root).enableTrace();
@@ -218,7 +218,7 @@ interface FlameGraphFrame {
 The underlying ring-buffer storage for tick records. Used internally by `TreeInspector` but also available standalone:
 
 ```typescript
-import { TickStore } from 'behavior-tree-ist/inspector';
+import { TickStore } from '@behavior-tree-ist/core/inspector';
 
 const store = new TickStore(1000); // Sliding window of 1000 ticks
 store.push(record);                // Returns evicted record if at capacity
@@ -251,9 +251,9 @@ const stats = inspector.getStats();
 ## End-to-End Example
 
 ```typescript
-import { BehaviourTree, NodeResult, NodeFlags } from 'behavior-tree-ist';
-import { sequence, action, condition } from 'behavior-tree-ist/builder';
-import { TreeInspector } from 'behavior-tree-ist/inspector';
+import { BehaviourTree, NodeResult, NodeFlags } from '@behavior-tree-ist/core';
+import { sequence, action, condition } from '@behavior-tree-ist/core/builder';
+import { TreeInspector } from '@behavior-tree-ist/core/inspector';
 
 // Build tree
 const root = sequence({ name: 'Main' }, [

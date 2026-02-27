@@ -17,7 +17,7 @@ Remap the child's result without altering its execution.
 **Flags**: `ResultTransformer`
 
 ```typescript
-import { Inverter, ForceSuccess, Action, NodeResult } from 'behavior-tree-ist';
+import { Inverter, ForceSuccess, Action, NodeResult } from '@behavior-tree-ist/core';
 
 // Invert: treat failure as success
 const notDead = new Inverter(
@@ -43,7 +43,7 @@ Conditionally gate child execution based on a boolean check.
 **Aliases**: `SucceedIf` is also exported as `SkipIf`
 
 ```typescript
-import { Precondition, SucceedIf, Action, NodeResult } from 'behavior-tree-ist';
+import { Precondition, SucceedIf, Action, NodeResult } from '@behavior-tree-ist/core';
 
 // Only tick child if entity has mana
 const guarded = new Precondition(
@@ -77,7 +77,7 @@ Time-based decorators that use `ctx.now` to track elapsed time. All values are i
 All timing decorators expose `getDisplayState()` with their remaining time.
 
 ```typescript
-import { Timeout, Delay, Cooldown, RequireSustainedSuccess } from 'behavior-tree-ist';
+import { Timeout, Delay, Cooldown, RequireSustainedSuccess } from '@behavior-tree-ist/core';
 
 // Fail if action takes more than 5 seconds
 const timed = new Timeout(longRunningAction, 5000);
@@ -124,7 +124,7 @@ Decorators that alter execution flow (looping, caching).
 **Flags**: `Repeat`/`Retry`/`KeepRunningUntilFailure` have `Repeating`. `Repeat`/`Retry`/`RunOnce` also have `Stateful`.
 
 ```typescript
-import { Repeat, Retry, RunOnce } from 'behavior-tree-ist';
+import { Repeat, Retry, RunOnce } from '@behavior-tree-ist/core';
 
 // Run patrol action 5 times
 const patrolRoute = new Repeat(patrolAction, 5);
@@ -167,7 +167,7 @@ Decorator wrappers that call a callback on specific lifecycle events. These are 
 | `OnAbort` | `(child, cb)` | Node is aborted (not during normal ticking) |
 
 ```typescript
-import { OnEnter, OnSuccess, OnAbort, Action, NodeResult } from 'behavior-tree-ist';
+import { OnEnter, OnSuccess, OnAbort, Action, NodeResult } from '@behavior-tree-ist/core';
 
 const tracked = new OnEnter(
   new OnSuccess(
@@ -210,7 +210,7 @@ const tracked = action({
 Wraps a child with a scoring function for use in [UtilityFallback / UtilitySequence](composite-nodes.md#utilityfallback-utilityselector).
 
 ```typescript
-import { Utility, Action, NodeResult, TickContext } from 'behavior-tree-ist';
+import { Utility, Action, NodeResult, TickContext } from '@behavior-tree-ist/core';
 
 type UtilityScorer = (ctx: TickContext) => number;
 
@@ -230,7 +230,7 @@ Exposes `getDisplayState()` returning `{ lastScore }`.
 Adds string tags to a node for filtering and inspection. Unlike other decorators, `Tag` returns the child node itself (with tags added), not a wrapper.
 
 ```typescript
-import { Tag, Action, NodeResult } from 'behavior-tree-ist';
+import { Tag, Action, NodeResult } from '@behavior-tree-ist/core';
 
 const tagged = new Tag(
   Action.from('Attack', () => NodeResult.Succeeded),

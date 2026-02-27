@@ -5,7 +5,7 @@
 ## Constructor
 
 ```typescript
-import { BehaviourTree } from 'behavior-tree-ist';
+import { BehaviourTree } from '@behavior-tree-ist/core';
 
 const tree = new BehaviourTree(rootNode);
 ```
@@ -137,8 +137,8 @@ const tree = new BehaviourTree(root)
 The typical pattern for runtime debugging:
 
 ```typescript
-import { BehaviourTree } from 'behavior-tree-ist';
-import { TreeInspector } from 'behavior-tree-ist/inspector';
+import { BehaviourTree } from '@behavior-tree-ist/core';
+import { TreeInspector } from '@behavior-tree-ist/core/inspector';
 
 const tree = new BehaviourTree(root).enableTrace();
 const inspector = new TreeInspector({ maxTicks: 2000 });

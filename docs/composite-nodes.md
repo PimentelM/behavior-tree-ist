@@ -36,7 +36,7 @@ Ticks children left-to-right. Stops at the first child that does not succeed.
 **Reactive behavior**: On every tick, the Sequence starts from the first child. If child 0 was `Succeeded` last tick but now returns `Failed`, the sequence immediately fails -- even if child 2 was `Running`. Previously running children are aborted.
 
 ```typescript
-import { Sequence, ConditionNode, Action, NodeResult } from 'behavior-tree-ist';
+import { Sequence, ConditionNode, Action, NodeResult } from '@behavior-tree-ist/core';
 
 const attackFlow = Sequence.from('Attack', [
   ConditionNode.from('Has target?', () => hasTarget),
@@ -62,7 +62,7 @@ Ticks children left-to-right. Stops at the first child that does not fail.
 **Reactive behavior**: Like Sequence, always starts from the first child. If a higher-priority child succeeds on a later tick, lower-priority running children are aborted.
 
 ```typescript
-import { Fallback, Action, NodeResult } from 'behavior-tree-ist';
+import { Fallback, Action, NodeResult } from '@behavior-tree-ist/core';
 
 const ai = Fallback.from('AI', [
   attackFlow,   // Try attacking first
@@ -93,7 +93,7 @@ The standard `Sequence` and `Fallback` are **reactive** -- they re-evaluate from
 A Sequence that remembers the index of the last running child and resumes from there.
 
 ```typescript
-import { SequenceWithMemory, Action, NodeResult } from 'behavior-tree-ist';
+import { SequenceWithMemory, Action, NodeResult } from '@behavior-tree-ist/core';
 
 // Step 1 runs to completion, then step 2, then step 3.
 // If step 2 returns Running, next tick resumes at step 2 (skips step 1).
@@ -109,7 +109,7 @@ Exposes `runningChildIndex` property and `getDisplayState()` returning `{ runnin
 A Fallback that remembers the index of the last running child and resumes from there.
 
 ```typescript
-import { FallbackWithMemory } from 'behavior-tree-ist';
+import { FallbackWithMemory } from '@behavior-tree-ist/core';
 
 const plan = FallbackWithMemory.from('Find Path', [pathA, pathB, pathC]);
 ```
@@ -123,7 +123,7 @@ const plan = FallbackWithMemory.from('Find Path', [pathA, pathB, pathC]);
 Ticks **all** children every tick and evaluates results using a pluggable policy.
 
 ```typescript
-import { Parallel } from 'behavior-tree-ist';
+import { Parallel } from '@behavior-tree-ist/core';
 
 const combat = Parallel.from('Combat', [moveToEnemy, playAnimation, dealDamage]);
 ```
@@ -141,7 +141,7 @@ const combat = Parallel.from('Combat', [moveToEnemy, playAnimation, dealDamage])
 | `AlwaysFailPolicy` | Never | Always returns `Failed` |
 
 ```typescript
-import { Parallel, SuccessThreshold } from 'behavior-tree-ist';
+import { Parallel, SuccessThreshold } from '@behavior-tree-ist/core';
 
 // Succeed when at least 2 of 3 children succeed
 const parallel = Parallel.from(
@@ -156,7 +156,7 @@ const parallel = Parallel.from(
 Conditional branching with 2 or 3 children: `[condition, thenBranch]` or `[condition, thenBranch, elseBranch]`.
 
 ```typescript
-import { IfThenElse, ConditionNode, Action, NodeResult } from 'behavior-tree-ist';
+import { IfThenElse, ConditionNode, Action, NodeResult } from '@behavior-tree-ist/core';
 
 const behavior = IfThenElse.from([
   ConditionNode.from('Has ammo?', () => entity.ammo > 0),
@@ -178,7 +178,7 @@ const behavior = IfThenElse.from([
 A Fallback that sorts children by [Utility](decorators.md#utility) score (highest first) before ticking. Children must be wrapped in `Utility` decorators.
 
 ```typescript
-import { UtilityFallback, Utility, Action, NodeResult } from 'behavior-tree-ist';
+import { UtilityFallback, Utility, Action, NodeResult } from '@behavior-tree-ist/core';
 
 const behavior = UtilityFallback.from([
   new Utility(Action.from('Eat', () => NodeResult.Succeeded), () => hunger),
@@ -198,7 +198,7 @@ On each tick, children are re-sorted by score. The highest-scored child is ticke
 A Sequence that sorts children by utility score (highest first). All children must succeed for the sequence to succeed; execution order is determined by score.
 
 ```typescript
-import { UtilitySequence, Utility, Action, NodeResult } from 'behavior-tree-ist';
+import { UtilitySequence, Utility, Action, NodeResult } from '@behavior-tree-ist/core';
 
 const preparation = UtilitySequence.from('Prepare', [
   new Utility(Action.from('Sharpen sword', () => NodeResult.Succeeded), () => swordDullness),

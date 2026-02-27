@@ -1,76 +1,15 @@
 {
-  "name": "behavior-tree-ist",
-  "version": "0.1.0",
-  "description": "A behaviour tree library for TypeScript",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    },
-    "./builder": {
-      "import": {
-        "types": "./dist/builder.d.mts",
-        "default": "./dist/builder.mjs"
-      },
-      "require": {
-        "types": "./dist/builder.d.ts",
-        "default": "./dist/builder.js"
-      }
-    },
-    "./tsx": {
-      "import": {
-        "types": "./dist/tsx.d.mts",
-        "default": "./dist/tsx.mjs"
-      },
-      "require": {
-        "types": "./dist/tsx.d.ts",
-        "default": "./dist/tsx.js"
-      }
-    },
-    "./inspector": {
-      "import": {
-        "types": "./dist/inspector.d.mts",
-        "default": "./dist/inspector.mjs"
-      },
-      "require": {
-        "types": "./dist/inspector.d.ts",
-        "default": "./dist/inspector.js"
-      }
-    }
-  },
-  "files": [
-    "dist",
-    "README.md"
+  "private": true,
+  "name": "behavior-tree-ist-monorepo",
+  "workspaces": [
+    "packages/*"
   ],
-  "sideEffects": false,
   "scripts": {
-    "build": "tsup",
+    "build": "yarn workspace @behavior-tree-ist/core run build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "yarn build && yarn typecheck && yarn lint && yarn test"
-  },
-  "keywords": [
-    "behaviour-tree",
-    "behavior-tree",
-    "ai",
-    "game-ai",
-    "typescript"
-  ],
-  "author": "",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18.0.0"
+    "lint": "eslint packages/*/src",
+    "typecheck": "yarn workspace @behavior-tree-ist/core run typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

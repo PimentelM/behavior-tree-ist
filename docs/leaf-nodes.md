@@ -11,7 +11,7 @@ Leaf nodes are the terminal nodes of a behaviour tree -- they have no children a
 ### Extending Action
 
 ```typescript
-import { Action, NodeResult, TickContext } from 'behavior-tree-ist';
+import { Action, NodeResult, TickContext } from '@behavior-tree-ist/core';
 
 class MoveToTarget extends Action {
   readonly defaultName = 'MoveToTarget';
@@ -35,7 +35,7 @@ class MoveToTarget extends Action {
 For simple actions, use the static factory instead of creating a subclass:
 
 ```typescript
-import { Action, NodeResult } from 'behavior-tree-ist';
+import { Action, NodeResult } from '@behavior-tree-ist/core';
 
 const patrol = Action.from('Patrol', (ctx) => {
   // ctx.now gives you the current tick timestamp
@@ -53,7 +53,7 @@ const patrol = Action.from('Patrol', (ctx) => {
 ### Extending AsyncAction
 
 ```typescript
-import { AsyncAction, CancellationSignal, NodeResult, TickContext } from 'behavior-tree-ist';
+import { AsyncAction, CancellationSignal, NodeResult, TickContext } from '@behavior-tree-ist/core';
 
 class FetchData extends AsyncAction {
   protected async execute(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult | void> {
@@ -71,7 +71,7 @@ class FetchData extends AsyncAction {
 ### AsyncAction.from() Factory
 
 ```typescript
-import { AsyncAction, NodeResult } from 'behavior-tree-ist';
+import { AsyncAction, NodeResult } from '@behavior-tree-ist/core';
 
 const waitAndSucceed = AsyncAction.from('Wait a bit', async (ctx, signal) => {
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -87,7 +87,7 @@ const waitAndSucceed = AsyncAction.from('Wait a bit', async (ctx, signal) => {
 ### ConditionNode.from() Factory
 
 ```typescript
-import { ConditionNode } from 'behavior-tree-ist';
+import { ConditionNode } from '@behavior-tree-ist/core';
 
 const hasHealth = ConditionNode.from('Has health?', (ctx) => entity.health > 0);
 const enemyNearby = ConditionNode.from('Enemy nearby?', () => entity.enemyDistance < 10);
@@ -96,7 +96,7 @@ const enemyNearby = ConditionNode.from('Enemy nearby?', () => entity.enemyDistan
 ### Extending ConditionNode
 
 ```typescript
-import { ConditionNode, TickContext } from 'behavior-tree-ist';
+import { ConditionNode, TickContext } from '@behavior-tree-ist/core';
 
 class IsTimerExpired extends ConditionNode {
   constructor(private deadline: number) {
@@ -114,7 +114,7 @@ Four ready-made leaf nodes are provided for common patterns and testing:
 Always returns `Succeeded`. Useful as a placeholder or to cap a sequence.
 
 ```typescript
-import { AlwaysSuccess } from 'behavior-tree-ist';
+import { AlwaysSuccess } from '@behavior-tree-ist/core';
 
 const noop = new AlwaysSuccess();
 const named = new AlwaysSuccess('Placeholder');
@@ -125,7 +125,7 @@ const named = new AlwaysSuccess('Placeholder');
 Always returns `Failed`. Useful for forcing fallback evaluation or testing.
 
 ```typescript
-import { AlwaysFailure } from 'behavior-tree-ist';
+import { AlwaysFailure } from '@behavior-tree-ist/core';
 
 const fail = new AlwaysFailure();
 ```
@@ -135,7 +135,7 @@ const fail = new AlwaysFailure();
 Always returns `Running`. Useful for testing stateful decorators or keeping a branch alive indefinitely.
 
 ```typescript
-import { AlwaysRunning } from 'behavior-tree-ist';
+import { AlwaysRunning } from '@behavior-tree-ist/core';
 
 const idle = new AlwaysRunning('Idle');
 ```
@@ -147,7 +147,7 @@ Returns `Running` for a specified duration (in milliseconds), then `Succeeded`. 
 **Flags**: `Leaf`, `Action`, `Stateful`
 
 ```typescript
-import { Sleep } from 'behavior-tree-ist';
+import { Sleep } from '@behavior-tree-ist/core';
 
 const wait = new Sleep(2000); // Returns Running for 2 seconds, then Succeeded
 ```

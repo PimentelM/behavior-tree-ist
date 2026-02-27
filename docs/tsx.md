@@ -1,12 +1,12 @@
 # TSX
 
-behavior-tree-ist provides first-class JSX/TSX support for defining behavior trees with a declarative, visual syntax while maintaining full type safety and IDE autocomplete.
+@behavior-tree-ist/core provides first-class JSX/TSX support for defining behavior trees with a declarative, visual syntax while maintaining full type safety and IDE autocomplete.
 
 ## Setup
 
 ### 1. Configure `tsconfig.json`
 
-Tell TypeScript to use the behavior-tree-ist JSX factory:
+Tell TypeScript to use the @behavior-tree-ist/core JSX factory:
 
 ```json
 {
@@ -24,7 +24,7 @@ Since TSX compilation implicitly uses the `BT` namespace, your linter may warn a
 
 ```tsx
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { BT } from 'behavior-tree-ist/tsx';
+import { BT } from '@behavior-tree-ist/core/tsx';
 ```
 
 ## Basic Usage
@@ -32,8 +32,8 @@ import { BT } from 'behavior-tree-ist/tsx';
 Create `.tsx` files, import the factory, and compose trees visually:
 
 ```tsx
-import { BehaviourTree, NodeResult } from 'behavior-tree-ist';
-import { BT } from 'behavior-tree-ist/tsx';
+import { BehaviourTree, NodeResult } from '@behavior-tree-ist/core';
+import { BT } from '@behavior-tree-ist/core/tsx';
 
 const hero = { health: 100, target: null as string | null };
 
@@ -178,7 +178,7 @@ All hooks: `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure
 Apply arbitrary decorators with the `decorate` prop:
 
 ```tsx
-import { Timeout, Repeat } from 'behavior-tree-ist';
+import { Timeout, Repeat } from '@behavior-tree-ist/core';
 
 <action execute={fn} decorate={[[Timeout, 1000], [Repeat, 3]]} />
 ```

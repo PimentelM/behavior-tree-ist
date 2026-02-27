@@ -7,7 +7,7 @@ This guide covers extending the library with your own node types.
 Extend `Action` and implement `onTick()`:
 
 ```typescript
-import { Action, NodeResult, TickContext } from 'behavior-tree-ist';
+import { Action, NodeResult, TickContext } from '@behavior-tree-ist/core';
 
 class MoveToTarget extends Action {
   readonly defaultName = 'MoveToTarget';
@@ -52,7 +52,7 @@ class MoveToTarget extends Action {
 For simple checks, use the factory. For stateful checks, extend the class:
 
 ```typescript
-import { ConditionNode, TickContext } from 'behavior-tree-ist';
+import { ConditionNode, TickContext } from '@behavior-tree-ist/core';
 
 // Factory (preferred for simple checks)
 const isAlive = ConditionNode.from('Is alive?', () => entity.health > 0);
@@ -74,7 +74,7 @@ Conditions never return `Running` -- they map `true` to `Succeeded` and `false` 
 Extend `Decorator` and implement `onTick()`. Use `BTNode.Tick()` and `BTNode.Abort()` to control the child:
 
 ```typescript
-import { Decorator, BTNode, NodeResult, TickContext, NodeFlags } from 'behavior-tree-ist';
+import { Decorator, BTNode, NodeResult, TickContext, NodeFlags } from '@behavior-tree-ist/core';
 
 class LogDecorator extends Decorator {
   readonly defaultName = 'LogDecorator';
@@ -98,7 +98,7 @@ class LogDecorator extends Decorator {
 import {
   Decorator, BTNode, NodeResult, TickContext, NodeFlags,
   SerializableState,
-} from 'behavior-tree-ist';
+} from '@behavior-tree-ist/core';
 
 class MaxExecutions extends Decorator {
   readonly defaultName = 'MaxExecutions';
@@ -139,7 +139,7 @@ class MaxExecutions extends Decorator {
 Extend `Composite` and iterate `this._nodes`:
 
 ```typescript
-import { Composite, BTNode, NodeResult, TickContext, NodeFlags } from 'behavior-tree-ist';
+import { Composite, BTNode, NodeResult, TickContext, NodeFlags } from '@behavior-tree-ist/core';
 
 class RandomSelector extends Composite {
   readonly defaultName = 'RandomSelector';
