@@ -23,17 +23,20 @@ export function useNodeDetails(
     // Get current state from snapshot
     let currentResult = null;
     let currentDisplayState: Record<string, unknown> | undefined;
+    const inspectorWithStateLookup = inspector as TreeInspector & {
+      getLastDisplayState?: (nodeId: number, atOrBeforeTickId?: number) => unknown;
+    };
     if (viewedTickId !== null) {
       const nodeSnap = inspector.getNodeAtTick(selectedNodeId, viewedTickId);
       if (nodeSnap) {
         currentResult = nodeSnap.result;
-        currentDisplayState = nodeSnap.state;
       }
+      currentDisplayState = inspectorWithStateLookup.getLastDisplayState?.(selectedNodeId, viewedTickId) as Record<string, unknown> | undefined;
     }
 
     return {
       nodeId: selectedNodeId,
-      name: indexed.name,
+      name: indexed.name || indexed.defaultName,
       defaultName: indexed.defaultName,
       flags: indexed.nodeFlags,
       path: treeIndex.getPathString(selectedNodeId),

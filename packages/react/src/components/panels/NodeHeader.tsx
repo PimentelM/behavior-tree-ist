@@ -8,14 +8,15 @@ interface NodeHeaderProps {
 
 function NodeHeaderInner({ details }: NodeHeaderProps) {
   const { name, defaultName, flags, path, tags, currentResult } = details;
+  const displayName = name || defaultName;
   const flagLabels = getFlagLabels(flags);
   const resultColor = getResultColor(currentResult);
 
   return (
     <div className="bt-node-header">
       <div className="bt-node-header__name">
-        {name}
-        {name !== defaultName && (
+        {displayName}
+        {displayName !== defaultName && (
           <span style={{ color: 'var(--bt-text-muted)', fontWeight: 400, fontSize: 12, marginLeft: 6 }}>
             ({defaultName})
           </span>

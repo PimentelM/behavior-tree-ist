@@ -7,16 +7,18 @@ import { getResultColor, getFlagLabels } from '../../constants';
 type BTFlowNode = Node<BTNodeData, 'btNode'>;
 
 function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
-  const { name, nodeId, nodeFlags, result, displayState, isSelected } = data;
+  const { name, defaultName, nodeId, nodeFlags, result, displayState, isSelected } = data;
+  const displayName = name || defaultName;
   const accentColor = getResultColor(result);
   const flagLabels = getFlagLabels(nodeFlags);
 
   const stateEntries = displayState
     ? Object.entries(displayState)
     : [];
+  const hasState = stateEntries.length > 0;
 
   return (
-    <div className={`bt-node ${isSelected ? 'bt-node--selected' : ''}`}>
+    <div className={`bt-node ${isSelected ? 'bt-node--selected' : ''} ${hasState ? 'bt-node--with-state' : ''}`}>
       <Handle type="target" position={Position.Top} />
       <div
         className="bt-node__accent"
@@ -24,8 +26,8 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
       />
       <div className="bt-node__body">
         <div className="bt-node__header">
-          <span className="bt-node__name" title={name}>
-            {name}
+          <span className="bt-node__name" title={displayName}>
+            {displayName}
           </span>
           <span className="bt-node__id-badge">#{nodeId}</span>
         </div>
@@ -39,7 +41,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
             </span>
           ))}
         </div>
-        {stateEntries.length > 0 && (
+        {hasState && (
           <div className="bt-node__display-state">
             {stateEntries.map(([key, value]) => (
               <div key={key} className="bt-node__state-entry">

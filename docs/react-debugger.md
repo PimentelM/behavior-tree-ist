@@ -56,6 +56,7 @@ function App() {
   theme={{ colorSucceeded: '#4ade80' }}
   layoutDirection="TB"            // "TB" | "LR"
   width="100%" height="100%"
+  isolateStyles={true}            // default true: render inside Shadow DOM
   onNodeSelect={(nodeId) => {}}
   onTickChange={(tickId) => {}}
   className="my-debugger"
@@ -75,9 +76,18 @@ function App() {
 | `layoutDirection` | `"TB" \| "LR"` | `"TB"` | Tree layout direction: top-to-bottom or left-to-right |
 | `width` | `string \| number` | `"100%"` | Container width |
 | `height` | `string \| number` | `"100%"` | Container height |
+| `isolateStyles` | `boolean` | `true` | Enables Shadow DOM style isolation so host-page CSS cannot bleed into the debugger |
 | `onNodeSelect` | `(nodeId: number \| null) => void` | — | Callback when a node is clicked |
 | `onTickChange` | `(tickId: number) => void` | — | Callback when the viewed tick changes (scrubber, step, etc.) |
 | `className` | `string` | — | Additional CSS class on the root element |
+
+## Style Isolation
+
+By default, the debugger renders inside a Shadow DOM root (`isolateStyles={true}`), which keeps host-page CSS from affecting internal debugger UI styles.
+
+- Host app styles do not cascade into the debugger internals.
+- `className` applies to the outer host container (useful for sizing/layout).
+- Set `isolateStyles={false}` if you need legacy, non-shadow rendering.
 
 ## Transport
 

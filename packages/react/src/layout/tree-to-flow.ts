@@ -19,7 +19,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
       position: { x: 0, y: 0 }, // dagre will set this
       data: {
         nodeId,
-        name: indexed.name,
+        name: indexed.name || indexed.defaultName,
         defaultName: indexed.defaultName,
         nodeFlags: indexed.nodeFlags,
         result: null,

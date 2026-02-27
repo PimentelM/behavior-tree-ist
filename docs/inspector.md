@@ -50,6 +50,7 @@ class TreeInspector {
 
   // History
   getNodeHistory(nodeId: number): TickTraceEvent[];
+  getLastDisplayState(nodeId: number, atOrBeforeTickId?: number): SerializableState | undefined;
   getNodeResultSummary(nodeId: number): Map<NodeResult, number>;
   getStoredTickIds(): number[];
   getTickRange(from: number, to: number): TickRecord[];
@@ -142,6 +143,9 @@ const events = inspector.getNodeHistory(nodeId);
 
 const summary = inspector.getNodeResultSummary(nodeId);
 // Map<NodeResult, number> — count of each result type
+
+const displayState = inspector.getLastDisplayState(nodeId, 42);
+// SerializableState | undefined — latest state event at/before tick 42
 ```
 
 ## Profiling

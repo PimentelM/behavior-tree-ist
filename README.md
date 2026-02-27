@@ -135,10 +135,13 @@ import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
   layoutDirection="TB"
   width="100%"
   height="600px"
+  isolateStyles={true}
   onNodeSelect={(nodeId) => console.log('Selected:', nodeId)}
   onTickChange={(tickId) => console.log('Viewing tick:', tickId)}
 />
 ```
+
+`BehaviourTreeDebugger` uses Shadow DOM style isolation by default, so host-page CSS does not leak into the debugger internals.
 
 See [docs/react-debugger.md](docs/react-debugger.md) for the full API reference.
 

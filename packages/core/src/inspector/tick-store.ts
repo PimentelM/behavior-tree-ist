@@ -85,6 +85,24 @@ export class TickStore {
         return result;
     }
 
+    getLastNodeState(nodeId: number, atOrBeforeTickId?: number): TickTraceEvent["state"] | undefined {
+        let lastState: TickTraceEvent["state"] | undefined;
+
+        this.buffer.forEach(record => {
+            if (atOrBeforeTickId !== undefined && record.tickId > atOrBeforeTickId) {
+                return;
+            }
+
+            for (const event of record.events) {
+                if (event.nodeId === nodeId && event.state !== undefined) {
+                    lastState = event.state;
+                }
+            }
+        });
+
+        return lastState;
+    }
+
     getStoredTickIds(): number[] {
         const ids: number[] = [];
         this.buffer.forEach(record => ids.push(record.tickId));

@@ -2,10 +2,40 @@
 
 .bt-debugger {
   font-family: var(--bt-font-family);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--bt-text-primary);
   background: var(--bt-bg-primary);
   position: relative;
   overflow: hidden;
+  isolation: isolate;
+}
+
+.bt-debugger,
+.bt-debugger *,
+.bt-debugger *::before,
+.bt-debugger *::after {
+  box-sizing: border-box;
+}
+
+.bt-debugger :where(h1, h2, h3, h4, h5, h6, p) {
+  margin: 0;
+}
+
+.bt-debugger :where(button, input, select, textarea) {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: none;
+}
+
+.bt-debugger :where(ul, ol) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 /* DebuggerLayout — CSS grid shell */
@@ -76,6 +106,10 @@
   flex-direction: row;
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bt-node--with-state {
+  min-height: 104px;
 }
 
 .bt-node:hover {
@@ -154,6 +188,8 @@
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid var(--bt-border-color);
+  max-height: 30px;
+  overflow: auto;
 }
 
 .bt-node__state-entry {

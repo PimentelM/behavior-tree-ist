@@ -1,8 +1,16 @@
-import { memo, useMemo, useCallback, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  memo,
+  useMemo,
+  useCallback,
+  useEffect,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import {
   ReactFlow,
   Background,
   MiniMap,
+  type ReactFlowInstance,
   type NodeTypes,
   type EdgeTypes,
   type Node,
@@ -17,6 +25,7 @@ interface TreeCanvasProps {
   nodes: Node<BTNodeData>[];
   edges: Edge<BTEdgeData>[];
   onNodeClick?: (nodeId: number) => void;
+  layoutVersion?: string;
 }
 
 const nodeTypes: NodeTypes = {
@@ -27,7 +36,9 @@ const edgeTypes: EdgeTypes = {
   btEdge: BTEdgeComponent,
 };
 
-function TreeCanvasInner({ nodes, edges, onNodeClick }: TreeCanvasProps) {
+function TreeCanvasInner({ nodes, edges, onNodeClick, layoutVersion }: TreeCanvasProps) {
+  const [flowInstance, setFlowInstance] = useState<ReactFlowInstance | null>(null);
+
   const handleNodeClick = useCallback(
     (_event: ReactMouseEvent, node: Node) => {
       const nodeId = parseInt(node.id, 10);
@@ -41,6 +52,16 @@ function TreeCanvasInner({ nodes, edges, onNodeClick }: TreeCanvasProps) {
     [],
   );
 
+  useEffect(() => {
+    if (!flowInstance || nodes.length === 0) return;
+
+    const frame = requestAnimationFrame(() => {
+      flowInstance.fitView({ padding: 0.2 });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [flowInstance, layoutVersion, nodes.length]);
+
   return (
     <div className="bt-tree-canvas">
       <ReactFlow
@@ -50,11 +71,10 @@ function TreeCanvasInner({ nodes, edges, onNodeClick }: TreeCanvasProps) {
         edgeTypes={edgeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         onNodeClick={handleNodeClick}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
+        onInit={setFlowInstance}
         nodesDraggable={false}
         nodesConnectable={false}
-        elementsSelectable={true}
+        elementsSelectable={false}
         proOptions={{ hideAttribution: true }}
         minZoom={0.1}
         maxZoom={2}

@@ -45,6 +45,7 @@ export interface BehaviourTreeDebuggerProps {
   layoutDirection?: LayoutDirection;
   width?: string | number;
   height?: string | number;
+  isolateStyles?: boolean;
   onNodeSelect?: (nodeId: number | null) => void;
   onTickChange?: (tickId: number) => void;
   className?: string;

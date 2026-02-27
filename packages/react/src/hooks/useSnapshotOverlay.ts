@@ -28,13 +28,26 @@ export function useSnapshotOverlay(
     }
 
     const snapshot = inspector.getSnapshotAtTick(tickId);
+    const inspectorWithStateLookup = inspector as TreeInspector & {
+      getLastDisplayState?: (nodeId: number, atOrBeforeTickId?: number) => unknown;
+    };
+
+    const rememberedStateByNode = new Map<number, Record<string, unknown> | undefined>();
+    for (const node of baseNodes) {
+      const latestState = inspectorWithStateLookup.getLastDisplayState?.(node.data.nodeId, tickId);
+      rememberedStateByNode.set(
+        node.data.nodeId,
+        latestState as Record<string, unknown> | undefined,
+      );
+    }
+
     if (!snapshot) {
       const nodes = baseNodes.map((n) => ({
         ...n,
         data: {
           ...n.data,
           result: null,
-          displayState: undefined,
+          displayState: rememberedStateByNode.get(n.data.nodeId),
           isSelected: n.data.nodeId === selectedNodeId,
         },
         selected: n.data.nodeId === selectedNodeId,
@@ -49,7 +62,8 @@ export function useSnapshotOverlay(
         data: {
           ...n.data,
           result: nodeSnap?.result ?? null,
-          displayState: nodeSnap?.state,
+          displayState: (nodeSnap?.state as Record<string, unknown> | undefined)
+            ?? rememberedStateByNode.get(n.data.nodeId),
           isSelected: n.data.nodeId === selectedNodeId,
         },
         selected: n.data.nodeId === selectedNodeId,

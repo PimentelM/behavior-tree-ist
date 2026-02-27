@@ -110,6 +110,29 @@ describe("TreeInspector", () => {
         expect(history[1].result).toBe(NodeResult.Succeeded);
     });
 
+    it("getLastDisplayState returns latest state without changing result snapshot semantics", () => {
+        const inspector = new TreeInspector();
+        inspector.ingestTick({
+            tickId: 1,
+            timestamp: 1000,
+            refEvents: [],
+            events: [
+                { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Running, state: { remainingCooldown: 50 } },
+            ],
+        });
+        inspector.ingestTick({
+            tickId: 2,
+            timestamp: 2000,
+            refEvents: [],
+            events: [
+                { tickId: 2, nodeId: 3, timestamp: 2000, result: NodeResult.Succeeded },
+            ],
+        });
+
+        expect(inspector.getNodeAtTick(2, 2)).toBeUndefined();
+        expect(inspector.getLastDisplayState(2, 2)).toEqual({ remainingCooldown: 50 });
+    });
+
     it("getNodeResultSummary counts results", () => {
         const inspector = new TreeInspector();
         inspector.ingestTick(makeTickRecord(1, [

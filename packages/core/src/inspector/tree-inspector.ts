@@ -1,4 +1,4 @@
-import { NodeResult, SerializableNode, TickTraceEvent, TickRecord } from "../base/types";
+import { NodeResult, SerializableNode, SerializableState, TickTraceEvent, TickRecord } from "../base/types";
 import { TreeIndex } from "./tree-index";
 import { TickStore } from "./tick-store";
 import { Profiler } from "./profiler";
@@ -74,6 +74,10 @@ export class TreeInspector {
 
     getNodeHistory(nodeId: number): TickTraceEvent[] {
         return this.store.getNodeHistory(nodeId);
+    }
+
+    getLastDisplayState(nodeId: number, atOrBeforeTickId?: number): SerializableState | undefined {
+        return this.store.getLastNodeState(nodeId, atOrBeforeTickId);
     }
 
     getNodeResultSummary(nodeId: number): Map<NodeResult, number> {

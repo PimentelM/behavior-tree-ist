@@ -64,6 +64,13 @@ export function useTimeTravelControls(
     }
   }, [totalTicks]);
 
+  // If paused on an evicted tick, clamp to the oldest available tick.
+  useEffect(() => {
+    if (mode !== 'paused' || frozenTickId === null || storedIds.length === 0) return;
+    if (storedIds.includes(frozenTickId)) return;
+    setFrozenTickId(storedIds[0]);
+  }, [mode, frozenTickId, storedIds]);
+
   return {
     mode,
     viewedTickId,

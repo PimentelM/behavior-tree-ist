@@ -125,6 +125,38 @@ describe("TickStore", () => {
         expect(history[1].result).toBe(NodeResult.Succeeded);
     });
 
+    it("getLastNodeState returns most recent known state", () => {
+        const store = new TickStore(100);
+        store.push({
+            tickId: 1,
+            timestamp: 1000,
+            refEvents: [],
+            events: [
+                { tickId: 1, nodeId: 5, timestamp: 1000, result: NodeResult.Running, state: { cooldown: 300 } },
+            ],
+        });
+        store.push({
+            tickId: 2,
+            timestamp: 2000,
+            refEvents: [],
+            events: [
+                { tickId: 2, nodeId: 6, timestamp: 2000, result: NodeResult.Succeeded },
+            ],
+        });
+        store.push({
+            tickId: 3,
+            timestamp: 3000,
+            refEvents: [],
+            events: [
+                { tickId: 3, nodeId: 5, timestamp: 3000, result: NodeResult.Failed, state: { cooldown: 120 } },
+            ],
+        });
+
+        expect(store.getLastNodeState(5)).toEqual({ cooldown: 120 });
+        expect(store.getLastNodeState(5, 2)).toEqual({ cooldown: 300 });
+        expect(store.getLastNodeState(999)).toBeUndefined();
+    });
+
     it("getStoredTickIds returns ids in insertion order", () => {
         const store = new TickStore(100);
         store.push(makeRecord(3));
