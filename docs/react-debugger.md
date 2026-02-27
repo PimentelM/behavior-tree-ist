@@ -183,6 +183,10 @@ When a node is selected, the right sidebar shows:
 - **Display state**: Current key-value pairs from the node's display state
 - **Tick history**: Scrollable list of recent tick events with result dots (click to time-travel)
 
+Tick history navigation supports keyboard and incremental loading:
+- Focus the history list and use **ArrowUp/ArrowDown** to move between ticks.
+- As you scroll down, older entries are loaded progressively (infinite-feed style).
+
 ## Ref Traces Panel
 
 The "Ref Traces" tab shows unattributed/system `RefChangeEvent` mutations for the viewed tick (events without `nodeId`):
