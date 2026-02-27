@@ -6,3 +6,4 @@ export * from './cancellation';
 export * from './decorator';
 export * from './types';
 export * from './utility';
+export * from './ref';

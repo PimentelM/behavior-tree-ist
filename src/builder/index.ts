@@ -8,6 +8,7 @@ import { UtilityScorer } from "../base/utility";
 import { Utility } from "../nodes/decorators/utility";
 import * as Decorators from "../nodes/decorators";
 import { AnyDecoratorSpec } from "../base/node";
+import { Ref, ReadonlyRef } from "../base/ref";
 
 export interface NodeProps {
     name?: string;
@@ -57,6 +58,10 @@ export interface NodeProps {
 
     // Abort-only hook (invoked by BTNode.Abort, not by BTNode.Tick)
     onAbort?: (ctx: TickContext) => void;
+
+    // Ref metadata (declarative, no runtime effect — for UI tooling)
+    inputs?: ReadonlyRef<unknown>[];
+    outputs?: Ref<unknown>[];
 }
 
 export function applyDecorators(node: BTNode, props: NodeProps): BTNode {

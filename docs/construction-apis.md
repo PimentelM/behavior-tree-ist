@@ -169,6 +169,15 @@ All builder functions accept these props for automatic decorator application:
 | `onFailedOrRunning` | `(ctx) => void` |
 | `onAbort` | `(ctx) => void` |
 
+**Ref Metadata** (declarative, no runtime effect — for UI tooling):
+
+| Prop | Type | Description |
+|---|---|---|
+| `inputs` | `ReadonlyRef<unknown>[]` | Refs this node reads from |
+| `outputs` | `Ref<unknown>[]` | Refs this node writes to |
+
+These props are purely metadata for external tooling (inspectors, visualizers). They have no runtime effect on node execution.
+
 ### Decorator Application Order
 
 `applyDecorators()` applies props in a fixed order (innermost to outermost):

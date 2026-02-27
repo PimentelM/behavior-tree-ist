@@ -115,15 +115,69 @@ The context object passed to every hook and `onTick`:
 
 ```typescript
 interface TickContext {
-  tickId: number;             // Current tick identifier (auto-incremented by BehaviourTree)
-  now: number;                // Timestamp for this tick (milliseconds)
-  events: TickTraceEvent[];   // Accumulated trace events (when tracing enabled)
+  tickId: number;               // Current tick identifier (auto-incremented by BehaviourTree)
+  now: number;                  // Timestamp for this tick (milliseconds)
+  events: TickTraceEvent[];     // Accumulated trace events (when tracing enabled)
+  refEvents: RefChangeEvent[];  // Ref change events recorded during this tick
   trace: (node, result, startedAt?, finishedAt?) => void;  // Trace recording function
-  getTime?: () => number;     // High-res timer for profiling (when profiling enabled)
+  getTime?: () => number;       // High-res timer for profiling (when profiling enabled)
 }
 ```
 
 `now` is what timing decorators use. Always pass a consistent timestamp per tick (e.g., `Date.now()` or your game engine's clock).
+
+## Ref System
+
+The library provides a `Ref<T>` primitive for type-safe, auto-traced state sharing between nodes. Refs fill the gap for small-scale inter-node communication while preserving the existing closure/DI patterns for larger-scale needs.
+
+### Ref\<T\>
+
+A mutable container with automatic tracing. When a named ref is written during a tick, a `RefChangeEvent` is pushed to the ambient `TickContext.refEvents`.
+
+```typescript
+import { ref } from 'behavior-tree-ist';
+
+const health = ref(100, 'health');  // Named ref (traced)
+const scratch = ref(0);             // Unnamed ref (untraced, lightweight)
+
+health.value = 80;   // Traced if inside a tick, otherwise silent
+health.set(60);      // Same as .value = 60
+health.set(50, ctx); // Explicit ctx — for async actions where ambient ctx isn't active
+```
+
+### ReadonlyRef\<T\>
+
+A read-only view of a `Ref`. Use `.asReadonly()` or the `readonlyRef()` factory:
+
+```typescript
+import { ref, readonlyRef } from 'behavior-tree-ist';
+
+const source = ref(42, 'answer');
+const ro = readonlyRef(source);  // ReadonlyRef<number>
+// ro.value → 42 (reflects source updates)
+```
+
+### DerivedRef\<T\>
+
+A lazily computed read-only ref. Recomputes on each `.value` access. Produces no trace events.
+
+```typescript
+import { ref, derivedRef } from 'behavior-tree-ist';
+
+const a = ref(2, 'a');
+const b = ref(3, 'b');
+const sum = derivedRef(() => a.value + b.value, 'sum');
+// sum.value → 5 (recomputes each access)
+```
+
+### Ambient Tracing
+
+`BTNode.Tick` and `BTNode.Abort` push the `TickContext` onto an internal stack before invoking hooks, and pop it in a `finally` block. This means any `ref.value = x` inside `onTick`, `onEnter`, `onAbort`, etc. automatically traces to the correct context — no ceremony needed.
+
+- **Named refs** produce `RefChangeEvent` entries with `oldValue` and `newValue`
+- **Unnamed refs** are lightweight and untraced (no events even during ticks)
+- **Outside ticks** (no ambient context), writes succeed silently with no tracing
+- The stack design supports nested ticks (composite → children) and multiple concurrent tree instances
 
 ## The `.decorate()` Method
 

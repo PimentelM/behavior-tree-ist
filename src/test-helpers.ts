@@ -8,6 +8,8 @@ export function createTickContext(overrides: Partial<TickContext> = {}): TickCon
         tickId: mockTickId,
         now: 0,
         events: [],
+        refEvents: [],
+        isTracingEnabled: true,
         trace: () => { },
         ...overrides,
     };
@@ -46,6 +48,8 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
     return {
         tickId: 1,
         now: 0,
+        refEvents: [],
+        isTracingEnabled: true,
         ...overrides,
         events,
         trace: (node: BTNode, result: NodeResult, _startedAt?: number, _finishedAt?: number) => {

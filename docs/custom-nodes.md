@@ -43,7 +43,9 @@ class MoveToTarget extends Action {
 - Use `onEnter` to initialize per-execution state
 - Use `onReset` to clean up -- it fires on both natural completion and abort
 - Make `onReset` idempotent (safe to call multiple times)
+- Use `onAbort` to do specific cleanup when node is preempted, it runs before onReset during an abort
 - Compare sentinel timing fields with `=== undefined`, never use falsy checks (`0` is a valid timestamp)
+- Use named `Ref` instances for state shared between nodes — writes are auto-traced during ticks via the ambient context stack (see [Core Concepts — Ref System](core-concepts.md#ref-system))
 
 ## Custom Condition
 

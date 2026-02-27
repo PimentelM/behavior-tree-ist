@@ -1,4 +1,4 @@
-import { TickTraceEvent } from "./types";
+import { TickTraceEvent, RefChangeEvent } from "./types";
 import { NodeResult, NodeFlags, SerializableState } from "./types";
 
 export type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];
@@ -113,55 +113,73 @@ export abstract class BTNode {
     // Core Execution API
     // =========================================================================
 
+    // Ambient Tick Context
+    private static _ctxStack: TickContext[] = [];
+
+    public static get currentTickContext(): TickContext | undefined {
+        const stack = BTNode._ctxStack;
+        return stack.length > 0 ? stack[stack.length - 1] : undefined;
+    }
+
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
-        const startedAt = ctx.getTime?.();
+        BTNode._ctxStack.push(ctx);
+        try {
+            const startedAt = ctx.getTime?.();
 
-        if (!node._wasRunning) {
-            node.onEnter?.(ctx);
-        } else {
-            node.onResume?.(ctx);
-        }
+            if (!node._wasRunning) {
+                node.onEnter?.(ctx);
+            } else {
+                node.onResume?.(ctx);
+            }
 
-        const result = node.onTick(ctx);
+            const result = node.onTick(ctx);
 
-        // If node was Running and now reached terminal state, call onReset
-        if (node._wasRunning && result !== NodeResult.Running) {
-            node.onReset?.(ctx);
-        }
+            // If node was Running and now reached terminal state, call onReset
+            if (node._wasRunning && result !== NodeResult.Running) {
+                node.onReset?.(ctx);
+            }
 
-        // Track for next tick
-        node._wasRunning = result === NodeResult.Running;
+            // Track for next tick
+            node._wasRunning = result === NodeResult.Running;
 
-        node.onTicked?.(result, ctx);
+            node.onTicked?.(result, ctx);
 
-        if (result === NodeResult.Succeeded) {
-            node.onSuccess?.(ctx);
-        } else if (result === NodeResult.Failed) {
-            node.onFailed?.(ctx);
-        }
-        if (result === NodeResult.Succeeded || result === NodeResult.Failed) {
-            node.onFinished?.(result, ctx);
-        }
-        if (result === NodeResult.Running) {
-            node.onRunning?.(ctx);
-        }
-        if (result === NodeResult.Succeeded || result === NodeResult.Running) {
-            node.onSuccessOrRunning?.(ctx);
-        }
-        if (result === NodeResult.Failed || result === NodeResult.Running) {
-            node.onFailedOrRunning?.(ctx);
-        }
+            if (result === NodeResult.Succeeded) {
+                node.onSuccess?.(ctx);
+            } else if (result === NodeResult.Failed) {
+                node.onFailed?.(ctx);
+            }
+            if (result === NodeResult.Succeeded || result === NodeResult.Failed) {
+                node.onFinished?.(result, ctx);
+            }
+            if (result === NodeResult.Running) {
+                node.onRunning?.(ctx);
+            }
+            if (result === NodeResult.Succeeded || result === NodeResult.Running) {
+                node.onSuccessOrRunning?.(ctx);
+            }
+            if (result === NodeResult.Failed || result === NodeResult.Running) {
+                node.onFailedOrRunning?.(ctx);
+            }
 
-        const finishedAt = ctx.getTime?.();
-        ctx.trace(node, result, startedAt, finishedAt);
-        return result;
+            const finishedAt = ctx.getTime?.();
+            ctx.trace(node, result, startedAt, finishedAt);
+            return result;
+        } finally {
+            BTNode._ctxStack.pop();
+        }
     }
 
     public static Abort(node: BTNode, ctx: TickContext): void {
         if (node._wasRunning) {
-            node.onAbort?.(ctx);
-            node.onReset?.(ctx);
-            node._wasRunning = false;
+            BTNode._ctxStack.push(ctx);
+            try {
+                node.onAbort?.(ctx);
+                node.onReset?.(ctx);
+                node._wasRunning = false;
+            } finally {
+                BTNode._ctxStack.pop();
+            }
         }
     }
 
@@ -238,6 +256,8 @@ export interface TickContext {
     tickId: number;
     now: number;
     events: TickTraceEvent[];
+    refEvents: RefChangeEvent[];
+    isTracingEnabled: boolean;
     trace: (node: BTNode, result: NodeResult, startedAt?: number, finishedAt?: number) => void;
     getTime?: () => number;
 };

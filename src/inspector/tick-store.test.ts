@@ -11,7 +11,7 @@ function makeRecord(tickId: number, nodeIds: number[] = [1, 2, 3]): TickRecord {
         startedAt: i * 10,
         finishedAt: i * 10 + 5,
     }));
-    return { tickId, timestamp: tickId * 1000, events };
+    return { tickId, timestamp: tickId * 1000, events, refEvents: [] };
 }
 
 describe("TickStore", () => {
@@ -28,7 +28,7 @@ describe("TickStore", () => {
 
     it("returns undefined for empty events", () => {
         const store = new TickStore(100);
-        const evicted = store.push({ tickId: 0, timestamp: 0, events: [] });
+        const evicted = store.push({ tickId: 0, timestamp: 0, events: [], refEvents: [] });
         expect(evicted).toBeUndefined();
         expect(store.size).toBe(0);
     });
@@ -85,7 +85,7 @@ describe("TickStore", () => {
             { tickId: 1, nodeId: 10, timestamp: 1000, result: NodeResult.Running, state: { hp: 50 }, startedAt: 0, finishedAt: 5 },
             { tickId: 1, nodeId: 20, timestamp: 1000, result: NodeResult.Succeeded, startedAt: 5, finishedAt: 8 },
         ];
-        store.push({ tickId: 1, timestamp: 1000, events });
+        store.push({ tickId: 1, timestamp: 1000, events, refEvents: [] });
 
         const snapshot = store.getSnapshotAtTick(1);
         expect(snapshot).toBeDefined();
@@ -105,13 +105,13 @@ describe("TickStore", () => {
     it("getNodeHistory returns events for a node across ticks", () => {
         const store = new TickStore(100);
         store.push({
-            tickId: 1, timestamp: 1000, events: [
+            tickId: 1, timestamp: 1000, refEvents: [], events: [
                 { tickId: 1, nodeId: 5, timestamp: 1000, result: NodeResult.Running },
                 { tickId: 1, nodeId: 6, timestamp: 1000, result: NodeResult.Failed },
             ]
         });
         store.push({
-            tickId: 2, timestamp: 2000, events: [
+            tickId: 2, timestamp: 2000, refEvents: [], events: [
                 { tickId: 2, nodeId: 5, timestamp: 2000, result: NodeResult.Succeeded },
                 { tickId: 2, nodeId: 6, timestamp: 2000, result: NodeResult.Running },
             ]

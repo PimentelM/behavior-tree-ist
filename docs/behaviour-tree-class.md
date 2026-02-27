@@ -31,11 +31,14 @@ const result = tree.tick({ now: Date.now() });
 
 ```typescript
 interface TickRecord {
-  tickId: number;           // Auto-incremented tick identifier
-  timestamp: number;        // The `now` value used for this tick
-  events: TickTraceEvent[]; // Trace events (empty if tracing is disabled)
+  tickId: number;             // Auto-incremented tick identifier
+  timestamp: number;          // The `now` value used for this tick
+  events: TickTraceEvent[];   // Trace events (empty if tracing is disabled)
+  refEvents: RefChangeEvent[]; // Ref changes recorded during this tick
 }
 ```
+
+`refEvents` captures all writes to named `Ref` instances during the tick. See [Core Concepts — Ref System](core-concepts.md#ref-system) for details.
 
 The `tickId` auto-increments starting from 1. Each call to `tick()` executes `BTNode.Tick()` on the root node, which recursively traverses the tree.
 

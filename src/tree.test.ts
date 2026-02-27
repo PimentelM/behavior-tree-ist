@@ -4,7 +4,7 @@ import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
 import { Throttle, Sleep } from "./nodes";
 import { fallback, sequence, condition, action } from "./builder";
-import { Action } from "./base";
+import { Action, ref } from "./base";
 
 describe("BehaviourTree", () => {
     it("ticks root node", () => {
@@ -159,6 +159,60 @@ describe("BehaviourTree", () => {
             expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 300 });
         });
     })
+
+    describe('refEvents', () => {
+        it("tick() returns refEvents in TickRecord", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root).enableTrace();
+
+            const record = tree.tick({ now: 0 });
+
+            expect(record.refEvents).toEqual([]);
+        });
+
+        it("ref writes during tick appear in returned refEvents", () => {
+            const counter = ref(0, "counter");
+            const root = Action.from("inc", () => {
+                counter.value = 1;
+                return NodeResult.Succeeded;
+            });
+            const tree = new BehaviourTree(root).enableTrace();
+
+            const record = tree.tick({ now: 100 });
+
+            expect(record.refEvents).toHaveLength(1);
+            expect(record.refEvents[0]).toEqual({
+                tickId: 1,
+                timestamp: 100,
+                refName: "counter",
+                oldValue: 0,
+                newValue: 1,
+            });
+        });
+
+        it("empty refEvents when no refs written", () => {
+            const _unused = ref(0, "unused");
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root).enableTrace();
+
+            const record = tree.tick({ now: 0 });
+
+            expect(record.refEvents).toEqual([]);
+        });
+
+        it('should not produce refEvents when mutating a ref to the same value it already has', () => {
+            const myNumber = ref(123, "wow");
+            const root = Action.from("inc", () => {
+                myNumber.value = 123;
+                return NodeResult.Succeeded;
+            });
+            const tree = new BehaviourTree(root).enableTrace();
+
+            const record = tree.tick({ now: 100 });
+
+            expect(record.refEvents).toHaveLength(0);
+        })
+    });
 
     describe('profiling', () => {
         it("includes startedAt/finishedAt when profiling enabled", () => {

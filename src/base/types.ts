@@ -53,10 +53,19 @@ export type TickTraceEvent = {
     finishedAt?: number;
 };
 
+export type RefChangeEvent = {
+    tickId: number;
+    timestamp: number;
+    refName: string | undefined;
+    oldValue: unknown;
+    newValue: unknown;
+};
+
 export interface TickRecord {
     tickId: number;
     timestamp: number;
     events: TickTraceEvent[];
+    refEvents: RefChangeEvent[];
 }
 
 export type Tail<T extends readonly unknown[]> = T extends readonly [unknown, ...infer Rest] ? Rest : never;

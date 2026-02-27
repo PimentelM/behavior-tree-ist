@@ -43,7 +43,7 @@ function makeTickRecord(tickId: number, timings: Array<{ nodeId: number; start: 
         startedAt: t.start,
         finishedAt: t.end,
     }));
-    return { tickId, timestamp: tickId * 1000, events };
+    return { tickId, timestamp: tickId * 1000, events, refEvents: [] };
 }
 
 describe("TreeInspector", () => {
@@ -240,7 +240,7 @@ describe("TreeInspector", () => {
 
     it("ignores empty event arrays", () => {
         const inspector = new TreeInspector();
-        inspector.ingestTick({ tickId: 0, timestamp: 0, events: [] });
+        inspector.ingestTick({ tickId: 0, timestamp: 0, events: [], refEvents: [] });
         expect(inspector.getStats().totalTickCount).toBe(0);
     });
 
