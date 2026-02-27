@@ -116,10 +116,8 @@ const root = (
 
 ## Roadmap
 
-- **Blackboard System** - Subtree-scoped key-value store with typed ports
 - **React Visualization** (`@behavior-tree-ist/react`) - Real-time tree visualization and time-travel debugging
 - **Studio App** (`@behavior-tree-ist/studio`) - Standalone debugging UI with recording and playback
-- **Monorepo** - Split into `@behavior-tree-ist/core`, `/react`, `/studio`
 
 See [docs/roadmap.md](docs/roadmap.md) for details.
 

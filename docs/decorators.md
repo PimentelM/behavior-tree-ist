@@ -62,15 +62,15 @@ const skipIfDone = new SucceedIf(
 
 ## Timing
 
-Time-based decorators that use `ctx.now` to track elapsed time. All values are in **milliseconds**.
+Time-based decorators that use `ctx.now` to track elapsed time. Duration values use the same unit as `ctx.now` (defaults to milliseconds via `Date.now()` but can be any time unit — see [TickContext](core-concepts.md#tickcontext)).
 
 | Decorator | Constructor | Behavior |
 |---|---|---|
-| `Timeout` | `(child, timeout)` | Aborts child and returns `Failed` if it runs longer than `timeout` ms |
-| `Delay` | `(child, delayDuration)` | Returns `Running` for `delayDuration` ms before ticking child |
-| `Cooldown` | `(child, cooldown)` | After child finishes, returns `Failed` for `cooldown` ms |
-| `Throttle` | `(child, throttle)` | Prevents re-entry for `throttle` ms after initial tick (does not throttle resumption) |
-| `RequireSustainedSuccess` | `(child, duration)` | Child must return `Succeeded` continuously for `duration` ms; resets on failure/running |
+| `Timeout` | `(child, timeout)` | Aborts child and returns `Failed` if it runs longer than `timeout` |
+| `Delay` | `(child, delayDuration)` | Returns `Running` for `delayDuration` before ticking child |
+| `Cooldown` | `(child, cooldown)` | After child finishes, returns `Failed` for `cooldown` |
+| `Throttle` | `(child, throttle)` | Prevents re-entry for `throttle` after initial tick (does not throttle resumption) |
+| `RequireSustainedSuccess` | `(child, duration)` | Child must return `Succeeded` continuously for `duration`; resets on failure/running |
 
 **Flags**: `Stateful`
 
@@ -79,16 +79,16 @@ All timing decorators expose `getDisplayState()` with their remaining time.
 ```typescript
 import { Timeout, Delay, Cooldown, RequireSustainedSuccess } from '@behavior-tree-ist/core';
 
-// Fail if action takes more than 5 seconds
+// Fail if child runs longer than 5000 time units
 const timed = new Timeout(longRunningAction, 5000);
 
-// Wait 1 second before starting
+// Wait 1000 time units before starting
 const delayed = new Delay(action, 1000);
 
-// After completing, wait 3 seconds before allowing re-execution
+// After completing, wait 3000 time units before allowing re-execution
 const cooled = new Cooldown(action, 3000);
 
-// Only succeed if the sensor reads true for 2 continuous seconds
+// Only succeed if the sensor reads true for 2000 continuous time units
 const sustained = new RequireSustainedSuccess(sensorCheck, 2000);
 ```
 

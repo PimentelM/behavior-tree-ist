@@ -143,7 +143,7 @@ All builder functions accept these props for automatic decorator application:
 | `keepRunningUntilFailure` | `boolean` | Wrap with `KeepRunningUntilFailure` |
 | `runOnce` | `boolean` | Wrap with `RunOnce` |
 
-**Timing** (all in milliseconds):
+**Timing** (values use the same unit as `ctx.now`):
 
 | Prop | Type | Effect |
 |---|---|---|

@@ -116,7 +116,7 @@ The context object passed to every hook and `onTick`:
 ```typescript
 interface TickContext {
   tickId: number;               // Current tick identifier (auto-incremented by BehaviourTree)
-  now: number;                  // Timestamp for this tick (milliseconds)
+  now: number;                  // Time value for this tick (see below)
   events: TickTraceEvent[];     // Accumulated trace events (when tracing enabled)
   refEvents: RefChangeEvent[];  // Ref change events recorded during this tick
   trace: (node, result, startedAt?, finishedAt?) => void;  // Trace recording function
@@ -124,7 +124,7 @@ interface TickContext {
 }
 ```
 
-`now` is what timing decorators use. Always pass a consistent timestamp per tick (e.g., `Date.now()` or your game engine's clock).
+`now` is the time value that timing decorators use to compute elapsed durations. It is a generic numeric value — not necessarily milliseconds. Common choices include `Date.now()` (real-time milliseconds), a game engine's frame time, or a logical tick counter (e.g. Screeps game ticks). Timing decorator parameters (`timeout`, `cooldown`, `delay`, etc.) must use the same scale as `now`. When omitted, `BehaviourTree.tick()` defaults to `Date.now()`.
 
 ## Ref System
 

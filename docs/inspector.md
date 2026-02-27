@@ -177,7 +177,7 @@ interface NodeProfilingData {
   maxCpuTime: number;
   lastCpuTime: number;
 
-  // True duration spans (wall-clock time from first returning Running to Succeeded/Failed)
+  // Duration spans (profiling-timer time from first returning Running to Succeeded/Failed)
   totalRunningTime: number;
   runningTimeCount: number;
   minRunningTime: number;

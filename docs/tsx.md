@@ -107,7 +107,7 @@ These accept `NodeProps` + `children`:
 | `<always-success>` | -- | Always returns Succeeded |
 | `<always-failure>` | -- | Always returns Failed |
 | `<always-running>` | -- | Always returns Running |
-| `<sleep>` | `duration: number` | Returns Running for `duration` ms, then Succeeded |
+| `<sleep>` | `duration: number` | Returns Running for `duration` time units, then Succeeded |
 
 ## Decorator Props
 
@@ -132,7 +132,7 @@ All elements accept [NodeProps](construction-apis.md#nodeprops-reference) for au
 <action execute={fn} failIf={{ condition: () => isDisabled }} />
 ```
 
-### Timing (milliseconds)
+### Timing (values use the same unit as `ctx.now`)
 
 ```tsx
 <action execute={fn} timeout={5000} />

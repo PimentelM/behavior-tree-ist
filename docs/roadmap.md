@@ -6,7 +6,6 @@ Planned features and their current status.
 |---|---|
 | React Visualization Component | Planned |
 | Studio Application | Planned |
-| Monorepo Transformation | Planned |
 
 ---
 
@@ -28,12 +27,3 @@ Planned features and their current status.
 - Tick recording and playback
 - Node search and filtering by name, tag, or flag
 - **Depends on**: React Visualization Component
-
-## Monorepo Transformation
-
-Restructure the project into scoped packages for independent versioning and dependency management.
-
-- `@behavior-tree-ist/core` - Zero-dependency core library (current main package)
-- `@behavior-tree-ist/react` - React visualization component
-- `@behavior-tree-ist/studio` - Standalone debugging UI
-- Workspace tooling (Turborepo or similar)

@@ -127,7 +127,7 @@ Each tick traverses the tree from the root, executing nodes according to their l
 | `Failed` | The node's objective cannot be achieved |
 | `Running` | The node needs more ticks to complete |
 
-The `now` parameter supplies the current timestamp (in milliseconds). Timing-based decorators like `Timeout`, `Cooldown`, and `Delay` use this value to track elapsed time.
+The `now` parameter supplies the current time value for the tick. Timing decorators like `Timeout`, `Cooldown`, and `Delay` compute elapsed time as differences between `now` values. It defaults to `Date.now()` (milliseconds) but can be any monotonically increasing number — game ticks, frame counts, or a custom clock. Duration parameters passed to timing decorators must use the same unit.
 
 ## Next Steps
 

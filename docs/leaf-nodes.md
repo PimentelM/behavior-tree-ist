@@ -142,14 +142,14 @@ const idle = new AlwaysRunning('Idle');
 
 ### Sleep
 
-Returns `Running` for a specified duration (in milliseconds), then `Succeeded`. A time-based action that uses `ctx.now` to track elapsed time.
+Returns `Running` for a specified duration, then `Succeeded`. A time-based action that uses `ctx.now` to track elapsed time.
 
 **Flags**: `Leaf`, `Action`, `Stateful`
 
 ```typescript
 import { Sleep } from '@behavior-tree-ist/core';
 
-const wait = new Sleep(2000); // Returns Running for 2 seconds, then Succeeded
+const wait = new Sleep(2000); // Returns Running for 2000 time units, then Succeeded
 ```
 
 `Sleep` exposes `getDisplayState()` returning `{ remainingTime: number }` for inspector integration.

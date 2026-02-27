@@ -25,7 +25,7 @@ const result = tree.tick({ now: Date.now() });
 ```
 
 **Parameters:**
-- `now` (optional): Timestamp in milliseconds. Defaults to `Date.now()` if omitted.
+- `now` (optional): Numeric time value for this tick. Defaults to `Date.now()` (milliseconds) if omitted. Timing decorators compute durations as differences between `now` values, so the unit must match the values passed to timing decorator constructors.
 
 **Returns** a `TickRecord`:
 
@@ -50,7 +50,7 @@ const tree = new BehaviourTree(root);
 // Fixed timestep game loop
 const TICK_RATE = 100; // ms
 setInterval(() => {
-  const record = tree.tick({ now: Date.now() });
+  const record = tree.tick({ now: Date.now() }); // Real-time ms (one common pattern)
 
   if (record.events.length > 0) {
     // Process trace events if tracing is enabled
