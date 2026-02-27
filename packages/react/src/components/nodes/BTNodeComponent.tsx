@@ -66,4 +66,35 @@ function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
-export const BTNodeComponent = memo(BTNodeComponentInner);
+function areNodePropsEqual(prev: NodeProps<BTFlowNode>, next: NodeProps<BTFlowNode>): boolean {
+  return prev.id === next.id
+    && prev.selected === next.selected
+    && prev.data.result === next.data.result
+    && prev.data.isSelected === next.data.isSelected
+    && shallowEqualRecord(prev.data.displayState, next.data.displayState)
+    && prev.data.name === next.data.name
+    && prev.data.defaultName === next.data.defaultName
+    && prev.data.nodeFlags === next.data.nodeFlags
+    && prev.data.nodeId === next.data.nodeId;
+}
+
+function shallowEqualRecord(
+  left: Record<string, unknown> | undefined,
+  right: Record<string, unknown> | undefined,
+): boolean {
+  if (left === right) return true;
+  if (!left || !right) return false;
+
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) return false;
+
+  for (const key of leftKeys) {
+    if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
+    if (!Object.is(left[key], right[key])) return false;
+  }
+
+  return true;
+}
+
+export const BTNodeComponent = memo(BTNodeComponentInner, areNodePropsEqual);

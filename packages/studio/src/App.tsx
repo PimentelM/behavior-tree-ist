@@ -45,18 +45,21 @@ const createSampleTree = () => {
     ).enableTrace();
 };
 
+const TICK_RATE = 20;
+const UPDATE_RATE = TICK_RATE * 15;
+
 function App() {
     const [tree] = useState(() => createSampleTree());
     const [ticks, setTicks] = useState<TickRecord[]>([]);
     const serializedTree = useMemo(() => tree.serialize(), [tree]);
 
     const handleTick = useCallback(() => {
-        const tickRecord = tree.tick({});
-        setTicks((prev) => [...prev, tickRecord]);
+        const tickRecords = Array.from({ length: Math.floor(UPDATE_RATE / TICK_RATE) }).map(() => tree.tick({}));
+        setTicks((prev) => [...prev, ...tickRecords]);
     }, [tree]);
 
     useEffect(() => {
-        const interval = setInterval(handleTick, 20);
+        const interval = setInterval(handleTick, UPDATE_RATE);
         return () => clearInterval(interval);
     }, [handleTick]);
 
@@ -71,7 +74,7 @@ function App() {
                     ticks={ticks}
                     isolateStyles={true}
                     inspectorOptions={{
-                        maxTicks: (1000 / 20) * 5
+                        maxTicks: (1000 / TICK_RATE) * 5
                     }} />
             </main>
         </div>
