@@ -77,7 +77,7 @@ export class BehaviourTree {
                     result
                 };
 
-                if (hasFlag(node.nodeFlags, NodeFlags.Stateful) && node.getDisplayState) {
+                if (node.getDisplayState) {
                     const state = node.getDisplayState();
                     if (state) {
                         event.state = state;

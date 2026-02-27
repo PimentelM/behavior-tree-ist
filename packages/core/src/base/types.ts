@@ -23,6 +23,7 @@ export const NodeFlags = {
     Guard: 1 << 13,  // 0x2000 — conditionally gates child
     Lifecycle: 1 << 14,  // 0x4000 — lifecycle hook side-effect
     Async: 1 << 15,  // 0x8000 — asynchronous/promise-based node
+    Display: 1 << 16,  // 0x10000 — node whose purpose is merely display related
 } as const;
 export type NodeFlags = number;
 

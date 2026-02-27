@@ -1,6 +1,6 @@
 import { ConditionNode } from "../base/condition";
-import { Action, AsyncAction, BTNode, CancellationSignal, NodeResult, TickContext } from "../base";
-import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse } from "../nodes";
+import { Action, AsyncAction, BTNode, CancellationSignal, NodeResult, TickContext, SerializableState } from "../base";
+import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse, DisplayState } from "../nodes";
 import { ParallelPolicy } from "../nodes/composite/parallel";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
@@ -213,4 +213,8 @@ export function alwaysFailure(props: NodeProps = {}): BTNode {
 
 export function sleep(props: NodeProps & { duration: number }): BTNode {
     return applyDecorators(new Sleep(props.duration), props);
+}
+
+export function displayState(props: NodeProps & { display: () => SerializableState }): BTNode {
+    return applyDecorators(new DisplayState(props.name || "DisplayState", props.display), props);
 }

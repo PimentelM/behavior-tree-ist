@@ -23,6 +23,11 @@ Every concrete node calls `addFlags()` in its constructor to register its catego
 | `ResultTransformer` | `0x1000` | Remaps child result (Inverter, ForceSuccess, etc.) |
 | `Guard` | `0x2000` | Conditionally gates child execution |
 | `Lifecycle` | `0x4000` | Lifecycle hook side-effect decorator |
+| `Async` | `0x8000` | Asynchronous/promise-based node |
+| `Display` | `0x10000` | Node whose purpose is merely display related |
+
+> [!IMPORTANT]
+> `NodeFlags` have **no impact on core library behavior**. Bitfields like `Stateful`, `Async`, or `Display` exist strictly for classification and external tooling (UI, inspectors, filtering). The library itself treats all nodes equally regardless of their flags.
 
 ## Checking Flags
 

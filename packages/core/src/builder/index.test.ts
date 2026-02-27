@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, fallback, parallel, action, condition, utilityFallback, utilitySequence, utility } from "./index";
+import { sequence, fallback, parallel, action, condition, utilityFallback, utilitySequence, utility, displayState } from "./index";
 import { NodeResult } from "../base/types";
 import { tickNode } from "../test-helpers";
 
@@ -93,5 +93,16 @@ describe("Subtree Builder Factory", () => {
         expect(action1CallCount).toBe(1); // Since it's a sequence, both get ticked if both succeed
         expect(action2CallCount).toBe(1);
         expect(calledOrder).toEqual(['20', '10']);
+    });
+
+    it("builds a displayState node", () => {
+        const node = displayState({
+            name: "MyDisplay",
+            display: () => ({ foo: "bar" })
+        });
+
+        expect(node.displayName).toBe("MyDisplay");
+        expect(node.getDisplayState?.()).toEqual({ foo: "bar" });
+        expect(tickNode(node)).toBe(NodeResult.Succeeded);
     });
 });

@@ -334,4 +334,17 @@ describe("TSX Adapter", () => {
             </utility-sequence>;
         }).toThrow("Children of <utility-sequence> must be wrapped in <utility-node scorer={...}>");
     });
+
+    it("supports display-state intrinsic element", () => {
+        const tree = (
+            <display-state
+                name="MyTSXDisplay"
+                display={() => ({ hello: "world" })}
+            />
+        );
+
+        expect(tree.name).toBe("MyTSXDisplay");
+        expect(tree.getDisplayState?.()).toEqual({ hello: "world" });
+        expect(tickNode(tree)).toBe(NodeResult.Succeeded);
+    });
 });

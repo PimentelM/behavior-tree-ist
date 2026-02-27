@@ -1,4 +1,4 @@
-import { BTNode, CancellationSignal, NodeResult, TickContext } from "../base";
+import { BTNode, CancellationSignal, NodeResult, TickContext, SerializableState } from "../base";
 import { UtilityScorer } from "../base/utility";
 import * as Builder from "../builder";
 import { ParallelPolicy } from "../nodes/composite/parallel";
@@ -99,6 +99,12 @@ export function createElement(
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return Builder.sleep(safeProps as unknown as any);
+        case "display-state":
+            if (typeof safeProps.display !== "function") {
+                throw new Error(`<display-state> requires a "display" prop of type function.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return Builder.displayState(safeProps as unknown as any);
         default:
             throw new Error(`Unknown intrinsic behavior tree node type: <${type}>`);
     }
@@ -138,6 +144,7 @@ declare global {
             "always-failure": Builder.NodeProps;
             "always-running": Builder.NodeProps;
             "sleep": Builder.NodeProps & { duration: number };
+            "display-state": Builder.NodeProps & { display: () => SerializableState };
         }
     }
 }
