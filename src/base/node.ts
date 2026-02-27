@@ -120,8 +120,8 @@ export abstract class BTNode {
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
         AmbientContext.pushTickContext(ctx);
+        AmbientContext.pushMutationNodeId(node.id);
         try {
-            AmbientContext.pushMutationNodeId(node.id);
             const startedAt = ctx.getTime?.();
 
             if (!node._wasRunning) {
