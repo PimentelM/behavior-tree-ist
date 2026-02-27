@@ -57,6 +57,7 @@ export type RefChangeEvent = {
     tickId: number;
     timestamp: number;
     refName: string | undefined;
+    nodeId?: number;
     newValue: unknown;
     isAsync: boolean;
 };

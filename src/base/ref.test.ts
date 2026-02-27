@@ -64,6 +64,7 @@ describe("Ref", () => {
                 tickId: 5,
                 timestamp: 100,
                 refName: "counter",
+                nodeId: node.id,
                 newValue: 1,
                 isAsync: false,
             });
@@ -131,6 +132,7 @@ describe("Ref", () => {
                 tickId: 1,
                 timestamp: 50,
                 refName: "started",
+                nodeId: node.id,
                 newValue: true,
                 isAsync: false,
             });
@@ -161,6 +163,7 @@ describe("Ref", () => {
                 tickId: 2,
                 timestamp: 10,
                 refName: "aborted",
+                nodeId: node.id,
                 newValue: true,
                 isAsync: false,
             });
@@ -197,6 +200,7 @@ describe("Ref", () => {
             expect(ambientCtx.refEvents).toHaveLength(0);
             expect(explicitCtx.refEvents).toHaveLength(1);
             expect(explicitCtx.refEvents[0].tickId).toBe(99);
+            expect(explicitCtx.refEvents[0].nodeId).toBe(node.id);
         });
 
         it("works when no ambient ctx exists", () => {
@@ -211,6 +215,7 @@ describe("Ref", () => {
                 tickId: 10,
                 timestamp: 200,
                 refName: "counter",
+                nodeId: undefined,
                 newValue: 42,
                 isAsync: false,
             });
