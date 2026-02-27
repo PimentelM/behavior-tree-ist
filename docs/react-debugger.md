@@ -164,6 +164,12 @@ Result semantics are strict per tick:
 
 Each node shows:
 - Display name with compact semantic badges
+- Type glyphs inspired by common behavior-tree notation conventions:
+  - Sequence: single arrow (`->`) for ordered progression
+  - Fallback/Selector: question mark (`?`) for "try alternatives"
+  - Parallel: stacked lanes for concurrent child ticks
+  - Condition: decision diamond with check
+  - Action: task card/checklist mark
 - Optional compact decorator stack (non-lifecycle decorators) rendered above the decorated node (no connecting edge)
 - Lifecycle decorators collapsed to an inline thunder badge (`⚡N`)
 - Left accent stripe colored by result: green (Succeeded), red (Failed), amber (Running), gray (Idle)

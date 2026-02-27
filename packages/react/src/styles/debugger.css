@@ -381,6 +381,49 @@
   margin-bottom: 5px;
 }
 
+.bt-node__glyph {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--bt-border-color) 80%, transparent);
+  background: color-mix(in srgb, var(--bt-bg-tertiary) 76%, transparent);
+  color: var(--bt-text-secondary);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bt-node__glyph-icon {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bt-node__glyph--sequence {
+  color: color-mix(in srgb, var(--bt-accent-color) 65%, var(--bt-text-primary));
+}
+
+.bt-node__glyph--fallback {
+  color: color-mix(in srgb, #0891b2 65%, var(--bt-text-primary));
+}
+
+.bt-node__glyph--parallel {
+  color: color-mix(in srgb, #2563eb 55%, var(--bt-text-primary));
+}
+
+.bt-node__glyph--condition {
+  color: color-mix(in srgb, #ca8a04 65%, var(--bt-text-primary));
+}
+
+.bt-node__glyph--action {
+  color: color-mix(in srgb, #059669 65%, var(--bt-text-primary));
+}
+
 .bt-node__name {
   font-size: 12px;
   font-weight: 600;
@@ -547,7 +590,7 @@
   border-left-width: 2px;
 }
 
-.bt-node--selector {
+.bt-node--fallback {
   border-right-width: 2px;
 }
 

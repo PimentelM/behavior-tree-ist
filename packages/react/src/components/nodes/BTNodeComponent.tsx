@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps, Node } from '@xyflow/react';
-import type { BTNodeData } from '../../types';
+import type { BTNodeData, NodeVisualKind } from '../../types';
 import { getResultColor } from '../../constants';
 
 type BTFlowNode = Node<BTNodeData, 'btNode'>;
@@ -80,6 +80,9 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
           </div>
         )}
         <div className="bt-node__header">
+          <span className={`bt-node__glyph bt-node__glyph--${visualKind}`} aria-hidden="true">
+            <NodeGlyph kind={visualKind} />
+          </span>
           <span className="bt-node__name" title={displayName}>
             {displayName}
           </span>
@@ -135,6 +138,58 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
+}
+
+function NodeGlyph({ kind }: { kind: NodeVisualKind }) {
+  switch (kind) {
+    case 'sequence':
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <path d="M2.5 8h9" />
+          <path d="m9.5 5 4 3-4 3" />
+        </svg>
+      );
+    case 'fallback':
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <path d="M5.6 6.2a2.4 2.4 0 1 1 4 1.8c-.9.6-1.4 1.1-1.4 2" />
+          <circle cx="8" cy="12.3" r="0.8" />
+        </svg>
+      );
+    case 'parallel':
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <path d="M2.5 4h6" />
+          <path d="m7.5 2 3 2-3 2" />
+          <path d="M2.5 8h6" />
+          <path d="m7.5 6 3 2-3 2" />
+          <path d="M2.5 12h6" />
+          <path d="m7.5 10 3 2-3 2" />
+        </svg>
+      );
+    case 'condition':
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <path d="M8 2.5 13 8l-5 5.5L3 8z" />
+          <path d="m6.2 8 1.4 1.5L10 7" />
+        </svg>
+      );
+    case 'action':
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <path d="M5 3.5h6v9H5z" />
+          <path d="M6.5 6h3" />
+          <path d="M6.5 8h3" />
+          <path d="M6.5 10h2" />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <circle cx="8" cy="8" r="3" />
+        </svg>
+      );
+  }
 }
 
 function formatValue(value: unknown): string {

@@ -103,7 +103,7 @@ export function getPrimaryCategoryLabel(nodeFlags: number): string {
 
 export function getNodeVisualKind(nodeFlags: number): NodeVisualKind {
   if (hasFlag(nodeFlags, NodeFlags.Sequence)) return 'sequence';
-  if (hasFlag(nodeFlags, NodeFlags.Selector)) return 'selector';
+  if (hasFlag(nodeFlags, NodeFlags.Selector)) return 'fallback';
   if (hasFlag(nodeFlags, NodeFlags.Parallel)) return 'parallel';
   if (hasFlag(nodeFlags, NodeFlags.Action)) return 'action';
   if (hasFlag(nodeFlags, NodeFlags.Condition)) return 'condition';
