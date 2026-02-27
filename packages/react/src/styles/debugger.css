@@ -123,7 +123,11 @@
 
 .bt-tree-canvas .react-flow__pane,
 .bt-tree-canvas .react-flow__pane.dragging {
-  cursor: default !important;
+  cursor: pointer !important;
+}
+
+.bt-tree-canvas .react-flow__pane.dragging {
+  cursor: grabbing !important;
 }
 
 .bt-tree-canvas .react-flow__node,
