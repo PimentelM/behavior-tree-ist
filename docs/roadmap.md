@@ -4,21 +4,11 @@ Planned features and their current status.
 
 | Feature | Status |
 |---|---|
-| Blackboard System | Planned |
 | React Visualization Component | Planned |
 | Studio Application | Planned |
 | Monorepo Transformation | Planned |
 
 ---
-
-## Blackboard System
-
-Subtree-scoped key-value store for sharing data between nodes.
-
-- Input/output ports on nodes (inspired by BehaviorTree.CPP)
-- Type-safe port definitions with TypeScript generics
-- Parent blackboard access for hierarchical data flow
-- Scoped visibility: subtrees can read parent data without leaking their own
 
 ## React Visualization Component
 
