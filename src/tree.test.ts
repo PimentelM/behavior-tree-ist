@@ -214,7 +214,7 @@ describe("BehaviourTree", () => {
         })
 
         describe("AsyncAction Trace Recording", () => {
-            it("mutations to shared Refs during AsyncAction should be recorded in the trace", async () => {
+            it("mutations to shared Refs during AsyncAction should be recorded in the trace if ctx is provided", async () => {
                 const sharedRef = ref(0, "shared");
 
                 const asyncNode = AsyncAction.from("test", async (ctx) => {
@@ -246,6 +246,32 @@ describe("BehaviourTree", () => {
                     isAsync: true
                 }));
             });
+
+            it("mutations to shared Refs during AsyncAction will be ignored in the trace if ctx is not provided", async () => {
+                const sharedRef = ref(0, "shared");
+                const asyncNode = AsyncAction.from("test", async () => {
+                    // Simulation of async work
+                    // @ts-expect-error setTimeout is not defined in this context
+                    await new Promise(resolve => setTimeout(resolve, 5));
+                    sharedRef.set(1);
+                    return NodeResult.Succeeded;
+                });
+
+                const tree = new BehaviourTree(asyncNode).enableTrace();
+
+                // Tick 1: Starts the async action
+                const tick1 = tree.tick();
+                expect(tick1.events[0].result).toBe(NodeResult.Running);
+                expect(tick1.refEvents).toHaveLength(0);
+
+                // During 10ms loop every 1ms and assert refEvents is empty
+                for (let i = 0; i < 10; i++) {
+                    // @ts-expect-error setTimeout is not defined in this context
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                    const tick = tree.tick();
+                    expect(tick.refEvents).toHaveLength(0);
+                }
+            })
         });
 
     });
