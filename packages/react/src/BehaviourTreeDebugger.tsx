@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { createPortal } from 'react-dom';
 import type { RefChangeEvent } from '@behavior-tree-ist/core';
+import { TreeInspector } from '@behavior-tree-ist/core/inspector';
 import type { BehaviourTreeDebuggerProps, ThemeMode } from './types';
 import { useInspector } from './hooks/useInspector';
 import { useTreeLayout } from './hooks/useTreeLayout';
@@ -89,13 +90,42 @@ export function BehaviourTreeDebugger({
 
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
   const [centerTreeSignal, setCenterTreeSignal] = useState(0);
+  const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
 
-  const timeTravelControls = useTimeTravelControls(inspector, tickGeneration);
+  useEffect(() => {
+    setPausedInspector(null);
+  }, [tree]);
+
+  const timeTravelControls = useTimeTravelControls(pausedInspector ?? inspector, tickGeneration);
   const { viewedTickId } = timeTravelControls;
+
+  useEffect(() => {
+    if (timeTravelControls.mode === 'live') {
+      setPausedInspector(null);
+      return;
+    }
+
+    if (pausedInspector) return;
+
+    const frozen = new TreeInspector(inspectorOptions);
+    frozen.indexTree(tree);
+    const ids = inspector.getStoredTickIds();
+    if (ids.length > 0) {
+      const from = ids[0];
+      const to = ids[ids.length - 1];
+      const range = inspector.getTickRange(from, to);
+      for (const record of range) {
+        frozen.ingestTick(record);
+      }
+    }
+    setPausedInspector(frozen);
+  }, [timeTravelControls.mode, pausedInspector, inspector, inspectorOptions, tree]);
+
+  const activeInspector = pausedInspector ?? inspector;
 
   // Layout: only recomputes when tree changes
   const { nodes: baseNodes, edges: baseEdges } = useTreeLayout(
-    inspector.tree,
+    activeInspector.tree,
     layoutDirection,
   );
 
@@ -104,38 +134,61 @@ export function BehaviourTreeDebugger({
     [layoutDirection, baseNodes.length, baseEdges.length],
   );
 
+  const refEventsByNode = useMemo(() => {
+    const byNode = new Map<number, RefChangeEvent[]>();
+    if (viewedTickId === null) return byNode;
+    const records = activeInspector.getTickRange(viewedTickId, viewedTickId);
+    for (const record of records) {
+      for (const event of record.refEvents) {
+        if (event.nodeId === undefined) continue;
+        const list = byNode.get(event.nodeId) ?? [];
+        list.push(event);
+        byNode.set(event.nodeId, list);
+      }
+    }
+    return byNode;
+  }, [activeInspector, viewedTickId]);
+
+  const handleSelectNode = useCallback((nodeId: number) => {
+    setSelectedNodeId((prev) => (prev === nodeId ? null : nodeId));
+    onNodeSelect?.(nodeId);
+  }, [onNodeSelect]);
+
   // Overlay snapshot data onto nodes
   const { nodes, edges } = useSnapshotOverlay(
     baseNodes,
     baseEdges,
-    inspector,
+    activeInspector,
     viewedTickId,
     selectedNodeId,
+    refEventsByNode,
+    handleSelectNode,
     tickGeneration,
   );
 
   // Node details for sidebar
-  const nodeDetails = useNodeDetails(inspector, selectedNodeId, viewedTickId, tickGeneration);
+  const nodeDetails = useNodeDetails(activeInspector, selectedNodeId, viewedTickId, tickGeneration);
 
   // Collect ref events for the ref traces panel
   const refEvents = useMemo(() => {
-    const allTicks = inspector.getStoredTickIds();
+    if (viewedTickId === null) return [];
     const events: RefChangeEvent[] = [];
-    for (const tickId of allTicks) {
-      const range = inspector.getTickRange(tickId, tickId);
-      for (const record of range) {
-        events.push(...record.refEvents);
+    const range = activeInspector.getTickRange(viewedTickId, viewedTickId);
+    for (const record of range) {
+      for (const event of record.refEvents) {
+        if (event.nodeId === undefined) {
+          events.push(event);
+        }
       }
     }
     return events;
-  }, [inspector, tickGeneration]);
+  }, [activeInspector, viewedTickId, tickGeneration]);
 
   const handleNodeClick = useCallback(
     (nodeId: number) => {
-      setSelectedNodeId((prev) => (prev === nodeId ? null : nodeId));
-      onNodeSelect?.(nodeId);
+      handleSelectNode(nodeId);
     },
-    [onNodeSelect],
+    [handleSelectNode],
   );
 
   const handleGoToTick = useCallback(
@@ -145,6 +198,20 @@ export function BehaviourTreeDebugger({
     },
     [timeTravelControls, onTickChange],
   );
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (timeTravelControls.mode !== 'paused') return;
+      timeTravelControls.jumpToLive();
+      if (timeTravelControls.newestTickId !== undefined) {
+        onTickChange?.(timeTravelControls.newestTickId);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [timeTravelControls, onTickChange]);
 
   const handleToggleTheme = useCallback(() => {
     const nextMode: ThemeMode = themeMode === 'dark' ? 'light' : 'dark';
@@ -157,6 +224,23 @@ export function BehaviourTreeDebugger({
   const handleCenterTree = useCallback(() => {
     setCenterTreeSignal((value) => value + 1);
   }, []);
+
+  const handleToggleTimeTravel = useCallback(() => {
+    if (timeTravelControls.mode === 'paused') {
+      timeTravelControls.jumpToLive();
+      const liveNewest = inspector.getStats().newestTickId;
+      if (liveNewest !== undefined) {
+        onTickChange?.(liveNewest);
+      }
+      return;
+    }
+
+    timeTravelControls.pause();
+    const liveNewest = inspector.getStats().newestTickId;
+    if (liveNewest !== undefined) {
+      onTickChange?.(liveNewest);
+    }
+  }, [timeTravelControls, inspector, onTickChange]);
 
   const showSidebar = panels.nodeDetails !== false || panels.refTraces !== false;
   const showTimeline = panels.timeline !== false;
@@ -200,6 +284,9 @@ export function BehaviourTreeDebugger({
               themeMode={themeMode}
               onToggleTheme={handleToggleTheme}
               onCenterTree={handleCenterTree}
+              timeTravelMode={timeTravelControls.mode}
+              viewedTickId={viewedTickId}
+              onToggleTimeTravel={handleToggleTimeTravel}
             />
           ) : null
         }

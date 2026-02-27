@@ -120,6 +120,8 @@ const root = (
 
 The `@behavior-tree-ist/react` package provides a drop-in React component for debugging behaviour trees with real-time visualization and time-travel.
 
+The debugger supports frozen paused mode (live ingestion continues in background), strict per-tick results, compact decorator visualization, and node-local ref mutation traces.
+
 ```bash
 npm install @behavior-tree-ist/react
 ```

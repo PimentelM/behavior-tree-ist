@@ -156,12 +156,20 @@ function mergeMutableNodeData(
 
     const nextResult = nextNode.data.result;
     const nextDisplayState = nextNode.data.displayState;
+    const nextDisplayStateIsStale = nextNode.data.displayStateIsStale;
     const nextIsSelected = nextNode.data.isSelected;
+    const nextSelectedNodeId = nextNode.data.selectedNodeId;
+    const nextRefEvents = nextNode.data.refEvents;
+    const nextStackedDecorators = nextNode.data.stackedDecorators;
     const nextSelected = nextNode.selected;
 
     const sameMutableData = previousNode.data.result === nextResult
       && shallowEqualRecord(previousNode.data.displayState, nextDisplayState)
+      && previousNode.data.displayStateIsStale === nextDisplayStateIsStale
       && previousNode.data.isSelected === nextIsSelected
+      && previousNode.data.selectedNodeId === nextSelectedNodeId
+      && shallowEqualRefEvents(previousNode.data.refEvents, nextRefEvents)
+      && shallowEqualDecorators(previousNode.data.stackedDecorators, nextStackedDecorators)
       && previousNode.selected === nextSelected;
 
     if (sameMutableData) {
@@ -176,7 +184,11 @@ function mergeMutableNodeData(
         ...previousNode.data,
         result: nextResult,
         displayState: nextDisplayState,
+        displayStateIsStale: nextDisplayStateIsStale,
         isSelected: nextIsSelected,
+        selectedNodeId: nextSelectedNodeId,
+        refEvents: nextRefEvents,
+        stackedDecorators: nextStackedDecorators,
       },
       selected: nextSelected,
     });
@@ -238,6 +250,37 @@ function shallowEqualRecord(
   for (const key of leftKeys) {
     if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
     if (!Object.is(left[key], right[key])) return false;
+  }
+
+  return true;
+}
+
+function shallowEqualRefEvents(left: BTNodeData['refEvents'], right: BTNodeData['refEvents']): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+
+  for (let i = 0; i < left.length; i++) {
+    if (left[i].refName !== right[i].refName) return false;
+    if (!Object.is(left[i].newValue, right[i].newValue)) return false;
+    if (left[i].isAsync !== right[i].isAsync) return false;
+  }
+
+  return true;
+}
+
+function shallowEqualDecorators(
+  left: BTNodeData['stackedDecorators'],
+  right: BTNodeData['stackedDecorators'],
+): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+
+  for (let i = 0; i < left.length; i++) {
+    if (left[i].nodeId !== right[i].nodeId) return false;
+    if (left[i].result !== right[i].result) return false;
+    if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
+    if (!shallowEqualRecord(left[i].displayState, right[i].displayState)) return false;
+    if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
   }
 
   return true;

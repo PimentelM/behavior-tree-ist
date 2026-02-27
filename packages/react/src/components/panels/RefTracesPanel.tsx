@@ -11,7 +11,7 @@ function RefTracesPanelInner({ events, onGoToTick }: RefTracesPanelProps) {
     return (
       <div className="bt-ref-traces">
         <div className="bt-ref-traces__empty">
-          No ref mutation events recorded
+          No unattributed ref mutation events in this tick
         </div>
       </div>
     );

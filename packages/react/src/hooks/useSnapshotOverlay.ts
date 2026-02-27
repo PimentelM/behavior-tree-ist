@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import { NodeResult } from '@behavior-tree-ist/core';
+import type { RefChangeEvent } from '@behavior-tree-ist/core';
 import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
 import type { BTNodeData, BTEdgeData } from '../types';
 
@@ -10,6 +11,8 @@ export function useSnapshotOverlay(
   inspector: TreeInspector,
   tickId: number | null,
   selectedNodeId: number | null,
+  refEventsByNodeId: Map<number, RefChangeEvent[]>,
+  onSelectNode: (nodeId: number) => void,
   tickGeneration: number,
 ): { nodes: Node<BTNodeData>[]; edges: Edge<BTEdgeData>[] } {
   const previousRef = useRef<{
@@ -27,7 +30,10 @@ export function useSnapshotOverlay(
     const nextNodesById = new Map<string, Node<BTNodeData>>();
     const nextEdgesById = new Map<string, Edge<BTEdgeData>>();
 
-    const isNodeSelected = (nodeId: number): boolean => nodeId === selectedNodeId;
+    const isNodeSelected = (representedNodeIds: number[]): boolean => {
+      if (selectedNodeId === null) return false;
+      return representedNodeIds.includes(selectedNodeId);
+    };
 
     const snapshot = tickId === null
       ? undefined
@@ -46,6 +52,13 @@ export function useSnapshotOverlay(
         node.data.nodeId,
         latestState as Record<string, unknown> | undefined,
       );
+      for (const decorator of node.data.stackedDecorators) {
+        const decoratorState = inspectorWithStateLookup.getLastDisplayState?.(decorator.nodeId, stateLookupTick);
+        rememberedStateByNode.set(
+          decorator.nodeId,
+          decoratorState as Record<string, unknown> | undefined,
+        );
+      }
     }
 
     const nodeResultById = new Map<number, NodeResult>();
@@ -58,9 +71,41 @@ export function useSnapshotOverlay(
     const nodes = baseNodes.map((baseNode) => {
       const nodeSnapshot = snapshot?.nodes.get(baseNode.data.nodeId);
       const nextResult = nodeSnapshot?.result ?? null;
-      const nextDisplayState = (nodeSnapshot?.state as Record<string, unknown> | undefined)
-        ?? rememberedStateByNode.get(baseNode.data.nodeId);
-      const nextIsSelected = isNodeSelected(baseNode.data.nodeId);
+      const snapshotState = nodeSnapshot?.state as Record<string, unknown> | undefined;
+      const fallbackState = rememberedStateByNode.get(baseNode.data.nodeId);
+      const nextDisplayState = snapshotState ?? fallbackState;
+      const nextDisplayStateIsStale = nextDisplayState !== undefined
+        && tickId !== null
+        && (nodeSnapshot === undefined || snapshotState === undefined);
+      const nextIsSelected = isNodeSelected(baseNode.data.representedNodeIds);
+      const nextRefEvents = (refEventsByNodeId.get(baseNode.data.nodeId) ?? []).map((event) => ({
+        refName: event.refName,
+        newValue: event.newValue,
+        isAsync: event.isAsync,
+      }));
+
+      const nextStackedDecorators = baseNode.data.stackedDecorators.map((decorator) => {
+        const decoratorSnapshot = snapshot?.nodes.get(decorator.nodeId);
+        const decoratorSnapshotState = decoratorSnapshot?.state as Record<string, unknown> | undefined;
+        const decoratorFallbackState = rememberedStateByNode.get(decorator.nodeId);
+        const decoratorDisplayState = decoratorSnapshotState ?? decoratorFallbackState;
+        const decoratorStateStale = decoratorDisplayState !== undefined
+          && tickId !== null
+          && (decoratorSnapshot === undefined || decoratorSnapshotState === undefined);
+        const decoratorRefEvents = (refEventsByNodeId.get(decorator.nodeId) ?? []).map((event) => ({
+          refName: event.refName,
+          newValue: event.newValue,
+          isAsync: event.isAsync,
+        }));
+
+        return {
+          ...decorator,
+          result: decoratorSnapshot?.result ?? null,
+          displayState: decoratorDisplayState,
+          displayStateIsStale: decoratorStateStale,
+          refEvents: decoratorRefEvents,
+        };
+      });
 
       const previousNode = previousNodesById.get(baseNode.id);
       if (
@@ -69,7 +114,11 @@ export function useSnapshotOverlay(
         && previousNode.data.result === nextResult
         && previousNode.data.isSelected === nextIsSelected
         && previousNode.selected === nextIsSelected
+        && previousNode.data.displayStateIsStale === nextDisplayStateIsStale
         && shallowEqualRecord(previousNode.data.displayState, nextDisplayState)
+        && shallowEqualRefEvents(previousNode.data.refEvents, nextRefEvents)
+        && shallowEqualDecoratorData(previousNode.data.stackedDecorators, nextStackedDecorators)
+        && previousNode.data.selectedNodeId === selectedNodeId
       ) {
         nextNodesById.set(baseNode.id, previousNode);
         return previousNode;
@@ -81,7 +130,12 @@ export function useSnapshotOverlay(
           ...baseNode.data,
           result: nextResult,
           displayState: nextDisplayState,
+          displayStateIsStale: nextDisplayStateIsStale,
           isSelected: nextIsSelected,
+          refEvents: nextRefEvents,
+          stackedDecorators: nextStackedDecorators,
+          selectedNodeId,
+          onSelectNode,
         },
         selected: nextIsSelected,
       };
@@ -123,7 +177,7 @@ export function useSnapshotOverlay(
 
     return { nodes, edges };
     // tickGeneration is used to trigger re-computation when new ticks arrive
-  }, [baseNodes, baseEdges, inspector, tickId, selectedNodeId, tickGeneration]);
+  }, [baseNodes, baseEdges, inspector, tickId, selectedNodeId, refEventsByNodeId, onSelectNode, tickGeneration]);
 }
 
 function hasSameBaseNodeShape(
@@ -138,7 +192,11 @@ function hasSameBaseNodeShape(
     && previousNode.data.name === baseNode.data.name
     && previousNode.data.defaultName === baseNode.data.defaultName
     && previousNode.data.nodeFlags === baseNode.data.nodeFlags
-    && previousNode.data.depth === baseNode.data.depth;
+    && previousNode.data.visualKind === baseNode.data.visualKind
+    && previousNode.data.depth === baseNode.data.depth
+    && previousNode.data.stackedDecorators.length === baseNode.data.stackedDecorators.length
+    && previousNode.data.lifecycleDecoratorIds.length === baseNode.data.lifecycleDecoratorIds.length
+    && previousNode.data.representedNodeIds.length === baseNode.data.representedNodeIds.length;
 }
 
 function hasSameBaseEdgeShape(
@@ -166,5 +224,35 @@ function shallowEqualRecord(
     if (!Object.is(left[key], right[key])) return false;
   }
 
+  return true;
+}
+
+function shallowEqualRefEvents(
+  left: BTNodeData['refEvents'],
+  right: BTNodeData['refEvents'],
+): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i++) {
+    if (left[i].refName !== right[i].refName) return false;
+    if (!Object.is(left[i].newValue, right[i].newValue)) return false;
+    if (left[i].isAsync !== right[i].isAsync) return false;
+  }
+  return true;
+}
+
+function shallowEqualDecoratorData(
+  left: BTNodeData['stackedDecorators'],
+  right: BTNodeData['stackedDecorators'],
+): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i++) {
+    if (left[i].nodeId !== right[i].nodeId) return false;
+    if (left[i].result !== right[i].result) return false;
+    if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
+    if (!shallowEqualRecord(left[i].displayState, right[i].displayState)) return false;
+    if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
+  }
   return true;
 }

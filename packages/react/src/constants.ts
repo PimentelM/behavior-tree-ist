@@ -1,5 +1,5 @@
 import { NodeResult, NodeFlags, hasFlag } from '@behavior-tree-ist/core';
-import type { ThemeOverrides } from './types';
+import type { ThemeOverrides, NodeVisualKind } from './types';
 
 export const DARK_THEME: Required<ThemeOverrides> = {
   colorSucceeded: '#22c55e',
@@ -80,6 +80,7 @@ const FLAG_DEFINITIONS: Array<{ flag: number; label: string; category: 'primary'
   { flag: NodeFlags.ResultTransformer, label: 'Transformer', category: 'secondary' },
   { flag: NodeFlags.Guard, label: 'Guard', category: 'secondary' },
   { flag: NodeFlags.Lifecycle, label: 'Lifecycle', category: 'secondary' },
+  { flag: NodeFlags.Async, label: 'Async', category: 'secondary' },
   { flag: NodeFlags.Display, label: 'Display', category: 'secondary' },
 ];
 
@@ -98,6 +99,33 @@ export function getPrimaryCategoryLabel(nodeFlags: number): string {
   if (hasFlag(nodeFlags, NodeFlags.Decorator)) return 'Decorator';
   if (hasFlag(nodeFlags, NodeFlags.Leaf)) return 'Leaf';
   return 'Node';
+}
+
+export function getNodeVisualKind(nodeFlags: number): NodeVisualKind {
+  if (hasFlag(nodeFlags, NodeFlags.Sequence)) return 'sequence';
+  if (hasFlag(nodeFlags, NodeFlags.Selector)) return 'selector';
+  if (hasFlag(nodeFlags, NodeFlags.Parallel)) return 'parallel';
+  if (hasFlag(nodeFlags, NodeFlags.Action)) return 'action';
+  if (hasFlag(nodeFlags, NodeFlags.Condition)) return 'condition';
+  return 'node';
+}
+
+const CAPABILITY_BADGE_DEFS: Array<{ flag: number; label: string }> = [
+  { flag: NodeFlags.Async, label: 'Async' },
+  { flag: NodeFlags.Memory, label: 'Memory' },
+  { flag: NodeFlags.Utility, label: 'Utility' },
+  { flag: NodeFlags.Stateful, label: 'Stateful' },
+  { flag: NodeFlags.Repeating, label: 'Repeat' },
+  { flag: NodeFlags.Guard, label: 'Guard' },
+  { flag: NodeFlags.ResultTransformer, label: 'Transform' },
+];
+
+export function getCapabilityBadges(nodeFlags: number): string[] {
+  const badges: string[] = [];
+  for (const entry of CAPABILITY_BADGE_DEFS) {
+    if (hasFlag(nodeFlags, entry.flag)) badges.push(entry.label);
+  }
+  return badges;
 }
 
 export const NODE_WIDTH = 220;

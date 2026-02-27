@@ -56,6 +56,17 @@ function TimelinePanelInner({
         {mode}
       </span>
 
+      {mode === 'paused' && (
+        <button
+          className="bt-timeline__btn bt-timeline__btn--exit"
+          onClick={handleJumpToLive}
+          type="button"
+          title="Exit time travel (Esc)"
+        >
+          Exit Time Travel
+        </button>
+      )}
+
       <div className="bt-timeline__controls">
         <button
           className="bt-timeline__btn"

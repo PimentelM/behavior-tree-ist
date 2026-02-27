@@ -145,22 +145,32 @@ The toolbar center-tree button recenters the viewport using `fitView()` without 
 Two modes: **Live** and **Paused**.
 
 - **Live**: Automatically follows the latest tick. New ticks are displayed in real-time.
-- **Paused**: Frozen at a specific tick. Use the scrubber or step buttons to navigate.
+- **Paused**: Frozen at a specific tick. Entering paused mode captures a frozen inspector snapshot so the viewed timeline/state does not shift while live ticks continue to arrive.
 
 Controls:
+- **Toolbar Pause/Play**: Toggle between live mode and paused time-travel mode directly from the top toolbar
 - **Scrubber**: Drag to jump to any stored tick (enters paused mode)
 - **Step back/forward**: Navigate one tick at a time
-- **LIVE button**: Jump back to live mode
+- **Exit Time Travel / LIVE**: Jump back to live mode
+- **Esc key**: Quick-exit paused mode and return to live
 
-New ticks are always ingested even when paused, so no data is lost.
+New ticks are always ingested by the live inspector even when paused, so no data is lost.
+
+Result semantics are strict per tick:
+- If a node has no trace event at the viewed tick, it is treated as not ticked for that tick.
+- Display state may still show the latest known state at-or-before the viewed tick and is marked with a `prev` cue when stale.
 
 ## Node Visualization
 
 Each node shows:
-- Display name and numeric ID badge
-- Flag category pill (Leaf/Composite/Decorator and secondary flags)
+- Display name with compact semantic badges
+- Optional compact decorator stack (non-lifecycle decorators) rendered above the decorated node (no connecting edge)
+- Lifecycle decorators collapsed to an inline thunder badge (`⚡N`)
 - Left accent stripe colored by result: green (Succeeded), red (Failed), amber (Running), gray (Idle)
-- Display state key-value pairs when present (from `getDisplayState()`)
+- Display state key-value pairs when present (from `getDisplayState()`), with `prev` marker if stale
+- Ref changes for the viewed tick directly under the node/decorator that emitted them
+
+Raw `NodeFlags` and numeric IDs are not shown in the tree canvas. Full flags remain visible in the node details panel.
 
 Edges are smooth-step curves colored by child result when active, with animated dashes for Running children.
 The built-in minimap mirrors node positions and result colors, and supports pan/zoom interactions.
@@ -175,10 +185,12 @@ When a node is selected, the right sidebar shows:
 
 ## Ref Traces Panel
 
-The "Ref Traces" tab shows all `RefChangeEvent` mutations recorded across ticks:
+The "Ref Traces" tab shows unattributed/system `RefChangeEvent` mutations for the viewed tick (events without `nodeId`):
 - Ref name, tick number, async badge
 - New value (JSON-formatted)
 - Click to jump to that tick
+
+Node-attributed ref changes are shown directly below each node/decorator in the graph.
 
 ## Theming
 

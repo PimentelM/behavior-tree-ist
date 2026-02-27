@@ -4,6 +4,14 @@ import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
 import type { BTNodeData, BTEdgeData, LayoutDirection } from '../types';
 import { NODE_WIDTH, NODE_HEIGHT_BASE, NODE_HEIGHT_WITH_STATE } from '../constants';
 
+function getNodeHeight(node: Node<BTNodeData>): number {
+  const canShowState = hasFlag(node.data.nodeFlags, NodeFlags.Stateful)
+    || hasFlag(node.data.nodeFlags, NodeFlags.Display);
+  const baseHeight = canShowState ? NODE_HEIGHT_WITH_STATE : NODE_HEIGHT_BASE;
+  const decoratorHeight = (node.data.stackedDecorators?.length ?? 0) * 24;
+  return baseHeight + decoratorHeight;
+}
+
 export function applyDagreLayout(
   nodes: Node<BTNodeData>[],
   edges: Edge<BTEdgeData>[],
@@ -20,11 +28,10 @@ export function applyDagreLayout(
   });
 
   for (const node of nodes) {
-    const canShowState = hasFlag(node.data.nodeFlags, NodeFlags.Stateful)
-      || hasFlag(node.data.nodeFlags, NodeFlags.Display);
+    const height = getNodeHeight(node);
     g.setNode(node.id, {
       width: NODE_WIDTH,
-      height: canShowState ? NODE_HEIGHT_WITH_STATE : NODE_HEIGHT_BASE,
+      height,
     });
   }
 
@@ -36,9 +43,7 @@ export function applyDagreLayout(
 
   const positionedNodes = nodes.map((node) => {
     const dagreNode = g.node(node.id);
-    const canShowState = hasFlag(node.data.nodeFlags, NodeFlags.Stateful)
-      || hasFlag(node.data.nodeFlags, NodeFlags.Display);
-    const nodeHeight = canShowState ? NODE_HEIGHT_WITH_STATE : NODE_HEIGHT_BASE;
+    const nodeHeight = getNodeHeight(node);
     return {
       ...node,
       width: NODE_WIDTH,

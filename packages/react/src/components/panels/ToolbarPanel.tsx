@@ -8,6 +8,9 @@ interface ToolbarPanelProps {
   themeMode: ThemeMode;
   onToggleTheme?: () => void;
   onCenterTree?: () => void;
+  timeTravelMode: 'live' | 'paused';
+  viewedTickId: number | null;
+  onToggleTimeTravel?: () => void;
 }
 
 function ToolbarPanelInner({
@@ -16,10 +19,22 @@ function ToolbarPanelInner({
   themeMode,
   onToggleTheme,
   onCenterTree,
+  timeTravelMode,
+  viewedTickId,
+  onToggleTimeTravel,
 }: ToolbarPanelProps) {
   return (
     <div className="bt-toolbar">
       <div className="bt-toolbar__actions">
+        <button
+          className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--paused' : ''}`}
+          onClick={onToggleTimeTravel}
+          type="button"
+          aria-label={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
+          title={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
+        >
+          {timeTravelMode === 'paused' ? '▶ Live' : '⏸ Pause'}
+        </button>
         <button
           className="bt-toolbar__camera-btn"
           onClick={onCenterTree}
@@ -30,6 +45,11 @@ function ToolbarPanelInner({
           <CenterIcon />
         </button>
         {actions}
+      </div>
+      <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
+        {timeTravelMode === 'paused'
+          ? `Time Travel · tick #${viewedTickId ?? '-'} `
+          : 'Live'}
       </div>
       {showThemeToggle && (
         <button

@@ -37,6 +37,23 @@ export type ThemeMode = 'light' | 'dark';
 
 export type LayoutDirection = 'TB' | 'LR';
 
+export type NodeVisualKind = 'sequence' | 'selector' | 'parallel' | 'action' | 'condition' | 'node';
+
+export interface NodeDecoratorData {
+  nodeId: number;
+  name: string;
+  defaultName: string;
+  nodeFlags: NodeFlags;
+  result: NodeResult | null;
+  displayState: Record<string, unknown> | undefined;
+  displayStateIsStale: boolean;
+  refEvents: Array<{
+    refName: string | undefined;
+    newValue: unknown;
+    isAsync: boolean;
+  }>;
+}
+
 export interface BehaviourTreeDebuggerProps {
   tree: SerializableNode;
   ticks: TickRecord[];
@@ -64,10 +81,19 @@ export interface BTNodeData extends Record<string, unknown> {
   name: string;
   defaultName: string;
   nodeFlags: NodeFlags;
+  visualKind: NodeVisualKind;
   result: NodeResult | null;
   displayState: Record<string, unknown> | undefined;
+  displayStateIsStale: boolean;
   isSelected: boolean;
   depth: number;
+  representedNodeIds: number[];
+  stackedDecorators: NodeDecoratorData[];
+  lifecycleDecoratorIds: number[];
+  capabilityBadges: string[];
+  refEvents: NodeDecoratorData['refEvents'];
+  selectedNodeId: number | null;
+  onSelectNode?: (nodeId: number) => void;
 }
 
 export interface BTEdgeData extends Record<string, unknown> {
