@@ -88,6 +88,7 @@ export function BehaviourTreeDebugger({
   }, [inspector, inspectorRef]);
 
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [centerTreeSignal, setCenterTreeSignal] = useState(0);
 
   const timeTravelControls = useTimeTravelControls(inspector, tickGeneration);
   const { viewedTickId } = timeTravelControls;
@@ -153,6 +154,10 @@ export function BehaviourTreeDebugger({
     onThemeModeChange?.(nextMode);
   }, [themeMode, controlledThemeMode, onThemeModeChange]);
 
+  const handleCenterTree = useCallback(() => {
+    setCenterTreeSignal((value) => value + 1);
+  }, []);
+
   const showSidebar = panels.nodeDetails !== false || panels.refTraces !== false;
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
@@ -194,6 +199,7 @@ export function BehaviourTreeDebugger({
               showThemeToggle={showThemeToggle}
               themeMode={themeMode}
               onToggleTheme={handleToggleTheme}
+              onCenterTree={handleCenterTree}
             />
           ) : null
         }
@@ -202,6 +208,7 @@ export function BehaviourTreeDebugger({
             nodes={nodes}
             edges={edges}
             layoutVersion={layoutVersion}
+            centerTreeSignal={centerTreeSignal}
             onNodeClick={handleNodeClick}
           />
         }

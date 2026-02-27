@@ -164,6 +164,14 @@
   cursor: pointer;
 }
 
+.bt-toolbar__camera-btn {
+  width: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .bt-toolbar__actions :where(button:hover) {
   color: var(--bt-text-primary);
   border-color: color-mix(in srgb, var(--bt-accent-color) 38%, var(--bt-border-color));

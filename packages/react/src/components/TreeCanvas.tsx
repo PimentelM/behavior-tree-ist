@@ -28,6 +28,7 @@ interface TreeCanvasProps {
   edges: Edge<BTEdgeData>[];
   onNodeClick?: (nodeId: number) => void;
   layoutVersion?: string;
+  centerTreeSignal?: number;
 }
 
 const nodeTypes: NodeTypes = {
@@ -46,11 +47,18 @@ function getMiniMapNodeColor(node: Node<BTNodeData>): string {
   return '#64748b';
 }
 
-function TreeCanvasInner({ nodes, edges, onNodeClick, layoutVersion }: TreeCanvasProps) {
+function TreeCanvasInner({
+  nodes,
+  edges,
+  onNodeClick,
+  layoutVersion,
+  centerTreeSignal,
+}: TreeCanvasProps) {
   const [flowInstance, setFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [renderNodes, setRenderNodes] = useState<Node<BTNodeData>[]>(nodes);
   const [renderEdges, setRenderEdges] = useState<Edge<BTEdgeData>[]>(edges);
   const lastLayoutVersionRef = useRef<string | undefined>(layoutVersion);
+  const lastCenterSignalRef = useRef<number | undefined>(centerTreeSignal);
 
   const handleNodeClick = useCallback(
     (_event: ReactMouseEvent, node: Node) => {
@@ -89,6 +97,15 @@ function TreeCanvasInner({ nodes, edges, onNodeClick, layoutVersion }: TreeCanva
     return () => cancelAnimationFrame(frame);
   }, [flowInstance, layoutVersion, renderNodes.length]);
 
+  useEffect(() => {
+    if (!flowInstance || renderNodes.length === 0) return;
+    if (centerTreeSignal === undefined) return;
+    if (lastCenterSignalRef.current === centerTreeSignal) return;
+
+    lastCenterSignalRef.current = centerTreeSignal;
+    flowInstance.fitView({ padding: 0.2, duration: 220 });
+  }, [flowInstance, renderNodes.length, centerTreeSignal]);
+
   return (
     <div className="bt-tree-canvas">
       <ReactFlow
@@ -110,8 +127,10 @@ function TreeCanvasInner({ nodes, edges, onNodeClick, layoutVersion }: TreeCanva
         <Background gap={20} size={1} color="var(--bt-grid-color)" />
         <MiniMap
           nodeColor={getMiniMapNodeColor}
-          maskColor="var(--bt-minimap-mask)"
+          maskColor="rgba(0,0,0,0.08)"
           nodeStrokeWidth={2}
+          zoomable
+          pannable
           style={{ background: 'var(--bt-bg-secondary)' }}
         />
       </ReactFlow>

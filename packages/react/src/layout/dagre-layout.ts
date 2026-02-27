@@ -41,6 +41,8 @@ export function applyDagreLayout(
     const nodeHeight = canShowState ? NODE_HEIGHT_WITH_STATE : NODE_HEIGHT_BASE;
     return {
       ...node,
+      width: NODE_WIDTH,
+      height: nodeHeight,
       position: {
         x: dagreNode.x - NODE_WIDTH / 2,
         y: dagreNode.y - nodeHeight / 2,

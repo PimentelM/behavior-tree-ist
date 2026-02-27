@@ -7,6 +7,7 @@ interface ToolbarPanelProps {
   showThemeToggle: boolean;
   themeMode: ThemeMode;
   onToggleTheme?: () => void;
+  onCenterTree?: () => void;
 }
 
 function ToolbarPanelInner({
@@ -14,10 +15,22 @@ function ToolbarPanelInner({
   showThemeToggle,
   themeMode,
   onToggleTheme,
+  onCenterTree,
 }: ToolbarPanelProps) {
   return (
     <div className="bt-toolbar">
-      <div className="bt-toolbar__actions">{actions}</div>
+      <div className="bt-toolbar__actions">
+        <button
+          className="bt-toolbar__camera-btn"
+          onClick={onCenterTree}
+          type="button"
+          aria-label="Center tree"
+          title="Center tree"
+        >
+          <CenterIcon />
+        </button>
+        {actions}
+      </div>
       {showThemeToggle && (
         <button
           className="bt-toolbar__theme-btn"
@@ -30,6 +43,22 @@ function ToolbarPanelInner({
         </button>
       )}
     </div>
+  );
+}
+
+function CenterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+      <path
+        d="M12 3v3M12 18v3M3 12h3M18 12h3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
   );
 }
 

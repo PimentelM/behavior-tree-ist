@@ -132,12 +132,13 @@ useEffect(() => {
 
 The component uses a CSS grid layout:
 
-- **Top toolbar** (44px) — Action area (left) and theme toggle (right)
+- **Top toolbar** (44px) — Action area (left), built-in center-tree button, and theme toggle (right)
 - **Canvas** — Main area with the React Flow tree graph
 - **Right sidebar** (300px, collapsible) — Node details and ref traces (tabbed)
 - **Bottom bar** (80px) — Timeline scrubber and playback controls
 
 The tree is laid out using `@dagrejs/dagre`. Layout is recomputed only when the `tree` prop changes, not on every tick.
+The toolbar center-tree button recenters the viewport using `fitView()` without changing current tick selection.
 
 ## Time-Travel
 
@@ -162,6 +163,7 @@ Each node shows:
 - Display state key-value pairs when present (from `getDisplayState()`)
 
 Edges are smooth-step curves colored by child result when active, with animated dashes for Running children.
+The built-in minimap mirrors node positions and result colors, and supports pan/zoom interactions.
 
 ## Node Details Panel
 
