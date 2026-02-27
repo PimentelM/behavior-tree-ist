@@ -172,9 +172,9 @@ const sum = derivedRef(() => a.value + b.value, 'sum');
 
 ### Ambient Tracing
 
-`BTNode.Tick` and `BTNode.Abort` push the `TickContext` onto an internal stack before invoking hooks, and pop it in a `finally` block. This means any `ref.value = x` inside `onTick`, `onEnter`, `onAbort`, etc. automatically traces to the correct context — no ceremony needed.
+`BTNode.Tick` and `BTNode.Abort` push the active `TickContext` and node id onto an internal ambient stack before invoking hooks, and pop both in a `finally` block. This means any `ref.value = x` inside `onTick`, `onEnter`, `onAbort`, etc. automatically traces to the correct context and records which node performed the mutation.
 
-- **Named refs** produce `RefChangeEvent` entries with `newValue` and `isAsync` status
+- **Named refs** produce `RefChangeEvent` entries with `newValue`, `isAsync`, and `nodeId` (when mutation happens under an active node tick)
 - **Async Mutations**: When using `AsyncAction`, mutations made via an explicit `ctx` after the tick has finished are buffered and automatically attributed to the next tick of the same tree.
 - **Unnamed refs** are lightweight and untraced (no events even during ticks)
 - **Outside ticks** (no ambient context), writes succeed silently with no tracing

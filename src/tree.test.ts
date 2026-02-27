@@ -185,6 +185,7 @@ describe("BehaviourTree", () => {
                 tickId: 1,
                 timestamp: 100,
                 refName: "counter",
+                nodeId: root.id,
                 newValue: 1,
                 isAsync: false,
             });

@@ -1,5 +1,6 @@
 import { TickTraceEvent, RefChangeEvent } from "./types";
 import { NodeResult, NodeFlags, SerializableState } from "./types";
+import { AmbientContext } from "./ambient-context";
 
 export type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];
 
@@ -113,17 +114,14 @@ export abstract class BTNode {
     // Core Execution API
     // =========================================================================
 
-    // Ambient Tick Context
-    private static _ctxStack: TickContext[] = [];
-
     public static get currentTickContext(): TickContext | undefined {
-        const stack = BTNode._ctxStack;
-        return stack.length > 0 ? stack[stack.length - 1] : undefined;
+        return AmbientContext.getTickContext();
     }
 
     public static Tick(node: BTNode, ctx: TickContext): NodeResult {
-        BTNode._ctxStack.push(ctx);
+        AmbientContext.pushTickContext(ctx);
         try {
+            AmbientContext.pushMutationNodeId(node.id);
             const startedAt = ctx.getTime?.();
 
             if (!node._wasRunning) {
@@ -166,19 +164,22 @@ export abstract class BTNode {
             ctx.trace(node, result, startedAt, finishedAt);
             return result;
         } finally {
-            BTNode._ctxStack.pop();
+            AmbientContext.popMutationNodeId();
+            AmbientContext.popTickContext();
         }
     }
 
     public static Abort(node: BTNode, ctx: TickContext): void {
         if (node._wasRunning) {
-            BTNode._ctxStack.push(ctx);
+            AmbientContext.pushTickContext(ctx);
+            AmbientContext.pushMutationNodeId(node.id);
             try {
                 node.onAbort?.(ctx);
                 node.onReset?.(ctx);
                 node._wasRunning = false;
             } finally {
-                BTNode._ctxStack.pop();
+                AmbientContext.popMutationNodeId();
+                AmbientContext.popTickContext();
             }
         }
     }

@@ -1,4 +1,5 @@
-import { BTNode, TickContext } from "./node";
+import { TickContext } from "./node";
+import { AmbientContext } from "./ambient-context";
 import { RefChangeEvent } from "./types";
 
 export interface ReadonlyRef<T> {
@@ -27,13 +28,14 @@ export class Ref<T> implements ReadonlyRef<T> {
         if (this._value === newValue) return;
         this._value = newValue;
 
-        const effectiveCtx = ctx ?? BTNode.currentTickContext;
+        const effectiveCtx = ctx ?? AmbientContext.getTickContext();
         if (!effectiveCtx || !effectiveCtx.isTracingEnabled || this.name === undefined) return;
 
         const event: RefChangeEvent = {
             tickId: effectiveCtx.tickId,
             timestamp: effectiveCtx.now,
             refName: this.name,
+            nodeId: AmbientContext.getCurrentMutationNodeId(),
             newValue: newValue as unknown,
             isAsync: false,
         };
