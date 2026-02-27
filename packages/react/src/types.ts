@@ -1,4 +1,4 @@
-import type { MutableRefObject } from 'react';
+import type { MutableRefObject, ReactNode } from 'react';
 import type {
   SerializableNode,
   TickRecord,
@@ -33,6 +33,8 @@ export interface ThemeOverrides {
   fontMono?: string;
 }
 
+export type ThemeMode = 'light' | 'dark';
+
 export type LayoutDirection = 'TB' | 'LR';
 
 export interface BehaviourTreeDebuggerProps {
@@ -42,6 +44,12 @@ export interface BehaviourTreeDebuggerProps {
   inspectorRef?: MutableRefObject<TreeInspector | null>;
   panels?: PanelConfig;
   theme?: ThemeOverrides;
+  themeMode?: ThemeMode;
+  defaultThemeMode?: ThemeMode;
+  onThemeModeChange?: (mode: ThemeMode) => void;
+  showThemeToggle?: boolean;
+  showToolbar?: boolean;
+  toolbarActions?: ReactNode;
   layoutDirection?: LayoutDirection;
   width?: string | number;
   height?: string | number;

@@ -1,22 +1,41 @@
 import { NodeResult, NodeFlags, hasFlag } from '@behavior-tree-ist/core';
 import type { ThemeOverrides } from './types';
 
-export const DEFAULT_THEME: Required<ThemeOverrides> = {
-  colorSucceeded: '#4ade80',
-  colorFailed: '#f87171',
-  colorRunning: '#60a5fa',
-  colorIdle: '#6b7280',
-  bgPrimary: '#1a1a2e',
-  bgSecondary: '#16213e',
-  bgTertiary: '#0f3460',
-  textPrimary: '#e2e8f0',
-  textSecondary: '#94a3b8',
-  textMuted: '#64748b',
-  borderColor: '#334155',
-  accentColor: '#818cf8',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  fontMono: '"Fira Code", "JetBrains Mono", "Cascadia Code", Consolas, monospace',
+export const DARK_THEME: Required<ThemeOverrides> = {
+  colorSucceeded: '#22c55e',
+  colorFailed: '#f14c4c',
+  colorRunning: '#cca700',
+  colorIdle: '#8b8b8b',
+  bgPrimary: '#1e1e1e',
+  bgSecondary: '#252526',
+  bgTertiary: '#2d2d30',
+  textPrimary: '#cccccc',
+  textSecondary: '#b3b3b3',
+  textMuted: '#8b8b8b',
+  borderColor: '#3c3c3c',
+  accentColor: '#3794ff',
+  fontFamily: '"Geist", "Avenir Next", "Segoe UI", sans-serif',
+  fontMono: '"JetBrains Mono", "SFMono-Regular", Menlo, monospace',
 };
+
+export const LIGHT_THEME: Required<ThemeOverrides> = {
+  colorSucceeded: '#16a34a',
+  colorFailed: '#dc2626',
+  colorRunning: '#d97706',
+  colorIdle: '#71717a',
+  bgPrimary: '#ffffff',
+  bgSecondary: '#fafafa',
+  bgTertiary: '#f4f4f5',
+  textPrimary: '#09090b',
+  textSecondary: '#3f3f46',
+  textMuted: '#71717a',
+  borderColor: '#e4e4e7',
+  accentColor: '#18181b',
+  fontFamily: '"Geist", "Avenir Next", "Segoe UI", sans-serif',
+  fontMono: '"JetBrains Mono", "SFMono-Regular", Menlo, monospace',
+};
+
+export const DEFAULT_THEME: Required<ThemeOverrides> = DARK_THEME;
 
 export const RESULT_COLORS: Record<string, string> = {
   [NodeResult.Succeeded]: DEFAULT_THEME.colorSucceeded,
@@ -24,13 +43,14 @@ export const RESULT_COLORS: Record<string, string> = {
   [NodeResult.Running]: DEFAULT_THEME.colorRunning,
 };
 
-export function getResultColor(result: NodeResult | null | undefined, theme: Required<ThemeOverrides> = DEFAULT_THEME): string {
-  if (result === null || result === undefined) return theme.colorIdle;
+export function getResultColor(result: NodeResult | null | undefined, theme?: Required<ThemeOverrides>): string {
+  const resolved = theme;
+  if (result === null || result === undefined) return resolved ? resolved.colorIdle : 'var(--bt-color-idle)';
   switch (result) {
-    case NodeResult.Succeeded: return theme.colorSucceeded;
-    case NodeResult.Failed: return theme.colorFailed;
-    case NodeResult.Running: return theme.colorRunning;
-    default: return theme.colorIdle;
+    case NodeResult.Succeeded: return resolved ? resolved.colorSucceeded : 'var(--bt-color-succeeded)';
+    case NodeResult.Failed: return resolved ? resolved.colorFailed : 'var(--bt-color-failed)';
+    case NodeResult.Running: return resolved ? resolved.colorRunning : 'var(--bt-color-running)';
+    default: return resolved ? resolved.colorIdle : 'var(--bt-color-idle)';
   }
 }
 

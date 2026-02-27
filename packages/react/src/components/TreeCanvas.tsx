@@ -79,10 +79,10 @@ function TreeCanvasInner({ nodes, edges, onNodeClick, layoutVersion }: TreeCanva
         minZoom={0.1}
         maxZoom={2}
       >
-        <Background gap={20} size={1} color="rgba(255,255,255,0.03)" />
+        <Background gap={20} size={1} color="var(--bt-grid-color)" />
         <MiniMap
           nodeColor={() => 'var(--bt-border-color)'}
-          maskColor="rgba(0,0,0,0.6)"
+          maskColor="var(--bt-minimap-mask)"
           style={{ background: 'var(--bt-bg-secondary)' }}
         />
       </ReactFlow>

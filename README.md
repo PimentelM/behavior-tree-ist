@@ -132,6 +132,9 @@ import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
   tree={tree.serialize()}
   ticks={collectedTickRecords}
   panels={{ nodeDetails: true, timeline: true, refTraces: true }}
+  defaultThemeMode="dark"
+  showToolbar={true}
+  showThemeToggle={true}
   layoutDirection="TB"
   width="100%"
   height="600px"

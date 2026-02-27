@@ -53,7 +53,13 @@ function App() {
   inspectorOptions={{ maxTicks: 500 }}  // optional TreeInspector config
   inspectorRef={inspectorRef}     // optional escape-hatch to internal TreeInspector
   panels={{ nodeDetails: true, timeline: true, refTraces: true }}
-  theme={{ colorSucceeded: '#4ade80' }}
+  theme={{ colorSucceeded: '#22c55e' }}
+  themeMode="dark"               // controlled: "dark" | "light"
+  defaultThemeMode="dark"        // uncontrolled initial mode
+  showToolbar={true}              // default true: top toolbar
+  toolbarActions={<button type="button">Export</button>}
+  showThemeToggle={true}          // default true: shows top-right moon/sun toggle
+  onThemeModeChange={(mode) => {}}
   layoutDirection="TB"            // "TB" | "LR"
   width="100%" height="100%"
   isolateStyles={true}            // default true: render inside Shadow DOM
@@ -72,7 +78,13 @@ function App() {
 | `inspectorOptions` | `TreeInspectorOptions` | `{}` | Options passed to the internal `TreeInspector` (e.g., `{ maxTicks: 500 }`) |
 | `inspectorRef` | `MutableRefObject<TreeInspector \| null>` | — | Escape-hatch ref to access the internal `TreeInspector` for advanced queries |
 | `panels` | `PanelConfig` | `{ nodeDetails: true, timeline: true, refTraces: true }` | Toggle which panels are visible |
-| `theme` | `ThemeOverrides` | — | Partial theme overrides (merged with dark defaults) |
+| `theme` | `ThemeOverrides` | — | Partial token overrides for the active theme mode |
+| `themeMode` | `"light" \| "dark"` | — | Controlled color mode. When provided, parent controls mode state. |
+| `defaultThemeMode` | `"light" \| "dark"` | `"dark"` | Initial mode for uncontrolled usage |
+| `onThemeModeChange` | `(mode: "light" \| "dark") => void` | — | Called when user toggles theme mode |
+| `showToolbar` | `boolean` | `true` | Shows the top toolbar area |
+| `toolbarActions` | `ReactNode` | — | Custom action buttons/content rendered on the left side of the toolbar |
+| `showThemeToggle` | `boolean` | `true` | Shows the top-right moon/sun mode toggle in the toolbar |
 | `layoutDirection` | `"TB" \| "LR"` | `"TB"` | Tree layout direction: top-to-bottom or left-to-right |
 | `width` | `string \| number` | `"100%"` | Container width |
 | `height` | `string \| number` | `"100%"` | Container height |
@@ -120,6 +132,7 @@ useEffect(() => {
 
 The component uses a CSS grid layout:
 
+- **Top toolbar** (44px) — Action area (left) and theme toggle (right)
 - **Canvas** — Main area with the React Flow tree graph
 - **Right sidebar** (300px, collapsible) — Node details and ref traces (tabbed)
 - **Bottom bar** (80px) — Timeline scrubber and playback controls
@@ -145,7 +158,7 @@ New ticks are always ingested even when paused, so no data is lost.
 Each node shows:
 - Display name and numeric ID badge
 - Flag category pill (Leaf/Composite/Decorator and secondary flags)
-- Left accent stripe colored by result: green (Succeeded), red (Failed), blue (Running), gray (Idle)
+- Left accent stripe colored by result: green (Succeeded), red (Failed), amber (Running), gray (Idle)
 - Display state key-value pairs when present (from `getDisplayState()`)
 
 Edges are smooth-step curves colored by child result when active, with animated dashes for Running children.
@@ -167,17 +180,35 @@ The "Ref Traces" tab shows all `RefChangeEvent` mutations recorded across ticks:
 
 ## Theming
 
-The component uses CSS variables for theming. Pass a `theme` prop to override defaults:
+The debugger now ships with minimalist, shadcn-style light and dark themes, with a built-in moon/sun toggle in the top toolbar.
+
+- Dark mode defaults to a VSCode-like charcoal palette.
+- Light mode uses subtle grays, clean borders, and low-contrast surfaces.
+- Pass `theme` to override any token while keeping the base mode.
+
+Use controlled mode when you want to sync theme with your app:
+
+```tsx
+const [mode, setMode] = useState<'light' | 'dark'>('dark');
+
+<BehaviourTreeDebugger
+  themeMode={mode}
+  onThemeModeChange={setMode}
+  // ...
+/>
+```
+
+Use token overrides to customize either mode:
 
 ```tsx
 <BehaviourTreeDebugger
   theme={{
     colorSucceeded: '#22c55e',
-    colorFailed: '#ef4444',
-    colorRunning: '#3b82f6',
-    bgPrimary: '#0a0a1a',
-    bgSecondary: '#111128',
-    accentColor: '#a78bfa',
+    colorFailed: '#f14c4c',
+    colorRunning: '#cca700',
+    bgPrimary: '#1e1e1e',
+    bgSecondary: '#252526',
+    accentColor: '#3794ff',
   }}
   // ...
 />
@@ -189,18 +220,20 @@ All CSS variables are prefixed with `--bt-` and can be overridden via CSS as wel
 
 | Variable | Default | Description |
 |---|---|---|
-| `--bt-color-succeeded` | `#4ade80` | Succeeded result color |
-| `--bt-color-failed` | `#f87171` | Failed result color |
-| `--bt-color-running` | `#60a5fa` | Running result color |
-| `--bt-color-idle` | `#6b7280` | Idle/no-result color |
-| `--bt-bg-primary` | `#1a1a2e` | Primary background |
-| `--bt-bg-secondary` | `#16213e` | Panel/sidebar background |
-| `--bt-bg-tertiary` | `#0f3460` | Inset/card background |
-| `--bt-text-primary` | `#e2e8f0` | Primary text color |
-| `--bt-text-secondary` | `#94a3b8` | Secondary text color |
-| `--bt-text-muted` | `#64748b` | Muted/label text color |
-| `--bt-border-color` | `#334155` | Border color |
-| `--bt-accent-color` | `#818cf8` | Accent/selection color |
+| `--bt-color-succeeded` | dark: `#22c55e` | Succeeded result color |
+| `--bt-color-failed` | dark: `#f14c4c` | Failed result color |
+| `--bt-color-running` | dark: `#cca700` | Running result color |
+| `--bt-color-idle` | dark: `#8b8b8b` | Idle/no-result color |
+| `--bt-bg-primary` | dark: `#1e1e1e` | Primary background |
+| `--bt-bg-secondary` | dark: `#252526` | Panel/sidebar background |
+| `--bt-bg-tertiary` | dark: `#2d2d30` | Inset/card background |
+| `--bt-text-primary` | dark: `#cccccc` | Primary text color |
+| `--bt-text-secondary` | dark: `#b3b3b3` | Secondary text color |
+| `--bt-text-muted` | dark: `#8b8b8b` | Muted/label text color |
+| `--bt-border-color` | dark: `#3c3c3c` | Border color |
+| `--bt-accent-color` | dark: `#3794ff` | Accent/selection color |
+| `--bt-grid-color` | derived | Canvas grid color |
+| `--bt-minimap-mask` | derived | Minimap viewport mask |
 
 ## Exports
 
@@ -213,6 +246,7 @@ export type {
   BehaviourTreeDebuggerProps,
   PanelConfig,
   ThemeOverrides,
+  ThemeMode,
   LayoutDirection,
   BTNodeData,
   BTEdgeData,
@@ -224,6 +258,8 @@ export type {
 // Utilities
 export {
   DEFAULT_THEME,
+  LIGHT_THEME,
+  DARK_THEME,
   RESULT_COLORS,
   getResultColor,
   getFlagLabels,

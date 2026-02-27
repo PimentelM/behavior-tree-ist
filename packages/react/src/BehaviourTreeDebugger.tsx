@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { createPortal } from 'react-dom';
 import type { RefChangeEvent } from '@behavior-tree-ist/core';
-import type { BehaviourTreeDebuggerProps } from './types';
+import type { BehaviourTreeDebuggerProps, ThemeMode } from './types';
 import { useInspector } from './hooks/useInspector';
 import { useTreeLayout } from './hooks/useTreeLayout';
 import { useSnapshotOverlay } from './hooks/useSnapshotOverlay';
@@ -10,6 +10,7 @@ import { useTimeTravelControls } from './hooks/useTimeTravelControls';
 import { useNodeDetails } from './hooks/useNodeDetails';
 import { DebuggerLayout } from './components/DebuggerLayout';
 import { TreeCanvas } from './components/TreeCanvas';
+import { ToolbarPanel } from './components/panels/ToolbarPanel';
 import { TimelinePanel } from './components/panels/TimelinePanel';
 import { NodeDetailPanel } from './components/panels/NodeDetailPanel';
 import { buildTheme, themeToCSSVars } from './styles/theme';
@@ -54,6 +55,12 @@ export function BehaviourTreeDebugger({
   inspectorRef,
   panels = { nodeDetails: true, timeline: true, refTraces: true },
   theme: themeOverrides,
+  themeMode: controlledThemeMode,
+  defaultThemeMode = 'dark',
+  onThemeModeChange,
+  showThemeToggle = true,
+  showToolbar = true,
+  toolbarActions,
   layoutDirection = 'TB',
   width = '100%',
   height = '100%',
@@ -62,8 +69,14 @@ export function BehaviourTreeDebugger({
   onTickChange,
   className,
 }: BehaviourTreeDebuggerProps) {
-  const theme = useMemo(() => buildTheme(themeOverrides), [themeOverrides]);
+  const [internalThemeMode, setInternalThemeMode] = useState<ThemeMode>(defaultThemeMode);
+  const themeMode = controlledThemeMode ?? internalThemeMode;
+  const theme = useMemo(() => buildTheme(themeMode, themeOverrides), [themeMode, themeOverrides]);
   const cssVars = useMemo(() => themeToCSSVars(theme), [theme]);
+
+  useEffect(() => {
+    setInternalThemeMode(defaultThemeMode);
+  }, [defaultThemeMode]);
 
   const { inspector, tickGeneration } = useInspector(tree, ticks, inspectorOptions);
 
@@ -132,6 +145,14 @@ export function BehaviourTreeDebugger({
     [timeTravelControls, onTickChange],
   );
 
+  const handleToggleTheme = useCallback(() => {
+    const nextMode: ThemeMode = themeMode === 'dark' ? 'light' : 'dark';
+    if (controlledThemeMode === undefined) {
+      setInternalThemeMode(nextMode);
+    }
+    onThemeModeChange?.(nextMode);
+  }, [themeMode, controlledThemeMode, onThemeModeChange]);
+
   const showSidebar = panels.nodeDetails !== false || panels.refTraces !== false;
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
@@ -165,6 +186,17 @@ export function BehaviourTreeDebugger({
       <DebuggerLayout
         showSidebar={showSidebar}
         showTimeline={showTimeline}
+        showToolbar={showToolbar}
+        toolbar={
+          showToolbar ? (
+            <ToolbarPanel
+              actions={toolbarActions}
+              showThemeToggle={showThemeToggle}
+              themeMode={themeMode}
+              onToggleTheme={handleToggleTheme}
+            />
+          ) : null
+        }
         canvas={
           <TreeCanvas
             nodes={nodes}
@@ -205,7 +237,7 @@ export function BehaviourTreeDebugger({
 
     return (
       <div
-        className={`bt-debugger ${className ?? ''}`}
+        className={`bt-debugger bt-debugger--${themeMode} ${className ?? ''}`}
         style={containerStyle}
       >
         {content}
@@ -231,7 +263,7 @@ export function BehaviourTreeDebugger({
         ? createPortal(
           <>
             <style>{shadowStyles}</style>
-            <div className="bt-debugger" style={isolatedContainerStyle}>
+            <div className={`bt-debugger bt-debugger--${themeMode}`} style={isolatedContainerStyle}>
               {content}
             </div>
           </>,

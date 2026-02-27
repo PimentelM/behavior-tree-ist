@@ -1,8 +1,9 @@
-import { DEFAULT_THEME } from '../constants';
-import type { ThemeOverrides } from '../types';
+import { DARK_THEME, LIGHT_THEME } from '../constants';
+import type { ThemeMode, ThemeOverrides } from '../types';
 
-export function buildTheme(overrides?: ThemeOverrides): Required<ThemeOverrides> {
-  return { ...DEFAULT_THEME, ...overrides };
+export function buildTheme(mode: ThemeMode, overrides?: ThemeOverrides): Required<ThemeOverrides> {
+  const baseTheme = mode === 'light' ? LIGHT_THEME : DARK_THEME;
+  return { ...baseTheme, ...overrides };
 }
 
 export function themeToCSSVars(theme: Required<ThemeOverrides>): Record<string, string> {
@@ -19,6 +20,8 @@ export function themeToCSSVars(theme: Required<ThemeOverrides>): Record<string, 
     '--bt-text-muted': theme.textMuted,
     '--bt-border-color': theme.borderColor,
     '--bt-accent-color': theme.accentColor,
+    '--bt-grid-color': `color-mix(in srgb, ${theme.borderColor} 38%, transparent)`,
+    '--bt-minimap-mask': `color-mix(in srgb, ${theme.bgPrimary} 70%, transparent)`,
     '--bt-font-family': theme.fontFamily,
     '--bt-font-mono': theme.fontMono,
   };

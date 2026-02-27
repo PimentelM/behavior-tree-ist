@@ -29,7 +29,7 @@ const createSampleTree = () => {
                     condition({ name: "Has Target", eval: () => randomChance(0.4) }),
                     action({
                         name: 'Attack',
-                        cooldown: 600,
+                        throttle: 600,
                         execute: () => randomChance(0.8) ? ((attackedCount.value++), NodeResult.Succeeded) : NodeResult.Failed
                     }),
                     action({

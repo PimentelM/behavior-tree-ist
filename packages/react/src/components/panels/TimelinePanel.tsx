@@ -6,7 +6,10 @@ interface TimelinePanelProps {
   onTickChange?: (tickId: number) => void;
 }
 
-function TimelinePanelInner({ controls, onTickChange }: TimelinePanelProps) {
+function TimelinePanelInner({
+  controls,
+  onTickChange,
+}: TimelinePanelProps) {
   const {
     mode,
     viewedTickId,
@@ -59,6 +62,7 @@ function TimelinePanelInner({ controls, onTickChange }: TimelinePanelProps) {
           onClick={handleStepBack}
           disabled={!hasTicks || viewedTickId === oldestTickId}
           title="Step back"
+          type="button"
         >
           &#9664;
         </button>
@@ -67,6 +71,7 @@ function TimelinePanelInner({ controls, onTickChange }: TimelinePanelProps) {
           onClick={handleStepForward}
           disabled={!hasTicks || viewedTickId === newestTickId}
           title="Step forward"
+          type="button"
         >
           &#9654;
         </button>
@@ -77,6 +82,7 @@ function TimelinePanelInner({ controls, onTickChange }: TimelinePanelProps) {
           onClick={handleJumpToLive}
           disabled={mode === 'live'}
           title="Jump to live"
+          type="button"
         >
           LIVE
         </button>
@@ -101,6 +107,7 @@ function TimelinePanelInner({ controls, onTickChange }: TimelinePanelProps) {
         {viewedTickId !== null ? `Tick #${viewedTickId}` : 'No ticks'}{' '}
         / {totalTicks} total
       </span>
+
     </div>
   );
 }
