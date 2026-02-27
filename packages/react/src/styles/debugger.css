@@ -121,6 +121,16 @@
   height: 100%;
 }
 
+.bt-tree-canvas .react-flow__pane,
+.bt-tree-canvas .react-flow__pane.dragging {
+  cursor: default !important;
+}
+
+.bt-tree-canvas .react-flow__node,
+.bt-tree-canvas .react-flow__node * {
+  cursor: pointer !important;
+}
+
 .bt-tree-canvas .react-flow__background {
   background:
     radial-gradient(circle at 6% 8%, color-mix(in srgb, var(--bt-text-primary) 3%, transparent), transparent 32%),

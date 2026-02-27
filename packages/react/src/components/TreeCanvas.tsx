@@ -100,6 +100,7 @@ function TreeCanvasInner({ nodes, edges, onNodeClick, layoutVersion }: TreeCanva
         onNodeClick={handleNodeClick}
         onInit={setFlowInstance}
         nodesDraggable={false}
+        panOnDrag={false}
         nodesConnectable={false}
         elementsSelectable={false}
         proOptions={{ hideAttribution: true }}
