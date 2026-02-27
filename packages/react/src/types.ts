@@ -1,0 +1,100 @@
+import type { MutableRefObject } from 'react';
+import type {
+  SerializableNode,
+  TickRecord,
+  NodeResult,
+  NodeFlags,
+} from '@behavior-tree-ist/core';
+import type {
+  TreeInspector,
+  TreeInspectorOptions,
+} from '@behavior-tree-ist/core/inspector';
+
+export interface PanelConfig {
+  nodeDetails?: boolean;
+  timeline?: boolean;
+  refTraces?: boolean;
+}
+
+export interface ThemeOverrides {
+  colorSucceeded?: string;
+  colorFailed?: string;
+  colorRunning?: string;
+  colorIdle?: string;
+  bgPrimary?: string;
+  bgSecondary?: string;
+  bgTertiary?: string;
+  textPrimary?: string;
+  textSecondary?: string;
+  textMuted?: string;
+  borderColor?: string;
+  accentColor?: string;
+  fontFamily?: string;
+  fontMono?: string;
+}
+
+export type LayoutDirection = 'TB' | 'LR';
+
+export interface BehaviourTreeDebuggerProps {
+  tree: SerializableNode;
+  ticks: TickRecord[];
+  inspectorOptions?: TreeInspectorOptions;
+  inspectorRef?: MutableRefObject<TreeInspector | null>;
+  panels?: PanelConfig;
+  theme?: ThemeOverrides;
+  layoutDirection?: LayoutDirection;
+  width?: string | number;
+  height?: string | number;
+  onNodeSelect?: (nodeId: number | null) => void;
+  onTickChange?: (tickId: number) => void;
+  className?: string;
+}
+
+export interface BTNodeData extends Record<string, unknown> {
+  nodeId: number;
+  name: string;
+  defaultName: string;
+  nodeFlags: NodeFlags;
+  result: NodeResult | null;
+  displayState: Record<string, unknown> | undefined;
+  isSelected: boolean;
+  depth: number;
+}
+
+export interface BTEdgeData extends Record<string, unknown> {
+  childResult: NodeResult | null;
+}
+
+export interface TimeTravelState {
+  mode: 'live' | 'paused';
+  viewedTickId: number | null;
+  totalTicks: number;
+  oldestTickId: number | undefined;
+  newestTickId: number | undefined;
+}
+
+export interface TimeTravelControls extends TimeTravelState {
+  goToTick: (tickId: number) => void;
+  stepForward: () => void;
+  stepBack: () => void;
+  jumpToLive: () => void;
+  pause: () => void;
+}
+
+export interface NodeDetailsData {
+  nodeId: number;
+  name: string;
+  defaultName: string;
+  flags: NodeFlags;
+  path: string;
+  tags: readonly string[];
+  resultSummary: Map<NodeResult, number>;
+  history: Array<{
+    tickId: number;
+    result: NodeResult;
+    timestamp: number;
+    state?: Record<string, unknown>;
+  }>;
+  currentResult: NodeResult | null;
+  currentDisplayState: Record<string, unknown> | undefined;
+}

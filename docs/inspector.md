@@ -2,6 +2,8 @@
 
 The inspector system provides runtime tree inspection, tick recording, state reconstruction, and performance profiling. Import from `@behavior-tree-ist/core/inspector`.
 
+For a visual debugger that wraps the inspector APIs, see the [`@behavior-tree-ist/react` debugger component](react-debugger.md).
+
 ## Overview
 
 ```typescript

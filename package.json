@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspace @behavior-tree-ist/core run build",
+    "build": "yarn workspace @behavior-tree-ist/core run build && yarn workspace @behavior-tree-ist/react run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint packages/*/src",

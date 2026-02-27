@@ -115,9 +115,10 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace JSX {
         // Defines the return type of BT.createElement
-        type Element = BTNode;
         // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-        type ElementChildrenAttribute = { children: {} };
+        interface Element extends BTNode {}
+        // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+        interface ElementChildrenAttribute { children: {} }
 
         type DefaultCompositeProps = Builder.NodeProps & { children?: Element | Element[] };
 

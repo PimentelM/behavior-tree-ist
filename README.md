@@ -98,6 +98,7 @@ const root = (
 | `@behavior-tree-ist/core/builder` | Builder functions with `NodeProps`-based decorator application |
 | `@behavior-tree-ist/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
 | `@behavior-tree-ist/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
+| `@behavior-tree-ist/react` | React debugger component with tree visualization and time-travel |
 
 ## Documentation
 
@@ -112,11 +113,37 @@ const root = (
 9. [BehaviourTree Class](docs/behaviour-tree-class.md) - Wrapper class, tracing, tick loop
 10. [Custom Nodes](docs/custom-nodes.md) - Extending the library
 11. [Node Flags](docs/node-flags.md) - NodeFlags bitfield reference
-12. [Roadmap](docs/roadmap.md) - Planned features
+12. [React Debugger](docs/react-debugger.md) - `<BehaviourTreeDebugger>` component
+13. [Roadmap](docs/roadmap.md) - Planned features
+
+## React Debugger
+
+The `@behavior-tree-ist/react` package provides a drop-in React component for debugging behaviour trees with real-time visualization and time-travel.
+
+```bash
+npm install @behavior-tree-ist/react
+```
+
+```tsx
+import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
+
+// In your app — you handle transport (WebSocket, polling, etc.)
+<BehaviourTreeDebugger
+  tree={tree.serialize()}
+  ticks={collectedTickRecords}
+  panels={{ nodeDetails: true, timeline: true, refTraces: true }}
+  layoutDirection="TB"
+  width="100%"
+  height="600px"
+  onNodeSelect={(nodeId) => console.log('Selected:', nodeId)}
+  onTickChange={(tickId) => console.log('Viewing tick:', tickId)}
+/>
+```
+
+See [docs/react-debugger.md](docs/react-debugger.md) for the full API reference.
 
 ## Roadmap
 
-- **React Visualization** (`@behavior-tree-ist/react`) - Real-time tree visualization and time-travel debugging
 - **Studio App** (`@behavior-tree-ist/studio`) - Standalone debugging UI with recording and playback
 
 See [docs/roadmap.md](docs/roadmap.md) for details.
