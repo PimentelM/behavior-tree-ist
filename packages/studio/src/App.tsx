@@ -32,8 +32,8 @@ const createSampleTree = () => {
     const hunger = ref(0, "hunger");
     const thirst = ref(0, "thirst");
 
-    const supressedLog = (msg: string) => {
-        // console.log(msg);
+    const supressedLog = (_msg: string) => {
+        // console.log(_msg);
     };
 
     return new BehaviourTree(
@@ -191,7 +191,7 @@ const createSampleTree = () => {
                 asyncAction({
                     name: "Increase thirst",
                     onAbort: () => supressedLog("Etherical thirst Aborted!"),
-                    execute: async (ctx, signal) => {
+                    execute: async (ctx, _signal) => {
                         console.log("Etherical hunger");
                         await new Promise(r => setTimeout(r, 200));
                         hunger.set((hunger.value + 1) * 2, ctx);
@@ -253,7 +253,9 @@ function App() {
     const serializedTree = useMemo(() => tree.serialize(), [tree]);
 
     const handleTick = useCallback(() => {
-        const tickRecords = Array.from({ length: Math.floor(UPDATE_RATE / TICK_RATE) }).map(() => tree.tick({}));
+        const now = Date.now();
+        const artificialTickCount = Math.floor(UPDATE_RATE / TICK_RATE);
+        const tickRecords = Array.from({ length: artificialTickCount }).map((_, i) => tree.tick({ now: now - (TICK_RATE * (artificialTickCount - i)) }));
         setTicks((prev) => [...prev, ...tickRecords]);
     }, [tree]);
 
