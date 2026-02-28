@@ -133,6 +133,7 @@ useEffect(() => {
 The component uses a CSS grid layout:
 
 - **Top toolbar** (44px) — Action area (left), built-in center-tree button, and theme toggle (right)
+- With sidebar enabled, toolbar controls are split into canvas and sidebar tracks; Pause/Live is anchored to the sidebar-width track above node details
 - **Canvas** — Main area with the React Flow tree graph
 - **Right sidebar** (300px, collapsible) — Node details and ref traces (tabbed)
 - **Bottom bar** (80px) — Timeline scrubber and playback controls

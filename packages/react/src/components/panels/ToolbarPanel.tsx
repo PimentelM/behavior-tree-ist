@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { ThemeMode } from '../../types';
 
 interface ToolbarPanelProps {
+  showSidebar: boolean;
   actions?: ReactNode;
   showThemeToggle: boolean;
   themeMode: ThemeMode;
@@ -14,6 +15,7 @@ interface ToolbarPanelProps {
 }
 
 function ToolbarPanelInner({
+  showSidebar,
   actions,
   showThemeToggle,
   themeMode,
@@ -23,11 +25,65 @@ function ToolbarPanelInner({
   viewedTickId,
   onToggleTimeTravel,
 }: ToolbarPanelProps) {
+  if (showSidebar) {
+    return (
+      <div className="bt-toolbar bt-toolbar--split">
+        <div className="bt-toolbar__main">
+          <div className="bt-toolbar__main-actions">
+            <div className="bt-toolbar__actions">
+              <button
+                className="bt-toolbar__camera-btn"
+                onClick={onCenterTree}
+                type="button"
+                aria-label="Center tree"
+                title="Center tree"
+              >
+                <CenterIcon />
+              </button>
+              {actions}
+            </div>
+          </div>
+          <div className="bt-toolbar__main-center">
+            <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
+              {timeTravelMode === 'paused'
+                ? `Time Travel · tick #${viewedTickId ?? '-'} `
+                : 'Live'}
+            </div>
+          </div>
+          <div className="bt-toolbar__main-trailing">
+            {showThemeToggle && (
+              <button
+                className="bt-toolbar__theme-btn"
+                onClick={onToggleTheme}
+                type="button"
+                aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {themeMode === 'dark' ? <SunIcon /> : <MoonIcon />}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="bt-toolbar__sidebar">
+          <button
+            className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--live' : 'bt-toolbar__mode-btn--pause'}`}
+            onClick={onToggleTimeTravel}
+            type="button"
+            aria-label={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
+            title={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
+          >
+            {timeTravelMode === 'paused' ? '▶ Live' : '⏸ Pause'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bt-toolbar">
       <div className="bt-toolbar__actions">
         <button
-          className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--paused' : ''}`}
+          className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--live' : 'bt-toolbar__mode-btn--pause'}`}
           onClick={onToggleTimeTravel}
           type="button"
           aria-label={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}

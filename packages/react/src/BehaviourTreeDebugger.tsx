@@ -131,6 +131,20 @@ export function BehaviourTreeDebugger({
     layoutDirection,
   );
 
+  useEffect(() => {
+    if (baseNodes.length === 0) return;
+
+    const hasSelectedNode = selectedNodeId !== null
+      && baseNodes.some((node) => node.data.representedNodeIds.includes(selectedNodeId));
+    if (hasSelectedNode) return;
+
+    const rootNodeId = baseNodes[0]?.data.nodeId;
+    if (rootNodeId === undefined) return;
+
+    setSelectedNodeId(rootNodeId);
+    onNodeSelect?.(rootNodeId);
+  }, [baseNodes, selectedNodeId, onNodeSelect]);
+
   const layoutVersion = useMemo(
     () => `${layoutDirection}:${baseNodes.length}:${baseEdges.length}`,
     [layoutDirection, baseNodes.length, baseEdges.length],
@@ -207,7 +221,37 @@ export function BehaviourTreeDebugger({
   );
 
   useEffect(() => {
+    const isEditableTarget = (target: EventTarget | null): boolean => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tagName = target.tagName;
+      return target.isContentEditable
+        || tagName === 'INPUT'
+        || tagName === 'TEXTAREA'
+        || tagName === 'SELECT';
+    };
+
     const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.code === 'Space' || event.key === ' ') && !event.repeat) {
+        if (isEditableTarget(event.target)) return;
+        event.preventDefault();
+
+        if (timeTravelControls.mode === 'paused') {
+          timeTravelControls.jumpToLive();
+          const liveNewest = inspector.getStats().newestTickId;
+          if (liveNewest !== undefined) {
+            onTickChange?.(liveNewest);
+          }
+          return;
+        }
+
+        timeTravelControls.pause();
+        const liveNewest = inspector.getStats().newestTickId;
+        if (liveNewest !== undefined) {
+          onTickChange?.(liveNewest);
+        }
+        return;
+      }
+
       if (event.key !== 'Escape') return;
       if (timeTravelControls.mode !== 'paused') return;
       timeTravelControls.jumpToLive();
@@ -218,7 +262,7 @@ export function BehaviourTreeDebugger({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [timeTravelControls, onTickChange]);
+  }, [timeTravelControls, inspector, onTickChange]);
 
   const handleToggleTheme = useCallback(() => {
     const nextMode: ThemeMode = themeMode === 'dark' ? 'light' : 'dark';
@@ -286,6 +330,7 @@ export function BehaviourTreeDebugger({
         toolbar={
           showToolbar ? (
             <ToolbarPanel
+              showSidebar={showSidebar}
               actions={toolbarActions}
               showThemeToggle={showThemeToggle}
               themeMode={themeMode}

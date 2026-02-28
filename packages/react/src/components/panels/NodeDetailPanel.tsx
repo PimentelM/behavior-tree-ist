@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import type { NodeDetailsData } from '../../types';
 import type { RefChangeEvent } from '@behavior-tree-ist/core';
 import { NodeHeader } from './NodeHeader';
@@ -25,6 +25,11 @@ function NodeDetailPanelInner({
   onFocusActorNode,
 }: NodeDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'refs'>('details');
+
+  useEffect(() => {
+    if (!details) return;
+    setActiveTab('details');
+  }, [details?.nodeId]);
 
   if (!details && !showRefTraces) {
     return (
