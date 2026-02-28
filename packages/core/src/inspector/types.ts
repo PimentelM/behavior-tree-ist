@@ -24,6 +24,9 @@ export interface NodeProfilingData {
     minSelfCpuTime: number;
     maxSelfCpuTime: number;
     lastSelfCpuTime: number;
+    selfCpuP50: number;
+    selfCpuP95: number;
+    selfCpuP99: number;
     cpuP50: number;
     cpuP95: number;
     cpuP99: number;

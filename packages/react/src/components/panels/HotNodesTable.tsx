@@ -10,6 +10,7 @@ type SortKey =
   | 'avgCpu'
   | 'avgSelf'
   | 'cpuP95'
+  | 'selfCpuP95'
   | 'tickCount'
   | 'totalPct'
   | 'totalSelfPct';
@@ -75,6 +76,8 @@ function HotNodesTableInner({
           return b.avgSelf - a.avgSelf;
         case 'cpuP95':
           return b.node.cpuP95 - a.node.cpuP95;
+        case 'selfCpuP95':
+          return b.node.selfCpuP95 - a.node.selfCpuP95;
         case 'tickCount':
           return b.node.tickCount - a.node.tickCount;
         case 'totalPct':
@@ -165,6 +168,15 @@ function HotNodesTableInner({
             </th>
             <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
               <button
+                className={`bt-hot-nodes__sort ${sortKey === 'selfCpuP95' ? 'bt-hot-nodes__sort--active' : ''}`}
+                onClick={() => setSort('selfCpuP95')}
+                type="button"
+              >
+                P95 Self{sortKey === 'selfCpuP95' ? sortArrow : ''}
+              </button>
+            </th>
+            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
+              <button
                 className={`bt-hot-nodes__sort ${sortKey === 'tickCount' ? 'bt-hot-nodes__sort--active' : ''}`}
                 onClick={() => setSort('tickCount')}
                 type="button"
@@ -193,6 +205,7 @@ function HotNodesTableInner({
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgCpu)}</td>
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgSelf)}</td>
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.cpuP95)}</td>
+                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.selfCpuP95)}</td>
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{node.tickCount}</td>
               </tr>
             );

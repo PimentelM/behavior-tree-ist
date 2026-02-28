@@ -53,6 +53,9 @@ function makeProfilingData(overrides: Partial<NodeProfilingData> = {}): NodeProf
     minSelfCpuTime: 0.5,
     maxSelfCpuTime: 2,
     lastSelfCpuTime: 1,
+    selfCpuP50: 1,
+    selfCpuP95: 2,
+    selfCpuP99: 2,
     cpuP50: 2,
     cpuP95: 4,
     cpuP99: 4,
@@ -186,7 +189,7 @@ describe('NodeDetailPanel', () => {
     expect(screen.getByText('Profiling')).toBeTruthy();
     expect(screen.getByText('CPU Time')).toBeTruthy();
     expect(screen.getByText('Self CPU Time')).toBeTruthy();
-    expect(screen.getByText('p95')).toBeTruthy();
+    expect(screen.getAllByText('p95').length).toBeGreaterThan(0);
     expect(screen.getByText('Ticks')).toBeTruthy();
 
     // Re-render without profiling data — section should disappear
@@ -274,6 +277,7 @@ describe('PerformanceView', () => {
     expect(screen.getByText('Total Self %')).toBeTruthy();
     expect(screen.getByText('Avg Self')).toBeTruthy();
     expect(screen.getByText('P95 CPU')).toBeTruthy();
+    expect(screen.getByText('P95 Self')).toBeTruthy();
     expect(screen.getByText('Tick')).toBeTruthy();
     expect(screen.getByText('Window')).toBeTruthy();
     expect(screen.getByText('Span: 320ms')).toBeTruthy();
@@ -313,12 +317,14 @@ describe('PerformanceView', () => {
         nodeId: 1,
         totalCpuTime: 100,
         totalSelfCpuTime: 50,
+        selfCpuP95: 1,
         tickCount: 50,
       }),
       makeProfilingData({
         nodeId: 2,
         totalCpuTime: 90,
         totalSelfCpuTime: 20,
+        selfCpuP95: 8,
         tickCount: 2,
       }),
     ];
@@ -341,6 +347,9 @@ describe('PerformanceView', () => {
     expect(getFirstRowText()).toContain('Node 1');
 
     fireEvent.click(within(container).getByRole('button', { name: 'Avg Self' }));
+    expect(getFirstRowText()).toContain('Node 2');
+
+    fireEvent.click(within(container).getByRole('button', { name: 'P95 Self' }));
     expect(getFirstRowText()).toContain('Node 2');
   });
 });

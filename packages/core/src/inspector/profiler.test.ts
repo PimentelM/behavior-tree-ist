@@ -133,6 +133,26 @@ describe("Profiler", () => {
         expect(node.cpuP50).toBe(3);
         expect(node.cpuP95).toBe(100);
         expect(node.cpuP99).toBe(100);
+        expect(node.selfCpuP50).toBe(3);
+        expect(node.selfCpuP95).toBe(100);
+        expect(node.selfCpuP99).toBe(100);
+    });
+
+    it("computes self cpu percentiles independently from cpu percentiles", () => {
+        const profiler = new Profiler();
+        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 99 }]));
+        profiler.ingestTick(makeEvents(2, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 98 }]));
+        profiler.ingestTick(makeEvents(3, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 97 }]));
+        profiler.ingestTick(makeEvents(4, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 96 }]));
+        profiler.ingestTick(makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 95 }]));
+
+        const root = profiler.getNodeData(1)!;
+        expect(root.cpuP50).toBe(100);
+        expect(root.cpuP95).toBe(100);
+        expect(root.cpuP99).toBe(100);
+        expect(root.selfCpuP50).toBe(3);
+        expect(root.selfCpuP95).toBe(5);
+        expect(root.selfCpuP99).toBe(5);
     });
 
     it("updates cpu and self min/max exactly after eviction", () => {

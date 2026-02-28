@@ -73,6 +73,18 @@ function NodeProfilingDisplayInner({ profilingData }: NodeProfilingDisplayProps)
               <span className="bt-profiling__metric-label">total</span>
               <span className="bt-profiling__metric-value">{formatMs(profilingData.totalSelfCpuTime)}</span>
             </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">p50</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.selfCpuP50)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">p95</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.selfCpuP95)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">p99</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.selfCpuP99)}</span>
+            </span>
           </div>
         </div>
 
