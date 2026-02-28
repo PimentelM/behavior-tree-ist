@@ -57,7 +57,8 @@ export function useNodeDetails(
       }
     }
 
-    const profilingData = inspector.getNodeProfilingData(selectedNodeId);
+    const rawProfiling = inspector.getNodeProfilingData(selectedNodeId);
+    const profilingData = rawProfiling ? { ...rawProfiling } : undefined;
 
     return {
       nodeId: selectedNodeId,
