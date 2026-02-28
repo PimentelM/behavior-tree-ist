@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BTNode, NodeFlags, NodeResult } from "../../base";
 import { createTickContext, StubAction } from "../../test-helpers";
 import { SubTree } from "./sub-tree";
+import { Inverter } from "./inverter";
 
 describe("SubTree Decorator", () => {
     it("ticks the child node and returns its result", () => {
@@ -41,5 +42,32 @@ describe("SubTree Decorator", () => {
             id: "combat-root",
             namespace: "combat",
         });
+    });
+
+    it("forwards .decorate calls to the child node and keeps SubTree in place", () => {
+        const action = new StubAction(NodeResult.Succeeded);
+        const subTree = new SubTree(action);
+
+        // When applying a decorator to a SubTree
+        const decorated = subTree.decorate([Inverter]);
+
+        // Then it should return the same subTree instance
+        expect(decorated).toBe(subTree);
+
+        // And the child of the subTree should now be an Inverter
+        expect(subTree.child).toBeInstanceOf(Inverter);
+        expect((subTree.child as any).child).toBe(action);
+
+        // Verify the behavior is correctly applied (child should now return Failed)
+        const result = BTNode.Tick(subTree, {
+            tickId: 1,
+            now: Date.now(),
+            events: [],
+            refEvents: [],
+            isTracingEnabled: false,
+            trace: () => { }
+        } as any);
+
+        expect(result).toBe(NodeResult.Failed);
     });
 });

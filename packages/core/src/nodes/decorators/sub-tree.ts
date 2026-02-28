@@ -1,5 +1,5 @@
-import { BTNode, TickContext } from "../../base/node";
-import { Decorator } from "../../base/decorator";
+import { AnyDecoratorSpec, BTNode, TickContext, ValidateDecoratorSpecs } from "../../base/node";
+import { decorate, Decorator } from "../../base/decorator";
 import { NodeFlags, NodeResult, SerializableState } from "../../base/types";
 
 export type SubTreeMetadata = {
@@ -28,5 +28,14 @@ export class SubTree extends Decorator {
 
     protected override onTick(ctx: TickContext): NodeResult {
         return BTNode.Tick(this.child, ctx);
+    }
+
+    // Forward decorations to the child
+    public override decorate<const Specs extends readonly AnyDecoratorSpec[]>(...specs: Specs & ValidateDecoratorSpecs<Specs>): BTNode {
+        this.child.detachFromParent();
+        const decoratedChild = this.child.decorate(...specs);
+        this.child = decoratedChild;
+        this.child.attachToParent(this);
+        return this;
     }
 }
