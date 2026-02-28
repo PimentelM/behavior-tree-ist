@@ -24,14 +24,14 @@ export class Ref<T> implements ReadonlyRef<T> {
         this.set(newValue);
     }
 
-    set(newValue: T, ctx?: TickContext): void {
+    set(newValue: T, ctx?: TickContext, mutationNodeId?: number): void {
         if (this._value === newValue) return;
         this._value = newValue;
 
         const effectiveCtx = ctx ?? AmbientContext.getTickContext();
         if (!effectiveCtx || !effectiveCtx.isTracingEnabled || this.name === undefined) return;
 
-        const nodeId = AmbientContext.getCurrentMutationNodeId();
+        const nodeId = mutationNodeId ?? AmbientContext.getCurrentMutationNodeId();
         const event: RefChangeEvent = {
             tickId: effectiveCtx.tickId,
             timestamp: effectiveCtx.now,

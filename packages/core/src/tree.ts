@@ -100,6 +100,7 @@ export class BehaviourTree {
                 refEvent.tickId = tickId; // Attribute to this tick
                 refEvent.isAsync = true;
                 refEvent.timestamp = now;
+                refEvent.nodeId = refEvent.nodeId ?? this.root.id;
                 refEvents.push(refEvent);
             }
             this.runtime.pendingRefEvents = [];

@@ -1183,8 +1183,8 @@
   font-size: 9px;
   padding: 1px 5px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--bt-color-running) 40%, var(--bt-border-color));
-  color: var(--bt-color-running);
+  border: 1px solid color-mix(in srgb, #2563eb 58%, var(--bt-border-color));
+  color: color-mix(in srgb, #93c5fd 72%, var(--bt-text-primary));
 }
 
 .bt-ref-traces__value {
