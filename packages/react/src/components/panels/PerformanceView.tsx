@@ -33,16 +33,20 @@ function PerformanceViewInner({
   return (
     <div className="bt-perf-view">
       <div className="bt-perf-view__flamegraph">
-        <div className="bt-perf-view__panel-header">
-          <span className="bt-perf-view__scope-badge bt-perf-view__scope-badge--tick">Tick</span>
-          <span className="bt-perf-view__panel-title">Flamegraph</span>
-          <span className="bt-perf-view__panel-meta-item">#{viewedTickId ?? '-'}</span>
-          {tickTotal > 0 && (
-            <span className="bt-perf-view__panel-meta-item">CPU: {formatMs(tickTotal)}</span>
-          )}
-          {nodeCount > 0 && (
-            <span className="bt-perf-view__panel-meta-item">Nodes: {nodeCount}</span>
-          )}
+        <div className="bt-perf-view__header-bar">
+          <div className="bt-perf-view__header-left">
+            <span className="bt-perf-view__scope-badge bt-perf-view__scope-badge--tick">Tick</span>
+            <span className="bt-perf-view__panel-title">Flamegraph</span>
+            <div className="bt-perf-view__meta">
+              <span className="bt-perf-view__panel-meta-item">Tick #{viewedTickId ?? '-'}</span>
+              {tickTotal > 0 && (
+                <span className="bt-perf-view__panel-meta-item">CPU: {formatMs(tickTotal)}</span>
+              )}
+              {nodeCount > 0 && (
+                <span className="bt-perf-view__panel-meta-item">Nodes: {nodeCount}</span>
+              )}
+            </div>
+          </div>
         </div>
         <FlameGraph
           frames={frames}

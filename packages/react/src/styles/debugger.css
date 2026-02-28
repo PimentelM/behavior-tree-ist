@@ -1624,6 +1624,32 @@
   white-space: nowrap;
 }
 
+.bt-perf-view__header-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.bt-perf-view__header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bt-perf-view__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .bt-perf-view__flamegraph {
   flex: 0 0 clamp(200px, 46%, 380px);
   min-height: 0;
