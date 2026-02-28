@@ -1260,7 +1260,7 @@
   gap: 4px;
 }
 
-.bt-ref-traces__control > span {
+.bt-ref-traces__control>span {
   font-size: 10px;
   color: var(--bt-text-muted);
   text-transform: uppercase;
@@ -1816,6 +1816,8 @@
 }
 
 .bt-hot-nodes__table-wrap {
+  position: relative;
+  isolation: isolate;
   border: 1px solid var(--bt-border-color);
   border-radius: 6px;
   overflow: auto;
@@ -1844,8 +1846,9 @@
   text-align: left;
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 3;
   background: color-mix(in srgb, var(--bt-bg-secondary) 92%, transparent);
+  /* box-shadow: inset 0 -1px 0 var(--bt-border-color); */
 }
 
 .bt-hot-nodes__header .bt-hot-nodes__cell--num {
@@ -1937,7 +1940,7 @@
 
 .bt-hot-nodes__pct-value {
   position: relative;
-  z-index: 1;
+  z-index: 0;
 }
 
 .bt-hot-nodes__empty {
