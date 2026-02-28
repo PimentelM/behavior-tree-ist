@@ -8,6 +8,7 @@ import type {
 import type {
   TreeInspector,
   TreeInspectorOptions,
+  NodeProfilingData,
 } from '@behavior-tree-ist/core/inspector';
 
 export interface PanelConfig {
@@ -142,4 +143,5 @@ export interface NodeDetailsData {
   currentResult: NodeResult | null;
   currentDisplayState: Record<string, unknown> | undefined;
   currentDisplayStateIsStale: boolean;
+  profilingData: NodeProfilingData | undefined;
 }

@@ -240,7 +240,7 @@ const createSampleTree = () => {
                 onReset: () => supressedLog("Re-initializing heartbeat...")
             })
         ])
-    ).enableTrace();
+    ).enableTrace().enableProfiling(() => Date.now());
 };
 
 const TICK_RATE = 20;

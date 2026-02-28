@@ -57,6 +57,8 @@ export function useNodeDetails(
       }
     }
 
+    const profilingData = inspector.getNodeProfilingData(selectedNodeId);
+
     return {
       nodeId: selectedNodeId,
       name: indexed.name,
@@ -74,6 +76,7 @@ export function useNodeDetails(
       currentResult,
       currentDisplayState,
       currentDisplayStateIsStale,
+      profilingData,
     };
   }, [inspector, selectedNodeId, viewedTickId, tickGeneration]);
 }

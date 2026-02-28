@@ -5,6 +5,7 @@ import { NodeResult } from "./types";
 import { Action } from "./action";
 import { createTickContext } from "../test-helpers";
 import { Sequence } from "../nodes/composite/sequence";
+import { AmbientContext } from "./ambient-context";
 
 describe("Ref", () => {
     describe("basics", () => {
@@ -286,7 +287,7 @@ describe("Ref", () => {
 
             expect(ctx2.refEvents).toHaveLength(1);
             expect(ctx2.refEvents[0].newValue).toBe(42);
-            expect(BTNode.currentTickContext).toBeUndefined();
+            expect(AmbientContext.getTickContext()).toBeUndefined();
         });
     });
 

@@ -4,6 +4,7 @@ import type { RefChangeEvent } from '@behavior-tree-ist/core';
 import { NodeHeader } from './NodeHeader';
 import { NodeResultSummary } from './NodeResultSummary';
 import { NodeStateDisplay } from './NodeStateDisplay';
+import { NodeProfilingDisplay } from './NodeProfilingDisplay';
 import { NodeHistory } from './NodeHistory';
 import { RefTracesPanel } from './RefTracesPanel';
 
@@ -75,6 +76,9 @@ function NodeDetailPanelInner({
             <>
               <NodeHeader details={details} />
               <NodeResultSummary resultSummary={details.resultSummary} />
+              {details.profilingData && (
+                <NodeProfilingDisplay profilingData={details.profilingData} />
+              )}
               {details.currentDisplayState && (
                 <NodeStateDisplay
                   nodeFlags={details.flags}
