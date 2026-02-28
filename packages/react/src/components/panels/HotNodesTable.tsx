@@ -6,6 +6,7 @@ const DEFAULT_VISIBLE = 20;
 
 interface HotNodesTableProps {
   hotNodes: NodeProfilingData[];
+  rootTotalCpuTime: number;
   onSelectNode: (nodeId: number) => void;
   selectedNodeId: number | null;
   treeIndex: TreeIndex | null;
@@ -13,6 +14,7 @@ interface HotNodesTableProps {
 
 function HotNodesTableInner({
   hotNodes,
+  rootTotalCpuTime,
   onSelectNode,
   selectedNodeId,
   treeIndex,
@@ -25,7 +27,6 @@ function HotNodesTableInner({
 
   if (hotNodes.length === 0) return null;
 
-  const grandTotal = hotNodes.reduce((sum, n) => sum + n.totalCpuTime, 0);
   const visible = showAll ? hotNodes : hotNodes.slice(0, DEFAULT_VISIBLE);
   const hasMore = hotNodes.length > DEFAULT_VISIBLE;
 
@@ -47,7 +48,7 @@ function HotNodesTableInner({
             const indexed = treeIndex?.getById(node.nodeId);
             const name = indexed?.name || indexed?.defaultName || `Node ${node.nodeId}`;
             const avg = node.tickCount > 0 ? node.totalCpuTime / node.tickCount : 0;
-            const pct = grandTotal > 0 ? (node.totalCpuTime / grandTotal) * 100 : 0;
+            const pct = rootTotalCpuTime > 0 ? (node.totalCpuTime / rootTotalCpuTime) * 100 : 0;
             const isSelected = node.nodeId === selectedNodeId;
 
             return (

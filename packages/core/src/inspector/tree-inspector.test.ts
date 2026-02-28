@@ -234,6 +234,57 @@ describe("TreeInspector", () => {
         expect(stats.totalTickCount).toBe(5);
         expect(stats.oldestTickId).toBe(3);
         expect(stats.newestTickId).toBe(5);
+        expect(stats.totalRootCpuTime).toBe(30);
+        expect(stats.profilingWindowStart).toBe(0);
+        expect(stats.profilingWindowEnd).toBe(10);
+        expect(stats.profilingWindowSpan).toBe(10);
+    });
+
+    it("tracks root cpu totals and subtracts evicted contributions", () => {
+        const inspector = new TreeInspector({ maxTicks: 2 });
+        inspector.indexTree(makeTree());
+
+        inspector.ingestTick(makeTickRecord(1, [
+            { nodeId: 1, start: 0, end: 50 },
+            { nodeId: 2, start: 10, end: 30 },
+        ]));
+        inspector.ingestTick(makeTickRecord(2, [
+            { nodeId: 1, start: 0, end: 80 },
+            { nodeId: 4, start: 10, end: 20 },
+        ]));
+        expect(inspector.getStats().totalRootCpuTime).toBe(130);
+
+        inspector.ingestTick(makeTickRecord(3, [
+            { nodeId: 1, start: 0, end: 20 },
+            { nodeId: 2, start: 5, end: 10 },
+        ]));
+
+        // Tick 1 was evicted, so root total should be tick2 + tick3
+        expect(inspector.getStats().totalRootCpuTime).toBe(100);
+    });
+
+    it("profiling window uses timestamp fallback when oldest/newest ticks have no timings", () => {
+        const inspector = new TreeInspector({ maxTicks: 3 });
+        inspector.indexTree(makeTree());
+
+        inspector.ingestTick({
+            tickId: 1,
+            timestamp: 1000,
+            refEvents: [],
+            events: [{ tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Succeeded }],
+        });
+        inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 10, end: 20 }]));
+        inspector.ingestTick({
+            tickId: 3,
+            timestamp: 1800,
+            refEvents: [],
+            events: [{ tickId: 3, nodeId: 1, timestamp: 1800, result: NodeResult.Succeeded }],
+        });
+
+        const stats = inspector.getStats();
+        expect(stats.profilingWindowStart).toBe(1000);
+        expect(stats.profilingWindowEnd).toBe(1800);
+        expect(stats.profilingWindowSpan).toBe(800);
     });
 
     it("clearTicks preserves tree index", () => {

@@ -79,6 +79,64 @@ describe("TickStore", () => {
         expect(store.newestTickId).toBe(20);
     });
 
+    it("computes profiling window bounds from oldest/newest stored ticks", () => {
+        const store = new TickStore(3);
+
+        store.push({
+            tickId: 1,
+            timestamp: 1000,
+            refEvents: [],
+            events: [
+                { tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Succeeded, startedAt: 110, finishedAt: 140 },
+                { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Succeeded, startedAt: 90, finishedAt: 120 },
+            ],
+        });
+        store.push({
+            tickId: 2,
+            timestamp: 2000,
+            refEvents: [],
+            events: [
+                { tickId: 2, nodeId: 1, timestamp: 2000, result: NodeResult.Succeeded, startedAt: 200, finishedAt: 230 },
+            ],
+        });
+        store.push({
+            tickId: 3,
+            timestamp: 3000,
+            refEvents: [],
+            events: [
+                { tickId: 3, nodeId: 1, timestamp: 3000, result: NodeResult.Succeeded, startedAt: 310, finishedAt: 340 },
+                { tickId: 3, nodeId: 2, timestamp: 3000, result: NodeResult.Succeeded, startedAt: 320, finishedAt: 380 },
+            ],
+        });
+
+        const bounds = store.getProfilingWindowBounds();
+        expect(bounds.start).toBe(90);
+        expect(bounds.end).toBe(380);
+        expect(bounds.span).toBe(290);
+    });
+
+    it("falls back to record timestamps when profiling timings are unavailable", () => {
+        const store = new TickStore(3);
+
+        store.push({
+            tickId: 10,
+            timestamp: 1000,
+            refEvents: [],
+            events: [{ tickId: 10, nodeId: 1, timestamp: 1000, result: NodeResult.Succeeded }],
+        });
+        store.push({
+            tickId: 11,
+            timestamp: 1800,
+            refEvents: [],
+            events: [{ tickId: 11, nodeId: 1, timestamp: 1800, result: NodeResult.Succeeded }],
+        });
+
+        const bounds = store.getProfilingWindowBounds();
+        expect(bounds.start).toBe(1000);
+        expect(bounds.end).toBe(1800);
+        expect(bounds.span).toBe(800);
+    });
+
     it("getSnapshotAtTick reconstructs per-node state", () => {
         const store = new TickStore(100);
         const events: TickTraceEvent[] = [

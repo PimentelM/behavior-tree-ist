@@ -127,6 +127,47 @@ export class TickStore {
         return this.buffer.peekLast()?.tickId;
     }
 
+    get oldestRecord(): TickRecord | undefined {
+        return this.buffer.peekFirst();
+    }
+
+    get newestRecord(): TickRecord | undefined {
+        return this.buffer.peekLast();
+    }
+
+    getProfilingWindowBounds(): {
+        start: number | undefined;
+        end: number | undefined;
+        span: number;
+    } {
+        const oldest = this.oldestRecord;
+        const newest = this.newestRecord;
+
+        if (!oldest || !newest) {
+            return { start: undefined, end: undefined, span: 0 };
+        }
+
+        const startCandidates = oldest.events
+            .map((event) => event.startedAt)
+            .filter((value): value is number => value !== undefined);
+        const endCandidates = newest.events
+            .map((event) => event.finishedAt)
+            .filter((value): value is number => value !== undefined);
+
+        const start = startCandidates.length > 0
+            ? Math.min(...startCandidates)
+            : oldest.timestamp;
+        const end = endCandidates.length > 0
+            ? Math.max(...endCandidates)
+            : newest.timestamp;
+
+        return {
+            start,
+            end,
+            span: Math.max(0, end - start),
+        };
+    }
+
     get size(): number {
         return this.buffer.size;
     }

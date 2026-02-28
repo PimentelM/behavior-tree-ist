@@ -391,6 +391,7 @@ export function BehaviourTreeDebugger({
             <PerformanceView
               frames={performanceData.frames}
               hotNodes={performanceData.hotNodes}
+              stats={performanceData.stats}
               onSelectNode={handleNodeClick}
               selectedNodeId={selectedNodeId}
               treeIndex={activeInspector.tree ?? null}

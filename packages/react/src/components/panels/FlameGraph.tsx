@@ -128,7 +128,7 @@ function FlameGraphInner({ frames, onSelectNode, selectedNodeId }: FlameGraphPro
   }, []);
 
   const totalWidth = 800;
-  const tickTotal = frames.length > 0 ? frames[0]!.inclusiveTime : 0;
+  const tickTotal = frames.reduce((sum, frame) => sum + frame.inclusiveTime, 0);
 
   const maxDepth = useMemo(() => getMaxDepth(frames), [frames]);
   const svgHeight = PADDING_TOP + PADDING_BOTTOM + (maxDepth + 1) * ROW_HEIGHT;

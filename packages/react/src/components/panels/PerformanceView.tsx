@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { FlameGraphFrame, NodeProfilingData, TreeIndex } from '@behavior-tree-ist/core/inspector';
+import type { FlameGraphFrame, NodeProfilingData, TreeIndex, TreeStats } from '@behavior-tree-ist/core/inspector';
 import { FlameGraph, countFrames } from './FlameGraph';
 import { HotNodesTable } from './HotNodesTable';
 import { formatMs } from '../../utils/format';
@@ -7,6 +7,7 @@ import { formatMs } from '../../utils/format';
 interface PerformanceViewProps {
   frames: FlameGraphFrame[];
   hotNodes: NodeProfilingData[];
+  stats: TreeStats;
   onSelectNode: (nodeId: number) => void;
   selectedNodeId: number | null;
   treeIndex: TreeIndex | null;
@@ -16,12 +17,13 @@ interface PerformanceViewProps {
 function PerformanceViewInner({
   frames,
   hotNodes,
+  stats,
   onSelectNode,
   selectedNodeId,
   treeIndex,
   viewedTickId,
 }: PerformanceViewProps) {
-  const tickTotal = frames.length > 0 ? frames[0]!.inclusiveTime : 0;
+  const tickTotal = frames.reduce((sum, frame) => sum + frame.inclusiveTime, 0);
   const nodeCount = countFrames(frames);
 
   return (
@@ -33,6 +35,11 @@ function PerformanceViewInner({
         {tickTotal > 0 && (
           <span className="bt-perf-view__summary-item">
             Total: {formatMs(tickTotal)}
+          </span>
+        )}
+        {stats.storedTickCount > 0 && (
+          <span className="bt-perf-view__summary-item">
+            Window: {formatMs(stats.profilingWindowSpan)}
           </span>
         )}
         {nodeCount > 0 && (
@@ -51,6 +58,7 @@ function PerformanceViewInner({
       <div className="bt-perf-view__hot-nodes">
         <HotNodesTable
           hotNodes={hotNodes}
+          rootTotalCpuTime={stats.totalRootCpuTime}
           onSelectNode={onSelectNode}
           selectedNodeId={selectedNodeId}
           treeIndex={treeIndex ?? null}

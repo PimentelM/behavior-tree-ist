@@ -66,7 +66,11 @@ export interface TreeStats {
     storedTickCount: number;
     totalTickCount: number;
     totalProfilingCpuTime: number;
+    totalRootCpuTime: number;
     totalProfilingRunningTime: number;
     oldestTickId: number | undefined;
     newestTickId: number | undefined;
+    profilingWindowStart: number | undefined;
+    profilingWindowEnd: number | undefined;
+    profilingWindowSpan: number;
 }

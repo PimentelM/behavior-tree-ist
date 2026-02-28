@@ -16,6 +16,8 @@ export class TreeInspector {
     private readonly store: TickStore;
     private readonly profiler: Profiler;
     private totalTickCount = 0;
+    private totalRootCpuTime = 0;
+    private readonly rootCpuByTick = new Map<number, number>();
 
     constructor(options: TreeInspectorOptions = {}) {
         const maxTicks = options.maxTicks ?? 1000;
@@ -48,8 +50,14 @@ export class TreeInspector {
         const evicted = this.store.push(record);
         if (evicted) {
             this.profiler.removeTick(evicted.events);
+            const evictedRootCpu = this.rootCpuByTick.get(evicted.tickId) ?? 0;
+            this.totalRootCpuTime -= evictedRootCpu;
+            this.rootCpuByTick.delete(evicted.tickId);
         }
 
+        const rootCpuTime = this.getRootCpuTime(record);
+        this.rootCpuByTick.set(record.tickId, rootCpuTime);
+        this.totalRootCpuTime += rootCpuTime;
         this.profiler.ingestTick(record.events);
     }
 
@@ -116,14 +124,20 @@ export class TreeInspector {
     // --- Statistics ---
 
     getStats(): TreeStats {
+        const profilingWindow = this.store.getProfilingWindowBounds();
+
         return {
             nodeCount: this._tree?.size ?? 0,
             storedTickCount: this.store.size,
             totalTickCount: this.totalTickCount,
             totalProfilingCpuTime: this.profiler.totalCpuTime,
+            totalRootCpuTime: this.totalRootCpuTime,
             totalProfilingRunningTime: this.profiler.totalRunningTime,
             oldestTickId: this.store.oldestTickId,
             newestTickId: this.store.newestTickId,
+            profilingWindowStart: profilingWindow.start,
+            profilingWindowEnd: profilingWindow.end,
+            profilingWindowSpan: profilingWindow.span,
         };
     }
 
@@ -133,10 +147,26 @@ export class TreeInspector {
         this.store.clear();
         this.profiler.clear();
         this.totalTickCount = 0;
+        this.totalRootCpuTime = 0;
+        this.rootCpuByTick.clear();
     }
 
     reset(): void {
         this.clearTicks();
         this._tree = undefined;
+    }
+
+    private getRootCpuTime(record: TickRecord): number {
+        const rootId = this._tree?.preOrder[0];
+        if (rootId === undefined) return 0;
+
+        let total = 0;
+        for (const event of record.events) {
+            if (event.nodeId !== rootId) continue;
+            if (event.startedAt === undefined || event.finishedAt === undefined) continue;
+            total += event.finishedAt - event.startedAt;
+        }
+
+        return total;
     }
 }

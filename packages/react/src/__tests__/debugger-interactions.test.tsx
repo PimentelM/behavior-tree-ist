@@ -3,9 +3,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { NodeResult, NodeFlags } from '@behavior-tree-ist/core';
 import type { RefChangeEvent } from '@behavior-tree-ist/core';
 import type { NodeDetailsData } from '../types';
-import type { NodeProfilingData } from '@behavior-tree-ist/core/inspector';
+import type { FlameGraphFrame, NodeProfilingData, TreeStats } from '@behavior-tree-ist/core/inspector';
 import { NodeDetailPanel } from '../components/panels/NodeDetailPanel';
 import { RefTracesPanel } from '../components/panels/RefTracesPanel';
+import { PerformanceView } from '../components/panels/PerformanceView';
 
 function makeDetails(overrides: Partial<NodeDetailsData> = {}): NodeDetailsData {
   return {
@@ -53,6 +54,37 @@ function makeProfilingData(overrides: Partial<NodeProfilingData> = {}): NodeProf
     minRunningTime: Infinity,
     maxRunningTime: 0,
     lastRunningTime: 0,
+    ...overrides,
+  };
+}
+
+function makeStats(overrides: Partial<TreeStats> = {}): TreeStats {
+  return {
+    nodeCount: 3,
+    storedTickCount: 1,
+    totalTickCount: 1,
+    totalProfilingCpuTime: 175,
+    totalRootCpuTime: 100,
+    totalProfilingRunningTime: 0,
+    oldestTickId: 1,
+    newestTickId: 1,
+    profilingWindowStart: 0,
+    profilingWindowEnd: 100,
+    profilingWindowSpan: 100,
+    ...overrides,
+  };
+}
+
+function makeFrame(overrides: Partial<FlameGraphFrame> = {}): FlameGraphFrame {
+  return {
+    nodeId: 1,
+    name: 'Root',
+    depth: 0,
+    inclusiveTime: 10,
+    selfTime: 5,
+    startedAt: 0,
+    finishedAt: 10,
+    children: [],
     ...overrides,
   };
 }
@@ -203,5 +235,58 @@ describe('RefTracesPanel', () => {
 
     expect(onGoToTick).toHaveBeenCalledWith(5);
     expect(onFocusActorNode).toHaveBeenCalledWith(42);
+  });
+});
+
+describe('PerformanceView', () => {
+  it('uses root total cpu as hot-node percent denominator and shows profiling window span', () => {
+    const hotNodes: NodeProfilingData[] = [
+      makeProfilingData({ nodeId: 1, totalCpuTime: 100, tickCount: 1 }),
+      makeProfilingData({ nodeId: 2, totalCpuTime: 25, tickCount: 1 }),
+    ];
+
+    render(
+      <PerformanceView
+        frames={[makeFrame({ nodeId: 1, inclusiveTime: 100, finishedAt: 100 })]}
+        hotNodes={hotNodes}
+        stats={makeStats({ totalRootCpuTime: 100, profilingWindowSpan: 320 })}
+        onSelectNode={vi.fn()}
+        selectedNodeId={null}
+        treeIndex={null}
+        viewedTickId={1}
+      />,
+    );
+
+    expect(screen.getByText('100.0%')).toBeTruthy();
+    expect(screen.getByText('25.0%')).toBeTruthy();
+    expect(screen.getByText('Window: 320ms')).toBeTruthy();
+  });
+
+  it('computes tick total from all root frames and uses it in flamegraph tooltip percent', () => {
+    const onSelectNode = vi.fn();
+    const frames: FlameGraphFrame[] = [
+      makeFrame({ nodeId: 1, name: 'RootA', inclusiveTime: 10, finishedAt: 10 }),
+      makeFrame({ nodeId: 2, name: 'RootB', inclusiveTime: 20, finishedAt: 20 }),
+    ];
+
+    const { container } = render(
+      <PerformanceView
+        frames={frames}
+        hotNodes={[]}
+        stats={makeStats()}
+        onSelectNode={onSelectNode}
+        selectedNodeId={null}
+        treeIndex={null}
+        viewedTickId={7}
+      />,
+    );
+
+    expect(screen.getByText('Total: 30.0ms')).toBeTruthy();
+
+    const firstBar = container.querySelector('.bt-flamegraph__bar');
+    expect(firstBar).toBeTruthy();
+    fireEvent.mouseMove(firstBar!, { clientX: 100, clientY: 80 });
+
+    expect(screen.getByText('33.3%')).toBeTruthy();
   });
 });
