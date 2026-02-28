@@ -187,7 +187,7 @@ const behavior = UtilityFallback.from([
 ]);
 ```
 
-On each tick, children are re-sorted by score. The highest-scored child is ticked first; if it fails, the next highest is tried, and so on. Exposes `getDisplayState()` with `{ lastScores }`.
+On each tick, children are re-sorted by score. The highest-scored child is ticked first; if it fails, the next highest is tried, and so on. Exposes `getDisplayState()` with `{ lastScores }`, where `lastScores[i]` is the score of child `i`.
 
 **Aliases**: `UtilitySelector`
 
@@ -205,6 +205,8 @@ const preparation = UtilitySequence.from('Prepare', [
   new Utility(Action.from('Brew potion', () => NodeResult.Succeeded), () => potionNeed),
 ]);
 ```
+
+Exposes `getDisplayState()` with `{ lastScores }`, where `lastScores[i]` is the score of child `i`.
 
 ## Static Factory Methods
 

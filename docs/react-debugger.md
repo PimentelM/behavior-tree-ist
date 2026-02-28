@@ -177,6 +177,7 @@ Each node shows:
 - Lifecycle decorators collapsed to an inline thunder badge (`⚡N`) with hover names and click-to-cycle selection
 - Left accent stripe colored by result: green (Succeeded), red (Failed), amber (Running), gray (Idle)
 - Display state key-value pairs when present (from `getDisplayState()`), with dimmed stale rendering and auto-sizing content
+- Utility composites keep score state internal to feed child utility decorators in the UI; parent utility composites do not render the raw `lastScores` state rows
 - Ref changes for the viewed tick directly under the node/decorator that emitted them
 
 Raw `NodeFlags` and numeric IDs are not shown in the tree canvas. Full flags remain visible in the node details panel.

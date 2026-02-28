@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
-import { NodeResult } from '@behavior-tree-ist/core';
+import { NodeResult, NodeFlags, hasFlag } from '@behavior-tree-ist/core';
 import type { RefChangeEvent } from '@behavior-tree-ist/core';
 import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
 import type { BTNodeData, BTEdgeData } from '../types';
@@ -44,9 +44,14 @@ export function useSnapshotOverlay(
     };
 
     const rememberedStateByNode = new Map<number, Record<string, unknown> | undefined>();
+    const representedNodeIdToHostNodeId = new Map<number, number>();
     const stateLookupTick = tickId ?? undefined;
 
     for (const node of baseNodes) {
+      for (const representedNodeId of node.data.representedNodeIds) {
+        representedNodeIdToHostNodeId.set(representedNodeId, node.data.nodeId);
+      }
+
       const latestState = inspectorWithStateLookup.getLastDisplayState?.(node.data.nodeId, stateLookupTick);
       rememberedStateByNode.set(
         node.data.nodeId,
@@ -58,6 +63,48 @@ export function useSnapshotOverlay(
           decorator.nodeId,
           decoratorState as Record<string, unknown> | undefined,
         );
+      }
+    }
+
+    const utilityDecoratorStateByNodeId = new Map<number, {
+      displayState: Record<string, unknown>;
+      isStale: boolean;
+    }>();
+
+    const treeIndex = inspector.tree;
+    if (treeIndex) {
+      for (const parentNode of baseNodes) {
+        if (!hasFlag(parentNode.data.nodeFlags, NodeFlags.Composite) || !hasFlag(parentNode.data.nodeFlags, NodeFlags.Utility)) {
+          continue;
+        }
+
+        const indexedParent = treeIndex.getById(parentNode.data.nodeId);
+        if (!indexedParent) continue;
+
+        const parentSnapshot = snapshot?.nodes.get(parentNode.data.nodeId);
+        const parentSnapshotState = parentSnapshot?.state as Record<string, unknown> | undefined;
+        const parentFallbackState = rememberedStateByNode.get(parentNode.data.nodeId);
+        const parentDisplayState = parentSnapshotState ?? parentFallbackState;
+        const parentStateIsStale = parentDisplayState !== undefined
+          && tickId !== null
+          && (parentSnapshot === undefined || parentSnapshotState === undefined);
+
+        const scores = getUtilityScores(parentDisplayState);
+        if (!scores) continue;
+
+        for (let childIndex = 0; childIndex < scores.length; childIndex++) {
+          const lastScore = scores[childIndex];
+          const utilityDecoratorNodeId = indexedParent.childrenIds[childIndex];
+          if (utilityDecoratorNodeId === undefined) continue;
+
+          const hostNodeId = representedNodeIdToHostNodeId.get(utilityDecoratorNodeId);
+          if (hostNodeId === undefined) continue;
+
+          utilityDecoratorStateByNodeId.set(utilityDecoratorNodeId, {
+            displayState: { lastScore },
+            isStale: parentStateIsStale,
+          });
+        }
       }
     }
 
@@ -88,10 +135,19 @@ export function useSnapshotOverlay(
         const decoratorSnapshot = snapshot?.nodes.get(decorator.nodeId);
         const decoratorSnapshotState = decoratorSnapshot?.state as Record<string, unknown> | undefined;
         const decoratorFallbackState = rememberedStateByNode.get(decorator.nodeId);
-        const decoratorDisplayState = decoratorSnapshotState ?? decoratorFallbackState;
-        const decoratorStateStale = decoratorDisplayState !== undefined
-          && tickId !== null
-          && (decoratorSnapshot === undefined || decoratorSnapshotState === undefined);
+        const syntheticUtilityState = utilityDecoratorStateByNodeId.get(decorator.nodeId);
+
+        const decoratorDisplayState = decoratorSnapshotState
+          ?? syntheticUtilityState?.displayState
+          ?? decoratorFallbackState;
+
+        const decoratorStateStale = decoratorSnapshotState !== undefined
+          ? false
+          : syntheticUtilityState
+            ? syntheticUtilityState.isStale
+            : (decoratorDisplayState !== undefined
+              && tickId !== null
+              && (decoratorSnapshot === undefined || decoratorSnapshotState === undefined));
         const decoratorRefEvents = (refEventsByNodeId.get(decorator.nodeId) ?? []).map((event) => ({
           refName: event.refName,
           newValue: event.newValue,
@@ -178,6 +234,23 @@ export function useSnapshotOverlay(
     return { nodes, edges };
     // tickGeneration is used to trigger re-computation when new ticks arrive
   }, [baseNodes, baseEdges, inspector, tickId, selectedNodeId, refEventsByNodeId, onSelectNode, tickGeneration]);
+}
+
+function getUtilityScores(
+  displayState: Record<string, unknown> | undefined,
+): number[] | undefined {
+  if (!displayState) return undefined;
+
+  const maybeScores = displayState.lastScores;
+  if (!Array.isArray(maybeScores)) return undefined;
+
+  const scores: number[] = [];
+  for (const maybeScore of maybeScores) {
+    if (typeof maybeScore !== 'number') continue;
+    scores.push(maybeScore);
+  }
+
+  return scores;
 }
 
 function hasSameBaseNodeShape(

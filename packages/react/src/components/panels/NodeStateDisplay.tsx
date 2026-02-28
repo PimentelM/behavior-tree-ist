@@ -4,15 +4,16 @@ import { getVisibleDisplayStateEntries } from '../../constants';
 interface NodeStateDisplayProps {
   nodeFlags: number;
   state: Record<string, unknown>;
+  isStale: boolean;
 }
 
-function NodeStateDisplayInner({ nodeFlags, state }: NodeStateDisplayProps) {
+function NodeStateDisplayInner({ nodeFlags, state, isStale }: NodeStateDisplayProps) {
   const entries = getVisibleDisplayStateEntries(nodeFlags, state);
   if (entries.length === 0) return null;
 
   return (
     <div className="bt-state-display">
-      <div className="bt-state-display__title">Display State</div>
+      <div className="bt-state-display__title">Display State{isStale ? ' (Stale)' : ''}</div>
       <div className="bt-state-display__entries">
         {entries.map(([key, value]) => (
           <div key={key} className="bt-state-display__entry">

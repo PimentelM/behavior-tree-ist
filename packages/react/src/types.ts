@@ -139,4 +139,5 @@ export interface NodeDetailsData {
   }>;
   currentResult: NodeResult | null;
   currentDisplayState: Record<string, unknown> | undefined;
+  currentDisplayStateIsStale: boolean;
 }

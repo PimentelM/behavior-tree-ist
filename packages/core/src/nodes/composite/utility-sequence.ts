@@ -3,10 +3,15 @@ import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 import { Utility } from "../decorators/utility";
 
+export type UtilitySequenceState = {
+    lastScores: number[];
+};
+
 export class UtilitySequence extends Composite {
     public override readonly defaultName = "UtilitySequence";
     private currentlyRunningIndex: number | undefined = undefined;
     private scoreBuffer: { index: number; score: number }[] = [];
+    private lastScores: number[] = [];
 
     constructor(name?: string) {
         super(name);
@@ -41,13 +46,19 @@ export class UtilitySequence extends Composite {
         }
         super.setNodes(nodes);
         this.scoreBuffer = nodes.map((_, i) => ({ index: i, score: 0 }));
+        this.lastScores = [];
         return this;
     }
 
     public override clearNodes(): this {
         super.clearNodes();
         this.scoreBuffer = [];
+        this.lastScores = [];
         return this;
+    }
+
+    public override getDisplayState(): UtilitySequenceState {
+        return { lastScores: this.lastScores };
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
@@ -60,6 +71,8 @@ export class UtilitySequence extends Composite {
             this.scoreBuffer[i].index = i;
             this.scoreBuffer[i].score = (this.nodes[i] as Utility).getScore(ctx);
         }
+
+        this.lastScores = this.scoreBuffer.map(({ score }) => score);
 
         // Sort descending by score, deterministic tie-break ascending by original index
         this.scoreBuffer.sort((a, b) => {

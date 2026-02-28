@@ -108,6 +108,20 @@ describe("UtilitySequence", () => {
         expect(order).toEqual([1, 2, 3]); // Tie break maintains ascending index order
     });
 
+    it("exposes the last computed scores in display state", () => {
+        const sequence = UtilitySequence.from([
+            new Utility(new StubAction(NodeResult.Succeeded), () => 10),
+            new Utility(new StubAction(NodeResult.Succeeded), () => 30),
+            new Utility(new StubAction(NodeResult.Succeeded), () => 20)
+        ]);
+
+        tickNode(sequence);
+
+        expect(sequence.getDisplayState()).toEqual({
+            lastScores: [10, 30, 20],
+        });
+    });
+
     describe("mutation protection", () => {
         it("addNode throws if child is not Utility", () => {
             const sequence = new UtilitySequence();

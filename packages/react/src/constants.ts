@@ -220,6 +220,10 @@ export function getVisibleDisplayStateEntries(
   if (!displayState) return [];
 
   const entries = Object.entries(displayState);
+  if (isUtilityComposite(nodeFlags)) {
+    return entries.filter(([key]) => key !== 'lastScores');
+  }
+
   if (isMemoryComposite(nodeFlags)) {
     return entries.filter(([key]) => key !== 'runningChildIndex');
   }
@@ -238,6 +242,10 @@ function getMemoryCompositeRunningChildIndex(
 
 function isMemoryComposite(nodeFlags: number): boolean {
   return hasFlag(nodeFlags, NodeFlags.Memory) && hasFlag(nodeFlags, NodeFlags.Composite);
+}
+
+function isUtilityComposite(nodeFlags: number): boolean {
+  return hasFlag(nodeFlags, NodeFlags.Utility) && hasFlag(nodeFlags, NodeFlags.Composite);
 }
 
 function getDisplayStateValue(displayState: Record<string, unknown> | undefined): string | undefined {

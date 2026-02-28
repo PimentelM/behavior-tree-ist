@@ -104,6 +104,20 @@ describe("UtilityFallback", () => {
         expect(order).toEqual([1, 2, 3]); // Tie break maintains ascending index order
     });
 
+    it("exposes the last computed scores in display state", () => {
+        const fallback = UtilityFallback.from([
+            new Utility(new StubAction(NodeResult.Failed), () => 15),
+            new Utility(new StubAction(NodeResult.Succeeded), () => 25),
+            new Utility(new StubAction(NodeResult.Failed), () => 5)
+        ]);
+
+        tickNode(fallback);
+
+        expect(fallback.getDisplayState()).toEqual({
+            lastScores: [15, 25, 5],
+        });
+    });
+
     describe("mutation protection", () => {
         it("addNode throws if child is not Utility", () => {
             const fallback = new UtilityFallback();

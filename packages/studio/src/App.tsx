@@ -32,17 +32,21 @@ const createSampleTree = () => {
     const hunger = ref(0, "hunger");
     const thirst = ref(0, "thirst");
 
+    const supressedLog = (msg: string) => {
+        // console.log(msg);
+    };
+
     return new BehaviourTree(
         parallel({
             name: "Comprehensive Root",
-            policy: () => NodeResult.Succeeded,
-            onTicked: (res) => console.log(`Root Ticked: ${res}`)
+            policy: () => NodeResult.Running,
+            onTicked: (res) => supressedLog(`Root Ticked: ${res}`)
         }, [
             // 1. Basic Movement & Resource Management (Sequence with Decorators)
             sequence({
                 name: "Vital Signs",
                 throttle: 1000,
-                onEnter: () => console.log("Checking vitals...")
+                onEnter: () => supressedLog("Checking vitals...")
             }, [
                 condition({ name: "Internal Clock", eval: () => randomChance(0.9) }),
                 action({
@@ -57,7 +61,7 @@ const createSampleTree = () => {
                     name: "Vitals Monitor",
                     display: () => ({ hp: hp.value, hunger: hunger.value, thirst: thirst.value }),
                     tags: ["ui", "debug"],
-                    onRunning: () => console.log("Vitals monitor is active..."),
+                    onRunning: () => supressedLog("Vitals monitor is active..."),
                     inputs: [hp, hunger, thirst],
                     outputs: [hp]
                 })
@@ -67,7 +71,7 @@ const createSampleTree = () => {
             selector({
                 name: "Combat AI",
                 precondition: { name: "Has Enemy", condition: () => randomChance(0.6) },
-                onFailure: () => console.log("No enemies found.")
+                onFailure: () => supressedLog("No enemies found.")
             }, [
                 sequenceWithMemory({
                     name: "Charged Attack",
@@ -106,7 +110,7 @@ const createSampleTree = () => {
                             enemyHp.value -= 10;
                             return randomChance(0.7) ? NodeResult.Succeeded : NodeResult.Failed;
                         },
-                        onSuccess: () => console.log("Hit!")
+                        onSuccess: () => supressedLog("Hit!")
                     })
                 ])
             ]),
@@ -142,16 +146,16 @@ const createSampleTree = () => {
             ]),
 
             // 5. Emotional Brain (Utility Framework)
-            utilityFallback({ name: "Needs" }, [
+            utilityFallback({ name: "Needs", cooldown: 1000 }, [
                 utility({
-                    scorer: () => hunger.value > 80 ? 1.0 : 0.0,
+                    scorer: () => hunger.value ** 2,
                     name: "Scorer: Hunger"
                 }, action({
                     name: "Eat Snack",
                     execute: () => { hunger.value = 0; return NodeResult.Succeeded; }
                 })),
                 utility({
-                    scorer: () => thirst.value > 80 ? 0.9 : 0.0,
+                    scorer: () => thirst.value ** 2,
                     name: "Scorer: Thirst"
                 }, action({
                     name: "Drink Water",
@@ -178,6 +182,24 @@ const createSampleTree = () => {
                 })
             ]),
 
+            // 8. Async ref changes
+            sequence({
+                name: "Etherical thirst",
+            }, [
+                condition({ name: "IsThirstTooLow", eval: () => thirst.value < 30 }),
+                asyncAction({
+                    name: "Increase thirst",
+                    onAbort: () => supressedLog("Etherical thirst Aborted!"),
+                    cooldown: 100,
+                    execute: async (ctx, signal) => {
+                        console.log("Etherical hunger");
+                        await new Promise(r => setTimeout(r, 200));
+                        hunger.value = (hunger.value + 1) * 2;
+                        return NodeResult.Succeeded;
+                    }
+                })
+            ]),
+
             sequence({
                 name: "Status Flags",
                 runningIsSuccess: true,
@@ -196,16 +218,16 @@ const createSampleTree = () => {
                     name: "Ghost Process",
                     forceFailure: true,
                     repeat: 3,
-                    onFinished: (res) => console.log(`Finished with ${res}`),
-                    onAbort: () => console.log("Aborted!")
+                    onFinished: (res) => supressedLog(`Finished with ${res}`),
+                    onAbort: () => supressedLog("Aborted!")
                 })
             ]),
 
             sequence({
                 name: "Lifecycle Hooks",
-                onResume: () => console.log("Resuming..."),
-                onSuccessOrRunning: () => console.log("Success or Running"),
-                onFailedOrRunning: () => console.log("Failed or Running"),
+                onResume: () => supressedLog("Resuming..."),
+                onSuccessOrRunning: () => supressedLog("Success or Running"),
+                onFailedOrRunning: () => supressedLog("Failed or Running"),
             }, [
                 action({
                     name: "Tickable Action",
@@ -215,7 +237,7 @@ const createSampleTree = () => {
 
             alwaysRunning({
                 name: "Heartbeat",
-                onReset: () => console.log("Re-initializing heartbeat...")
+                onReset: () => supressedLog("Re-initializing heartbeat...")
             })
         ])
     ).enableTrace();

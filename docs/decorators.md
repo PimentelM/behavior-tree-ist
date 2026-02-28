@@ -205,7 +205,7 @@ const tracked = action({
 
 ## Utility
 
-**Flags**: `Utility`, `Stateful`
+**Flags**: `Utility`
 
 Wraps a child with a scoring function for use in [UtilityFallback / UtilitySequence](composite-nodes.md#utilityfallback-utilityselector).
 
@@ -223,7 +223,7 @@ const scoredAction = new Utility(
 scoredAction.getScore(ctx);
 ```
 
-Exposes `getDisplayState()` returning `{ lastScore }`.
+`Utility` only provides scoring (`getScore(ctx)`). For debugger score visualization, see `UtilityFallback` / `UtilitySequence` display state.
 
 ## Tag
 
@@ -252,5 +252,5 @@ Tags can also be added directly: `node.addTags(['combat', 'offensive'])`.
 | Timing | Timeout, Delay, Cooldown, Throttle, RequireSustainedSuccess | `Stateful`, `TimeBased` |
 | Control Flow | Repeat, Retry, KeepRunningUntilFailure, RunOnce | `Repeating` / `Stateful` / `CountBased` (Repeat, Retry) |
 | Lifecycle | OnEnter, OnResume, OnReset, OnTicked, OnSuccess, OnFailure, OnRunning, OnFinished, OnSuccessOrRunning, OnFailedOrRunning, OnAbort | `Lifecycle` |
-| Scoring | Utility | `Utility`, `Stateful` |
+| Scoring | Utility | `Utility` |
 | Metadata | Tag | (none) |
