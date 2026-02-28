@@ -11,7 +11,22 @@ interface ToolbarPanelProps {
   onCenterTree?: () => void;
   timeTravelMode: 'live' | 'paused';
   viewedTickId: number | null;
+  viewedNow: number | null;
+  displayTimeAsTimestamp: boolean;
+  onToggleTimeFormat?: () => void;
   onToggleTimeTravel?: () => void;
+}
+
+function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
+  if (now === null) return null;
+  if (!nowIsTimestamp) return `${now}`;
+
+  const timestampMs = Math.abs(now) >= 1e12 ? now : now * 1000;
+  const date = new Date(timestampMs);
+  const hh = `${date.getHours()}`.padStart(2, '0');
+  const mm = `${date.getMinutes()}`.padStart(2, '0');
+  const ss = `${date.getSeconds()}`.padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
 }
 
 function ToolbarPanelInner({
@@ -23,8 +38,14 @@ function ToolbarPanelInner({
   onCenterTree,
   timeTravelMode,
   viewedTickId,
+  viewedNow,
+  displayTimeAsTimestamp,
+  onToggleTimeFormat,
   onToggleTimeTravel,
 }: ToolbarPanelProps) {
+  const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
+  const toggleTimeFormatLabel = displayTimeAsTimestamp ? 'Show time as number' : 'Show time as timestamp';
+
   if (showSidebar) {
     return (
       <div className="bt-toolbar bt-toolbar--split">
@@ -46,11 +67,23 @@ function ToolbarPanelInner({
           <div className="bt-toolbar__main-center">
             <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
               {timeTravelMode === 'paused'
-                ? `Time Travel · tick #${viewedTickId ?? '-'} `
-                : 'Live'}
+                ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
+                : `Live${formattedNow !== null ? ` · time ${formattedNow}` : ''}`}
             </div>
           </div>
           <div className="bt-toolbar__main-trailing">
+            <button
+              className="bt-toolbar__time-format-btn"
+              onClick={onToggleTimeFormat}
+              type="button"
+              aria-label={toggleTimeFormatLabel}
+              title={toggleTimeFormatLabel}
+            >
+              <ClockIcon />
+              <span className="bt-toolbar__time-format-mode" aria-hidden="true">
+                {displayTimeAsTimestamp ? '::' : '#'}
+              </span>
+            </button>
             {showThemeToggle && (
               <button
                 className="bt-toolbar__theme-btn"
@@ -101,11 +134,23 @@ function ToolbarPanelInner({
           <CenterIcon />
         </button>
         {actions}
+        <button
+          className="bt-toolbar__time-format-btn"
+          onClick={onToggleTimeFormat}
+          type="button"
+          aria-label={toggleTimeFormatLabel}
+          title={toggleTimeFormatLabel}
+        >
+          <ClockIcon />
+          <span className="bt-toolbar__time-format-mode" aria-hidden="true">
+            {displayTimeAsTimestamp ? '::' : '#'}
+          </span>
+        </button>
       </div>
       <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
         {timeTravelMode === 'paused'
-          ? `Time Travel · tick #${viewedTickId ?? '-'} `
-          : 'Live'}
+          ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
+          : `Live${formattedNow !== null ? ` · time ${formattedNow}` : ''}`}
       </div>
       {showThemeToggle && (
         <button
@@ -158,6 +203,22 @@ function MoonIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
       <path
         d="M21 13.2A8.6 8.6 0 1 1 10.8 3c-.1.4-.2.9-.2 1.4a8.7 8.7 0 0 0 8.7 8.8c.6 0 1.1-.1 1.7-.2z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
+      <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M12 8v4.2l2.8 1.6"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.8"

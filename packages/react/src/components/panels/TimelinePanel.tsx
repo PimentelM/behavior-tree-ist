@@ -1,18 +1,33 @@
 import { memo, useCallback } from 'react';
 import type { TimeTravelControls } from '../../types';
 
+function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
+  if (now === null) return null;
+  if (!nowIsTimestamp) return `${now}`;
+
+  const timestampMs = Math.abs(now) >= 1e12 ? now : now * 1000;
+  const date = new Date(timestampMs);
+  const hh = `${date.getHours()}`.padStart(2, '0');
+  const mm = `${date.getMinutes()}`.padStart(2, '0');
+  const ss = `${date.getSeconds()}`.padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
 interface TimelinePanelProps {
   controls: TimeTravelControls;
+  displayTimeAsTimestamp: boolean;
   onTickChange?: (tickId: number) => void;
 }
 
 function TimelinePanelInner({
   controls,
+  displayTimeAsTimestamp,
   onTickChange,
 }: TimelinePanelProps) {
   const {
     mode,
     viewedTickId,
+    viewedNow,
     totalTicks,
     oldestTickId,
     newestTickId,
@@ -23,6 +38,7 @@ function TimelinePanelInner({
   } = controls;
 
   const hasTicks = oldestTickId !== undefined && newestTickId !== undefined;
+  const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
 
   const handleScrub = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,7 +131,8 @@ function TimelinePanelInner({
       </div>
 
       <span className="bt-timeline__info">
-        {viewedTickId !== null ? `Tick #${viewedTickId}` : 'No ticks'}{' '}
+        {viewedTickId !== null ? `Tick #${viewedTickId}` : 'No ticks'}
+        {formattedNow !== null ? ` · time ${formattedNow}` : ''}{' '}
         / {totalTicks} total
       </span>
 

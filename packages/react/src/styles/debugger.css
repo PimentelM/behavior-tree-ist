@@ -289,6 +289,41 @@
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
+.bt-toolbar__time-format-btn {
+  min-width: 30px;
+  width: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.bt-toolbar__main-trailing .bt-toolbar__time-format-btn {
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--bt-border-color);
+  background: var(--bt-bg-tertiary);
+  color: var(--bt-text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+.bt-toolbar__main-trailing .bt-toolbar__time-format-btn:hover {
+  color: var(--bt-text-primary);
+  border-color: color-mix(in srgb, var(--bt-accent-color) 38%, var(--bt-border-color));
+}
+
+.bt-toolbar__time-format-mode {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 8px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--bt-text-primary) 85%, var(--bt-text-muted));
+}
+
 .bt-toolbar__theme-btn:hover {
   color: var(--bt-text-primary);
   border-color: color-mix(in srgb, var(--bt-accent-color) 38%, var(--bt-border-color));

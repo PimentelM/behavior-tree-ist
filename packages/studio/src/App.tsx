@@ -245,6 +245,7 @@ const createSampleTree = () => {
 
 const TICK_RATE = 20;
 const UPDATE_RATE = TICK_RATE * 15;
+const BUFFER_TIME_S = 20;
 
 function App() {
     const [tree] = useState(() => createSampleTree());
@@ -272,7 +273,7 @@ function App() {
                     ticks={ticks}
                     isolateStyles={true}
                     inspectorOptions={{
-                        maxTicks: (1000 / TICK_RATE) * 5
+                        maxTicks: (1000 / TICK_RATE) * BUFFER_TIME_S
                     }} />
             </main>
         </div>

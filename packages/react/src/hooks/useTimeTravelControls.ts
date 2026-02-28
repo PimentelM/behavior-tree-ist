@@ -1,6 +1,16 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
 import type { TimeTravelControls } from '../types';
+
+function isUnixTimestampLike(now: number): boolean {
+  const absNow = Math.abs(now);
+  const asMilliseconds = absNow >= 1e12 ? absNow : absNow >= 1e9 ? absNow * 1000 : undefined;
+  if (asMilliseconds === undefined) return false;
+
+  const current = Date.now();
+  const fiftyYears = 50 * 365 * 24 * 60 * 60 * 1000;
+  return Math.abs(asMilliseconds - current) <= fiftyYears;
+}
 
 export function useTimeTravelControls(
   inspector: TreeInspector,
@@ -14,9 +24,21 @@ export function useTimeTravelControls(
   const totalTicks = stats.totalTickCount;
   const oldestTickId = stats.oldestTickId;
   const newestTickId = stats.newestTickId;
+  const nowIsTimestampRef = useRef<boolean | null>(null);
 
   // In live mode, always show newest tick
   const viewedTickId = mode === 'live' ? (newestTickId ?? null) : frozenTickId;
+  const viewedNow = useMemo(() => {
+    if (viewedTickId === null) return null;
+    const records = inspector.getTickRange(viewedTickId, viewedTickId);
+    const record = records[0];
+    return record?.timestamp ?? null;
+  }, [inspector, viewedTickId]);
+
+  if (nowIsTimestampRef.current === null && viewedNow !== null) {
+    nowIsTimestampRef.current = isUnixTimestampLike(viewedNow);
+  }
+  const nowIsTimestamp = nowIsTimestampRef.current;
 
   // When new ticks arrive in live mode, we automatically follow
   // (viewedTickId is derived from newestTickId)
@@ -61,6 +83,7 @@ export function useTimeTravelControls(
     if (totalTicks === 0) {
       setMode('live');
       setFrozenTickId(null);
+      nowIsTimestampRef.current = null;
     }
   }, [totalTicks]);
 
@@ -74,6 +97,8 @@ export function useTimeTravelControls(
   return {
     mode,
     viewedTickId,
+    viewedNow,
+    nowIsTimestamp,
     totalTicks,
     oldestTickId,
     newestTickId,

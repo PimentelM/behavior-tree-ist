@@ -94,6 +94,7 @@ export function BehaviourTreeDebugger({
   const [focusNodeId, setFocusNodeId] = useState<number | null>(null);
   const [focusNodeSignal, setFocusNodeSignal] = useState(0);
   const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
+  const [timeFormatOverride, setTimeFormatOverride] = useState<boolean | null>(null);
 
   useEffect(() => {
     setPausedInspector(null);
@@ -101,6 +102,7 @@ export function BehaviourTreeDebugger({
 
   const timeTravelControls = useTimeTravelControls(pausedInspector ?? inspector, tickGeneration);
   const { viewedTickId } = timeTravelControls;
+  const displayTimeAsTimestamp = timeFormatOverride ?? (timeTravelControls.nowIsTimestamp ?? false);
 
   useEffect(() => {
     if (timeTravelControls.mode === 'live') {
@@ -301,6 +303,11 @@ export function BehaviourTreeDebugger({
     }
   }, [timeTravelControls, inspector, onTickChange]);
 
+  const handleToggleTimeFormat = useCallback(() => {
+    const current = timeFormatOverride ?? (timeTravelControls.nowIsTimestamp ?? false);
+    setTimeFormatOverride(!current);
+  }, [timeFormatOverride, timeTravelControls.nowIsTimestamp]);
+
   const showSidebar = panels.nodeDetails !== false || panels.refTraces !== false;
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
@@ -346,6 +353,9 @@ export function BehaviourTreeDebugger({
               onCenterTree={handleCenterTree}
               timeTravelMode={timeTravelControls.mode}
               viewedTickId={viewedTickId}
+              viewedNow={timeTravelControls.viewedNow}
+              displayTimeAsTimestamp={displayTimeAsTimestamp}
+              onToggleTimeFormat={handleToggleTimeFormat}
               onToggleTimeTravel={handleToggleTimeTravel}
             />
           ) : null
@@ -378,6 +388,7 @@ export function BehaviourTreeDebugger({
           showTimeline ? (
             <TimelinePanel
               controls={timeTravelControls}
+              displayTimeAsTimestamp={displayTimeAsTimestamp}
               onTickChange={onTickChange}
             />
           ) : null

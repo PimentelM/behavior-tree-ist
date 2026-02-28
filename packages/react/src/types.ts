@@ -110,6 +110,8 @@ export interface BTEdgeData extends Record<string, unknown> {
 export interface TimeTravelState {
   mode: 'live' | 'paused';
   viewedTickId: number | null;
+  viewedNow: number | null;
+  nowIsTimestamp: boolean | null;
   totalTicks: number;
   oldestTickId: number | undefined;
   newestTickId: number | undefined;

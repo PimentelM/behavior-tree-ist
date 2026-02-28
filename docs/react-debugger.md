@@ -155,6 +155,12 @@ Controls:
 - **Exit Time Travel / LIVE**: Jump back to live mode
 - **Esc key**: Quick-exit paused mode and return to live
 
+The toolbar and timeline also show the current tick's `time` value (`TickRecord.timestamp`):
+- If values look like Unix time (seconds or milliseconds), they are rendered as `hh:mm:ss`.
+- Otherwise they are shown as raw numeric values (for logical/monotonic clocks like game ticks).
+- Unit detection is inferred once and cached for subsequent ticks.
+- A toolbar toggle lets users switch between numeric and timestamp display at any time.
+
 New ticks are always ingested by the live inspector even when paused, so no data is lost.
 
 Result semantics are strict per tick:
