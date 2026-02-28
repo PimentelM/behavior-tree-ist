@@ -12,7 +12,7 @@ export class Timeout extends Decorator {
 
     constructor(child: BTNode, public readonly timeout: number) {
         super(child);
-        this.addFlags(NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Stateful, NodeFlags.TimeBased);
     }
 
     public override get displayName(): string {

@@ -47,7 +47,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
       .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
       .map((entry) => ({
         nodeId: entry.id,
-        name: entry.name || entry.defaultName,
+        name: entry.name,
         defaultName: entry.defaultName,
         nodeFlags: entry.nodeFlags,
         result: null,
@@ -56,13 +56,23 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
         refEvents: [],
       }));
 
+    const lifecycleDecorators = lifecycleDecoratorIds
+      .map((id) => treeIndex.getById(id))
+      .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+      .map((entry) => ({
+        nodeId: entry.id,
+        name: entry.name,
+        defaultName: entry.defaultName,
+        nodeFlags: entry.nodeFlags,
+      }));
+
     nodes.push({
       id: String(baseId),
       type: 'btNode',
       position: { x: 0, y: 0 },
       data: {
         nodeId: baseId,
-        name: baseNode.name || baseNode.defaultName,
+        name: baseNode.name,
         defaultName: baseNode.defaultName,
         nodeFlags: baseNode.nodeFlags,
         visualKind: getNodeVisualKind(baseNode.nodeFlags),
@@ -74,7 +84,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
         depth: baseNode.depth,
         representedNodeIds: [baseId, ...stackedDecoratorIds, ...lifecycleDecoratorIds],
         stackedDecorators,
-        lifecycleDecoratorIds,
+        lifecycleDecorators,
         refEvents: [],
         selectedNodeId: null,
       },

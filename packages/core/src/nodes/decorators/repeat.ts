@@ -15,7 +15,7 @@ export class Repeat extends Decorator {
         public readonly times: number = -1, // -1 for infinite
     ) {
         super(child);
-        this.addFlags(NodeFlags.Repeating, NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Repeating, NodeFlags.Stateful, NodeFlags.CountBased);
     }
 
     public override get displayName(): string {

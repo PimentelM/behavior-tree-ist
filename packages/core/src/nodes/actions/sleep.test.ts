@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Sleep } from "./sleep";
 import { BTNode } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { createTickContext } from "../../test-helpers";
 
 describe("Sleep", () => {
@@ -92,5 +92,11 @@ describe("Sleep", () => {
         BTNode.Tick(wait, createTickContext({ now: 300 }));
 
         expect(wait.displayName).toBe("Sleep (700)");
+    });
+
+    it("marks Sleep as time-based", () => {
+        const wait = new Sleep(250);
+
+        expect(wait.nodeFlags & NodeFlags.TimeBased).toBeTruthy();
     });
 });

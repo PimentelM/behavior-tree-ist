@@ -1,14 +1,32 @@
 import { memo } from 'react';
 import type { NodeDetailsData } from '../../types';
-import { getFlagLabels, getResultColor, getResultLabel } from '../../constants';
+import { getDebuggerDisplayName, getFlagLabels, getResultColor, getResultLabel, getTemporalIndicatorIcon } from '../../constants';
 
 interface NodeHeaderProps {
   details: NodeDetailsData;
 }
 
 function NodeHeaderInner({ details }: NodeHeaderProps) {
-  const { name, defaultName, flags, path, tags, currentResult } = details;
-  const displayName = name || defaultName;
+  const {
+    name,
+    defaultName,
+    flags,
+    path,
+    tags,
+    currentResult,
+    currentDisplayState,
+  } = details;
+  const displayName = getDebuggerDisplayName({
+    name,
+    defaultName,
+    nodeFlags: flags,
+    displayState: currentDisplayState,
+  });
+  const trimmedName = name.trim();
+  const shouldShowDefaultAlias = trimmedName.length > 0
+    && displayName === trimmedName
+    && trimmedName !== defaultName;
+  const temporalIndicator = getTemporalIndicatorIcon(flags);
   const flagLabels = getFlagLabels(flags);
   const resultColor = getResultColor(currentResult);
 
@@ -16,7 +34,12 @@ function NodeHeaderInner({ details }: NodeHeaderProps) {
     <div className="bt-node-header">
       <div className="bt-node-header__name">
         {displayName}
-        {displayName !== defaultName && (
+        {temporalIndicator && (
+          <span style={{ color: 'var(--bt-text-muted)', fontSize: 12, marginLeft: 6 }} title="Time/count based node">
+            {temporalIndicator}
+          </span>
+        )}
+        {shouldShowDefaultAlias && (
           <span style={{ color: 'var(--bt-text-muted)', fontWeight: 400, fontSize: 12, marginLeft: 6 }}>
             ({defaultName})
           </span>

@@ -54,6 +54,13 @@ export interface NodeDecoratorData {
   }>;
 }
 
+export interface NodeLifecycleDecoratorData {
+  nodeId: number;
+  name: string;
+  defaultName: string;
+  nodeFlags: NodeFlags;
+}
+
 export interface BehaviourTreeDebuggerProps {
   tree: SerializableNode;
   ticks: TickRecord[];
@@ -89,7 +96,7 @@ export interface BTNodeData extends Record<string, unknown> {
   depth: number;
   representedNodeIds: number[];
   stackedDecorators: NodeDecoratorData[];
-  lifecycleDecoratorIds: number[];
+  lifecycleDecorators: NodeLifecycleDecoratorData[];
   capabilityBadges: string[];
   refEvents: NodeDecoratorData['refEvents'];
   selectedNodeId: number | null;

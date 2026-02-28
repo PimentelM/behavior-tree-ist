@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps, Node } from '@xyflow/react';
 import type { BTNodeData, NodeVisualKind } from '../../types';
-import { getResultColor } from '../../constants';
+import { getDebuggerDisplayName, getResultColor, getTemporalIndicatorIcon } from '../../constants';
 
 type BTFlowNode = Node<BTNodeData, 'btNode'>;
 
@@ -10,21 +10,33 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
   const {
     name,
     defaultName,
-    nodeFlags: _nodeFlags,
+    nodeFlags,
     result,
     displayState,
     displayStateIsStale,
     isSelected,
     visualKind,
     stackedDecorators,
-    lifecycleDecoratorIds,
+    lifecycleDecorators,
     capabilityBadges,
     refEvents,
     selectedNodeId,
     onSelectNode,
   } = data;
-  const displayName = name || defaultName;
+  const displayName = getDebuggerDisplayName({
+    name,
+    defaultName,
+    nodeFlags,
+    displayState,
+  });
+  const temporalIndicator = getTemporalIndicatorIcon(nodeFlags);
   const accentColor = getResultColor(result);
+  const lifecycleDecoratorIds = lifecycleDecorators.map((entry) => entry.nodeId);
+  const lifecycleDecoratorNames = lifecycleDecorators.map((entry) => getDebuggerDisplayName({
+    name: entry.name,
+    defaultName: entry.defaultName,
+    nodeFlags: entry.nodeFlags,
+  }));
 
   const stateEntries = displayState
     ? Object.entries(displayState)
@@ -50,7 +62,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
               return (
                 <div key={decorator.nodeId} className="bt-node__decorator-entry">
                   <button
-                    className={`bt-node__decorator-row ${selectedNodeId === decorator.nodeId ? 'bt-node__decorator-row--selected' : ''}`}
+                    className={`bt-node__decorator-row ${selectedNodeId === decorator.nodeId ? 'bt-node__decorator-row--selected' : ''} ${decorator.displayStateIsStale ? 'bt-node__decorator-row--stale' : ''}`}
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation();
@@ -58,8 +70,19 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
                     }}
                   >
                     <span className="bt-node__decorator-dot" style={{ backgroundColor: decoratorColor }} />
-                    <span className="bt-node__decorator-name">{decorator.name || decorator.defaultName}</span>
-                    {decorator.displayStateIsStale && <span className="bt-node__prev-pill">prev</span>}
+                    <span className="bt-node__decorator-name">{
+                      getDebuggerDisplayName({
+                        name: decorator.name,
+                        defaultName: decorator.defaultName,
+                        nodeFlags: decorator.nodeFlags,
+                        displayState: decorator.displayState,
+                      })
+                    }</span>
+                    {getTemporalIndicatorIcon(decorator.nodeFlags) && (
+                      <span className="bt-node__temporal-indicator" title="Time/count based node">
+                        {getTemporalIndicatorIcon(decorator.nodeFlags)}
+                      </span>
+                    )}
                     {decoratorState.length > 0 && (
                       <span className="bt-node__decorator-state">{decoratorState.length} state</span>
                     )}
@@ -86,14 +109,24 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
           <span className="bt-node__name" title={displayName}>
             {displayName}
           </span>
+          {temporalIndicator && (
+            <span className="bt-node__temporal-indicator" title="Time/count based node">
+              {temporalIndicator}
+            </span>
+          )}
           {lifecycleDecoratorIds.length > 0 && (
             <span className="bt-node__lifecycle-pill" title="Lifecycle decorator hooks">
               <button
                 className="bt-node__lifecycle-button"
                 type="button"
+                title={lifecycleDecoratorNames.join('\n')}
                 onClick={(event) => {
                   event.stopPropagation();
-                  const lifecycleNodeId = lifecycleDecoratorIds[0];
+                  const selectedIndex = lifecycleDecoratorIds.indexOf(selectedNodeId ?? -1);
+                  const nextIndex = selectedIndex >= 0
+                    ? (selectedIndex + 1) % lifecycleDecoratorIds.length
+                    : 0;
+                  const lifecycleNodeId = lifecycleDecoratorIds[nextIndex];
                   if (lifecycleNodeId !== undefined) {
                     onSelectNode?.(lifecycleNodeId);
                   }
@@ -113,7 +146,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
         )}
         {hasState && (
           <div className={`bt-node__display-state ${displayStateIsStale ? 'bt-node__display-state--stale' : ''}`}>
-            {displayStateIsStale && <div className="bt-node__state-meta"><span className="bt-node__prev-pill">prev</span></div>}
+            {displayStateIsStale && <div className="bt-node__state-meta" title="Showing last known state" />}
             {stateEntries.map(([key, value]) => (
               <div key={key} className="bt-node__state-entry">
                 <span className="bt-node__state-key">{key}</span>
@@ -212,7 +245,7 @@ function areNodePropsEqual(prev: NodeProps<BTFlowNode>, next: NodeProps<BTFlowNo
     && prev.data.nodeId === next.data.nodeId
     && prev.data.selectedNodeId === next.data.selectedNodeId
     && shallowEqualStringArray(prev.data.capabilityBadges, next.data.capabilityBadges)
-    && prev.data.lifecycleDecoratorIds.length === next.data.lifecycleDecoratorIds.length
+    && prev.data.lifecycleDecorators.length === next.data.lifecycleDecorators.length
     && shallowEqualDecorators(prev.data.stackedDecorators, next.data.stackedDecorators)
     && shallowEqualRefEvents(prev.data.refEvents, next.data.refEvents);
 }

@@ -30,6 +30,8 @@ type NodeResult = "Succeeded" | "Failed" | "Running";
 | `nodeFlags` | `NodeFlags` | Bitfield for classification (see [Node Flags](node-flags.md)) |
 | `wasRunning` | `boolean` | True if the previous tick returned `Running` |
 
+`NodeFlags` also includes debugger-oriented refinements like `TimeBased` and `CountBased`, which help UI tooling render stateful names and indicators more clearly.
+
 ## Tick Lifecycle
 
 The tick lifecycle is the heart of the library. When `BTNode.Tick(node, ctx)` is called:

@@ -16,7 +16,7 @@ export class Cooldown extends Decorator {
         public readonly cooldown: number,
     ) {
         super(child);
-        this.addFlags(NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Stateful, NodeFlags.TimeBased);
     }
 
     private get remainingCooldown(): number {

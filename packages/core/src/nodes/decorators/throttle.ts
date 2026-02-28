@@ -11,7 +11,7 @@ export class Throttle extends Decorator {
 
     constructor(child: BTNode, public readonly throttle: number) {
         super(child);
-        this.addFlags(NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Stateful, NodeFlags.TimeBased);
     }
 
     private lastTriggeredAt: number | undefined = undefined;

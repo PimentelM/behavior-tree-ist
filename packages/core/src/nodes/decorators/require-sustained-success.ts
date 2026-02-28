@@ -17,7 +17,7 @@ export class RequireSustainedSuccess extends Decorator {
         public readonly requireSustainedSuccess: number,
     ) {
         super(child);
-        this.addFlags(NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Stateful, NodeFlags.TimeBased);
     }
 
     private get successDuration(): number {

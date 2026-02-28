@@ -13,7 +13,7 @@ export class Delay extends Decorator {
 
     constructor(child: BTNode, public delayDuration: number) {
         super(child);
-        this.addFlags(NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Stateful, NodeFlags.TimeBased);
     }
 
     public override get displayName(): string {

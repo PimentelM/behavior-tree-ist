@@ -158,7 +158,7 @@ New ticks are always ingested by the live inspector even when paused, so no data
 
 Result semantics are strict per tick:
 - If a node has no trace event at the viewed tick, it is treated as not ticked for that tick.
-- Display state may still show the latest known state at-or-before the viewed tick and is marked with a `prev` cue when stale.
+- Display state may still show the latest known state at-or-before the viewed tick, and stale values are visually dimmed.
 
 ## Node Visualization
 
@@ -171,9 +171,9 @@ Each node shows:
   - Condition: decision diamond with check
   - Action: task card/checklist mark
 - Optional compact decorator stack (non-lifecycle decorators) rendered above the decorated node (no connecting edge)
-- Lifecycle decorators collapsed to an inline thunder badge (`⚡N`)
+- Lifecycle decorators collapsed to an inline thunder badge (`⚡N`) with hover names and click-to-cycle selection
 - Left accent stripe colored by result: green (Succeeded), red (Failed), amber (Running), gray (Idle)
-- Display state key-value pairs when present (from `getDisplayState()`), with `prev` marker if stale
+- Display state key-value pairs when present (from `getDisplayState()`), with dimmed stale rendering and auto-sizing content
 - Ref changes for the viewed tick directly under the node/decorator that emitted them
 
 Raw `NodeFlags` and numeric IDs are not shown in the tree canvas. Full flags remain visible in the node details panel.

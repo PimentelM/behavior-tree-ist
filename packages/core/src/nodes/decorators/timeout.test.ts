@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Timeout } from "./timeout";
 import { BTNode } from "../../base/node";
-import { NodeResult } from "../../base/types";
+import { NodeResult, NodeFlags } from "../../base/types";
 import { createTickContext, StubAction } from "../../test-helpers";
 
 describe("Timeout", () => {
@@ -127,5 +127,11 @@ describe("Timeout", () => {
         BTNode.Tick(timeout, createTickContext({ now: 300 }));
 
         expect(timeout.displayName).toBe("Timeout (700)");
+    });
+
+    it("marks Timeout as time-based", () => {
+        const timeout = new Timeout(new StubAction(NodeResult.Running), 1000);
+
+        expect(timeout.nodeFlags & NodeFlags.TimeBased).toBeTruthy();
     });
 });

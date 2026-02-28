@@ -48,7 +48,7 @@ const patrol = Action.from('Patrol', (ctx) => {
 
 `AsyncAction` is an abstract base class for asynchronous work (e.g., HTTP requests, file I/O). It runs `execute(ctx, signal)` which returns a Promise. The node natively bridges this Promise into the tick lifecycle, returning `Running` while pending, and appropriately `Succeeded` or `Failed` when settled.
 
-**Flags**: `Leaf`, `Action`, `Stateful`
+**Flags**: `Leaf`, `Action`, `Stateful`, `TimeBased`
 
 ### Extending AsyncAction
 

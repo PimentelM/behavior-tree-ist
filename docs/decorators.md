@@ -72,7 +72,7 @@ Time-based decorators that use `ctx.now` to track elapsed time. Duration values 
 | `Throttle` | `(child, throttle)` | Prevents re-entry for `throttle` after initial tick (does not throttle resumption) |
 | `RequireSustainedSuccess` | `(child, duration)` | Child must return `Succeeded` continuously for `duration`; resets on failure/running |
 
-**Flags**: `Stateful`
+**Flags**: `Stateful`, `TimeBased`
 
 All timing decorators expose `getDisplayState()` with their remaining time.
 
@@ -121,7 +121,7 @@ Decorators that alter execution flow (looping, caching).
 | `KeepRunningUntilFailure` | `(child)` | Loops child until it fails. Success -> restart (Running). Failure -> `Succeeded`. |
 | `RunOnce` | `(child)` | Executes child once, caches terminal result. Returns cached result on subsequent ticks. |
 
-**Flags**: `Repeat`/`Retry`/`KeepRunningUntilFailure` have `Repeating`. `Repeat`/`Retry`/`RunOnce` also have `Stateful`.
+**Flags**: `Repeat`/`Retry`/`KeepRunningUntilFailure` have `Repeating`. `Repeat`/`Retry`/`RunOnce` also have `Stateful`. `Repeat` and `Retry` additionally have `CountBased`.
 
 ```typescript
 import { Repeat, Retry, RunOnce } from '@behavior-tree-ist/core';
@@ -249,8 +249,8 @@ Tags can also be added directly: `node.addTags(['combat', 'offensive'])`.
 |---|---|---|
 | Result Transformers | Inverter, ForceSuccess, ForceFailure, RunningIsSuccess, RunningIsFailure | `ResultTransformer` |
 | Guards | Precondition, SucceedIf/SkipIf, FailIf | `Guard` |
-| Timing | Timeout, Delay, Cooldown, Throttle, RequireSustainedSuccess | `Stateful` |
-| Control Flow | Repeat, Retry, KeepRunningUntilFailure, RunOnce | `Repeating` / `Stateful` |
+| Timing | Timeout, Delay, Cooldown, Throttle, RequireSustainedSuccess | `Stateful`, `TimeBased` |
+| Control Flow | Repeat, Retry, KeepRunningUntilFailure, RunOnce | `Repeating` / `Stateful` / `CountBased` (Repeat, Retry) |
 | Lifecycle | OnEnter, OnResume, OnReset, OnTicked, OnSuccess, OnFailure, OnRunning, OnFinished, OnSuccessOrRunning, OnFailedOrRunning, OnAbort | `Lifecycle` |
 | Scoring | Utility | `Utility`, `Stateful` |
 | Metadata | Tag | (none) |

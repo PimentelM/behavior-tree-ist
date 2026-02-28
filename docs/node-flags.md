@@ -18,13 +18,15 @@ Every concrete node calls `addFlags()` in its constructor to register its catego
 | `Parallel` | `0x080` | Ticks all children concurrently |
 | `Memory` | `0x100` | Remembers last running child index across ticks |
 | `Stateful` | `0x200` | Has internal time/counter state exposed via `getDisplayState()` |
-| `Utility` | `0x400` | Uses utility scoring for child prioritization |
-| `Repeating` | `0x800` | Loops child execution (Repeat, Retry, KeepRunningUntilFailure) |
-| `ResultTransformer` | `0x1000` | Remaps child result (Inverter, ForceSuccess, etc.) |
-| `Guard` | `0x2000` | Conditionally gates child execution |
-| `Lifecycle` | `0x4000` | Lifecycle hook side-effect decorator |
-| `Async` | `0x8000` | Asynchronous/promise-based node |
-| `Display` | `0x10000` | Node whose purpose is merely display related |
+| `TimeBased` | `0x400` | Stateful node whose display state is time-oriented (elapsed/remaining) |
+| `CountBased` | `0x800` | Stateful node whose display state is counter-oriented (attempts/repetitions) |
+| `Utility` | `0x1000` | Uses utility scoring for child prioritization |
+| `Repeating` | `0x2000` | Loops child execution (Repeat, Retry, KeepRunningUntilFailure) |
+| `ResultTransformer` | `0x4000` | Remaps child result (Inverter, ForceSuccess, etc.) |
+| `Guard` | `0x8000` | Conditionally gates child execution |
+| `Lifecycle` | `0x10000` | Lifecycle hook side-effect decorator |
+| `Async` | `0x20000` | Asynchronous/promise-based node |
+| `Display` | `0x40000` | Node whose purpose is merely display related |
 
 > [!IMPORTANT]
 > `NodeFlags` have **no impact on core library behavior**. Bitfields like `Stateful`, `Async`, or `Display` exist strictly for classification and external tooling (UI, inspectors, filtering). The library itself treats all nodes equally regardless of their flags.

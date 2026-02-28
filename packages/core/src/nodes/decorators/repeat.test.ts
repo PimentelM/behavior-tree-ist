@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Repeat } from "./repeat";
-import { NodeResult } from "../../base";
+import { NodeResult, NodeFlags } from "../../base";
 import { StubAction, tickNode } from "../../test-helpers";
 
 describe("Repeat", () => {
@@ -56,5 +56,11 @@ describe("Repeat", () => {
         }
 
         expect(child.tickCount).toBe(10);
+    });
+
+    it("marks Repeat as count-based", () => {
+        const repeat = new Repeat(new StubAction(NodeResult.Succeeded), 2);
+
+        expect(repeat.nodeFlags & NodeFlags.CountBased).toBeTruthy();
     });
 });

@@ -75,6 +75,8 @@ const FLAG_DEFINITIONS: Array<{ flag: number; label: string; category: 'primary'
   { flag: NodeFlags.Parallel, label: 'Parallel', category: 'secondary' },
   { flag: NodeFlags.Memory, label: 'Memory', category: 'secondary' },
   { flag: NodeFlags.Stateful, label: 'Stateful', category: 'secondary' },
+  { flag: NodeFlags.TimeBased, label: 'Time-based', category: 'secondary' },
+  { flag: NodeFlags.CountBased, label: 'Count-based', category: 'secondary' },
   { flag: NodeFlags.Utility, label: 'Utility', category: 'secondary' },
   { flag: NodeFlags.Repeating, label: 'Repeating', category: 'secondary' },
   { flag: NodeFlags.ResultTransformer, label: 'Transformer', category: 'secondary' },
@@ -114,6 +116,8 @@ const CAPABILITY_BADGE_DEFS: Array<{ flag: number; label: string }> = [
   { flag: NodeFlags.Async, label: 'Async' },
   { flag: NodeFlags.Memory, label: 'Memory' },
   { flag: NodeFlags.Utility, label: 'Utility' },
+  { flag: NodeFlags.TimeBased, label: 'Time' },
+  { flag: NodeFlags.CountBased, label: 'Count' },
   { flag: NodeFlags.Stateful, label: 'Stateful' },
   { flag: NodeFlags.Repeating, label: 'Repeat' },
   { flag: NodeFlags.Guard, label: 'Guard' },
@@ -126,6 +130,89 @@ export function getCapabilityBadges(nodeFlags: number): string[] {
     if (hasFlag(nodeFlags, entry.flag)) badges.push(entry.label);
   }
   return badges;
+}
+
+export function getTemporalIndicator(nodeFlags: number): 'time' | 'count' | null {
+  if (hasFlag(nodeFlags, NodeFlags.TimeBased)) return 'time';
+  if (hasFlag(nodeFlags, NodeFlags.CountBased)) return 'count';
+  return null;
+}
+
+export function getTemporalIndicatorIcon(nodeFlags: number): string | null {
+  const kind = getTemporalIndicator(nodeFlags);
+  if (kind === 'time') return '\u23F1';
+  if (kind === 'count') return '#';
+  return null;
+}
+
+export function getDebuggerDisplayName({
+  name,
+  defaultName,
+  nodeFlags,
+  displayState,
+}: {
+  name: string;
+  defaultName: string;
+  nodeFlags: number;
+  displayState?: Record<string, unknown>;
+}): string {
+  const trimmedName = name.trim();
+
+  if (hasFlag(nodeFlags, NodeFlags.Guard) && trimmedName.length > 0) {
+    return `${defaultName}: ${trimmedName}`;
+  }
+
+  if (hasFlag(nodeFlags, NodeFlags.TimeBased) || hasFlag(nodeFlags, NodeFlags.CountBased)) {
+    const stateValue = getDisplayStateValue(displayState);
+    if (stateValue !== undefined) {
+      return `${defaultName} (${stateValue})`;
+    }
+    return defaultName;
+  }
+
+  return trimmedName.length > 0 ? trimmedName : defaultName;
+}
+
+function getDisplayStateValue(displayState: Record<string, unknown> | undefined): string | undefined {
+  if (!displayState) return undefined;
+
+  const priorityKeys = [
+    'remainingTime',
+    'remaining',
+    'remainingDelay',
+    'remainingCooldown',
+    'remainingThrottle',
+    'remainingSustainedSuccess',
+    'successfulCount',
+    'failedCount',
+    'count',
+    'attempts',
+    'retries',
+    'elapsed',
+    'elapsedTime',
+    'timeElapsed',
+  ] as const;
+
+  for (const key of priorityKeys) {
+    if (Object.prototype.hasOwnProperty.call(displayState, key)) {
+      return formatCompactValue(displayState[key]);
+    }
+  }
+
+  for (const value of Object.values(displayState)) {
+    if (typeof value === 'number' || typeof value === 'string') {
+      return String(value);
+    }
+  }
+
+  return undefined;
+}
+
+function formatCompactValue(value: unknown): string {
+  if (typeof value === 'number') return String(Math.round(value));
+  if (typeof value === 'string') return value;
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  return String(value);
 }
 
 export const NODE_WIDTH = 220;

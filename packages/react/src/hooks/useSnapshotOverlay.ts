@@ -195,7 +195,7 @@ function hasSameBaseNodeShape(
     && previousNode.data.visualKind === baseNode.data.visualKind
     && previousNode.data.depth === baseNode.data.depth
     && previousNode.data.stackedDecorators.length === baseNode.data.stackedDecorators.length
-    && previousNode.data.lifecycleDecoratorIds.length === baseNode.data.lifecycleDecoratorIds.length
+    && previousNode.data.lifecycleDecorators.length === baseNode.data.lifecycleDecorators.length
     && previousNode.data.representedNodeIds.length === baseNode.data.representedNodeIds.length;
 }
 

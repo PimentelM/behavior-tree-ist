@@ -17,13 +17,15 @@ export const NodeFlags = {
     Parallel: 1 << 7,   // 0x080  — concurrent children
     Memory: 1 << 8,   // 0x100  — remembers last running child
     Stateful: 1 << 9,   // 0x200  — has time/counter state
-    Utility: 1 << 10,  // 0x400  — uses utility scoring
-    Repeating: 1 << 11,  // 0x800  — loops child execution
-    ResultTransformer: 1 << 12,  // 0x1000 — remaps child result
-    Guard: 1 << 13,  // 0x2000 — conditionally gates child
-    Lifecycle: 1 << 14,  // 0x4000 — lifecycle hook side-effect
-    Async: 1 << 15,  // 0x8000 — asynchronous/promise-based node
-    Display: 1 << 16,  // 0x10000 — node whose purpose is merely display related
+    TimeBased: 1 << 10,  // 0x400  — state represents elapsed/remaining time
+    CountBased: 1 << 11,  // 0x800  — state represents counters/attempts/iterations
+    Utility: 1 << 12,  // 0x1000 — uses utility scoring
+    Repeating: 1 << 13,  // 0x2000 — loops child execution
+    ResultTransformer: 1 << 14,  // 0x4000 — remaps child result
+    Guard: 1 << 15,  // 0x8000 — conditionally gates child
+    Lifecycle: 1 << 16,  // 0x10000 — lifecycle hook side-effect
+    Async: 1 << 17,  // 0x20000 — asynchronous/promise-based node
+    Display: 1 << 18,  // 0x40000 — node whose purpose is merely display related
 } as const;
 export type NodeFlags = number;
 

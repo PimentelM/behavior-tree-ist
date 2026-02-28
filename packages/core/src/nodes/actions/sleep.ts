@@ -11,7 +11,7 @@ export class Sleep extends Action {
 
     constructor(public duration: number) {
         super();
-        this.addFlags(NodeFlags.Stateful);
+        this.addFlags(NodeFlags.Stateful, NodeFlags.TimeBased);
     }
 
     public override get displayName(): string {

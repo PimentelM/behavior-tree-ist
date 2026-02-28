@@ -36,7 +36,7 @@ export function useNodeDetails(
 
     return {
       nodeId: selectedNodeId,
-      name: indexed.name || indexed.defaultName,
+      name: indexed.name,
       defaultName: indexed.defaultName,
       flags: indexed.nodeFlags,
       path: treeIndex.getPathString(selectedNodeId),

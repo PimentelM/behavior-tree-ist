@@ -13,7 +13,7 @@ Implement a compact, clear, and tick-accurate debugger UX with:
 
 - Results are always per tick only.
 - Display state may show last known state less than or equal to viewed tick.
-- Stale state must have a small visual cue (`prev`).
+- Stale state must have a subtle visual cue (dimmed styling).
 - Do not show numeric node IDs in tree nodes.
 - Do not show raw NodeFlags in tree nodes (only in node details panel).
 - Decorators use hybrid rendering:
