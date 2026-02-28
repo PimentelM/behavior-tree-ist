@@ -28,29 +28,17 @@ function PerformanceViewInner({
 
   return (
     <div className="bt-perf-view">
-      <div className="bt-perf-view__summary">
-        <div className="bt-perf-view__summary-group">
-          <span className="bt-perf-view__summary-label">Tick</span>
-          <span className="bt-perf-view__summary-item">#{viewedTickId ?? '-'}</span>
+      <div className="bt-perf-view__flamegraph">
+        <div className="bt-perf-view__panel-header">
+          <span className="bt-perf-view__panel-title">Flamegraph (Tick)</span>
+          <span className="bt-perf-view__panel-meta-item">#{viewedTickId ?? '-'}</span>
           {tickTotal > 0 && (
-            <span className="bt-perf-view__summary-item">CPU: {formatMs(tickTotal)}</span>
+            <span className="bt-perf-view__panel-meta-item">CPU: {formatMs(tickTotal)}</span>
           )}
           {nodeCount > 0 && (
-            <span className="bt-perf-view__summary-item">
-              Nodes: {nodeCount}
-            </span>
+            <span className="bt-perf-view__panel-meta-item">Nodes: {nodeCount}</span>
           )}
         </div>
-        <div className="bt-perf-view__summary-group">
-          <span className="bt-perf-view__summary-label">Window</span>
-          <span className="bt-perf-view__summary-item">Ticks: {stats.storedTickCount}</span>
-          <span className="bt-perf-view__summary-item">Total CPU: {formatMs(stats.totalRootCpuTime)}</span>
-          {stats.storedTickCount > 0 && (
-            <span className="bt-perf-view__summary-item">Span: {formatMs(stats.profilingWindowSpan)}</span>
-          )}
-        </div>
-      </div>
-      <div className="bt-perf-view__flamegraph">
         <FlameGraph
           frames={frames}
           onSelectNode={onSelectNode}
@@ -64,6 +52,8 @@ function PerformanceViewInner({
           onSelectNode={onSelectNode}
           selectedNodeId={selectedNodeId}
           treeIndex={treeIndex ?? null}
+          windowTickCount={stats.storedTickCount}
+          windowSpan={stats.profilingWindowSpan}
         />
       </div>
     </div>

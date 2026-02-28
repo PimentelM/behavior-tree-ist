@@ -278,9 +278,10 @@ describe('PerformanceView', () => {
     expect(screen.getByText('Avg Self')).toBeTruthy();
     expect(screen.getByText('P95 CPU')).toBeTruthy();
     expect(screen.getByText('P95 Self')).toBeTruthy();
-    expect(screen.getByText('Tick')).toBeTruthy();
-    expect(screen.getByText('Window')).toBeTruthy();
-    expect(screen.getByText('Span: 320ms')).toBeTruthy();
+    expect(screen.getByText('Flamegraph (Tick)')).toBeTruthy();
+    expect(screen.getByText('Hot Nodes (Window)')).toBeTruthy();
+    expect(screen.getByText('Total Ticks: 1')).toBeTruthy();
+    expect(screen.getByText('Total Time: 100ms / 320ms')).toBeTruthy();
   });
 
   it('computes tick total from all root frames and uses it in flamegraph tooltip percent', () => {

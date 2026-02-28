@@ -18,6 +18,8 @@ type SortKey =
 interface HotNodesTableProps {
   hotNodes: NodeProfilingData[];
   rootTotalCpuTime: number;
+  windowTickCount: number;
+  windowSpan: number;
   onSelectNode: (nodeId: number) => void;
   selectedNodeId: number | null;
   treeIndex: TreeIndex | null;
@@ -26,6 +28,8 @@ interface HotNodesTableProps {
 function HotNodesTableInner({
   hotNodes,
   rootTotalCpuTime,
+  windowTickCount,
+  windowSpan,
   onSelectNode,
   selectedNodeId,
   treeIndex,
@@ -98,7 +102,17 @@ function HotNodesTableInner({
 
   return (
     <div className="bt-hot-nodes">
-      <div className="bt-hot-nodes__title">Hot Nodes</div>
+      <div className="bt-hot-nodes__header-bar">
+        <div className="bt-hot-nodes__title">Hot Nodes (Window)</div>
+        <div className="bt-hot-nodes__meta">
+          <span className="bt-hot-nodes__meta-item">
+            Total Ticks: {windowTickCount}
+          </span>
+          <span className="bt-hot-nodes__meta-item">
+            Total Time: {formatMs(rootTotalCpuTime)} / {formatMs(windowSpan)}
+          </span>
+        </div>
+      </div>
       <table className="bt-hot-nodes__table">
         <thead>
           <tr className="bt-hot-nodes__header">
