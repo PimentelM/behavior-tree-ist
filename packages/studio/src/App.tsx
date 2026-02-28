@@ -190,11 +190,11 @@ const createSampleTree = () => {
                 asyncAction({
                     name: "Increase thirst",
                     onAbort: () => supressedLog("Etherical thirst Aborted!"),
-                    cooldown: 100,
+                    cooldown: 0,
                     execute: async (ctx, signal) => {
                         console.log("Etherical hunger");
                         await new Promise(r => setTimeout(r, 200));
-                        hunger.value = (hunger.value + 1) * 2;
+                        hunger.set((hunger.value + 1) * 2, ctx);
                         return NodeResult.Succeeded;
                     }
                 })

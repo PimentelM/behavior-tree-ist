@@ -19,8 +19,6 @@ interface NodeHistoryProps {
 }
 
 function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProps) {
-  if (history.length === 0) return null;
-
   const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE_SIZE);
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -89,6 +87,8 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
       onGoToTick(nextEntry.tickId);
     }
   }, [sortedHistory, viewedTickId, onGoToTick, visibleCount, loadMore]);
+
+  if (history.length === 0) return null;
 
   return (
     <div className="bt-history">
