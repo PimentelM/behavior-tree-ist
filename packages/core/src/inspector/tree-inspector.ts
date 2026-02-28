@@ -116,6 +116,10 @@ export class TreeInspector {
         return this.profiler.getHotNodes();
     }
 
+    getPercentileMode(): "sampled" | "exact" {
+        return this.profiler.getPercentileMode();
+    }
+
     getFlameGraphFrames(tickId: number): FlameGraphFrame[] {
         const record = this.store.getByTickId(tickId);
         if (!record || !this._tree) return [];

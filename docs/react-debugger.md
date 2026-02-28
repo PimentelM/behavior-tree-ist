@@ -147,6 +147,7 @@ Two modes: **Live** and **Paused**.
 
 - **Live**: Automatically follows the latest tick. New ticks are displayed in real-time.
 - **Paused**: Frozen at a specific tick. Entering paused mode captures a frozen inspector snapshot so the viewed timeline/state does not shift while live ticks continue to arrive.
+- Percentiles in profiling UI are marked **Approx** in live mode (sampled for responsiveness), and become exact over the stored window when paused/time-travel is active.
 
 Controls:
 - **Toolbar Pause/Play**: Toggle between live mode and paused time-travel mode directly from the top toolbar

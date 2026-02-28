@@ -157,6 +157,7 @@ describe("Profiler", () => {
 
     it("can recompute exact percentiles from provided tick events", () => {
         const profiler = new Profiler();
+        expect(profiler.getPercentileMode()).toBe("sampled");
         const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 100 }]);
         const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 1 }]);
         const tick3 = makeEvents(3, [{ nodeId: 1, start: 0, end: 2 }]);
@@ -170,6 +171,7 @@ describe("Profiler", () => {
         expect(sampledData.cpuP95).toBe(100);
 
         profiler.recomputeExactPercentilesFromTickEvents([tick2, tick3]);
+        expect(profiler.getPercentileMode()).toBe("exact");
         const exactData = profiler.getNodeData(1)!;
         expect(exactData.cpuP50).toBe(1);
         expect(exactData.cpuP95).toBe(2);
@@ -177,6 +179,7 @@ describe("Profiler", () => {
 
         // Any further mutation should invalidate exact caches and return to sampled mode.
         profiler.ingestTick(makeEvents(4, [{ nodeId: 1, start: 0, end: 3 }]));
+        expect(profiler.getPercentileMode()).toBe("sampled");
         const backToSampled = profiler.getNodeData(1)!;
         expect(backToSampled.cpuP95).toBe(100);
     });

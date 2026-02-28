@@ -58,6 +58,7 @@ class TreeInspector {
   // Profiling
   getNodeProfilingData(nodeId: number): NodeProfilingData | undefined;
   getHotNodes(): NodeProfilingData[]; // Sorted by totalCpuTime descending
+  getPercentileMode(): 'sampled' | 'exact';
   getFlameGraphFrames(tickId: number): FlameGraphFrame[];
 
   // Statistics
@@ -166,10 +167,15 @@ inspector.ingestTick(tree.tick());
 
 // Per-node timing
 const data = inspector.getNodeProfilingData(nodeId);
-// { nodeId, totalCpuTime, tickCount, minCpuTime, maxCpuTime, lastCpuTime, totalRunningTime, ... }
+// { nodeId, totalCpuTime, tickCount, minCpuTime, maxCpuTime, cpuP50/cpuP95/cpuP99, ... }
 
 // Hottest nodes (sorted by CPU time)
 const hot = inspector.getHotNodes();
+
+// Percentile calculation mode
+// 'sampled' = fast rolling samples
+// 'exact' = exact values from currently stored tick window
+const percentileMode = inspector.getPercentileMode();
 ```
 
 ### NodeProfilingData
@@ -184,6 +190,16 @@ interface NodeProfilingData {
   minCpuTime: number;
   maxCpuTime: number;
   lastCpuTime: number;
+  totalSelfCpuTime: number;
+  minSelfCpuTime: number;
+  maxSelfCpuTime: number;
+  lastSelfCpuTime: number;
+  selfCpuP50: number;
+  selfCpuP95: number;
+  selfCpuP99: number;
+  cpuP50: number;
+  cpuP95: number;
+  cpuP99: number;
 
   // Duration spans (profiling-timer time from first returning Running to Succeeded/Failed)
   totalRunningTime: number;
@@ -193,6 +209,12 @@ interface NodeProfilingData {
   lastRunningTime: number;
 }
 ```
+
+### Percentile Modes
+
+- Live mode should usually use **sampled** percentiles for responsiveness.
+- Paused/time-travel snapshots can use **exact** percentiles over the currently stored tick window.
+- `inspector.getPercentileMode()` exposes which mode a given inspector instance is using.
 
 ## Flame Graphs
 

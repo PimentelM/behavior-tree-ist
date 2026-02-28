@@ -362,11 +362,13 @@ describe("TreeInspector", () => {
 
         const liveData = inspector.getNodeProfilingData(1)!;
         // Live mode keeps fast sampled percentiles and can include evicted outliers.
+        expect(inspector.getPercentileMode()).toBe("sampled");
         expect(liveData.tickCount).toBe(2);
         expect(liveData.cpuP95).toBe(100);
 
         const frozen = inspector.cloneForTimeTravel();
         const frozenData = frozen.getNodeProfilingData(1)!;
+        expect(frozen.getPercentileMode()).toBe("exact");
         expect(frozenData.tickCount).toBe(2);
         expect(frozenData.cpuP50).toBe(1);
         expect(frozenData.cpuP95).toBe(2);
@@ -383,6 +385,7 @@ describe("TreeInspector", () => {
         inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 2 }]));
 
         const sampledClone = inspector.cloneForTimeTravel({ exactPercentiles: false });
+        expect(sampledClone.getPercentileMode()).toBe("sampled");
         const sampledData = sampledClone.getNodeProfilingData(1)!;
         expect(sampledData.tickCount).toBe(2);
         expect(sampledData.cpuP95).toBe(100);

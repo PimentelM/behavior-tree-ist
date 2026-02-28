@@ -111,6 +111,10 @@ export class Profiler {
         return this._tickCount;
     }
 
+    getPercentileMode(): "sampled" | "exact" {
+        return this.exactPercentilesReady ? "exact" : "sampled";
+    }
+
     /**
      * Accumulate timing data from a tick's events.
      */
