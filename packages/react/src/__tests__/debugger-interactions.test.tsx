@@ -272,7 +272,7 @@ describe('PerformanceView', () => {
     expect(screen.getByText('60.0%')).toBeTruthy();
     expect(screen.getByText('15.0%')).toBeTruthy();
     expect(screen.getByText('P95 Self')).toBeTruthy();
-    expect(screen.queryByText('P95 CPU')).toBeNull();
+    expect(screen.queryByText('P95 Inclusive')).toBeNull();
     expect(screen.getByText('Flamegraph')).toBeTruthy();
     expect(screen.getByText('Tick')).toBeTruthy();
     expect(screen.getByText('Hot Nodes')).toBeTruthy();
@@ -281,8 +281,8 @@ describe('PerformanceView', () => {
     expect(screen.getByText('Total Ticks: 1')).toBeTruthy();
     expect(screen.getByText('Total Time: 100ms / 320ms')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Show CPU metrics' }));
-    expect(screen.getByText('P95 CPU')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Show Inclusive metrics' }));
+    expect(screen.getByText('P95 Inclusive')).toBeTruthy();
     expect(screen.getByText('100.0%')).toBeTruthy();
     expect(screen.getByText('25.0%')).toBeTruthy();
   });
@@ -350,7 +350,7 @@ describe('PerformanceView', () => {
 
     expect(getFirstRowText()).toContain('Node 1');
 
-    fireEvent.click(within(container).getByRole('button', { name: 'Show CPU metrics' }));
+    fireEvent.click(within(container).getByRole('button', { name: 'Show Inclusive metrics' }));
     fireEvent.click(within(container).getByRole('button', { name: 'Avg Self' }));
     expect(getFirstRowText()).toContain('Node 2');
 

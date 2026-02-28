@@ -25,14 +25,14 @@ const ADVANCED_SORT_KEYS: ReadonlySet<SortKey> = new Set<SortKey>([
 ]);
 
 const SORT_LABEL: Record<SortKey, string> = {
-  totalCpuTime: 'Total CPU',
+  totalCpuTime: 'Total Inclusive',
   totalSelfCpuTime: 'Total Self',
-  avgCpu: 'Avg CPU',
+  avgCpu: 'Avg Inclusive',
   avgSelf: 'Avg Self',
-  cpuP95: 'P95 CPU',
+  cpuP95: 'P95 Inclusive',
   selfCpuP95: 'P95 Self',
   tickCount: 'Ticks',
-  totalPct: 'Total %',
+  totalPct: 'Total Inclusive %',
   totalSelfPct: 'Total Self %',
 };
 
@@ -175,7 +175,7 @@ function HotNodesTableInner({
         <div className="bt-hot-nodes__header-actions">
           <span className="bt-hot-nodes__sorted-by">Sorted by: {sortedLabel}</span>
           <button className="bt-hot-nodes__toggle bt-hot-nodes__toggle--advanced" onClick={toggleAdvanced} type="button">
-            {showAdvanced ? 'Hide CPU metrics' : 'Show CPU metrics'}
+            {showAdvanced ? 'Hide Inclusive metrics' : 'Show Inclusive metrics'}
           </button>
         </div>
       </div>
@@ -193,10 +193,10 @@ function HotNodesTableInner({
                   {renderSortHeader('avgSelf', 'Avg Self')}
                   {renderSortHeader('selfCpuP95', 'P95 Self')}
                   {renderSortHeader('tickCount', 'Ticks')}
-                  {showAdvanced && renderSortHeader('totalCpuTime', 'Total CPU')}
-                  {showAdvanced && renderSortHeader('totalPct', 'Total %')}
-                  {showAdvanced && renderSortHeader('avgCpu', 'Avg CPU')}
-                  {showAdvanced && renderSortHeader('cpuP95', 'P95 CPU')}
+                  {showAdvanced && renderSortHeader('totalCpuTime', 'Total Inclusive')}
+                  {showAdvanced && renderSortHeader('totalPct', 'Total Inclusive %')}
+                  {showAdvanced && renderSortHeader('avgCpu', 'Avg Inclusive')}
+                  {showAdvanced && renderSortHeader('cpuP95', 'P95 Inclusive')}
                 </tr>
               </thead>
               <tbody>
