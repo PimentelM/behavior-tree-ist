@@ -164,7 +164,7 @@ Result semantics are strict per tick:
 
 Each node shows:
 - Display name with compact semantic badges
-- Utility and memory-capable nodes with dedicated letter badges (`U`, `M`)
+- Utility, memory, and async nodes with dedicated letter badges (`U`, `M`, `A`) and canonical badge-only rendering
 - Memory composites surface active child index in the node name (for example `MemorySequence (0)`) and omit `runningChildIndex` from state rows
 - Type glyphs inspired by common behavior-tree notation conventions:
   - Sequence: single arrow (`->`) for ordered progression

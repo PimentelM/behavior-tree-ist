@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps, Node } from '@xyflow/react';
+import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
 import type { BTNodeData, NodeVisualKind } from '../../types';
 import {
   getDebuggerDisplayName,
@@ -36,6 +37,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
     displayState,
   });
   const temporalIndicator = getTemporalIndicatorIcon(nodeFlags);
+  const isAsyncAction = hasFlag(nodeFlags, NodeFlags.Async) && hasFlag(nodeFlags, NodeFlags.Action);
   const identityBadges = getIdentityBadges(nodeFlags);
   const accentColor = getResultColor(result);
   const lifecycleDecoratorIds = lifecycleDecorators.map((entry) => entry.nodeId);
@@ -117,7 +119,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
         )}
         <div className="bt-node__header">
           <span className={`bt-node__glyph bt-node__glyph--${visualKind}`} aria-hidden="true">
-            <NodeGlyph kind={visualKind} />
+            <NodeGlyph kind={visualKind} isAsyncAction={isAsyncAction} />
           </span>
           <span className="bt-node__name" title={displayName}>
             {displayName}
@@ -168,7 +170,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
         )}
         {hasState && (
           <div className={`bt-node__display-state ${displayStateIsStale ? 'bt-node__display-state--stale' : ''}`}>
-            {displayStateIsStale && <div className="bt-node__state-meta" title="Showing last known state" />}
+            {/* {displayStateIsStale && <div className="bt-node__state-meta" title="Showing last known state" />} */}
             {stateEntries.map(([key, value]) => (
               <div key={key} className="bt-node__state-entry">
                 <span className="bt-node__state-key">{key}</span>
@@ -195,7 +197,11 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
   );
 }
 
-function NodeGlyph({ kind }: { kind: NodeVisualKind }) {
+function NodeGlyph({ kind, isAsyncAction }: { kind: NodeVisualKind; isAsyncAction: boolean }) {
+  if (isAsyncAction && kind === 'action') {
+    return <span className="bt-node__glyph-letter bt-node__glyph-letter--async">A</span>;
+  }
+
   switch (kind) {
     case 'sequence':
       return (

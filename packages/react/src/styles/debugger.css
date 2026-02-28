@@ -406,6 +406,12 @@
   color: color-mix(in srgb, #93c5fd 70%, var(--bt-text-primary));
 }
 
+.bt-node__identity-badge--async {
+  border-color: color-mix(in srgb, #2563eb 58%, var(--bt-border-color));
+  background: color-mix(in srgb, #2563eb 24%, var(--bt-bg-tertiary));
+  color: color-mix(in srgb, #bfdbfe 72%, var(--bt-text-primary));
+}
+
 .bt-node__decorator-refs {
   padding: 0 4px 2px 10px;
   display: flex;
@@ -421,8 +427,8 @@
 }
 
 .bt-node__glyph {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   border: 1px solid color-mix(in srgb, var(--bt-border-color) 80%, transparent);
   background: color-mix(in srgb, var(--bt-bg-tertiary) 76%, transparent);
@@ -434,13 +440,24 @@
 }
 
 .bt-node__glyph-icon {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.bt-node__glyph-letter {
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 800;
+  font-family: var(--bt-font-mono);
+}
+
+.bt-node__glyph-letter--async {
+  color: color-mix(in srgb, #60a5fa 78%, var(--bt-text-primary));
 }
 
 .bt-node__glyph--sequence {
@@ -1103,6 +1120,7 @@
 }
 
 @media (max-width: 900px) {
+
   .bt-debugger-layout,
   .bt-debugger-layout--with-sidebar {
     grid-template-columns: 1fr;

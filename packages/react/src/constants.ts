@@ -67,7 +67,7 @@ interface FlagLabel {
 export interface IdentityBadge {
   label: string;
   title: string;
-  kind: 'utility' | 'memory';
+  kind: 'utility' | 'memory' | 'async';
 }
 
 const FLAG_DEFINITIONS: Array<{ flag: number; label: string; category: 'primary' | 'secondary' }> = [
@@ -119,7 +119,6 @@ export function getNodeVisualKind(nodeFlags: number): NodeVisualKind {
 }
 
 const CAPABILITY_BADGE_DEFS: Array<{ flag: number; label: string }> = [
-  { flag: NodeFlags.Async, label: 'Async' },
   { flag: NodeFlags.TimeBased, label: 'Time' },
   { flag: NodeFlags.CountBased, label: 'Count' },
   { flag: NodeFlags.Stateful, label: 'Stateful' },
@@ -133,7 +132,8 @@ export function getCapabilityBadges(nodeFlags: number): string[] {
   const hasTemporalCapability = hasFlag(nodeFlags, NodeFlags.TimeBased)
     || hasFlag(nodeFlags, NodeFlags.CountBased);
   const hasStatefulSubtype = hasFlag(nodeFlags, NodeFlags.Utility)
-    || hasFlag(nodeFlags, NodeFlags.Memory);
+    || hasFlag(nodeFlags, NodeFlags.Memory)
+    || hasFlag(nodeFlags, NodeFlags.Async);
 
   for (const entry of CAPABILITY_BADGE_DEFS) {
     if (entry.flag === NodeFlags.Stateful && (hasTemporalCapability || hasStatefulSubtype)) {
@@ -159,6 +159,10 @@ export function getTemporalIndicatorIcon(nodeFlags: number): string | null {
 
 export function getIdentityBadges(nodeFlags: number): IdentityBadge[] {
   const badges: IdentityBadge[] = [];
+
+  if (hasFlag(nodeFlags, NodeFlags.Async)) {
+    badges.push({ label: 'A', title: 'Async node', kind: 'async' });
+  }
 
   if (hasFlag(nodeFlags, NodeFlags.Utility)) {
     badges.push({ label: 'U', title: 'Utility node', kind: 'utility' });
