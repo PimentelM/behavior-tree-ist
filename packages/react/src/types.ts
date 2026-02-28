@@ -15,6 +15,7 @@ export interface PanelConfig {
   nodeDetails?: boolean;
   timeline?: boolean;
   refTraces?: boolean;
+  performance?: boolean;
 }
 
 export interface ThemeOverrides {

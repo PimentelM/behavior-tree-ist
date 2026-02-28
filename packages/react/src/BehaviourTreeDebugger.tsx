@@ -9,11 +9,13 @@ import { useTreeLayout } from './hooks/useTreeLayout';
 import { useSnapshotOverlay } from './hooks/useSnapshotOverlay';
 import { useTimeTravelControls } from './hooks/useTimeTravelControls';
 import { useNodeDetails } from './hooks/useNodeDetails';
+import { usePerformanceData } from './hooks/usePerformanceData';
 import { DebuggerLayout } from './components/DebuggerLayout';
 import { TreeCanvas } from './components/TreeCanvas';
 import { ToolbarPanel } from './components/panels/ToolbarPanel';
 import { TimelinePanel } from './components/panels/TimelinePanel';
 import { NodeDetailPanel } from './components/panels/NodeDetailPanel';
+import { PerformanceView } from './components/panels/PerformanceView';
 import { buildTheme, themeToCSSVars } from './styles/theme';
 import './styles/debugger.css';
 
@@ -91,6 +93,7 @@ export function BehaviourTreeDebugger({
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
   const [openDetailsSignal, setOpenDetailsSignal] = useState(0);
   const [centerTreeSignal, setCenterTreeSignal] = useState(0);
+  const [performanceMode, setPerformanceMode] = useState(false);
   const [focusNodeId, setFocusNodeId] = useState<number | null>(null);
   const [focusNodeSignal, setFocusNodeSignal] = useState(0);
   const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
@@ -194,6 +197,9 @@ export function BehaviourTreeDebugger({
 
   // Node details for sidebar
   const nodeDetails = useNodeDetails(activeInspector, selectedNodeId, viewedTickId, tickGeneration);
+
+  // Performance data for flamegraph/hot nodes
+  const performanceData = usePerformanceData(activeInspector, viewedTickId, tickGeneration);
 
   // Collect ref events across all stored ticks for the ref details panel
   const refEvents = useMemo(() => {
@@ -299,6 +305,10 @@ export function BehaviourTreeDebugger({
     setCenterTreeSignal((value) => value + 1);
   }, []);
 
+  const handleTogglePerformanceMode = useCallback(() => {
+    setPerformanceMode((v) => !v);
+  }, []);
+
   const handleToggleTimeTravel = useCallback(() => {
     if (timeTravelControls.mode === 'paused') {
       timeTravelControls.jumpToLive();
@@ -324,6 +334,7 @@ export function BehaviourTreeDebugger({
   const showSidebar = panels.nodeDetails !== false || panels.refTraces !== false;
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
+  const showPerformance = panels.performance !== false;
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
   const [shadowStyles, setShadowStyles] = useState('');
@@ -370,19 +381,32 @@ export function BehaviourTreeDebugger({
               displayTimeAsTimestamp={displayTimeAsTimestamp}
               onToggleTimeFormat={handleToggleTimeFormat}
               onToggleTimeTravel={handleToggleTimeTravel}
+              performanceMode={performanceMode}
+              onTogglePerformanceMode={showPerformance ? handleTogglePerformanceMode : undefined}
             />
           ) : null
         }
         canvas={
-          <TreeCanvas
-            nodes={nodes}
-            edges={edges}
-            layoutVersion={layoutVersion}
-            centerTreeSignal={centerTreeSignal}
-            focusNodeId={focusNodeId}
-            focusNodeSignal={focusNodeSignal}
-            onNodeClick={handleNodeClick}
-          />
+          performanceMode ? (
+            <PerformanceView
+              frames={performanceData.frames}
+              hotNodes={performanceData.hotNodes}
+              onSelectNode={handleNodeClick}
+              selectedNodeId={selectedNodeId}
+              treeIndex={activeInspector.tree ?? null}
+              viewedTickId={viewedTickId}
+            />
+          ) : (
+            <TreeCanvas
+              nodes={nodes}
+              edges={edges}
+              layoutVersion={layoutVersion}
+              centerTreeSignal={centerTreeSignal}
+              focusNodeId={focusNodeId}
+              focusNodeSignal={focusNodeSignal}
+              onNodeClick={handleNodeClick}
+            />
+          )
         }
         sidebar={
           showSidebar ? (

@@ -15,6 +15,8 @@ interface ToolbarPanelProps {
   displayTimeAsTimestamp: boolean;
   onToggleTimeFormat?: () => void;
   onToggleTimeTravel?: () => void;
+  performanceMode?: boolean;
+  onTogglePerformanceMode?: () => void;
 }
 
 function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
@@ -42,6 +44,8 @@ function ToolbarPanelInner({
   displayTimeAsTimestamp,
   onToggleTimeFormat,
   onToggleTimeTravel,
+  performanceMode,
+  onTogglePerformanceMode,
 }: ToolbarPanelProps) {
   const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
   const toggleTimeFormatLabel = displayTimeAsTimestamp ? 'Show time as number' : 'Show time as timestamp';
@@ -61,6 +65,17 @@ function ToolbarPanelInner({
               >
                 <CenterIcon />
               </button>
+              {onTogglePerformanceMode && (
+                <button
+                  className={`bt-toolbar__perf-btn ${performanceMode ? 'bt-toolbar__perf-btn--active' : ''}`}
+                  onClick={onTogglePerformanceMode}
+                  type="button"
+                  aria-label={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
+                  title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
+                >
+                  <ChartIcon />
+                </button>
+              )}
               {actions}
             </div>
           </div>
@@ -133,6 +148,17 @@ function ToolbarPanelInner({
         >
           <CenterIcon />
         </button>
+        {onTogglePerformanceMode && (
+          <button
+            className={`bt-toolbar__perf-btn ${performanceMode ? 'bt-toolbar__perf-btn--active' : ''}`}
+            onClick={onTogglePerformanceMode}
+            type="button"
+            aria-label={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
+            title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
+          >
+            <ChartIcon />
+          </button>
+        )}
         {actions}
         <button
           className="bt-toolbar__time-format-btn"
@@ -209,6 +235,16 @@ function MoonIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
+      <rect x="3" y="14" width="4" height="7" rx="1" fill="currentColor" opacity="0.6" />
+      <rect x="10" y="8" width="4" height="13" rx="1" fill="currentColor" opacity="0.8" />
+      <rect x="17" y="3" width="4" height="18" rx="1" fill="currentColor" />
     </svg>
   );
 }

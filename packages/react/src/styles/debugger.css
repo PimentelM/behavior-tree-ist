@@ -1545,3 +1545,246 @@
     display: none;
   }
 }
+
+/* ===== Performance View ===== */
+
+.bt-perf-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 12px 16px;
+  gap: 16px;
+}
+
+.bt-perf-view__summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+  padding: 6px 10px;
+  background: var(--bt-bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--bt-border-color);
+}
+
+.bt-perf-view__summary-item {
+  white-space: nowrap;
+}
+
+.bt-perf-view__flamegraph {
+  flex: 0 0 auto;
+}
+
+.bt-perf-view__hot-nodes {
+  flex: 0 0 auto;
+}
+
+/* ===== Flamegraph ===== */
+
+.bt-flamegraph {
+  position: relative;
+}
+
+.bt-flamegraph__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.bt-flamegraph__bar {
+  cursor: pointer;
+}
+
+.bt-flamegraph__bar:hover rect:first-child {
+  filter: brightness(1.15);
+}
+
+.bt-flamegraph__bar--selected rect:first-child {
+  filter: brightness(1.1);
+}
+
+.bt-flamegraph__label {
+  font-size: 10px;
+  fill: #fff;
+  pointer-events: none;
+  font-family: var(--bt-font-mono);
+}
+
+.bt-flamegraph__label-time {
+  opacity: 0.7;
+  font-size: 9px;
+}
+
+.bt-flamegraph__tooltip {
+  z-index: 1000;
+  background: var(--bt-bg-tertiary);
+  border: 1px solid var(--bt-border-color);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 140px;
+}
+
+.bt-flamegraph__tooltip-name {
+  font-weight: 600;
+  color: var(--bt-text-primary);
+  margin-bottom: 4px;
+  font-family: var(--bt-font-mono);
+}
+
+.bt-flamegraph__tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  line-height: 1.6;
+}
+
+.bt-flamegraph__tooltip-label {
+  color: var(--bt-text-muted);
+}
+
+.bt-flamegraph__tooltip-value {
+  color: var(--bt-text-primary);
+  font-family: var(--bt-font-mono);
+}
+
+.bt-flamegraph__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--bt-text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ===== Hot Nodes Table ===== */
+
+.bt-hot-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bt-hot-nodes__title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--bt-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 2px;
+}
+
+.bt-hot-nodes__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.bt-hot-nodes__header {
+  border-bottom: 1px solid var(--bt-border-color);
+}
+
+.bt-hot-nodes__header .bt-hot-nodes__cell {
+  font-weight: 600;
+  color: var(--bt-text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 8px 6px;
+  text-align: left;
+}
+
+.bt-hot-nodes__header .bt-hot-nodes__cell--num {
+  text-align: right;
+}
+
+.bt-hot-nodes__row {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.bt-hot-nodes__row:hover {
+  background: color-mix(in srgb, var(--bt-accent-color) 8%, transparent);
+}
+
+.bt-hot-nodes__row--selected {
+  background: color-mix(in srgb, var(--bt-accent-color) 15%, transparent);
+}
+
+.bt-hot-nodes__row--selected:hover {
+  background: color-mix(in srgb, var(--bt-accent-color) 20%, transparent);
+}
+
+.bt-hot-nodes__cell {
+  padding: 4px 8px;
+  color: var(--bt-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.bt-hot-nodes__cell--name {
+  font-family: var(--bt-font-mono);
+}
+
+.bt-hot-nodes__cell--num {
+  text-align: right;
+  font-family: var(--bt-font-mono);
+  color: var(--bt-text-secondary);
+}
+
+.bt-hot-nodes__toggle {
+  background: none;
+  border: 1px solid var(--bt-border-color);
+  border-radius: 4px;
+  padding: 4px 10px;
+  color: var(--bt-text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: 4px;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.bt-hot-nodes__toggle:hover {
+  color: var(--bt-text-primary);
+  border-color: var(--bt-text-muted);
+}
+
+/* ===== Toolbar Performance Button ===== */
+
+.bt-toolbar__perf-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--bt-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.bt-toolbar__perf-btn:hover {
+  color: var(--bt-text-primary);
+  background: color-mix(in srgb, var(--bt-text-primary) 8%, transparent);
+}
+
+.bt-toolbar__perf-btn--active {
+  color: var(--bt-accent-color);
+  background: color-mix(in srgb, var(--bt-accent-color) 12%, transparent);
+  border-color: color-mix(in srgb, var(--bt-accent-color) 30%, transparent);
+}
+
+.bt-toolbar__perf-btn--active:hover {
+  background: color-mix(in srgb, var(--bt-accent-color) 18%, transparent);
+}
