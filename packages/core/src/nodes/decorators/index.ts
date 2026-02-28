@@ -28,3 +28,4 @@ export * from './tag';
 export * from './delay';
 export * from './run-once';
 export * from './utility';
+export * from './sub-tree';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BTNode, NodeResult, TickContext } from "../base";
+import { BTNode, NodeFlags, NodeResult, TickContext } from "../base";
 import { Sequence, SequenceWithMemory, FallbackWithMemory, Fallback } from "../nodes";
 import { ConditionNode } from "../base/condition";
 import { Action } from "../base";
@@ -12,6 +12,7 @@ import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
 import { tickNode } from "../test-helpers";
 import { Utility } from "../nodes/decorators/utility";
+import { SubTree } from "../nodes/decorators/sub-tree";
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 
@@ -346,5 +347,32 @@ describe("TSX Adapter", () => {
         expect(tree.name).toBe("MyTSXDisplay");
         expect(tree.getDisplayState?.()).toEqual({ hello: "world" });
         expect(tickNode(tree)).toBe(NodeResult.Succeeded);
+    });
+
+    it("supports sub-tree intrinsic element", () => {
+        const tree = (
+            <sub-tree name="CombatBoundary" id="combat-root" namespace="combat">
+                <action name="Attack" execute={() => NodeResult.Succeeded} />
+            </sub-tree>
+        );
+
+        expect(tree).toBeInstanceOf(SubTree);
+        expect(tree.displayName).toBe("CombatBoundary");
+        expect(tree.nodeFlags & NodeFlags.SubTree).toBeTruthy();
+        expect(tree.getDisplayState?.()).toEqual({ id: "combat-root", namespace: "combat" });
+        expect(tickNode(tree)).toBe(NodeResult.Succeeded);
+    });
+
+    it("throws when sub-tree does not have exactly one child", () => {
+        expect(() => {
+            <sub-tree name="Invalid" />;
+        }).toThrow("<sub-tree> must have exactly one child node");
+
+        expect(() => {
+            <sub-tree name="Invalid">
+                <action execute={() => NodeResult.Succeeded} />
+                <action execute={() => NodeResult.Succeeded} />
+            </sub-tree>;
+        }).toThrow("<sub-tree> must have exactly one child node");
     });
 });

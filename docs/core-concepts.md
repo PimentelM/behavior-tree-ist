@@ -30,7 +30,7 @@ type NodeResult = "Succeeded" | "Failed" | "Running";
 | `nodeFlags` | `NodeFlags` | Bitfield for classification (see [Node Flags](node-flags.md)) |
 | `wasRunning` | `boolean` | True if the previous tick returned `Running` |
 
-`NodeFlags` also includes debugger-oriented refinements like `TimeBased` and `CountBased`, which help UI tooling render stateful names and indicators more clearly.
+`NodeFlags` also includes debugger-oriented refinements like `TimeBased`, `CountBased`, and `SubTree`, which help UI tooling render runtime semantics and boundaries more clearly.
 
 ## Tick Lifecycle
 

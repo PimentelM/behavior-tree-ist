@@ -26,6 +26,7 @@ export const NodeFlags = {
     Lifecycle: 1 << 16,  // 0x10000 — lifecycle hook side-effect
     Async: 1 << 17,  // 0x20000 — asynchronous/promise-based node
     Display: 1 << 18,  // 0x40000 — node whose purpose is merely display related
+    SubTree: 1 << 19,  // 0x80000 — explicit subtree boundary marker for tooling
 } as const;
 export type NodeFlags = number;
 

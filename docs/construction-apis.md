@@ -90,6 +90,7 @@ const root = fallback({ name: 'AI' }, [
 | Function | Node type |
 |---|---|
 | `utility(props & { scorer }, child)` | `Utility` |
+| `subTree(props?, child)` | `SubTree` |
 
 **Leaves** (take `props` only):
 
@@ -177,6 +178,17 @@ All builder functions accept these props for automatic decorator application:
 | `outputs` | `Ref<unknown>[]` | Refs this node writes to |
 
 These props are purely metadata for external tooling (inspectors, visualizers). They have no runtime effect on node execution.
+
+### SubTreeProps
+
+`subTree(props, child)` accepts `SubTreeProps`, which extends `NodeProps` with boundary metadata:
+
+| Prop | Type | Description |
+|---|---|---|
+| `id` | `string` | Optional stable subtree identifier for tooling |
+| `namespace` | `string` | Optional logical namespace label |
+
+`SubTree` metadata is declarative only. It does not alter ticking, control flow, or context behavior.
 
 ### Decorator Application Order
 

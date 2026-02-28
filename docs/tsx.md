@@ -85,6 +85,7 @@ These accept `NodeProps` + `children`:
 | `<utility-selector>` | `NodeProps + children` | Alias for `<utility-fallback>` |
 | `<utility-sequence>` | `NodeProps + children` | Sequence sorted by utility score. Children must be `<utility-node>` |
 | `<utility-node>` | `NodeProps + { scorer } + children` | Wraps exactly one child with a scoring function |
+| `<sub-tree>` | `SubTreeProps + children` | Metadata-only subtree boundary wrapper (exactly one child) |
 
 ```tsx
 <utility-fallback>
@@ -172,6 +173,19 @@ All hooks: `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure
 <sequence name="Combat" tag="ai" />
 <action name="Attack" tags={['combat', 'offensive']} execute={fn} />
 ```
+
+### Subtree Boundaries
+
+```tsx
+<sub-tree name="Combat" id="combat-root" namespace="combat">
+  <sequence>
+    <condition name="Has target?" eval={() => hasTarget} />
+    <action name="Attack" execute={() => NodeResult.Succeeded} />
+  </sequence>
+</sub-tree>
+```
+
+`<sub-tree>` is metadata-only and behaviorally transparent. It marks an explicit boundary for inspector/UI tooling.
 
 ### Generic Decorator Specs
 

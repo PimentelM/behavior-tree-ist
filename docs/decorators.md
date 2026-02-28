@@ -243,6 +243,28 @@ tagged.tags; // ['combat', 'offensive']
 
 Tags can also be added directly: `node.addTags(['combat', 'offensive'])`.
 
+## SubTree
+
+Metadata-only boundary decorator for subtree roots. `SubTree` is behaviorally transparent: it ticks and aborts exactly like its child.
+
+Use it when you want a stable runtime boundary marker for inspector/UI features (collapse, filtering, breadcrumbs) or future logical scoping.
+
+```typescript
+import { SubTree, Sequence, Action, NodeResult } from '@behavior-tree-ist/core';
+
+const combatBoundary = new SubTree(
+  Sequence.from('Combat Logic', [
+    Action.from('Attack', () => NodeResult.Succeeded),
+  ]),
+  {
+    id: 'combat-root',
+    namespace: 'combat',
+  },
+);
+```
+
+`SubTree` sets the `SubTree` flag and optionally exposes `{ id, namespace }` via display state for tooling. It does not change execution semantics.
+
 ## Summary Table
 
 | Category | Decorators | Flags |
@@ -253,4 +275,4 @@ Tags can also be added directly: `node.addTags(['combat', 'offensive'])`.
 | Control Flow | Repeat, Retry, KeepRunningUntilFailure, RunOnce | `Repeating` / `Stateful` / `CountBased` (Repeat, Retry) |
 | Lifecycle | OnEnter, OnResume, OnReset, OnTicked, OnSuccess, OnFailure, OnRunning, OnFinished, OnSuccessOrRunning, OnFailedOrRunning, OnAbort | `Lifecycle` |
 | Scoring | Utility | `Utility` |
-| Metadata | Tag | (none) |
+| Metadata | Tag, SubTree | `SubTree` (SubTree only) |

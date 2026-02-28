@@ -66,6 +66,13 @@ export function createElement(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return Builder.utility(safeProps as unknown as any, flatChildren[0]);
         }
+        case "sub-tree": {
+            if (flatChildren.length !== 1) {
+                throw new Error(`<sub-tree> must have exactly one child node, but got ${flatChildren.length}.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return Builder.subTree(safeProps as unknown as any, flatChildren[0]);
+        }
         case "action":
             // Action requires an execute prop
             if (typeof safeProps.execute !== "function") {
@@ -138,6 +145,7 @@ declare global {
             "utility-selector": DefaultCompositeProps; // alias for utility-fallback
             "utility-sequence": DefaultCompositeProps;
             "utility-node": Builder.NodeProps & { scorer: UtilityScorer; children?: Element | Element[] };
+            "sub-tree": Builder.SubTreeProps & { children?: Element | Element[] };
             "action": Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
             "async-action": Builder.NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | void> };
             "condition": Builder.NodeProps & { eval: (ctx: TickContext) => boolean };

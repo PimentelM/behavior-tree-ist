@@ -6,6 +6,7 @@ import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
 import { UtilityScorer } from "../base/utility";
 import { Utility } from "../nodes/decorators/utility";
+import { SubTree, SubTreeMetadata } from "../nodes/decorators/sub-tree";
 import * as Decorators from "../nodes/decorators";
 import { AnyDecoratorSpec } from "../base/node";
 import { Ref, ReadonlyRef } from "../base/ref";
@@ -63,6 +64,8 @@ export interface NodeProps {
     inputs?: ReadonlyRef<unknown>[];
     outputs?: Ref<unknown>[];
 }
+
+export interface SubTreeProps extends NodeProps, SubTreeMetadata {}
 
 export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     let current = node;
@@ -185,6 +188,14 @@ export const selectorWithMemory = fallbackWithMemory;
 
 export function utility(props: NodeProps & { scorer: UtilityScorer }, child: BTNode): Utility {
     return new Utility(child, props.scorer);
+}
+
+export function subTree(props: SubTreeProps = {}, child: BTNode): BTNode {
+    const boundary = new SubTree(child, { id: props.id, namespace: props.namespace });
+    if (props.name) {
+        boundary.name = props.name;
+    }
+    return applyDecorators(boundary, props);
 }
 
 export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeResult }): BTNode {

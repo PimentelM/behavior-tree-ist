@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, fallback, parallel, action, condition, utilityFallback, utilitySequence, utility, displayState } from "./index";
+import { sequence, fallback, parallel, action, condition, utilityFallback, utilitySequence, utility, displayState, subTree } from "./index";
 import { NodeResult } from "../base/types";
 import { tickNode } from "../test-helpers";
 
@@ -103,6 +103,18 @@ describe("Subtree Builder Factory", () => {
 
         expect(node.displayName).toBe("MyDisplay");
         expect(node.getDisplayState?.()).toEqual({ foo: "bar" });
+        expect(tickNode(node)).toBe(NodeResult.Succeeded);
+    });
+
+    it("builds a metadata-only subtree boundary", () => {
+        const node = subTree({
+            name: "CombatBoundary",
+            id: "combat-root",
+            namespace: "combat"
+        }, action({ execute: () => NodeResult.Succeeded }));
+
+        expect(node.displayName).toBe("CombatBoundary");
+        expect(node.getDisplayState?.()).toEqual({ id: "combat-root", namespace: "combat" });
         expect(tickNode(node)).toBe(NodeResult.Succeeded);
     });
 });

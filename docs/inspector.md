@@ -81,6 +81,7 @@ index.getById(5);                    // IndexedNode | undefined
 index.getByName('Attack');           // readonly IndexedNode[]
 index.getByTag('combat');            // readonly IndexedNode[]
 index.getByFlag(NodeFlags.Stateful); // readonly IndexedNode[]
+index.getByFlag(NodeFlags.SubTree);  // subtree boundaries
 
 // Convenience filters
 index.getLeaves();     // All leaf nodes
