@@ -65,7 +65,11 @@ function NodeDetailPanelInner({
         </div>
       )}
 
-      <div className="bt-detail-panel__content">
+      <div
+        className={`bt-detail-panel__content ${
+          activeTab === 'details' ? 'bt-detail-panel__content--details' : 'bt-detail-panel__content--refs'
+        }`}
+      >
         {activeTab === 'details' ? (
           details ? (
             <>

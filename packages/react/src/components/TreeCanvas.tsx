@@ -116,16 +116,24 @@ function TreeCanvasInner({
     if (focusNodeSignal === undefined || focusNodeId === null || focusNodeId === undefined) return;
     if (lastFocusSignalRef.current === focusNodeSignal) return;
 
-    lastFocusSignalRef.current = focusNodeSignal;
-    const targetNode = renderNodes.find((node) => node.data.representedNodeIds.includes(focusNodeId));
-    if (!targetNode) return;
+    const frame = requestAnimationFrame(() => {
+      const targetNode = renderNodes.find((node) => node.data.representedNodeIds.includes(focusNodeId));
+      if (!targetNode) return;
 
-    flowInstance.fitView({
-      nodes: [targetNode],
-      padding: 1.2,
-      duration: 260,
-      maxZoom: 1.35,
+      const nodeWidth = targetNode.measured?.width ?? targetNode.width ?? 0;
+      const nodeHeight = targetNode.measured?.height ?? targetNode.height ?? 0;
+      const centerX = targetNode.position.x + (nodeWidth / 2);
+      const centerY = targetNode.position.y + (nodeHeight / 2);
+      const currentZoom = flowInstance.getZoom();
+
+      flowInstance.setCenter(centerX, centerY, {
+        zoom: Math.min(Math.max(currentZoom, 0.9), 1.35),
+        duration: 260,
+      });
+      lastFocusSignalRef.current = focusNodeSignal;
     });
+
+    return () => cancelAnimationFrame(frame);
   }, [flowInstance, renderNodes, focusNodeId, focusNodeSignal]);
 
   return (

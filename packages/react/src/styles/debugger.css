@@ -47,6 +47,8 @@
   grid-template-rows: 1fr 76px;
   width: 100%;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .bt-debugger-layout.bt-debugger-layout--no-timeline {
@@ -92,6 +94,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .bt-debugger-layout--with-toolbar.bt-debugger-layout--with-timeline .bt-debugger-layout__sidebar {
@@ -881,6 +884,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 
 .bt-detail-panel__empty {
@@ -922,9 +926,16 @@
 }
 
 .bt-detail-panel__content {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 12px;
+  min-height: 0;
+}
+
+.bt-detail-panel__content--details {
+  overflow-y: auto;
 }
 
 .bt-node-header {
@@ -1125,6 +1136,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .bt-ref-traces__controls {
@@ -1188,6 +1202,11 @@
   gap: 6px;
 }
 
+.bt-ref-traces__section:last-child {
+  flex: 1;
+  min-height: 0;
+}
+
 .bt-ref-traces__title {
   font-size: 10px;
   font-weight: 700;
@@ -1201,6 +1220,13 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.bt-ref-traces__event-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .bt-ref-traces__state-entry {
@@ -1320,6 +1346,8 @@
   font-size: 10px;
   line-height: 1.45;
   word-break: break-word;
+  max-height: 120px;
+  overflow: auto;
 }
 
 .bt-node .react-flow__handle {
