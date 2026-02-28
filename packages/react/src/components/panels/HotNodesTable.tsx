@@ -1,8 +1,10 @@
-import { memo, useState, useCallback, useMemo } from 'react';
+import { memo, useState, useCallback, useMemo, type UIEvent } from 'react';
 import type { NodeProfilingData, TreeIndex } from '@behavior-tree-ist/core/inspector';
 import { formatMs } from '../../utils/format';
 
 const DEFAULT_VISIBLE = 20;
+const LOAD_CHUNK_SIZE = 20;
+const LOAD_THRESHOLD_PX = 72;
 
 type SortKey =
   | 'totalCpuTime'
@@ -15,6 +17,25 @@ type SortKey =
   | 'totalPct'
   | 'totalSelfPct';
 
+const ADVANCED_SORT_KEYS: ReadonlySet<SortKey> = new Set<SortKey>([
+  'totalCpuTime',
+  'totalPct',
+  'avgCpu',
+  'cpuP95',
+]);
+
+const SORT_LABEL: Record<SortKey, string> = {
+  totalCpuTime: 'Total CPU',
+  totalSelfCpuTime: 'Total Self',
+  avgCpu: 'Avg CPU',
+  avgSelf: 'Avg Self',
+  cpuP95: 'P95 CPU',
+  selfCpuP95: 'P95 Self',
+  tickCount: 'Ticks',
+  totalPct: 'Total %',
+  totalSelfPct: 'Total Self %',
+};
+
 interface HotNodesTableProps {
   hotNodes: NodeProfilingData[];
   rootTotalCpuTime: number;
@@ -23,6 +44,9 @@ interface HotNodesTableProps {
   onSelectNode: (nodeId: number) => void;
   selectedNodeId: number | null;
   treeIndex: TreeIndex | null;
+  hoveredNodeId: number | null;
+  onHoverNode: (nodeId: number) => void;
+  onClearHover: () => void;
 }
 
 function HotNodesTableInner({
@@ -33,19 +57,27 @@ function HotNodesTableInner({
   onSelectNode,
   selectedNodeId,
   treeIndex,
+  hoveredNodeId,
+  onHoverNode,
+  onClearHover,
 }: HotNodesTableProps) {
-  const [showAll, setShowAll] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>('totalCpuTime');
-
-  const toggleShowAll = useCallback(() => {
-    setShowAll((v) => !v);
-  }, []);
+  const [visibleCount, setVisibleCount] = useState(DEFAULT_VISIBLE);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>('totalSelfCpuTime');
 
   const setSort = useCallback((nextSortKey: SortKey) => {
     setSortKey(nextSortKey);
+    setVisibleCount(DEFAULT_VISIBLE);
   }, []);
-
-  if (hotNodes.length === 0) return null;
+  const toggleAdvanced = useCallback(() => {
+    setShowAdvanced((current) => {
+      const next = !current;
+      if (!next && ADVANCED_SORT_KEYS.has(sortKey)) {
+        setSortKey('totalSelfCpuTime');
+      }
+      return next;
+    });
+  }, [sortKey]);
 
   const rows = useMemo(() => {
     return hotNodes.map((node) => {
@@ -95,145 +127,128 @@ function HotNodesTableInner({
     return sorted;
   }, [rows, sortKey]);
 
-  const visible = showAll ? sortedRows : sortedRows.slice(0, DEFAULT_VISIBLE);
-  const hasMore = sortedRows.length > DEFAULT_VISIBLE;
+  const hasMore = visibleCount < sortedRows.length;
+  const visible = sortedRows.slice(0, visibleCount);
+
+  const handleTableScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
+    if (!hasMore) return;
+    const element = event.currentTarget;
+    const scrollBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+    if (scrollBottom <= LOAD_THRESHOLD_PX) {
+      setVisibleCount((current) => Math.min(current + LOAD_CHUNK_SIZE, sortedRows.length));
+    }
+  }, [hasMore, sortedRows.length]);
 
   const sortArrow = ' \u2193';
+  const sortedLabel = SORT_LABEL[sortKey];
+
+  const renderSortHeader = (key: SortKey, label: string) => (
+    <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
+      <button
+        className={`bt-hot-nodes__sort ${sortKey === key ? 'bt-hot-nodes__sort--active' : ''}`}
+        onClick={() => setSort(key)}
+        type="button"
+      >
+        {label}{sortKey === key ? sortArrow : ''}
+      </button>
+    </th>
+  );
 
   return (
     <div className="bt-hot-nodes">
       <div className="bt-hot-nodes__header-bar">
-        <div className="bt-hot-nodes__title">Hot Nodes (Window)</div>
-        <div className="bt-hot-nodes__meta">
-          <span className="bt-hot-nodes__meta-item">
-            Total Ticks: {windowTickCount}
-          </span>
-          <span className="bt-hot-nodes__meta-item">
-            Total Time: {formatMs(rootTotalCpuTime)} / {formatMs(windowSpan)}
-          </span>
+        <div className="bt-hot-nodes__header-left">
+          <span className="bt-perf-view__scope-badge bt-perf-view__scope-badge--window">Window</span>
+          <div className="bt-hot-nodes__title">Hot Nodes</div>
+          <div className="bt-hot-nodes__meta">
+            <span className="bt-hot-nodes__meta-item">Total Ticks: {windowTickCount}</span>
+            <span className="bt-hot-nodes__meta-item">Total Time: {formatMs(rootTotalCpuTime)} / {formatMs(windowSpan)}</span>
+            <button
+              className="bt-hot-nodes__hint"
+              title="Total Time = accumulated root CPU in the window / wall-clock span of the same window."
+              type="button"
+            >
+              ?
+            </button>
+          </div>
+        </div>
+        <div className="bt-hot-nodes__header-actions">
+          <span className="bt-hot-nodes__sorted-by">Sorted by: {sortedLabel}</span>
+          <button className="bt-hot-nodes__toggle bt-hot-nodes__toggle--advanced" onClick={toggleAdvanced} type="button">
+            {showAdvanced ? 'Hide CPU metrics' : 'Show CPU metrics'}
+          </button>
         </div>
       </div>
-      <table className="bt-hot-nodes__table">
-        <thead>
-          <tr className="bt-hot-nodes__header">
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--name">Name</th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'totalCpuTime' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('totalCpuTime')}
-                type="button"
-              >
-                Total CPU{sortKey === 'totalCpuTime' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'totalSelfCpuTime' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('totalSelfCpuTime')}
-                type="button"
-              >
-                Total Self{sortKey === 'totalSelfCpuTime' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'totalPct' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('totalPct')}
-                type="button"
-              >
-                Total %{sortKey === 'totalPct' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'totalSelfPct' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('totalSelfPct')}
-                type="button"
-              >
-                Total Self %{sortKey === 'totalSelfPct' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'avgCpu' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('avgCpu')}
-                type="button"
-              >
-                Avg CPU{sortKey === 'avgCpu' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'avgSelf' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('avgSelf')}
-                type="button"
-              >
-                Avg Self{sortKey === 'avgSelf' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'cpuP95' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('cpuP95')}
-                type="button"
-              >
-                P95 CPU{sortKey === 'cpuP95' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'selfCpuP95' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('selfCpuP95')}
-                type="button"
-              >
-                P95 Self{sortKey === 'selfCpuP95' ? sortArrow : ''}
-              </button>
-            </th>
-            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
-              <button
-                className={`bt-hot-nodes__sort ${sortKey === 'tickCount' ? 'bt-hot-nodes__sort--active' : ''}`}
-                onClick={() => setSort('tickCount')}
-                type="button"
-              >
-                Ticks{sortKey === 'tickCount' ? sortArrow : ''}
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {visible.map((row) => {
-            const { node, name, avgCpu, avgSelf, totalPct, totalSelfPct } = row;
-            const isSelected = node.nodeId === selectedNodeId;
+      {hotNodes.length === 0 ? (
+        <div className="bt-hot-nodes__empty">No profiling data in the current window.</div>
+      ) : (
+        <>
+          <div className="bt-hot-nodes__table-wrap" onMouseLeave={onClearHover} onScroll={handleTableScroll}>
+            <table className="bt-hot-nodes__table">
+              <thead>
+                <tr className="bt-hot-nodes__header">
+                  <th className="bt-hot-nodes__cell bt-hot-nodes__cell--name">Name</th>
+                  {renderSortHeader('totalSelfCpuTime', 'Total Self')}
+                  {renderSortHeader('totalSelfPct', 'Total Self %')}
+                  {renderSortHeader('avgSelf', 'Avg Self')}
+                  {renderSortHeader('selfCpuP95', 'P95 Self')}
+                  {renderSortHeader('tickCount', 'Ticks')}
+                  {showAdvanced && renderSortHeader('totalCpuTime', 'Total CPU')}
+                  {showAdvanced && renderSortHeader('totalPct', 'Total %')}
+                  {showAdvanced && renderSortHeader('avgCpu', 'Avg CPU')}
+                  {showAdvanced && renderSortHeader('cpuP95', 'P95 CPU')}
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((row) => {
+                  const { node, name, avgCpu, avgSelf, totalPct, totalSelfPct } = row;
+                  const isSelected = node.nodeId === selectedNodeId;
+                  const isHovered = node.nodeId === hoveredNodeId;
+                  const totalPctWidth = Math.max(0, Math.min(100, totalPct));
+                  const totalSelfPctWidth = Math.max(0, Math.min(100, totalSelfPct));
 
-            return (
-              <tr
-                key={node.nodeId}
-                className={`bt-hot-nodes__row ${isSelected ? 'bt-hot-nodes__row--selected' : ''}`}
-                onClick={() => onSelectNode(node.nodeId)}
-              >
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--name">{name}</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalCpuTime)}</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalSelfCpuTime)}</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{totalPct.toFixed(1)}%</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{totalSelfPct.toFixed(1)}%</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgCpu)}</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgSelf)}</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.cpuP95)}</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.selfCpuP95)}</td>
-                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{node.tickCount}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      {hasMore && (
-        <button
-          className="bt-hot-nodes__toggle"
-          onClick={toggleShowAll}
-          type="button"
-        >
-          {showAll ? 'Show less' : `Show all (${hotNodes.length})`}
-        </button>
+                  return (
+                    <tr
+                      key={node.nodeId}
+                      className={`bt-hot-nodes__row ${isSelected ? 'bt-hot-nodes__row--selected' : ''} ${isHovered ? 'bt-hot-nodes__row--hovered' : ''}`}
+                      onClick={() => onSelectNode(node.nodeId)}
+                      onMouseEnter={() => onHoverNode(node.nodeId)}
+                    >
+                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--name" title={name}>{name}</td>
+                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalSelfCpuTime)}</td>
+                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num bt-hot-nodes__cell--pct">
+                        <div className="bt-hot-nodes__pct-cell">
+                          <span className="bt-hot-nodes__pct-fill bt-hot-nodes__pct-fill--self" style={{ width: `${totalSelfPctWidth}%` }} />
+                          <span className="bt-hot-nodes__pct-value">{totalSelfPct.toFixed(1)}%</span>
+                        </div>
+                      </td>
+                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgSelf)}</td>
+                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.selfCpuP95)}</td>
+                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{node.tickCount}</td>
+                      {showAdvanced && (
+                        <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalCpuTime)}</td>
+                      )}
+                      {showAdvanced && (
+                        <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num bt-hot-nodes__cell--pct">
+                          <div className="bt-hot-nodes__pct-cell">
+                            <span className="bt-hot-nodes__pct-fill" style={{ width: `${totalPctWidth}%` }} />
+                            <span className="bt-hot-nodes__pct-value">{totalPct.toFixed(1)}%</span>
+                          </div>
+                        </td>
+                      )}
+                      {showAdvanced && (
+                        <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgCpu)}</td>
+                      )}
+                      {showAdvanced && (
+                        <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.cpuP95)}</td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { FlameGraphFrame, NodeProfilingData, TreeIndex, TreeStats } from '@behavior-tree-ist/core/inspector';
 import { FlameGraph, countFrames } from './FlameGraph';
 import { HotNodesTable } from './HotNodesTable';
@@ -23,14 +23,19 @@ function PerformanceViewInner({
   treeIndex,
   viewedTickId,
 }: PerformanceViewProps) {
+  const [hoveredNodeId, setHoveredNodeId] = useState<number | null>(null);
   const tickTotal = frames.reduce((sum, frame) => sum + frame.inclusiveTime, 0);
   const nodeCount = countFrames(frames);
+  const clearHoveredNode = useCallback(() => {
+    setHoveredNodeId(null);
+  }, []);
 
   return (
     <div className="bt-perf-view">
       <div className="bt-perf-view__flamegraph">
         <div className="bt-perf-view__panel-header">
-          <span className="bt-perf-view__panel-title">Flamegraph (Tick)</span>
+          <span className="bt-perf-view__scope-badge bt-perf-view__scope-badge--tick">Tick</span>
+          <span className="bt-perf-view__panel-title">Flamegraph</span>
           <span className="bt-perf-view__panel-meta-item">#{viewedTickId ?? '-'}</span>
           {tickTotal > 0 && (
             <span className="bt-perf-view__panel-meta-item">CPU: {formatMs(tickTotal)}</span>
@@ -43,6 +48,9 @@ function PerformanceViewInner({
           frames={frames}
           onSelectNode={onSelectNode}
           selectedNodeId={selectedNodeId}
+          hoveredNodeId={hoveredNodeId}
+          onHoverNode={setHoveredNodeId}
+          onClearHover={clearHoveredNode}
         />
       </div>
       <div className="bt-perf-view__hot-nodes">
@@ -54,6 +62,9 @@ function PerformanceViewInner({
           treeIndex={treeIndex ?? null}
           windowTickCount={stats.storedTickCount}
           windowSpan={stats.profilingWindowSpan}
+          hoveredNodeId={hoveredNodeId}
+          onHoverNode={setHoveredNodeId}
+          onClearHover={clearHoveredNode}
         />
       </div>
     </div>

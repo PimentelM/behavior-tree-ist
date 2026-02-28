@@ -269,19 +269,22 @@ describe('PerformanceView', () => {
       />,
     );
 
-    expect(screen.getByText('100.0%')).toBeTruthy();
-    expect(screen.getByText('25.0%')).toBeTruthy();
     expect(screen.getByText('60.0%')).toBeTruthy();
     expect(screen.getByText('15.0%')).toBeTruthy();
-    expect(screen.getByText('Total Self')).toBeTruthy();
-    expect(screen.getByText('Total Self %')).toBeTruthy();
-    expect(screen.getByText('Avg Self')).toBeTruthy();
-    expect(screen.getByText('P95 CPU')).toBeTruthy();
     expect(screen.getByText('P95 Self')).toBeTruthy();
-    expect(screen.getByText('Flamegraph (Tick)')).toBeTruthy();
-    expect(screen.getByText('Hot Nodes (Window)')).toBeTruthy();
+    expect(screen.queryByText('P95 CPU')).toBeNull();
+    expect(screen.getByText('Flamegraph')).toBeTruthy();
+    expect(screen.getByText('Tick')).toBeTruthy();
+    expect(screen.getByText('Hot Nodes')).toBeTruthy();
+    expect(screen.getByText('Window')).toBeTruthy();
+    expect(screen.getByText('Sorted by: Total Self')).toBeTruthy();
     expect(screen.getByText('Total Ticks: 1')).toBeTruthy();
     expect(screen.getByText('Total Time: 100ms / 320ms')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show CPU metrics' }));
+    expect(screen.getByText('P95 CPU')).toBeTruthy();
+    expect(screen.getByText('100.0%')).toBeTruthy();
+    expect(screen.getByText('25.0%')).toBeTruthy();
   });
 
   it('computes tick total from all root frames and uses it in flamegraph tooltip percent', () => {
@@ -347,10 +350,36 @@ describe('PerformanceView', () => {
 
     expect(getFirstRowText()).toContain('Node 1');
 
+    fireEvent.click(within(container).getByRole('button', { name: 'Show CPU metrics' }));
     fireEvent.click(within(container).getByRole('button', { name: 'Avg Self' }));
     expect(getFirstRowText()).toContain('Node 2');
 
     fireEvent.click(within(container).getByRole('button', { name: 'P95 Self' }));
     expect(getFirstRowText()).toContain('Node 2');
+  });
+
+  it('cross-highlights hot node rows and flamegraph bars on hover', () => {
+    const { container } = render(
+      <PerformanceView
+        frames={[makeFrame({ nodeId: 7, name: 'CrossNode', inclusiveTime: 30, finishedAt: 30 })]}
+        hotNodes={[makeProfilingData({ nodeId: 7, totalCpuTime: 30, tickCount: 1 })]}
+        stats={makeStats({ totalRootCpuTime: 30 })}
+        onSelectNode={vi.fn()}
+        selectedNodeId={null}
+        treeIndex={null}
+        viewedTickId={9}
+      />,
+    );
+
+    const row = container.querySelector('tbody tr');
+    const bar = container.querySelector('.bt-flamegraph__bar');
+    expect(row).toBeTruthy();
+    expect(bar).toBeTruthy();
+
+    fireEvent.mouseEnter(row!);
+    expect(bar!.getAttribute('class')).toContain('bt-flamegraph__bar--hovered');
+
+    fireEvent.mouseMove(bar!, { clientX: 30, clientY: 20 });
+    expect(row!.className).toContain('bt-hot-nodes__row--hovered');
   });
 });

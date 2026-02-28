@@ -2,7 +2,7 @@ import { memo, useState, useCallback, useMemo } from 'react';
 import type { FlameGraphFrame } from '@behavior-tree-ist/core/inspector';
 import { formatMs } from '../../utils/format';
 
-const BAR_HEIGHT = 24;
+const BAR_HEIGHT = 20;
 const BAR_GAP = 1;
 const MIN_TEXT_WIDTH = 36;
 const ROW_HEIGHT = BAR_HEIGHT + BAR_GAP;
@@ -13,6 +13,9 @@ interface FlameGraphProps {
   frames: FlameGraphFrame[];
   onSelectNode: (nodeId: number) => void;
   selectedNodeId: number | null;
+  hoveredNodeId: number | null;
+  onHoverNode: (nodeId: number) => void;
+  onClearHover: () => void;
 }
 
 interface TooltipInfo {
@@ -120,12 +123,20 @@ function computeBars(
   return bars;
 }
 
-function FlameGraphInner({ frames, onSelectNode, selectedNodeId }: FlameGraphProps) {
+function FlameGraphInner({
+  frames,
+  onSelectNode,
+  selectedNodeId,
+  hoveredNodeId,
+  onHoverNode,
+  onClearHover,
+}: FlameGraphProps) {
   const [tooltip, setTooltip] = useState<TooltipInfo | null>(null);
 
   const handleMouseLeave = useCallback(() => {
     setTooltip(null);
-  }, []);
+    onClearHover();
+  }, [onClearHover]);
 
   const totalWidth = 800;
   const tickTotal = frames.reduce((sum, frame) => sum + frame.inclusiveTime, 0);
@@ -155,6 +166,7 @@ function FlameGraphInner({ frames, onSelectNode, selectedNodeId }: FlameGraphPro
       >
         {bars.map((bar) => {
           const isSelected = bar.frame.nodeId === selectedNodeId;
+          const isHovered = bar.frame.nodeId === hoveredNodeId;
           const fraction = selfTimeFraction(bar.frame);
           const color = heatColor(fraction);
           const textFits = bar.width > MIN_TEXT_WIDTH;
@@ -162,9 +174,11 @@ function FlameGraphInner({ frames, onSelectNode, selectedNodeId }: FlameGraphPro
           return (
             <g
               key={`${bar.frame.nodeId}-${bar.frame.depth}`}
-              className={`bt-flamegraph__bar ${isSelected ? 'bt-flamegraph__bar--selected' : ''}`}
+              className={`bt-flamegraph__bar ${isSelected ? 'bt-flamegraph__bar--selected' : ''} ${isHovered ? 'bt-flamegraph__bar--hovered' : ''}`}
               onClick={() => onSelectNode(bar.frame.nodeId)}
+              onMouseEnter={() => onHoverNode(bar.frame.nodeId)}
               onMouseMove={(e) => {
+                onHoverNode(bar.frame.nodeId);
                 setTooltip({
                   x: e.clientX,
                   y: e.clientY,
@@ -206,6 +220,7 @@ function FlameGraphInner({ frames, onSelectNode, selectedNodeId }: FlameGraphPro
                   </tspan>
                 </text>
               )}
+              <title>{bar.frame.name}</title>
             </g>
           );
         })}
