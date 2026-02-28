@@ -412,6 +412,22 @@
   color: color-mix(in srgb, #bfdbfe 72%, var(--bt-text-primary));
 }
 
+.bt-node__identity-badge--guard {
+  border-color: color-mix(in srgb, #ca8a04 55%, var(--bt-border-color));
+  background: color-mix(in srgb, #ca8a04 20%, var(--bt-bg-tertiary));
+  color: color-mix(in srgb, #facc15 72%, var(--bt-text-primary));
+}
+
+.bt-node__identity-badge-icon {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .bt-node__decorator-refs {
   padding: 0 4px 2px 10px;
   display: flex;

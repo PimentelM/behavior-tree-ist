@@ -67,7 +67,7 @@ interface FlagLabel {
 export interface IdentityBadge {
   label: string;
   title: string;
-  kind: 'utility' | 'memory' | 'async';
+  kind: 'utility' | 'memory' | 'async' | 'guard';
 }
 
 const FLAG_DEFINITIONS: Array<{ flag: number; label: string; category: 'primary' | 'secondary' }> = [
@@ -170,6 +170,10 @@ export function getIdentityBadges(nodeFlags: number): IdentityBadge[] {
 
   if (hasFlag(nodeFlags, NodeFlags.Memory)) {
     badges.push({ label: 'M', title: 'Memory node', kind: 'memory' });
+  }
+
+  if (hasFlag(nodeFlags, NodeFlags.Decorator) && hasFlag(nodeFlags, NodeFlags.Guard)) {
+    badges.push({ label: '', title: 'Guard decorator', kind: 'guard' });
   }
 
   return badges;

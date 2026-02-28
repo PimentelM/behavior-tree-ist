@@ -10,6 +10,7 @@ import {
   getResultColor,
   getTemporalIndicatorIcon,
 } from '../../constants';
+import type { IdentityBadge } from '../../constants';
 
 type BTFlowNode = Node<BTNodeData, 'btNode'>;
 
@@ -91,11 +92,11 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
                     )}
                     {decoratorIdentityBadges.map((badge) => (
                       <span
-                        key={`${decorator.nodeId}-${badge.label}`}
+                        key={`${decorator.nodeId}-${badge.kind}-${badge.label}`}
                         className={`bt-node__identity-badge bt-node__identity-badge--${badge.kind}`}
                         title={badge.title}
                       >
-                        {badge.label}
+                        <IdentityBadgeContent kind={badge.kind} label={badge.label} />
                       </span>
                     ))}
                     {decoratorState.length > 0 && (
@@ -131,11 +132,11 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
           )}
           {identityBadges.map((badge) => (
             <span
-              key={badge.label}
+              key={`${badge.kind}-${badge.label}`}
               className={`bt-node__identity-badge bt-node__identity-badge--${badge.kind}`}
               title={badge.title}
             >
-              {badge.label}
+              <IdentityBadgeContent kind={badge.kind} label={badge.label} />
             </span>
           ))}
           {lifecycleDecoratorIds.length > 0 && (
@@ -229,12 +230,7 @@ function NodeGlyph({ kind, isAsyncAction }: { kind: NodeVisualKind; isAsyncActio
         </svg>
       );
     case 'condition':
-      return (
-        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
-          <path d="M8 2.5 13 8l-5 5.5L3 8z" />
-          <path d="m6.2 8 1.4 1.5L10 7" />
-        </svg>
-      );
+      return <ConditionGlyphIcon className="bt-node__glyph-icon" />;
     case 'action':
       return (
         <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
@@ -251,6 +247,23 @@ function NodeGlyph({ kind, isAsyncAction }: { kind: NodeVisualKind; isAsyncActio
         </svg>
       );
   }
+}
+
+function IdentityBadgeContent({ kind, label }: { kind: IdentityBadge['kind']; label: string }) {
+  if (kind === 'guard') {
+    return <ConditionGlyphIcon className="bt-node__identity-badge-icon" />;
+  }
+
+  return label;
+}
+
+function ConditionGlyphIcon({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className}>
+      <path d="M8 2.5 13 8l-5 5.5L3 8z" />
+      <path d="m6.2 8 1.4 1.5L10 7" />
+    </svg>
+  );
 }
 
 function formatValue(value: unknown): string {
