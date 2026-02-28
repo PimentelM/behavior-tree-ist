@@ -64,6 +64,12 @@ interface FlagLabel {
   category: 'primary' | 'secondary';
 }
 
+export interface IdentityBadge {
+  label: string;
+  title: string;
+  kind: 'utility' | 'memory';
+}
+
 const FLAG_DEFINITIONS: Array<{ flag: number; label: string; category: 'primary' | 'secondary' }> = [
   { flag: NodeFlags.Composite, label: 'Composite', category: 'primary' },
   { flag: NodeFlags.Decorator, label: 'Decorator', category: 'primary' },
@@ -114,8 +120,6 @@ export function getNodeVisualKind(nodeFlags: number): NodeVisualKind {
 
 const CAPABILITY_BADGE_DEFS: Array<{ flag: number; label: string }> = [
   { flag: NodeFlags.Async, label: 'Async' },
-  { flag: NodeFlags.Memory, label: 'Memory' },
-  { flag: NodeFlags.Utility, label: 'Utility' },
   { flag: NodeFlags.TimeBased, label: 'Time' },
   { flag: NodeFlags.CountBased, label: 'Count' },
   { flag: NodeFlags.Stateful, label: 'Stateful' },
@@ -126,7 +130,15 @@ const CAPABILITY_BADGE_DEFS: Array<{ flag: number; label: string }> = [
 
 export function getCapabilityBadges(nodeFlags: number): string[] {
   const badges: string[] = [];
+  const hasTemporalCapability = hasFlag(nodeFlags, NodeFlags.TimeBased)
+    || hasFlag(nodeFlags, NodeFlags.CountBased);
+  const hasStatefulSubtype = hasFlag(nodeFlags, NodeFlags.Utility)
+    || hasFlag(nodeFlags, NodeFlags.Memory);
+
   for (const entry of CAPABILITY_BADGE_DEFS) {
+    if (entry.flag === NodeFlags.Stateful && (hasTemporalCapability || hasStatefulSubtype)) {
+      continue;
+    }
     if (hasFlag(nodeFlags, entry.flag)) badges.push(entry.label);
   }
   return badges;
@@ -145,6 +157,20 @@ export function getTemporalIndicatorIcon(nodeFlags: number): string | null {
   return null;
 }
 
+export function getIdentityBadges(nodeFlags: number): IdentityBadge[] {
+  const badges: IdentityBadge[] = [];
+
+  if (hasFlag(nodeFlags, NodeFlags.Utility)) {
+    badges.push({ label: 'U', title: 'Utility node', kind: 'utility' });
+  }
+
+  if (hasFlag(nodeFlags, NodeFlags.Memory)) {
+    badges.push({ label: 'M', title: 'Memory node', kind: 'memory' });
+  }
+
+  return badges;
+}
+
 export function getDebuggerDisplayName({
   name,
   defaultName,
@@ -158,19 +184,52 @@ export function getDebuggerDisplayName({
 }): string {
   const trimmedName = name.trim();
 
+  let resolvedName = trimmedName.length > 0 ? trimmedName : defaultName;
+
   if (hasFlag(nodeFlags, NodeFlags.Guard) && trimmedName.length > 0) {
-    return `${defaultName}: ${trimmedName}`;
+    resolvedName = `${defaultName}: ${trimmedName}`;
   }
 
   if (hasFlag(nodeFlags, NodeFlags.TimeBased) || hasFlag(nodeFlags, NodeFlags.CountBased)) {
     const stateValue = getDisplayStateValue(displayState);
-    if (stateValue !== undefined) {
-      return `${defaultName} (${stateValue})`;
-    }
-    return defaultName;
+    resolvedName = stateValue !== undefined
+      ? `${defaultName} (${stateValue})`
+      : defaultName;
   }
 
-  return trimmedName.length > 0 ? trimmedName : defaultName;
+  const memoryRunningIndex = getMemoryCompositeRunningChildIndex(nodeFlags, displayState);
+  if (memoryRunningIndex !== undefined) {
+    return `${resolvedName} (${memoryRunningIndex})`;
+  }
+
+  return resolvedName;
+}
+
+export function getVisibleDisplayStateEntries(
+  nodeFlags: number,
+  displayState: Record<string, unknown> | undefined,
+): Array<[string, unknown]> {
+  if (!displayState) return [];
+
+  const entries = Object.entries(displayState);
+  if (isMemoryComposite(nodeFlags)) {
+    return entries.filter(([key]) => key !== 'runningChildIndex');
+  }
+  return entries;
+}
+
+function getMemoryCompositeRunningChildIndex(
+  nodeFlags: number,
+  displayState: Record<string, unknown> | undefined,
+): number | undefined {
+  if (!displayState || !isMemoryComposite(nodeFlags)) return undefined;
+  const runningChildIndex = displayState.runningChildIndex;
+  if (typeof runningChildIndex !== 'number') return undefined;
+  return runningChildIndex;
+}
+
+function isMemoryComposite(nodeFlags: number): boolean {
+  return hasFlag(nodeFlags, NodeFlags.Memory) && hasFlag(nodeFlags, NodeFlags.Composite);
 }
 
 function getDisplayStateValue(displayState: Record<string, unknown> | undefined): string | undefined {

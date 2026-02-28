@@ -2,7 +2,13 @@ import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps, Node } from '@xyflow/react';
 import type { BTNodeData, NodeVisualKind } from '../../types';
-import { getDebuggerDisplayName, getResultColor, getTemporalIndicatorIcon } from '../../constants';
+import {
+  getDebuggerDisplayName,
+  getIdentityBadges,
+  getVisibleDisplayStateEntries,
+  getResultColor,
+  getTemporalIndicatorIcon,
+} from '../../constants';
 
 type BTFlowNode = Node<BTNodeData, 'btNode'>;
 
@@ -30,6 +36,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
     displayState,
   });
   const temporalIndicator = getTemporalIndicatorIcon(nodeFlags);
+  const identityBadges = getIdentityBadges(nodeFlags);
   const accentColor = getResultColor(result);
   const lifecycleDecoratorIds = lifecycleDecorators.map((entry) => entry.nodeId);
   const lifecycleDecoratorNames = lifecycleDecorators.map((entry) => getDebuggerDisplayName({
@@ -38,9 +45,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
     nodeFlags: entry.nodeFlags,
   }));
 
-  const stateEntries = displayState
-    ? Object.entries(displayState)
-    : [];
+  const stateEntries = getVisibleDisplayStateEntries(nodeFlags, displayState);
   const hasState = stateEntries.length > 0;
   const hasRefEvents = refEvents.length > 0;
 
@@ -55,9 +60,8 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
         {stackedDecorators.length > 0 && (
           <div className="bt-node__decorator-stack">
             {stackedDecorators.map((decorator) => {
-              const decoratorState = decorator.displayState
-                ? Object.entries(decorator.displayState)
-                : [];
+              const decoratorState = getVisibleDisplayStateEntries(decorator.nodeFlags, decorator.displayState);
+              const decoratorIdentityBadges = getIdentityBadges(decorator.nodeFlags);
               const decoratorColor = getResultColor(decorator.result);
               return (
                 <div key={decorator.nodeId} className="bt-node__decorator-entry">
@@ -83,6 +87,15 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
                         {getTemporalIndicatorIcon(decorator.nodeFlags)}
                       </span>
                     )}
+                    {decoratorIdentityBadges.map((badge) => (
+                      <span
+                        key={`${decorator.nodeId}-${badge.label}`}
+                        className={`bt-node__identity-badge bt-node__identity-badge--${badge.kind}`}
+                        title={badge.title}
+                      >
+                        {badge.label}
+                      </span>
+                    ))}
                     {decoratorState.length > 0 && (
                       <span className="bt-node__decorator-state">{decoratorState.length} state</span>
                     )}
@@ -114,6 +127,15 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
               {temporalIndicator}
             </span>
           )}
+          {identityBadges.map((badge) => (
+            <span
+              key={badge.label}
+              className={`bt-node__identity-badge bt-node__identity-badge--${badge.kind}`}
+              title={badge.title}
+            >
+              {badge.label}
+            </span>
+          ))}
           {lifecycleDecoratorIds.length > 0 && (
             <span className="bt-node__lifecycle-pill" title="Lifecycle decorator hooks">
               <button

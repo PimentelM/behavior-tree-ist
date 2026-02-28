@@ -63,7 +63,7 @@ function NodeDetailPanelInner({
             <NodeHeader details={details} />
             <NodeResultSummary resultSummary={details.resultSummary} />
             {details.currentDisplayState && (
-              <NodeStateDisplay state={details.currentDisplayState} />
+              <NodeStateDisplay nodeFlags={details.flags} state={details.currentDisplayState} />
             )}
             <NodeHistory
               history={details.history}

@@ -1,11 +1,13 @@
 import { memo } from 'react';
+import { getVisibleDisplayStateEntries } from '../../constants';
 
 interface NodeStateDisplayProps {
+  nodeFlags: number;
   state: Record<string, unknown>;
 }
 
-function NodeStateDisplayInner({ state }: NodeStateDisplayProps) {
-  const entries = Object.entries(state);
+function NodeStateDisplayInner({ nodeFlags, state }: NodeStateDisplayProps) {
+  const entries = getVisibleDisplayStateEntries(nodeFlags, state);
   if (entries.length === 0) return null;
 
   return (
