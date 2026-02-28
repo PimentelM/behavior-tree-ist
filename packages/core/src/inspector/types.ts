@@ -20,6 +20,13 @@ export interface NodeProfilingData {
     minCpuTime: number;
     maxCpuTime: number;
     lastCpuTime: number;
+    totalSelfCpuTime: number;
+    minSelfCpuTime: number;
+    maxSelfCpuTime: number;
+    lastSelfCpuTime: number;
+    cpuP50: number;
+    cpuP95: number;
+    cpuP99: number;
     totalRunningTime: number;
     runningTimeCount: number;
     minRunningTime: number;

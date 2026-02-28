@@ -49,6 +49,13 @@ function makeProfilingData(overrides: Partial<NodeProfilingData> = {}): NodeProf
     minCpuTime: 1,
     maxCpuTime: 4,
     lastCpuTime: 2,
+    totalSelfCpuTime: 6,
+    minSelfCpuTime: 0.5,
+    maxSelfCpuTime: 2,
+    lastSelfCpuTime: 1,
+    cpuP50: 2,
+    cpuP95: 4,
+    cpuP99: 4,
     totalRunningTime: 0,
     runningTimeCount: 0,
     minRunningTime: Infinity,
@@ -178,6 +185,8 @@ describe('NodeDetailPanel', () => {
     // Profiling section should be visible
     expect(screen.getByText('Profiling')).toBeTruthy();
     expect(screen.getByText('CPU Time')).toBeTruthy();
+    expect(screen.getByText('Self CPU Time')).toBeTruthy();
+    expect(screen.getByText('p95')).toBeTruthy();
     expect(screen.getByText('Ticks')).toBeTruthy();
 
     // Re-render without profiling data — section should disappear
@@ -259,6 +268,8 @@ describe('PerformanceView', () => {
 
     expect(screen.getByText('100.0%')).toBeTruthy();
     expect(screen.getByText('25.0%')).toBeTruthy();
+    expect(screen.getByText('Total Self')).toBeTruthy();
+    expect(screen.getByText('P95 CPU')).toBeTruthy();
     expect(screen.getByText('Window: 320ms')).toBeTruthy();
   });
 

@@ -106,6 +106,53 @@ describe("Profiler", () => {
         expect(profiler.getAverageCpuTime(999)).toBeUndefined();
     });
 
+    it("tracks self cpu time for nested timed events", () => {
+        const profiler = new Profiler();
+        profiler.ingestTick(makeEvents(1, [
+            { nodeId: 1, start: 0, end: 100 },
+            { nodeId: 2, start: 20, end: 60 },
+        ]));
+
+        const root = profiler.getNodeData(1)!;
+        const child = profiler.getNodeData(2)!;
+        expect(root.totalCpuTime).toBe(100);
+        expect(root.totalSelfCpuTime).toBe(60);
+        expect(child.totalCpuTime).toBe(40);
+        expect(child.totalSelfCpuTime).toBe(40);
+    });
+
+    it("computes cpu percentiles from exact window samples", () => {
+        const profiler = new Profiler();
+        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 1 }]));
+        profiler.ingestTick(makeEvents(2, [{ nodeId: 1, start: 0, end: 2 }]));
+        profiler.ingestTick(makeEvents(3, [{ nodeId: 1, start: 0, end: 3 }]));
+        profiler.ingestTick(makeEvents(4, [{ nodeId: 1, start: 0, end: 4 }]));
+        profiler.ingestTick(makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }]));
+
+        const node = profiler.getNodeData(1)!;
+        expect(node.cpuP50).toBe(3);
+        expect(node.cpuP95).toBe(100);
+        expect(node.cpuP99).toBe(100);
+    });
+
+    it("updates cpu and self min/max exactly after eviction", () => {
+        const profiler = new Profiler();
+        const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 5 }]);
+        const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 10 }]);
+        const tick3 = makeEvents(3, [{ nodeId: 1, start: 0, end: 20 }]);
+
+        profiler.ingestTick(tick1);
+        profiler.ingestTick(tick2);
+        profiler.ingestTick(tick3);
+        profiler.removeTick(tick1);
+
+        const node = profiler.getNodeData(1)!;
+        expect(node.minCpuTime).toBe(10);
+        expect(node.maxCpuTime).toBe(20);
+        expect(node.minSelfCpuTime).toBe(10);
+        expect(node.maxSelfCpuTime).toBe(20);
+    });
+
     it("getHotNodes returns sorted by total cpu time", () => {
         const profiler = new Profiler();
         profiler.ingestTick(makeEvents(1, [
@@ -140,6 +187,24 @@ describe("Profiler", () => {
         expect(profiler.getNodeData(1)).toBeUndefined();
     });
 
+    it("clone preserves state and stays isolated from further updates", () => {
+        const profiler = new Profiler();
+        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(makeEvents(2, [{ nodeId: 1, start: 0, end: 20 }]));
+
+        const cloned = profiler.clone();
+        expect(cloned.tickCount).toBe(2);
+        expect(cloned.totalCpuTime).toBe(30);
+        expect(cloned.getNodeData(1)!.totalCpuTime).toBe(30);
+
+        profiler.ingestTick(makeEvents(3, [{ nodeId: 1, start: 0, end: 40 }]));
+        expect(profiler.tickCount).toBe(3);
+        expect(profiler.totalCpuTime).toBe(70);
+        expect(cloned.tickCount).toBe(2);
+        expect(cloned.totalCpuTime).toBe(30);
+        expect(cloned.getNodeData(1)!.totalCpuTime).toBe(30);
+    });
+
     describe("runningTime (duration spans)", () => {
         it("records single-tick duration correctly", () => {
             const profiler = new Profiler();
@@ -150,6 +215,20 @@ describe("Profiler", () => {
             const data = profiler.getNodeData(1)!;
             expect(data.totalRunningTime).toBe(10);
             expect(data.runningTimeCount).toBe(1);
+        });
+
+        it("updates running min/max exactly after eviction", () => {
+            const profiler = new Profiler();
+            const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]);
+            const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 30 }]);
+
+            profiler.ingestTick(tick1);
+            profiler.ingestTick(tick2);
+            profiler.removeTick(tick1);
+
+            const data = profiler.getNodeData(1)!;
+            expect(data.minRunningTime).toBe(30);
+            expect(data.maxRunningTime).toBe(30);
         });
 
         it("spans duration correctly across multiple running ticks", () => {

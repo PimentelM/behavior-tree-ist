@@ -38,7 +38,9 @@ function HotNodesTableInner({
           <tr className="bt-hot-nodes__header">
             <th className="bt-hot-nodes__cell bt-hot-nodes__cell--name">Name</th>
             <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">Total CPU</th>
+            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">Total Self</th>
             <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">Avg CPU</th>
+            <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">P95 CPU</th>
             <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">Ticks</th>
             <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">%</th>
           </tr>
@@ -59,7 +61,9 @@ function HotNodesTableInner({
               >
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--name">{name}</td>
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalCpuTime)}</td>
+                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalSelfCpuTime)}</td>
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avg)}</td>
+                <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.cpuP95)}</td>
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{node.tickCount}</td>
                 <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{pct.toFixed(1)}%</td>
               </tr>

@@ -10,6 +10,7 @@ function NodeProfilingDisplayInner({ profilingData }: NodeProfilingDisplayProps)
   if (profilingData.tickCount === 0) return null;
 
   const avgCpu = profilingData.totalCpuTime / profilingData.tickCount;
+  const avgSelfCpu = profilingData.totalSelfCpuTime / profilingData.tickCount;
   const hasRunningTime = profilingData.runningTimeCount > 0;
   const avgRunning = hasRunningTime
     ? profilingData.totalRunningTime / profilingData.runningTimeCount
@@ -37,6 +38,40 @@ function NodeProfilingDisplayInner({ profilingData }: NodeProfilingDisplayProps)
             <span className="bt-profiling__metric">
               <span className="bt-profiling__metric-label">total</span>
               <span className="bt-profiling__metric-value">{formatMs(profilingData.totalCpuTime)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">p50</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.cpuP50)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">p95</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.cpuP95)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">p99</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.cpuP99)}</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="bt-profiling__section">
+          <div className="bt-profiling__section-label">Self CPU Time</div>
+          <div className="bt-profiling__metrics">
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">avg</span>
+              <span className="bt-profiling__metric-value">{formatMs(avgSelfCpu)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">min</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.minSelfCpuTime)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">max</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.maxSelfCpuTime)}</span>
+            </span>
+            <span className="bt-profiling__metric">
+              <span className="bt-profiling__metric-label">total</span>
+              <span className="bt-profiling__metric-value">{formatMs(profilingData.totalSelfCpuTime)}</span>
             </span>
           </div>
         </div>

@@ -329,4 +329,26 @@ describe("TreeInspector", () => {
         inspector.ingestTick(makeTickRecord(4, [{ nodeId: 1, start: 0, end: 10 }])); // older
         expect(inspector.getStats().totalTickCount).toBe(1);
     });
+
+    it("cloneForTimeTravel snapshots current inspector state without replay coupling", () => {
+        const inspector = new TreeInspector({ maxTicks: 3 });
+        inspector.indexTree(makeTree());
+        inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]));
+        inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 30 }]));
+
+        const cloned = inspector.cloneForTimeTravel();
+        expect(cloned.getStoredTickIds()).toEqual([1, 2, 3]);
+        expect(cloned.getNodeProfilingData(1)!.totalCpuTime).toBe(60);
+        expect(cloned.getStats().totalRootCpuTime).toBe(60);
+
+        inspector.ingestTick(makeTickRecord(4, [{ nodeId: 1, start: 0, end: 40 }]));
+        expect(inspector.getStoredTickIds()).toEqual([2, 3, 4]);
+        expect(inspector.getNodeProfilingData(1)!.totalCpuTime).toBe(90);
+
+        // Frozen copy should remain unchanged after live inspector advances.
+        expect(cloned.getStoredTickIds()).toEqual([1, 2, 3]);
+        expect(cloned.getNodeProfilingData(1)!.totalCpuTime).toBe(60);
+        expect(cloned.getStats().totalRootCpuTime).toBe(60);
+    });
 });

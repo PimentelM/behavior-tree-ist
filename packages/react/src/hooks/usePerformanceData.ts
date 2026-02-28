@@ -11,8 +11,13 @@ export function usePerformanceData(
   inspector: TreeInspector,
   viewedTickId: number | null,
   tickGeneration: number,
+  enabled: boolean,
 ): PerformanceData {
   return useMemo(() => {
+    if (!enabled) {
+      return { frames: [], hotNodes: [], stats: inspector.getStats() };
+    }
+
     const frames = viewedTickId !== null
       ? inspector.getFlameGraphFrames(viewedTickId)
       : [];
@@ -22,5 +27,5 @@ export function usePerformanceData(
     const stats = inspector.getStats();
 
     return { frames, hotNodes, stats };
-  }, [inspector, viewedTickId, tickGeneration]);
+  }, [inspector, viewedTickId, tickGeneration, enabled]);
 }

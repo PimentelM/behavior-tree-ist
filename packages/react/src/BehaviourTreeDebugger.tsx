@@ -115,19 +115,9 @@ export function BehaviourTreeDebugger({
 
     if (pausedInspector) return;
 
-    const frozen = new TreeInspector(inspectorOptions);
-    frozen.indexTree(tree);
-    const ids = inspector.getStoredTickIds();
-    if (ids.length > 0) {
-      const from = ids[0];
-      const to = ids[ids.length - 1];
-      const range = inspector.getTickRange(from, to);
-      for (const record of range) {
-        frozen.ingestTick(record);
-      }
-    }
+    const frozen = inspector.cloneForTimeTravel();
     setPausedInspector(frozen);
-  }, [timeTravelControls.mode, pausedInspector, inspector, inspectorOptions, tree]);
+  }, [timeTravelControls.mode, pausedInspector, inspector]);
 
   const activeInspector = pausedInspector ?? inspector;
 
@@ -199,7 +189,7 @@ export function BehaviourTreeDebugger({
   const nodeDetails = useNodeDetails(activeInspector, selectedNodeId, viewedTickId, tickGeneration);
 
   // Performance data for flamegraph/hot nodes
-  const performanceData = usePerformanceData(activeInspector, viewedTickId, tickGeneration);
+  const performanceData = usePerformanceData(activeInspector, viewedTickId, tickGeneration, performanceMode);
 
   // Collect ref events across all stored ticks for the ref details panel
   const refEvents = useMemo(() => {

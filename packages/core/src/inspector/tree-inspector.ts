@@ -13,6 +13,7 @@ import {
 
 export class TreeInspector {
     private _tree: TreeIndex | undefined;
+    private readonly maxTicks: number;
     private readonly store: TickStore;
     private readonly profiler: Profiler;
     private totalTickCount = 0;
@@ -20,8 +21,8 @@ export class TreeInspector {
     private readonly rootCpuByTick = new Map<number, number>();
 
     constructor(options: TreeInspectorOptions = {}) {
-        const maxTicks = options.maxTicks ?? 1000;
-        this.store = new TickStore(maxTicks);
+        this.maxTicks = options.maxTicks ?? 1000;
+        this.store = new TickStore(this.maxTicks);
         this.profiler = new Profiler();
     }
 
@@ -119,6 +120,30 @@ export class TreeInspector {
         const record = this.store.getByTickId(tickId);
         if (!record || !this._tree) return [];
         return Profiler.buildFlameGraphFrames(record.events, this._tree);
+    }
+
+    cloneForTimeTravel(): TreeInspector {
+        const cloned = new TreeInspector({ maxTicks: this.maxTicks });
+        cloned._tree = this._tree;
+
+        const tickIds = this.store.getStoredTickIds();
+        if (tickIds.length > 0) {
+            const firstTickId = tickIds[0]!;
+            const lastTickId = tickIds[tickIds.length - 1]!;
+            const range = this.store.getTickRange(firstTickId, lastTickId);
+            for (const record of range) {
+                cloned.store.push(record);
+            }
+        }
+
+        cloned.profiler.copyFrom(this.profiler);
+        cloned.totalTickCount = this.totalTickCount;
+        cloned.totalRootCpuTime = this.totalRootCpuTime;
+        for (const [tickId, rootCpuTime] of this.rootCpuByTick) {
+            cloned.rootCpuByTick.set(tickId, rootCpuTime);
+        }
+
+        return cloned;
     }
 
     // --- Statistics ---
