@@ -87,6 +87,7 @@ index.getByFlag(NodeFlags.SubTree);  // subtree boundaries
 index.getLeaves();     // All leaf nodes
 index.getComposites(); // All composite nodes
 index.getDecorators(); // All decorator nodes
+index.getSubTrees();   // All subtree boundary nodes
 
 // Navigation
 index.getChildren(nodeId);   // Direct children

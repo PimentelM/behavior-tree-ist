@@ -105,6 +105,10 @@ export class TreeIndex {
         return this.getByFlag(NodeFlags.Decorator);
     }
 
+    getSubTrees(): readonly IndexedNode[] {
+        return this.getByFlag(NodeFlags.SubTree);
+    }
+
     getChildren(nodeId: number): readonly IndexedNode[] {
         const node = this.byId.get(nodeId);
         if (!node) return [];

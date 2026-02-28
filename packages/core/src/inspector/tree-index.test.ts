@@ -42,7 +42,7 @@ function makeTree(): SerializableNode {
             },
             {
                 id: 6,
-                nodeFlags: NodeFlags.Decorator | NodeFlags.Stateful,
+                nodeFlags: NodeFlags.Decorator | NodeFlags.Stateful | NodeFlags.SubTree,
                 defaultName: "Throttle",
                 name: "",
                 children: [
@@ -137,6 +137,11 @@ describe("TreeIndex", () => {
         expect(index.getLeaves().map(n => n.id).sort()).toEqual([4, 5, 7]);
         expect(index.getComposites().map(n => n.id).sort()).toEqual([1, 2]);
         expect(index.getDecorators().map(n => n.id).sort()).toEqual([3, 6]);
+    });
+
+    it("getSubTrees", () => {
+        const index = new TreeIndex(makeTree());
+        expect(index.getSubTrees().map(n => n.id)).toEqual([6]);
     });
 
     it("getChildren returns indexed nodes", () => {
