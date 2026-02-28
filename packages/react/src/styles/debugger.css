@@ -1106,10 +1106,11 @@
 }
 
 .bt-node .react-flow__handle {
-  width: 6px;
-  height: 6px;
-  background: var(--bt-border-color);
-  border: 1px solid var(--bt-bg-secondary);
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  border: 0;
+  opacity: 0;
   pointer-events: none;
 }
 
