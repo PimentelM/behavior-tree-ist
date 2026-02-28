@@ -240,6 +240,19 @@ function NodeGlyph({ kind, isAsyncAction }: { kind: NodeVisualKind; isAsyncActio
           <path d="M6.5 10h2" />
         </svg>
       );
+    case 'subTree':
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <path d="M2.5 3.5h5v3h-5z" />
+          <path d="M8.5 3.5h5v3h-5z" />
+          <path d="M5 8.5h6v4h-6z" />
+          <path d="M5 8.5V7" />
+          <path d="M11 8.5V7" />
+          <path d="M8 7V6.5" />
+        </svg>
+      );
+    case 'ifThenElse':
+      return <span className="bt-node__glyph-letter bt-node__glyph-letter--if">IF</span>;
     default:
       return (
         <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">

@@ -90,6 +90,7 @@ const FLAG_DEFINITIONS: Array<{ flag: number; label: string; category: 'primary'
   { flag: NodeFlags.Lifecycle, label: 'Lifecycle', category: 'secondary' },
   { flag: NodeFlags.Async, label: 'Async', category: 'secondary' },
   { flag: NodeFlags.Display, label: 'Display', category: 'secondary' },
+  { flag: NodeFlags.SubTree, label: 'SubTree', category: 'secondary' },
 ];
 
 export function getFlagLabels(nodeFlags: number): FlagLabel[] {
@@ -109,7 +110,9 @@ export function getPrimaryCategoryLabel(nodeFlags: number): string {
   return 'Node';
 }
 
-export function getNodeVisualKind(nodeFlags: number): NodeVisualKind {
+export function getNodeVisualKind(nodeFlags: number, defaultName?: string): NodeVisualKind {
+  if (hasFlag(nodeFlags, NodeFlags.SubTree)) return 'subTree';
+  if (defaultName === 'IfThenElse') return 'ifThenElse';
   if (hasFlag(nodeFlags, NodeFlags.Sequence)) return 'sequence';
   if (hasFlag(nodeFlags, NodeFlags.Selector)) return 'fallback';
   if (hasFlag(nodeFlags, NodeFlags.Parallel)) return 'parallel';
@@ -129,6 +132,8 @@ const CAPABILITY_BADGE_DEFS: Array<{ flag: number; label: string }> = [
 
 export function getCapabilityBadges(nodeFlags: number): string[] {
   const badges: string[] = [];
+  const shouldHideTimeBadge = hasFlag(nodeFlags, NodeFlags.TimeBased)
+    && hasFlag(nodeFlags, NodeFlags.Action);
   const hasTemporalCapability = hasFlag(nodeFlags, NodeFlags.TimeBased)
     || hasFlag(nodeFlags, NodeFlags.CountBased);
   const hasStatefulSubtype = hasFlag(nodeFlags, NodeFlags.Utility)
@@ -136,6 +141,9 @@ export function getCapabilityBadges(nodeFlags: number): string[] {
     || hasFlag(nodeFlags, NodeFlags.Async);
 
   for (const entry of CAPABILITY_BADGE_DEFS) {
+    if (entry.flag === NodeFlags.TimeBased && shouldHideTimeBadge) {
+      continue;
+    }
     if (entry.flag === NodeFlags.Stateful && (hasTemporalCapability || hasStatefulSubtype)) {
       continue;
     }

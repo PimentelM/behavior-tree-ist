@@ -24,7 +24,9 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
     while (currentId !== undefined) {
       const current = treeIndex.getById(currentId);
       if (!current) return;
-      if (!hasFlag(current.nodeFlags, NodeFlags.Decorator)) break;
+      const isDecorator = hasFlag(current.nodeFlags, NodeFlags.Decorator);
+      const isSubTreeBoundary = hasFlag(current.nodeFlags, NodeFlags.SubTree);
+      if (!isDecorator || isSubTreeBoundary) break;
 
       if (hasFlag(current.nodeFlags, NodeFlags.Lifecycle)) {
         lifecycleDecoratorIds.push(current.id);
@@ -75,7 +77,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
         name: baseNode.name,
         defaultName: baseNode.defaultName,
         nodeFlags: baseNode.nodeFlags,
-        visualKind: getNodeVisualKind(baseNode.nodeFlags),
+        visualKind: getNodeVisualKind(baseNode.nodeFlags, baseNode.defaultName),
         capabilityBadges: getCapabilityBadges(baseNode.nodeFlags),
         result: null,
         displayState: undefined,

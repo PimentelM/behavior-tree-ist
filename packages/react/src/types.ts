@@ -39,7 +39,7 @@ export type ThemeMode = 'light' | 'dark';
 
 export type LayoutDirection = 'TB' | 'LR';
 
-export type NodeVisualKind = 'sequence' | 'fallback' | 'parallel' | 'action' | 'condition' | 'node';
+export type NodeVisualKind = 'sequence' | 'fallback' | 'parallel' | 'action' | 'condition' | 'subTree' | 'ifThenElse' | 'node';
 
 export interface NodeDecoratorData {
   nodeId: number;

@@ -568,6 +568,12 @@
   color: color-mix(in srgb, #60a5fa 78%, var(--bt-text-primary));
 }
 
+.bt-node__glyph-letter--if {
+  color: color-mix(in srgb, #facc15 85%, var(--bt-text-primary));
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
 .bt-node__glyph--sequence {
   color: color-mix(in srgb, var(--bt-accent-color) 65%, var(--bt-text-primary));
 }
@@ -586,6 +592,18 @@
 
 .bt-node__glyph--action {
   color: color-mix(in srgb, #059669 65%, var(--bt-text-primary));
+}
+
+.bt-node__glyph--subTree {
+  color: color-mix(in srgb, #22c55e 68%, var(--bt-text-primary));
+}
+
+.bt-node__glyph--subTree .bt-node__glyph-icon {
+  transform: rotate(180deg);
+}
+
+.bt-node__glyph--ifThenElse {
+  color: color-mix(in srgb, #facc15 72%, var(--bt-text-primary));
 }
 
 .bt-node__name {
