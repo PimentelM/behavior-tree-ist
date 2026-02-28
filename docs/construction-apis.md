@@ -207,6 +207,10 @@ These props are purely metadata for external tooling (inspectors, visualizers). 
 6. Hooks: `onEnter`, `onResume`, `onReset`, `onAbort`, `onTicked`, `onSuccess`, `onFailure`, `onRunning`, `onSuccessOrRunning`, `onFailedOrRunning`, `onFinished`
 7. Generic: `decorate` prop (applied last / outermost)
 
+This order is deterministic and can change behavior. Example: `nonAbortable` from `NodeProps` shields its inner subtree, but wrappers applied later in the fixed order can still observe abort/reset.
+
+If you need exact decorator placement, prefer direct `.decorate(...)` composition (or the `decorate` prop with explicit decorator specs) instead of relying only on boolean/number `NodeProps` toggles.
+
 ### Validation
 
 These prop pairs are mutually exclusive (throws if both set):

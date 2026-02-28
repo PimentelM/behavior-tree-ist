@@ -207,6 +207,8 @@ import { Timeout, Repeat } from '@behavior-tree-ist/core';
 <action execute={fn} decorate={[[Timeout, 1000], [Repeat, 3]]} />
 ```
 
+Use `decorate` when ordering matters. Builder/TSX convenience props (like `retry`, `timeout`, `nonAbortable`, hooks) are applied by a fixed internal order from `applyDecorators()`, so explicit specs are the way to control exact wrapper nesting.
+
 ## Fragments
 
 Use fragments to return multiple nodes without a wrapper:

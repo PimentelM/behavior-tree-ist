@@ -219,6 +219,8 @@ const shielded = new NonAbortable(
 );
 ```
 
+When using builder/TSX convenience props, remember decorators are applied in a fixed order. If you need `NonAbortable` at an exact layer relative to guards/timing/hooks, use explicit `.decorate(...)` (or `decorate` prop specs) for precise nesting.
+
 ## Utility
 
 **Flags**: `Utility`
