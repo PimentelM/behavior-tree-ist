@@ -1,5 +1,4 @@
 import { Action } from "../../base/action";
-import { TickContext } from "../../base/node";
 import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
 
 export class DisplayState extends Action {

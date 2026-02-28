@@ -1,5 +1,5 @@
 import { BTNode, TickContext, TickTraceEvent, SerializableNode, TickRecord, TickRuntime } from "./base";
-import { NodeFlags, hasFlag, RefChangeEvent } from "./base/types";
+import { RefChangeEvent } from "./base/types";
 import { serializeTree } from "./serialization/serializer";
 
 type PublicTickContext = {
