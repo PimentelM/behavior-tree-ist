@@ -197,10 +197,10 @@ Tick history navigation supports keyboard and incremental loading:
 
 ## Ref Traces Panel
 
-The "Ref Traces" tab shows unattributed/system `RefChangeEvent` mutations for the viewed tick (events without `nodeId`):
-- Ref name, tick number, async badge
+The "Ref Traces" tab shows all `RefChangeEvent` mutations for the viewed tick:
+- Ref name, tick number, actor node ID badge (when attributed), async badge
 - New value (JSON-formatted)
-- Click to jump to that tick
+- Click to jump to that tick and focus/select the actor node when available
 
 Node-attributed ref changes are shown directly below each node/decorator in the graph.
 

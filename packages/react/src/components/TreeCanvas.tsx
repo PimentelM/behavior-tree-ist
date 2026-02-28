@@ -29,6 +29,8 @@ interface TreeCanvasProps {
   onNodeClick?: (nodeId: number) => void;
   layoutVersion?: string;
   centerTreeSignal?: number;
+  focusNodeId?: number | null;
+  focusNodeSignal?: number;
 }
 
 const nodeTypes: NodeTypes = {
@@ -53,12 +55,15 @@ function TreeCanvasInner({
   onNodeClick,
   layoutVersion,
   centerTreeSignal,
+  focusNodeId,
+  focusNodeSignal,
 }: TreeCanvasProps) {
   const [flowInstance, setFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [renderNodes, setRenderNodes] = useState<Node<BTNodeData>[]>(nodes);
   const [renderEdges, setRenderEdges] = useState<Edge<BTEdgeData>[]>(edges);
   const lastLayoutVersionRef = useRef<string | undefined>(layoutVersion);
   const lastCenterSignalRef = useRef<number | undefined>(centerTreeSignal);
+  const lastFocusSignalRef = useRef<number | undefined>(focusNodeSignal);
 
   const handleNodeClick = useCallback(
     (_event: ReactMouseEvent, node: Node) => {
@@ -105,6 +110,23 @@ function TreeCanvasInner({
     lastCenterSignalRef.current = centerTreeSignal;
     flowInstance.fitView({ padding: 0.2, duration: 220 });
   }, [flowInstance, renderNodes.length, centerTreeSignal]);
+
+  useEffect(() => {
+    if (!flowInstance || renderNodes.length === 0) return;
+    if (focusNodeSignal === undefined || focusNodeId === null || focusNodeId === undefined) return;
+    if (lastFocusSignalRef.current === focusNodeSignal) return;
+
+    lastFocusSignalRef.current = focusNodeSignal;
+    const targetNode = renderNodes.find((node) => node.data.representedNodeIds.includes(focusNodeId));
+    if (!targetNode) return;
+
+    flowInstance.fitView({
+      nodes: [targetNode],
+      padding: 1.2,
+      duration: 260,
+      maxZoom: 1.35,
+    });
+  }, [flowInstance, renderNodes, focusNodeId, focusNodeSignal]);
 
   return (
     <div className="bt-tree-canvas">

@@ -13,6 +13,7 @@ interface NodeDetailPanelProps {
   viewedTickId: number | null;
   showRefTraces: boolean;
   onGoToTick: (tickId: number) => void;
+  onFocusActorNode: (nodeId: number) => void;
 }
 
 function NodeDetailPanelInner({
@@ -21,10 +22,11 @@ function NodeDetailPanelInner({
   viewedTickId,
   showRefTraces,
   onGoToTick,
+  onFocusActorNode,
 }: NodeDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<'details' | 'refs'>('details');
 
-  if (!details) {
+  if (!details && !showRefTraces) {
     return (
       <div className="bt-detail-panel">
         <div className="bt-detail-panel__empty">
@@ -59,20 +61,30 @@ function NodeDetailPanelInner({
 
       <div className="bt-detail-panel__content">
         {activeTab === 'details' ? (
-          <>
-            <NodeHeader details={details} />
-            <NodeResultSummary resultSummary={details.resultSummary} />
-            {details.currentDisplayState && (
-              <NodeStateDisplay nodeFlags={details.flags} state={details.currentDisplayState} />
-            )}
-            <NodeHistory
-              history={details.history}
-              viewedTickId={viewedTickId}
-              onGoToTick={onGoToTick}
-            />
-          </>
+          details ? (
+            <>
+              <NodeHeader details={details} />
+              <NodeResultSummary resultSummary={details.resultSummary} />
+              {details.currentDisplayState && (
+                <NodeStateDisplay nodeFlags={details.flags} state={details.currentDisplayState} />
+              )}
+              <NodeHistory
+                history={details.history}
+                viewedTickId={viewedTickId}
+                onGoToTick={onGoToTick}
+              />
+            </>
+          ) : (
+            <div className="bt-detail-panel__empty">
+              Select a node to inspect
+            </div>
+          )
         ) : (
-          <RefTracesPanel events={refEvents} onGoToTick={onGoToTick} />
+          <RefTracesPanel
+            events={refEvents}
+            onGoToTick={onGoToTick}
+            onFocusActorNode={onFocusActorNode}
+          />
         )}
       </div>
     </div>

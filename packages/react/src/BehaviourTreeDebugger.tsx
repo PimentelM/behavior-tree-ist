@@ -90,6 +90,8 @@ export function BehaviourTreeDebugger({
 
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
   const [centerTreeSignal, setCenterTreeSignal] = useState(0);
+  const [focusNodeId, setFocusNodeId] = useState<number | null>(null);
+  const [focusNodeSignal, setFocusNodeSignal] = useState(0);
   const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
 
   useEffect(() => {
@@ -154,6 +156,13 @@ export function BehaviourTreeDebugger({
     onNodeSelect?.(nodeId);
   }, [onNodeSelect]);
 
+  const handleFocusActorNode = useCallback((nodeId: number) => {
+    setSelectedNodeId(nodeId);
+    setFocusNodeId(nodeId);
+    setFocusNodeSignal((value) => value + 1);
+    onNodeSelect?.(nodeId);
+  }, [onNodeSelect]);
+
   // Overlay snapshot data onto nodes
   const { nodes, edges } = useSnapshotOverlay(
     baseNodes,
@@ -176,9 +185,7 @@ export function BehaviourTreeDebugger({
     const range = activeInspector.getTickRange(viewedTickId, viewedTickId);
     for (const record of range) {
       for (const event of record.refEvents) {
-        if (event.nodeId === undefined) {
-          events.push(event);
-        }
+        events.push(event);
       }
     }
     return events;
@@ -296,6 +303,8 @@ export function BehaviourTreeDebugger({
             edges={edges}
             layoutVersion={layoutVersion}
             centerTreeSignal={centerTreeSignal}
+            focusNodeId={focusNodeId}
+            focusNodeSignal={focusNodeSignal}
             onNodeClick={handleNodeClick}
           />
         }
@@ -307,6 +316,7 @@ export function BehaviourTreeDebugger({
               viewedTickId={viewedTickId}
               showRefTraces={showRefTraces}
               onGoToTick={handleGoToTick}
+              onFocusActorNode={handleFocusActorNode}
             />
           ) : null
         }

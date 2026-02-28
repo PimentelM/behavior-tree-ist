@@ -4,14 +4,15 @@ import type { RefChangeEvent } from '@behavior-tree-ist/core';
 interface RefTracesPanelProps {
   events: RefChangeEvent[];
   onGoToTick: (tickId: number) => void;
+  onFocusActorNode: (nodeId: number) => void;
 }
 
-function RefTracesPanelInner({ events, onGoToTick }: RefTracesPanelProps) {
+function RefTracesPanelInner({ events, onGoToTick, onFocusActorNode }: RefTracesPanelProps) {
   if (events.length === 0) {
     return (
       <div className="bt-ref-traces">
         <div className="bt-ref-traces__empty">
-          No unattributed ref mutation events in this tick
+          No ref mutation events in this tick
         </div>
       </div>
     );
@@ -23,7 +24,12 @@ function RefTracesPanelInner({ events, onGoToTick }: RefTracesPanelProps) {
   return (
     <div className="bt-ref-traces">
       {recentEvents.map((event, i) => (
-        <RefTraceEntry key={i} event={event} onGoToTick={onGoToTick} />
+        <RefTraceEntry
+          key={`${event.tickId}-${event.refName ?? 'ref'}-${event.nodeId ?? 'none'}-${i}`}
+          event={event}
+          onGoToTick={onGoToTick}
+          onFocusActorNode={onFocusActorNode}
+        />
       ))}
     </div>
   );
@@ -32,20 +38,27 @@ function RefTracesPanelInner({ events, onGoToTick }: RefTracesPanelProps) {
 interface RefTraceEntryProps {
   event: RefChangeEvent;
   onGoToTick: (tickId: number) => void;
+  onFocusActorNode: (nodeId: number) => void;
 }
 
-function RefTraceEntryInner({ event, onGoToTick }: RefTraceEntryProps) {
+function RefTraceEntryInner({ event, onGoToTick, onFocusActorNode }: RefTraceEntryProps) {
   const handleClick = useCallback(() => {
     onGoToTick(event.tickId);
-  }, [event.tickId, onGoToTick]);
+    if (event.nodeId !== undefined) {
+      onFocusActorNode(event.nodeId);
+    }
+  }, [event.tickId, event.nodeId, onGoToTick, onFocusActorNode]);
 
   return (
-    <div className="bt-ref-traces__entry" onClick={handleClick} style={{ cursor: 'pointer' }}>
+    <button className="bt-ref-traces__entry" onClick={handleClick} type="button">
       <div className="bt-ref-traces__entry-header">
         <span className="bt-ref-traces__ref-name">
           {event.refName ?? '(unnamed)'}
         </span>
         <span className="bt-ref-traces__tick">tick #{event.tickId}</span>
+        {event.nodeId !== undefined && (
+          <span className="bt-ref-traces__actor-badge">node #{event.nodeId}</span>
+        )}
         {event.isAsync && (
           <span className="bt-ref-traces__async-badge">async</span>
         )}
@@ -53,7 +66,7 @@ function RefTraceEntryInner({ event, onGoToTick }: RefTraceEntryProps) {
       <div className="bt-ref-traces__value">
         {formatRefValue(event.newValue)}
       </div>
-    </div>
+    </button>
   );
 }
 
