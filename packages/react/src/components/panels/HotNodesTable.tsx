@@ -5,14 +5,16 @@ import { formatMs } from '../../utils/format';
 const DEFAULT_VISIBLE = 20;
 const LOAD_CHUNK_SIZE = 20;
 const LOAD_THRESHOLD_PX = 72;
+const PERCENTILE_OPTIONS = ['p50', 'p95', 'p99'] as const;
+type PercentileKey = (typeof PERCENTILE_OPTIONS)[number];
 
 type SortKey =
   | 'totalCpuTime'
   | 'totalSelfCpuTime'
   | 'avgCpu'
   | 'avgSelf'
-  | 'cpuP95'
-  | 'selfCpuP95'
+  | 'inclusivePercentile'
+  | 'selfPercentile'
   | 'tickCount'
   | 'totalPct'
   | 'totalSelfPct';
@@ -21,20 +23,60 @@ const ADVANCED_SORT_KEYS: ReadonlySet<SortKey> = new Set<SortKey>([
   'totalCpuTime',
   'totalPct',
   'avgCpu',
-  'cpuP95',
+  'inclusivePercentile',
 ]);
 
-const SORT_LABEL: Record<SortKey, string> = {
-  totalCpuTime: 'Total Inclusive',
-  totalSelfCpuTime: 'Total Self',
-  avgCpu: 'Avg Inclusive',
-  avgSelf: 'Avg Self',
-  cpuP95: 'P95 Inclusive',
-  selfCpuP95: 'P95 Self',
-  tickCount: 'Ticks',
-  totalPct: 'Total Inclusive %',
-  totalSelfPct: 'Total Self %',
-};
+function getSelfPercentile(node: NodeProfilingData, percentile: PercentileKey): number {
+  switch (percentile) {
+    case 'p50':
+      return node.selfCpuP50;
+    case 'p95':
+      return node.selfCpuP95;
+    case 'p99':
+      return node.selfCpuP99;
+    default:
+      return node.selfCpuP95;
+  }
+}
+
+function getInclusivePercentile(node: NodeProfilingData, percentile: PercentileKey): number {
+  switch (percentile) {
+    case 'p50':
+      return node.cpuP50;
+    case 'p95':
+      return node.cpuP95;
+    case 'p99':
+      return node.cpuP99;
+    default:
+      return node.cpuP95;
+  }
+}
+
+function getSortLabel(sortKey: SortKey, percentile: PercentileKey): string {
+  const percentileLabel = percentile.toUpperCase();
+  switch (sortKey) {
+    case 'totalCpuTime':
+      return 'Total Inclusive';
+    case 'totalSelfCpuTime':
+      return 'Total Self';
+    case 'avgCpu':
+      return 'Avg Inclusive';
+    case 'avgSelf':
+      return 'Avg Self';
+    case 'inclusivePercentile':
+      return `${percentileLabel} Inclusive`;
+    case 'selfPercentile':
+      return `${percentileLabel} Self`;
+    case 'tickCount':
+      return 'Ticks';
+    case 'totalPct':
+      return 'Total Inclusive %';
+    case 'totalSelfPct':
+      return 'Total Self %';
+    default:
+      return 'Total Self';
+  }
+}
 
 interface HotNodesTableProps {
   hotNodes: NodeProfilingData[];
@@ -64,6 +106,7 @@ function HotNodesTableInner({
   const [visibleCount, setVisibleCount] = useState(DEFAULT_VISIBLE);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('totalSelfCpuTime');
+  const [selectedPercentile, setSelectedPercentile] = useState<PercentileKey>('p95');
 
   const setSort = useCallback((nextSortKey: SortKey) => {
     setSortKey(nextSortKey);
@@ -110,10 +153,10 @@ function HotNodesTableInner({
           return b.avgCpu - a.avgCpu;
         case 'avgSelf':
           return b.avgSelf - a.avgSelf;
-        case 'cpuP95':
-          return b.node.cpuP95 - a.node.cpuP95;
-        case 'selfCpuP95':
-          return b.node.selfCpuP95 - a.node.selfCpuP95;
+        case 'inclusivePercentile':
+          return getInclusivePercentile(b.node, selectedPercentile) - getInclusivePercentile(a.node, selectedPercentile);
+        case 'selfPercentile':
+          return getSelfPercentile(b.node, selectedPercentile) - getSelfPercentile(a.node, selectedPercentile);
         case 'tickCount':
           return b.node.tickCount - a.node.tickCount;
         case 'totalPct':
@@ -125,7 +168,7 @@ function HotNodesTableInner({
       }
     });
     return sorted;
-  }, [rows, sortKey]);
+  }, [rows, selectedPercentile, sortKey]);
 
   const hasMore = visibleCount < sortedRows.length;
   const visible = sortedRows.slice(0, visibleCount);
@@ -140,7 +183,8 @@ function HotNodesTableInner({
   }, [hasMore, sortedRows.length]);
 
   const sortArrow = ' \u2193';
-  const sortedLabel = SORT_LABEL[sortKey];
+  const sortedLabel = getSortLabel(sortKey, selectedPercentile);
+  const percentileLabel = selectedPercentile.toUpperCase();
 
   const renderSortHeader = (key: SortKey, label: string) => (
     <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
@@ -174,6 +218,18 @@ function HotNodesTableInner({
         </div>
         <div className="bt-hot-nodes__header-actions">
           <span className="bt-hot-nodes__sorted-by">Sorted by: {sortedLabel}</span>
+          <div className="bt-hot-nodes__percentile-toggle" aria-label="Percentile selector">
+            {PERCENTILE_OPTIONS.map((option) => (
+              <button
+                key={option}
+                className={`bt-hot-nodes__percentile-btn ${selectedPercentile === option ? 'bt-hot-nodes__percentile-btn--active' : ''}`}
+                onClick={() => setSelectedPercentile(option)}
+                type="button"
+              >
+                {option.toUpperCase()}
+              </button>
+            ))}
+          </div>
           <button className="bt-hot-nodes__toggle bt-hot-nodes__toggle--advanced" onClick={toggleAdvanced} type="button">
             {showAdvanced ? 'Hide Inclusive metrics' : 'Show Inclusive metrics'}
           </button>
@@ -191,12 +247,12 @@ function HotNodesTableInner({
                   {renderSortHeader('totalSelfCpuTime', 'Total Self')}
                   {renderSortHeader('totalSelfPct', 'Total Self %')}
                   {renderSortHeader('avgSelf', 'Avg Self')}
-                  {renderSortHeader('selfCpuP95', 'P95 Self')}
+                  {renderSortHeader('selfPercentile', `${percentileLabel} Self`)}
                   {renderSortHeader('tickCount', 'Ticks')}
                   {showAdvanced && renderSortHeader('totalCpuTime', 'Total Inclusive')}
                   {showAdvanced && renderSortHeader('totalPct', 'Total Inclusive %')}
                   {showAdvanced && renderSortHeader('avgCpu', 'Avg Inclusive')}
-                  {showAdvanced && renderSortHeader('cpuP95', 'P95 Inclusive')}
+                  {showAdvanced && renderSortHeader('inclusivePercentile', `${percentileLabel} Inclusive`)}
                 </tr>
               </thead>
               <tbody>
@@ -223,7 +279,7 @@ function HotNodesTableInner({
                         </div>
                       </td>
                       <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgSelf)}</td>
-                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.selfCpuP95)}</td>
+                      <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(getSelfPercentile(node, selectedPercentile))}</td>
                       <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{node.tickCount}</td>
                       {showAdvanced && (
                         <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalCpuTime)}</td>
@@ -240,7 +296,7 @@ function HotNodesTableInner({
                         <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(avgCpu)}</td>
                       )}
                       {showAdvanced && (
-                        <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.cpuP95)}</td>
+                        <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(getInclusivePercentile(node, selectedPercentile))}</td>
                       )}
                     </tr>
                   );

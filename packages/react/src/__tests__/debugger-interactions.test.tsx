@@ -358,6 +358,63 @@ describe('PerformanceView', () => {
     expect(getFirstRowText()).toContain('Node 2');
   });
 
+  it('allows switching percentile and applies it to percentile columns and sorting', () => {
+    const hotNodes: NodeProfilingData[] = [
+      makeProfilingData({
+        nodeId: 1,
+        totalSelfCpuTime: 50,
+        selfCpuP50: 1,
+        selfCpuP95: 6,
+        selfCpuP99: 8,
+        cpuP50: 10,
+        cpuP95: 4,
+        cpuP99: 3,
+        tickCount: 10,
+      }),
+      makeProfilingData({
+        nodeId: 2,
+        totalSelfCpuTime: 40,
+        selfCpuP50: 5,
+        selfCpuP95: 2,
+        selfCpuP99: 9,
+        cpuP50: 2,
+        cpuP95: 7,
+        cpuP99: 11,
+        tickCount: 10,
+      }),
+    ];
+
+    const { container } = render(
+      <PerformanceView
+        frames={[makeFrame()]}
+        hotNodes={hotNodes}
+        stats={makeStats({ totalRootCpuTime: 100 })}
+        onSelectNode={vi.fn()}
+        selectedNodeId={null}
+        treeIndex={null}
+        viewedTickId={1}
+      />,
+    );
+
+    const getFirstRowText = () =>
+      container.querySelectorAll('tbody tr')[0]?.textContent ?? '';
+
+    fireEvent.click(within(container).getByRole('button', { name: 'P95 Self' }));
+    expect(getFirstRowText()).toContain('Node 1');
+
+    fireEvent.click(within(container).getByRole('button', { name: 'P50' }));
+    expect(within(container).getByRole('button', { name: /P50 Self/ })).toBeTruthy();
+    expect(getFirstRowText()).toContain('Node 2');
+
+    fireEvent.click(within(container).getByRole('button', { name: 'Show Inclusive metrics' }));
+    fireEvent.click(within(container).getByRole('button', { name: /P50 Inclusive/ }));
+    expect(getFirstRowText()).toContain('Node 1');
+
+    fireEvent.click(within(container).getByRole('button', { name: 'P99' }));
+    expect(within(container).getByRole('button', { name: /P99 Inclusive/ })).toBeTruthy();
+    expect(getFirstRowText()).toContain('Node 2');
+  });
+
   it('cross-highlights hot node rows and flamegraph bars on hover', () => {
     const { container } = render(
       <PerformanceView
