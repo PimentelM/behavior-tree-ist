@@ -88,7 +88,7 @@ function TimelinePanelInner({
           className="bt-timeline__btn"
           onClick={handleStepBack}
           disabled={!hasTicks || viewedTickId === oldestTickId}
-          title="Step back"
+          title="Step back (Left Arrow)"
           type="button"
         >
           &#9664;
@@ -97,7 +97,7 @@ function TimelinePanelInner({
           className="bt-timeline__btn"
           onClick={handleStepForward}
           disabled={!hasTicks || viewedTickId === newestTickId}
-          title="Step forward"
+          title="Step forward (Right Arrow)"
           type="button"
         >
           &#9654;

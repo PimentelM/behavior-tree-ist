@@ -262,6 +262,19 @@ export function BehaviourTreeDebugger({
         return;
       }
 
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        if (isEditableTarget(event.target)) return;
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          timeTravelControls.stepBack();
+        } else {
+          if (timeTravelControls.mode !== 'paused') return;
+          event.preventDefault();
+          timeTravelControls.stepForward();
+        }
+        return;
+      }
+
       if (event.key !== 'Escape') return;
       if (timeTravelControls.mode !== 'paused') return;
       timeTravelControls.jumpToLive();

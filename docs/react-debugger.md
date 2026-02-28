@@ -152,6 +152,7 @@ Controls:
 - **Toolbar Pause/Play**: Toggle between live mode and paused time-travel mode directly from the top toolbar
 - **Scrubber**: Drag to jump to any stored tick (enters paused mode)
 - **Step back/forward**: Navigate one tick at a time
+- **Left/Right arrows**: `ArrowLeft` always steps backward globally (and from live mode enters paused time-travel), `ArrowRight` steps forward while paused; both support key-repeat while held and are ignored while typing in inputs/editors
 - **Exit Time Travel / LIVE**: Jump back to live mode
 - **Esc key**: Quick-exit paused mode and return to live
 
