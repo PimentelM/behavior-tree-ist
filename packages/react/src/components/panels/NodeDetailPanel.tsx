@@ -11,6 +11,7 @@ interface NodeDetailPanelProps {
   details: NodeDetailsData | null;
   refEvents: RefChangeEvent[];
   viewedTickId: number | null;
+  openDetailsSignal: number;
   showRefTraces: boolean;
   onGoToTick: (tickId: number) => void;
   onFocusActorNode: (nodeId: number) => void;
@@ -20,6 +21,7 @@ function NodeDetailPanelInner({
   details,
   refEvents,
   viewedTickId,
+  openDetailsSignal,
   showRefTraces,
   onGoToTick,
   onFocusActorNode,
@@ -27,9 +29,8 @@ function NodeDetailPanelInner({
   const [activeTab, setActiveTab] = useState<'details' | 'refs'>('details');
 
   useEffect(() => {
-    if (!details) return;
     setActiveTab('details');
-  }, [details?.nodeId]);
+  }, [openDetailsSignal]);
 
   if (!details && !showRefTraces) {
     return (
@@ -59,7 +60,7 @@ function NodeDetailPanelInner({
             }`}
             onClick={() => setActiveTab('refs')}
           >
-            Ref Traces
+            Ref details
           </button>
         </div>
       )}
@@ -91,6 +92,7 @@ function NodeDetailPanelInner({
         ) : (
           <RefTracesPanel
             events={refEvents}
+            viewedTickId={viewedTickId}
             onGoToTick={onGoToTick}
             onFocusActorNode={onFocusActorNode}
           />

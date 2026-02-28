@@ -89,6 +89,7 @@ export function BehaviourTreeDebugger({
   }, [inspector, inspectorRef]);
 
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [openDetailsSignal, setOpenDetailsSignal] = useState(0);
   const [centerTreeSignal, setCenterTreeSignal] = useState(0);
   const [focusNodeId, setFocusNodeId] = useState<number | null>(null);
   const [focusNodeSignal, setFocusNodeSignal] = useState(0);
@@ -192,22 +193,29 @@ export function BehaviourTreeDebugger({
   // Node details for sidebar
   const nodeDetails = useNodeDetails(activeInspector, selectedNodeId, viewedTickId, tickGeneration);
 
-  // Collect ref events for the ref traces panel
+  // Collect ref events across all stored ticks for the ref details panel
   const refEvents = useMemo(() => {
-    if (viewedTickId === null) return [];
+    const tickIds = activeInspector.getStoredTickIds();
+    if (tickIds.length === 0) return [];
+
+    const oldestTickId = tickIds[0];
+    const newestTickId = tickIds[tickIds.length - 1];
+    if (oldestTickId === undefined || newestTickId === undefined) return [];
+
     const events: RefChangeEvent[] = [];
-    const range = activeInspector.getTickRange(viewedTickId, viewedTickId);
+    const range = activeInspector.getTickRange(oldestTickId, newestTickId);
     for (const record of range) {
       for (const event of record.refEvents) {
         events.push(event);
       }
     }
     return events;
-  }, [activeInspector, viewedTickId, tickGeneration]);
+  }, [activeInspector, tickGeneration]);
 
   const handleNodeClick = useCallback(
     (nodeId: number) => {
       handleSelectNode(nodeId);
+      setOpenDetailsSignal((value) => value + 1);
     },
     [handleSelectNode],
   );
@@ -359,6 +367,7 @@ export function BehaviourTreeDebugger({
               details={nodeDetails}
               refEvents={refEvents}
               viewedTickId={viewedTickId}
+              openDetailsSignal={openDetailsSignal}
               showRefTraces={showRefTraces}
               onGoToTick={handleGoToTick}
               onFocusActorNode={handleFocusActorNode}

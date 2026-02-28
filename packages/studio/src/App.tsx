@@ -54,6 +54,7 @@ const createSampleTree = () => {
                     execute: () => {
                         hunger.value += 1;
                         thirst.value += 1;
+                        mana.value += 5;
                         return NodeResult.Succeeded;
                     }
                 }),
@@ -102,11 +103,11 @@ const createSampleTree = () => {
                     retry: 2,
                     timeout: 2000
                 }, [
-                    condition({ name: "Check Mana", eval: () => mana.value > 10 }),
+                    condition({ name: "Check Mana", eval: () => mana.value > 20 }),
                     action({
                         name: "Slam",
                         execute: () => {
-                            mana.value -= 5;
+                            mana.value -= Math.ceil(Math.random() * 20);
                             enemyHp.value -= 10;
                             return randomChance(0.7) ? NodeResult.Succeeded : NodeResult.Failed;
                         },

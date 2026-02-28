@@ -135,7 +135,7 @@ The component uses a CSS grid layout:
 - **Top toolbar** (44px) — Action area (left), built-in center-tree button, and theme toggle (right)
 - With sidebar enabled, toolbar controls are split into canvas and sidebar tracks; Pause/Live is anchored to the sidebar-width track above node details
 - **Canvas** — Main area with the React Flow tree graph
-- **Right sidebar** (300px, collapsible) — Node details and ref traces (tabbed)
+- **Right sidebar** (300px, collapsible) — Node details and ref details (tabbed)
 - **Bottom bar** (80px) — Timeline scrubber and playback controls
 
 The tree is laid out using `@dagrejs/dagre`. Layout is recomputed only when the `tree` prop changes, not on every tick.
@@ -193,16 +193,21 @@ When a node is selected, the right sidebar shows:
 - **Display state**: Current key-value pairs from the node's display state
 - **Tick history**: Scrollable list of recent tick events with result dots (click to time-travel)
 
+UX behavior:
+- Clicking a node in the graph switches to the **Node Details** tab
+- Programmatic node selection from ref timeline navigation does not force a tab switch
+
 Tick history navigation supports keyboard and incremental loading:
 - Focus the history list and use **ArrowUp/ArrowDown** to move between ticks.
 - As you scroll down, older entries are loaded progressively (infinite-feed style).
 
-## Ref Traces Panel
+## Ref Details Panel
 
-The "Ref Traces" tab shows all `RefChangeEvent` mutations for the viewed tick:
-- Ref name, tick number, actor node ID badge (when attributed), async badge
-- New value (JSON-formatted)
-- Click to jump to that tick and focus/select the actor node when available
+The "Ref Details" tab combines current ref state and historical event exploration:
+- **Last known ref states**: one row per ref with the latest value, the tick where it last changed, and a stale/fresh dot relative to the viewed tick
+- **Ref event timeline**: all stored `RefChangeEvent` entries across ticks, newest first, with ref name, tick, actor node badge, async badge, and value
+- **Filters**: narrow the timeline to a single ref name or switch scope to "Current tick" to see only mutations for the viewed tick
+- **Click to time-travel**: selecting either a latest-state row or a timeline event jumps to that tick, selects the actor node, and moves the canvas camera to it when present (without forcing a tab switch)
 
 Node-attributed ref changes are shown directly below each node/decorator in the graph.
 
