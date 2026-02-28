@@ -1578,6 +1578,7 @@
 .bt-perf-view__summary {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
   font-size: 12px;
   color: var(--bt-text-secondary);
@@ -1585,6 +1586,21 @@
   background: var(--bt-bg-secondary);
   border-radius: 6px;
   border: 1px solid var(--bt-border-color);
+}
+
+.bt-perf-view__summary-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bt-perf-view__summary-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bt-text-muted);
+  font-weight: 700;
 }
 
 .bt-perf-view__summary-item {
@@ -1720,6 +1736,26 @@
 
 .bt-hot-nodes__header .bt-hot-nodes__cell--num {
   text-align: right;
+}
+
+.bt-hot-nodes__sort {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.bt-hot-nodes__sort--active {
+  color: var(--bt-text-primary);
+}
+
+.bt-hot-nodes__sort:hover {
+  color: var(--bt-text-primary);
 }
 
 .bt-hot-nodes__row {

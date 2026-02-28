@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { NodeResult, NodeFlags } from '@behavior-tree-ist/core';
 import type { RefChangeEvent } from '@behavior-tree-ist/core';
 import type { NodeDetailsData } from '../types';
@@ -248,10 +248,10 @@ describe('RefTracesPanel', () => {
 });
 
 describe('PerformanceView', () => {
-  it('uses root total cpu as hot-node percent denominator and shows profiling window span', () => {
+  it('uses root total cpu as hot-node percent denominators and separates tick/window summary', () => {
     const hotNodes: NodeProfilingData[] = [
-      makeProfilingData({ nodeId: 1, totalCpuTime: 100, tickCount: 1 }),
-      makeProfilingData({ nodeId: 2, totalCpuTime: 25, tickCount: 1 }),
+      makeProfilingData({ nodeId: 1, totalCpuTime: 100, totalSelfCpuTime: 60, tickCount: 1 }),
+      makeProfilingData({ nodeId: 2, totalCpuTime: 25, totalSelfCpuTime: 15, tickCount: 1 }),
     ];
 
     render(
@@ -268,9 +268,15 @@ describe('PerformanceView', () => {
 
     expect(screen.getByText('100.0%')).toBeTruthy();
     expect(screen.getByText('25.0%')).toBeTruthy();
+    expect(screen.getByText('60.0%')).toBeTruthy();
+    expect(screen.getByText('15.0%')).toBeTruthy();
     expect(screen.getByText('Total Self')).toBeTruthy();
+    expect(screen.getByText('Total Self %')).toBeTruthy();
+    expect(screen.getByText('Avg Self')).toBeTruthy();
     expect(screen.getByText('P95 CPU')).toBeTruthy();
-    expect(screen.getByText('Window: 320ms')).toBeTruthy();
+    expect(screen.getByText('Tick')).toBeTruthy();
+    expect(screen.getByText('Window')).toBeTruthy();
+    expect(screen.getByText('Span: 320ms')).toBeTruthy();
   });
 
   it('computes tick total from all root frames and uses it in flamegraph tooltip percent', () => {
@@ -292,12 +298,49 @@ describe('PerformanceView', () => {
       />,
     );
 
-    expect(screen.getByText('Total: 30.0ms')).toBeTruthy();
+    expect(screen.getByText('CPU: 30.0ms')).toBeTruthy();
 
     const firstBar = container.querySelector('.bt-flamegraph__bar');
     expect(firstBar).toBeTruthy();
     fireEvent.mouseMove(firstBar!, { clientX: 100, clientY: 80 });
 
     expect(screen.getByText('33.3%')).toBeTruthy();
+  });
+
+  it('sorts hot nodes by selected column in descending order', () => {
+    const hotNodes: NodeProfilingData[] = [
+      makeProfilingData({
+        nodeId: 1,
+        totalCpuTime: 100,
+        totalSelfCpuTime: 50,
+        tickCount: 50,
+      }),
+      makeProfilingData({
+        nodeId: 2,
+        totalCpuTime: 90,
+        totalSelfCpuTime: 20,
+        tickCount: 2,
+      }),
+    ];
+
+    const { container } = render(
+      <PerformanceView
+        frames={[makeFrame()]}
+        hotNodes={hotNodes}
+        stats={makeStats({ totalRootCpuTime: 100 })}
+        onSelectNode={vi.fn()}
+        selectedNodeId={null}
+        treeIndex={null}
+        viewedTickId={1}
+      />,
+    );
+
+    const getFirstRowText = () =>
+      container.querySelectorAll('tbody tr')[0]?.textContent ?? '';
+
+    expect(getFirstRowText()).toContain('Node 1');
+
+    fireEvent.click(within(container).getByRole('button', { name: 'Avg Self' }));
+    expect(getFirstRowText()).toContain('Node 2');
   });
 });
