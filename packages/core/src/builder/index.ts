@@ -33,6 +33,7 @@ export interface NodeProps {
     runningIsSuccess?: boolean;
     keepRunningUntilFailure?: boolean;
     runOnce?: boolean;
+    nonAbortable?: boolean;
 
     // Retry / Repeat
     repeat?: number; // max iterations, or -1 for infinite
@@ -89,6 +90,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     // 2. Control Flow modifiers
     if (props.keepRunningUntilFailure) current = current.decorate([Decorators.KeepRunningUntilFailure]);
     if (props.runOnce) current = current.decorate([Decorators.RunOnce]);
+    if (props.nonAbortable) current = current.decorate([Decorators.NonAbortable]);
 
     if (props.repeat !== undefined) current = current.decorate([Decorators.Repeat, props.repeat]);
     if (props.retry !== undefined) current = current.decorate([Decorators.Retry, props.retry]);
@@ -154,8 +156,10 @@ export function fallback(props: NodeProps, children: BTNode[]): BTNode {
 
 export const selector = fallback;
 
-export function parallel(props: NodeProps & { policy?: ParallelPolicy }, children: BTNode[]): BTNode {
-    return applyDecorators(Parallel.from(props.name || "Parallel", children, props.policy), props);
+export function parallel(props: NodeProps & { policy?: ParallelPolicy, keepRunningChildren?: boolean }, children: BTNode[]): BTNode {
+    return applyDecorators(Parallel.from(props.name || "Parallel", children, props.policy, {
+        keepRunningChildren: props.keepRunningChildren
+    }), props);
 }
 
 export function utilityFallback(props: NodeProps, children: Utility[]): BTNode {

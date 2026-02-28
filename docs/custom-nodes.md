@@ -131,7 +131,7 @@ class MaxExecutions extends Decorator {
 
 - Always call `BTNode.Tick(this.child, ctx)` when you want the child to execute
 - The base `Decorator.onAbort()` automatically calls `BTNode.Abort(this.child, ctx)`
-- If you override `onAbort`, call `super.onAbort(ctx)` to propagate abort to the child
+- If you override `onAbort`, call `super.onAbort(ctx)` unless you intentionally want to block propagation (for example, `NonAbortable`)
 - Add appropriate [NodeFlags](node-flags.md) in the constructor
 
 ## Custom Composite

@@ -3,6 +3,9 @@ import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 
 export type ParallelPolicy = (successCount: number, failureCount: number, runningCount: number) => NodeResult;
+export type ParallelOptions = {
+    keepRunningChildren?: boolean;
+};
 
 /**
  * Default policy: Succeed when all children succeed, fail when any child fails.
@@ -58,19 +61,25 @@ export const FailThreshold = (threshold: number): ParallelPolicy => {
 
 export class Parallel extends Composite {
     public override readonly defaultName = "Parallel";
+    private readonly keepRunningChildren: boolean;
 
     public static from(nodes: BTNode[]): Parallel
-    public static from(name: string, nodes: BTNode[], policy?: ParallelPolicy): Parallel
-    public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[], policy?: ParallelPolicy): Parallel {
+    public static from(name: string, nodes: BTNode[], policy?: ParallelPolicy, options?: ParallelOptions): Parallel
+    public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[], policy: ParallelPolicy = RequireAllSuccess, options: ParallelOptions = {}): Parallel {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "";
         const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
-        const composite = new Parallel(name, policy);
+        const composite = new Parallel(name, policy, options);
         composite.setNodes(nodes);
         return composite;
     }
 
-    constructor(name?: string, private policy: ParallelPolicy = RequireAllSuccess) {
+    constructor(
+        name?: string,
+        private policy: ParallelPolicy = RequireAllSuccess,
+        options: ParallelOptions = {}
+    ) {
         super(name);
+        this.keepRunningChildren = options.keepRunningChildren ?? false;
         this.addFlags(NodeFlags.Parallel);
     }
 
@@ -92,7 +101,7 @@ export class Parallel extends Composite {
 
         const result = this.policy(successCount, failureCount, runningCount);
 
-        if (result !== NodeResult.Running) {
+        if (result !== NodeResult.Running && !this.keepRunningChildren) {
             this.abortAllChildren(ctx);
         }
 

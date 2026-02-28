@@ -7,7 +7,7 @@ A code-first TypeScript behaviour tree library focused on developer experience.
 - **Type-safe**: Full TypeScript support with compile-time validation of decorator specs
 - **Lifecycle hooks**: 12 hooks covering every phase of node execution and abort
 - **Three construction APIs**: Direct instantiation, builder functions, and TSX/JSX
-- **Rich node library**: 8 composite types, 29+ decorators, and built-in leaf nodes
+- **Rich node library**: 8 composite types, 30+ decorators, and built-in leaf nodes
 - **Ref system**: `Ref<T>`, `ReadonlyRef<T>`, and `DerivedRef<T>` for type-safe, auto-traced state sharing between nodes
 - **Runtime inspector**: Tick recording, time-travel snapshots, profiling, and flame graphs
 - **Zero dependencies**: No runtime deps; ESM and CJS bundles via tsup
@@ -105,7 +105,7 @@ const root = (
 2. [Core Concepts](docs/core-concepts.md) - NodeResult, lifecycle hooks, TickContext, BTNode
 3. [Leaf Nodes](docs/leaf-nodes.md) - Action, ConditionNode, built-in leaves
 4. [Composite Nodes](docs/composite-nodes.md) - Sequence, Fallback, Parallel, IfThenElse, and more
-5. [Decorators](docs/decorators.md) - All 29+ decorators grouped by category
+5. [Decorators](docs/decorators.md) - All 30+ decorators grouped by category
 6. [Construction APIs](docs/construction-apis.md) - Direct instantiation, builder, TSX comparison
 7. [TSX](docs/tsx.md) - Full JSX/TSX reference
 8. [Inspector](docs/inspector.md) - TreeInspector, profiling, serialization

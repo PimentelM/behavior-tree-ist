@@ -72,6 +72,31 @@ describe("Parallel", () => {
         expect(child2.abortCount).toBe(0);
     });
 
+    it("does not auto-abort Running children on terminal result when keepRunningChildren is true", () => {
+        const child1 = new StubAction(NodeResult.Failed);
+        const child2 = new StubAction(NodeResult.Running);
+        const child3 = new StubAction(NodeResult.Running);
+        const parallel = Parallel.from("test", [child1, child2, child3], undefined, { keepRunningChildren: true });
+
+        const result = BTNode.Tick(parallel, createTickContext());
+
+        expect(result).toBe(NodeResult.Failed);
+        expect(child2.abortCount).toBe(0);
+        expect(child3.abortCount).toBe(0);
+    });
+
+    it("still propagates explicit parent abort even when keepRunningChildren is true", () => {
+        const child1 = new StubAction(NodeResult.Running);
+        const child2 = new StubAction(NodeResult.Running);
+        const parallel = Parallel.from("test", [child1, child2], undefined, { keepRunningChildren: true });
+
+        BTNode.Tick(parallel, createTickContext());
+        BTNode.Abort(parallel, createTickContext());
+
+        expect(child1.abortCount).toBe(1);
+        expect(child2.abortCount).toBe(1);
+    });
+
     describe("RequireOneSuccess", () => {
         it("succeeds when at least one child succeeds", () => {
             const child1 = new StubAction(NodeResult.Failed);

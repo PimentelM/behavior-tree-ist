@@ -85,6 +85,10 @@ const root = fallback({ name: 'AI' }, [
 | `utilitySelector(props, children)` | Alias for `utilityFallback` |
 | `utilitySequence(props, children)` | `UtilitySequence` |
 
+`parallel` also accepts:
+- `policy?: ParallelPolicy`
+- `keepRunningChildren?: boolean` (when true, terminal policy results do not auto-abort running children)
+
 **Utility wrapper** (takes `props` + single `child`):
 
 | Function | Node type |
@@ -143,6 +147,7 @@ All builder functions accept these props for automatic decorator application:
 | `retry` | `number` | Wrap with `Retry` (-1 for infinite) |
 | `keepRunningUntilFailure` | `boolean` | Wrap with `KeepRunningUntilFailure` |
 | `runOnce` | `boolean` | Wrap with `RunOnce` |
+| `nonAbortable` | `boolean` | Wrap with `NonAbortable` |
 
 **Timing** (values use the same unit as `ctx.now`):
 
@@ -196,7 +201,7 @@ These props are purely metadata for external tooling (inspectors, visualizers). 
 
 1. Result transformers: `forceSuccess` / `forceFailure`
 2. Inversions: `inverter`, `runningIsFailure` / `runningIsSuccess`
-3. Control flow: `keepRunningUntilFailure`, `runOnce`, `repeat`, `retry`
+3. Control flow: `keepRunningUntilFailure`, `runOnce`, `nonAbortable`, `repeat`, `retry`
 4. Guards: `precondition`, `succeedIf` / `failIf`
 5. Timing: `requireSustainedSuccess`, `cooldown`, `throttle`, `timeout`, `delay`
 6. Hooks: `onEnter`, `onResume`, `onReset`, `onAbort`, `onTicked`, `onSuccess`, `onFailure`, `onRunning`, `onSuccessOrRunning`, `onFailedOrRunning`, `onFinished`

@@ -71,7 +71,7 @@ These accept `NodeProps` + `children`:
 | `<fallback>` | Ticks children in order, succeeds on first success |
 | `<reactive-fallback>` | Alias for `<fallback>` |
 | `<selector>` | Alias for `<fallback>` |
-| `<parallel>` | Ticks all children every tick. Result depends on the specified policy |
+| `<parallel>` | Ticks all children every tick. Result depends on the specified policy (`policy`) and optional `keepRunningChildren` |
 | `<if-then-else>` | Conditional: expects 3 children (condition, then, else) |
 | `<sequence-with-memory>` | Sequence that resumes from last running child |
 | `<fallback-with-memory>` | Fallback that resumes from last running child |
@@ -150,6 +150,16 @@ All elements accept [NodeProps](construction-apis.md#nodeprops-reference) for au
 <action execute={fn} retry={3} />
 <action execute={fn} keepRunningUntilFailure />
 <action execute={fn} runOnce />
+<action execute={fn} nonAbortable />
+```
+
+Parallel-specific option:
+
+```tsx
+<parallel keepRunningChildren>
+  <action execute={fnA} />
+  <action execute={fnB} />
+</parallel>
 ```
 
 ### Lifecycle Hooks

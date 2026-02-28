@@ -121,6 +121,7 @@ const plan = FallbackWithMemory.from('Find Path', [pathA, pathB, pathC]);
 **Flags**: `Parallel`
 
 Ticks **all** children every tick and evaluates results using a pluggable policy.
+By default, when the policy returns a terminal result (`Succeeded`/`Failed`), the node aborts any children still `Running`.
 
 ```typescript
 import { Parallel } from '@behavior-tree-ist/core';
@@ -150,6 +151,21 @@ const parallel = Parallel.from(
   SuccessThreshold(2),
 );
 ```
+
+### Parallel Abort Behavior
+
+Use `options.keepRunningChildren=true` to prevent `Parallel` from auto-aborting running children when the policy reaches a terminal result.
+
+```typescript
+const parallel = Parallel.from(
+  'NonInterruptingQuorum',
+  [taskA, taskB, taskC],
+  SuccessThreshold(2),
+  { keepRunningChildren: true },
+);
+```
+
+This only affects the internal "terminal policy result" path. Explicit parent aborts (`BTNode.Abort(parallel, ctx)`) still propagate to children.
 
 ## IfThenElse
 
@@ -219,8 +235,8 @@ const seq = Sequence.from([child1, child2]);
 // With name
 const seq = Sequence.from('My Sequence', [child1, child2]);
 
-// Parallel with policy
-const par = Parallel.from('My Parallel', [child1, child2], policy);
+// Parallel with policy and optional options object
+const par = Parallel.from('My Parallel', [child1, child2], policy, { keepRunningChildren: true });
 
 // IfThenElse with 2 or 3 children
 const ite = IfThenElse.from([condition, thenBranch, elseBranch]);

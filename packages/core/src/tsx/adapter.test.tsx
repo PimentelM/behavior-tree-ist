@@ -10,9 +10,10 @@ import { BT } from "./index"; // This will be the alias we use for JSX factory -
 import { NodeProps } from "../builder";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
-import { tickNode } from "../test-helpers";
+import { createNodeTicker, tickNode, StubAction } from "../test-helpers";
 import { Utility } from "../nodes/decorators/utility";
 import { SubTree } from "../nodes/decorators/sub-tree";
+import { NonAbortable } from "../nodes/decorators/non-abortable";
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 
@@ -165,6 +166,22 @@ describe("TSX Adapter", () => {
         expect(result).toBe(NodeResult.Failed);
     });
 
+    it("supports keepRunningChildren on parallel nodes", () => {
+        const failing = new StubAction(NodeResult.Failed);
+        const running = new StubAction(NodeResult.Running);
+        const tree = (
+            <parallel name="CustomParallel" keepRunningChildren>
+                {failing}
+                {running}
+            </parallel>
+        );
+
+        const result = tickNode(tree);
+
+        expect(result).toBe(NodeResult.Failed);
+        expect(running.abortCount).toBe(0);
+    });
+
     it("can apply generic decorators using the decorate prop", () => {
         class DummyDecorator extends Decorator {
             constructor(child: BTNode, public readonly value: number) {
@@ -200,6 +217,22 @@ describe("TSX Adapter", () => {
         expect((multiDecorated as DummyDecorator).value).toBe(1);
         expect(multiDecorated.getChildren?.()[0]).toBeInstanceOf(DummyDecorator);
         expect((multiDecorated.getChildren?.()[0] as DummyDecorator).value).toBe(2);
+    });
+
+    it("applies nonAbortable NodeProps through TSX", () => {
+        const node = (
+            <action
+                nonAbortable
+                execute={() => NodeResult.Running}
+            />
+        );
+
+        expect(node).toBeInstanceOf(NonAbortable);
+
+        const ticker = createNodeTicker();
+        expect(ticker.tick(node)).toBe(NodeResult.Running);
+        ticker.abort(node);
+        expect(node.getChildren?.()[0]?.wasRunning).toBe(true);
     });
 
     it("applies tags from props directly to the node", () => {

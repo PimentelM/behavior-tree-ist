@@ -203,6 +203,22 @@ const tracked = action({
 });
 ```
 
+## Abort Propagation
+
+Control how abort requests are forwarded to a child.
+
+| Decorator | Constructor | Behavior |
+|---|---|---|
+| `NonAbortable` | `(child)` | Swallows `onAbort` forwarding. The decorator itself can be aborted, but it does not call `BTNode.Abort` on its child. |
+
+```typescript
+import { NonAbortable, Action, NodeResult } from '@behavior-tree-ist/core';
+
+const shielded = new NonAbortable(
+  Action.from('Background Work', () => NodeResult.Running),
+);
+```
+
 ## Utility
 
 **Flags**: `Utility`
@@ -274,5 +290,6 @@ const combatBoundary = new SubTree(
 | Timing | Timeout, Delay, Cooldown, Throttle, RequireSustainedSuccess | `Stateful`, `TimeBased` |
 | Control Flow | Repeat, Retry, KeepRunningUntilFailure, RunOnce | `Repeating` / `Stateful` / `CountBased` (Repeat, Retry) |
 | Lifecycle | OnEnter, OnResume, OnReset, OnTicked, OnSuccess, OnFailure, OnRunning, OnFinished, OnSuccessOrRunning, OnFailedOrRunning, OnAbort | `Lifecycle` |
+| Abort Propagation | NonAbortable | `Decorator` |
 | Scoring | Utility | `Utility` |
 | Metadata | Tag, SubTree | `SubTree` (SubTree only) |

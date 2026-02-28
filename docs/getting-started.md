@@ -134,5 +134,5 @@ The `now` parameter supplies the current time value for the tick. Timing decorat
 - [Core Concepts](core-concepts.md) -- Understand the tick lifecycle, hooks, and TickContext
 - [Leaf Nodes](leaf-nodes.md) -- Action and ConditionNode in depth
 - [Composite Nodes](composite-nodes.md) -- Sequence, Fallback, Parallel, and more
-- [Decorators](decorators.md) -- All 29+ decorators
+- [Decorators](decorators.md) -- All 30+ decorators
 - [Construction APIs](construction-apis.md) -- Comparison of all three APIs

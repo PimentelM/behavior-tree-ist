@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { sequence, fallback, parallel, action, condition, utilityFallback, utilitySequence, utility, displayState, subTree } from "./index";
+import { sequence, fallback, parallel, action, condition, utilityFallback, utilitySequence, utility, displayState, subTree, applyDecorators } from "./index";
 import { NodeResult } from "../base/types";
-import { tickNode } from "../test-helpers";
+import { createNodeTicker, tickNode, StubAction } from "../test-helpers";
 
 
 describe("Subtree Builder Factory", () => {
@@ -53,6 +53,17 @@ describe("Subtree Builder Factory", () => {
 
         const result = tickNode(par);
         expect(result).toBe(NodeResult.Succeeded);
+    });
+
+    it("keeps Running children alive when keepRunningChildren is true", () => {
+        const failing = new StubAction(NodeResult.Failed);
+        const running = new StubAction(NodeResult.Running);
+        const par = parallel({ name: "MyParallel", keepRunningChildren: true }, [failing, running]);
+
+        const result = tickNode(par);
+
+        expect(result).toBe(NodeResult.Failed);
+        expect(running.abortCount).toBe(0);
     });
 
     it("builds a utility fallback", () => {
@@ -116,5 +127,16 @@ describe("Subtree Builder Factory", () => {
         expect(node.displayName).toBe("CombatBoundary");
         expect(node.getDisplayState?.()).toEqual({ id: "combat-root", namespace: "combat" });
         expect(tickNode(node)).toBe(NodeResult.Succeeded);
+    });
+
+    it("applies nonAbortable via NodeProps", () => {
+        const child = new StubAction(NodeResult.Running);
+        const node = applyDecorators(child, { nonAbortable: true });
+        const ticker = createNodeTicker();
+
+        expect(ticker.tick(node)).toBe(NodeResult.Running);
+        ticker.abort(node);
+
+        expect(child.abortCount).toBe(0);
     });
 });

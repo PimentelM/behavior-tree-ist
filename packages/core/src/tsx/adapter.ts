@@ -136,7 +136,7 @@ declare global {
             "fallback": DefaultCompositeProps;
             "reactive-fallback": DefaultCompositeProps;
             "selector": DefaultCompositeProps; // alias for fallback
-            "parallel": DefaultCompositeProps & { policy?: ParallelPolicy };
+            "parallel": DefaultCompositeProps & { policy?: ParallelPolicy; keepRunningChildren?: boolean };
             "if-then-else": DefaultCompositeProps;
             "sequence-with-memory": DefaultCompositeProps;
             "fallback-with-memory": DefaultCompositeProps;
