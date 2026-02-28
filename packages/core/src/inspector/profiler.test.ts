@@ -155,6 +155,32 @@ describe("Profiler", () => {
         expect(root.selfCpuP99).toBe(5);
     });
 
+    it("can recompute exact percentiles from provided tick events", () => {
+        const profiler = new Profiler();
+        const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 100 }]);
+        const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 1 }]);
+        const tick3 = makeEvents(3, [{ nodeId: 1, start: 0, end: 2 }]);
+        profiler.ingestTick(tick1);
+        profiler.ingestTick(tick2);
+        profiler.ingestTick(tick3);
+        profiler.removeTick(tick1);
+
+        const sampledData = profiler.getNodeData(1)!;
+        expect(sampledData.tickCount).toBe(2);
+        expect(sampledData.cpuP95).toBe(100);
+
+        profiler.recomputeExactPercentilesFromTickEvents([tick2, tick3]);
+        const exactData = profiler.getNodeData(1)!;
+        expect(exactData.cpuP50).toBe(1);
+        expect(exactData.cpuP95).toBe(2);
+        expect(exactData.cpuP99).toBe(2);
+
+        // Any further mutation should invalidate exact caches and return to sampled mode.
+        profiler.ingestTick(makeEvents(4, [{ nodeId: 1, start: 0, end: 3 }]));
+        const backToSampled = profiler.getNodeData(1)!;
+        expect(backToSampled.cpuP95).toBe(100);
+    });
+
     it("updates cpu and self min/max exactly after eviction", () => {
         const profiler = new Profiler();
         const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 5 }]);

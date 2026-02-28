@@ -8,6 +8,7 @@ interface PerformanceViewProps {
   frames: FlameGraphFrame[];
   hotNodes: NodeProfilingData[];
   stats: TreeStats;
+  percentilesApproximate?: boolean;
   onSelectNode: (nodeId: number) => void;
   selectedNodeId: number | null;
   treeIndex: TreeIndex | null;
@@ -18,6 +19,7 @@ function PerformanceViewInner({
   frames,
   hotNodes,
   stats,
+  percentilesApproximate = false,
   onSelectNode,
   selectedNodeId,
   treeIndex,
@@ -61,6 +63,7 @@ function PerformanceViewInner({
         <HotNodesTable
           hotNodes={hotNodes}
           rootTotalCpuTime={stats.totalRootCpuTime}
+          percentilesApproximate={percentilesApproximate}
           onSelectNode={onSelectNode}
           selectedNodeId={selectedNodeId}
           treeIndex={treeIndex ?? null}

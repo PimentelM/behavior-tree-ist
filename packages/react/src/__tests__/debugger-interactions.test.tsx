@@ -287,6 +287,42 @@ describe('PerformanceView', () => {
     expect(screen.getByText('25.0%')).toBeTruthy();
   });
 
+  it('shows approximate percentile badge in live mode and hides it in paused mode', () => {
+    const hotNodes: NodeProfilingData[] = [
+      makeProfilingData({ nodeId: 1, totalCpuTime: 100, totalSelfCpuTime: 60, tickCount: 1 }),
+    ];
+
+    const { rerender } = render(
+      <PerformanceView
+        frames={[makeFrame({ nodeId: 1, inclusiveTime: 100, finishedAt: 100 })]}
+        hotNodes={hotNodes}
+        stats={makeStats({ totalRootCpuTime: 100, profilingWindowSpan: 320 })}
+        percentilesApproximate
+        onSelectNode={vi.fn()}
+        selectedNodeId={null}
+        treeIndex={null}
+        viewedTickId={1}
+      />,
+    );
+
+    expect(screen.getByText('Approx')).toBeTruthy();
+
+    rerender(
+      <PerformanceView
+        frames={[makeFrame({ nodeId: 1, inclusiveTime: 100, finishedAt: 100 })]}
+        hotNodes={hotNodes}
+        stats={makeStats({ totalRootCpuTime: 100, profilingWindowSpan: 320 })}
+        percentilesApproximate={false}
+        onSelectNode={vi.fn()}
+        selectedNodeId={null}
+        treeIndex={null}
+        viewedTickId={1}
+      />,
+    );
+
+    expect(screen.queryByText('Approx')).toBeNull();
+  });
+
   it('computes tick total from all root frames and uses it in flamegraph tooltip percent', () => {
     const onSelectNode = vi.fn();
     const frames: FlameGraphFrame[] = [

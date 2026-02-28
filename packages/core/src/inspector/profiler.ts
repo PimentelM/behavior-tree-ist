@@ -78,6 +78,8 @@ export class Profiler {
     private readonly percentileCacheByNode = new Map<number, PercentileCache>();
     private readonly selfPercentileWindowsByNode = new Map<number, PercentileWindow>();
     private readonly selfPercentileCacheByNode = new Map<number, PercentileCache>();
+    private readonly exactPercentileCacheByNode = new Map<number, PercentileCache>();
+    private readonly exactSelfPercentileCacheByNode = new Map<number, PercentileCache>();
     private readonly dirtyMinMaxNodeIds = new Set<number>();
     private _totalCpuTime = 0;
     private _tickCount = 0;
@@ -85,6 +87,7 @@ export class Profiler {
     private _totalRunningTime = 0;
     private _totalSelfCpuTime = 0;
     private ticksSinceRepair = 0;
+    private exactPercentilesReady = false;
     private readonly percentileSampleCap = DEFAULT_PERCENTILE_SAMPLE_CAP;
     private readonly minMaxRepairIntervalTicks = DEFAULT_MIN_MAX_REPAIR_INTERVAL_TICKS;
     private readonly maxDirtyNodesPerRepairPass = DEFAULT_MAX_DIRTY_NODES_PER_REPAIR_PASS;
@@ -113,6 +116,7 @@ export class Profiler {
      */
     ingestTick(events: TickTraceEvent[]): void {
         if (events.length === 0) return;
+        this.invalidateExactPercentiles();
         const tickId = events[0].tickId;
         if (tickId <= this.lastProcessedTickId) return;
         this.lastProcessedTickId = tickId;
@@ -183,6 +187,7 @@ export class Profiler {
      */
     removeTick(events: TickTraceEvent[]): void {
         if (events.length === 0) return;
+        this.invalidateExactPercentiles();
         const tickId = events[0].tickId;
         if (this._tickCount > 0) {
             this._tickCount--;
@@ -315,6 +320,8 @@ export class Profiler {
         this.percentileCacheByNode.clear();
         this.selfPercentileWindowsByNode.clear();
         this.selfPercentileCacheByNode.clear();
+        this.exactPercentileCacheByNode.clear();
+        this.exactSelfPercentileCacheByNode.clear();
         this.dirtyMinMaxNodeIds.clear();
         this._totalCpuTime = 0;
         this._totalRunningTime = 0;
@@ -323,6 +330,7 @@ export class Profiler {
         this.lastProcessedTickId = -1;
         this.ticksSinceRepair = 0;
         this.runningStartTimes.clear();
+        this.exactPercentilesReady = false;
     }
 
     clone(): Profiler {
@@ -370,12 +378,59 @@ export class Profiler {
         for (const [nodeId, cache] of source.selfPercentileCacheByNode) {
             this.selfPercentileCacheByNode.set(nodeId, { ...cache });
         }
+        for (const [nodeId, cache] of source.exactPercentileCacheByNode) {
+            this.exactPercentileCacheByNode.set(nodeId, { ...cache });
+        }
+        for (const [nodeId, cache] of source.exactSelfPercentileCacheByNode) {
+            this.exactSelfPercentileCacheByNode.set(nodeId, { ...cache });
+        }
         for (const nodeId of source.dirtyMinMaxNodeIds) {
             this.dirtyMinMaxNodeIds.add(nodeId);
         }
         for (const [nodeId, startedAt] of source.runningStartTimes) {
             this.runningStartTimes.set(nodeId, startedAt);
         }
+        this.exactPercentilesReady = source.exactPercentilesReady;
+    }
+
+    recomputeExactPercentilesFromTickEvents(tickEvents: readonly TickTraceEvent[][]): void {
+        this.exactPercentileCacheByNode.clear();
+        this.exactSelfPercentileCacheByNode.clear();
+
+        const cpuSamplesByNode = new Map<number, number[]>();
+        const selfSamplesByNode = new Map<number, number[]>();
+
+        for (const events of tickEvents) {
+            const timedEvents: TimedEvent[] = [];
+            for (const event of events) {
+                if (event.startedAt === undefined || event.finishedAt === undefined) continue;
+                const cpuTime = event.finishedAt - event.startedAt;
+                this.pushSample(cpuSamplesByNode, event.nodeId, cpuTime);
+                timedEvents.push({
+                    nodeId: event.nodeId,
+                    startedAt: event.startedAt,
+                    finishedAt: event.finishedAt,
+                    inclusiveTime: cpuTime,
+                    childInclusiveTime: 0,
+                });
+            }
+
+            const selfSamples = this.groupSelfCpuSamplesFromTimedEvents(timedEvents);
+            for (const [nodeId, samples] of selfSamples) {
+                for (const sample of samples) {
+                    this.pushSample(selfSamplesByNode, nodeId, sample);
+                }
+            }
+        }
+
+        for (const acc of this.accumulators.values()) {
+            const cpuSamples = cpuSamplesByNode.get(acc.nodeId) ?? [];
+            const selfSamples = selfSamplesByNode.get(acc.nodeId) ?? [];
+            this.exactPercentileCacheByNode.set(acc.nodeId, this.buildPercentileCache(cpuSamples, acc.version));
+            this.exactSelfPercentileCacheByNode.set(acc.nodeId, this.buildPercentileCache(selfSamples, acc.version));
+        }
+
+        this.exactPercentilesReady = true;
     }
 
     private getOrCreateContribution(
@@ -640,17 +695,19 @@ export class Profiler {
     }
 
     private buildNodeData(acc: NodeAccumulator): NodeProfilingData {
-        const cpuPercentiles = this.getCachedPercentiles(
+        const cpuPercentiles = this.getResolvedPercentiles(
             acc.nodeId,
             acc.version,
             this.percentileWindowsByNode,
             this.percentileCacheByNode,
+            this.exactPercentileCacheByNode,
         );
-        const selfPercentiles = this.getCachedPercentiles(
+        const selfPercentiles = this.getResolvedPercentiles(
             acc.nodeId,
             acc.version,
             this.selfPercentileWindowsByNode,
             this.selfPercentileCacheByNode,
+            this.exactSelfPercentileCacheByNode,
         );
         return {
             nodeId: acc.nodeId,
@@ -675,6 +732,26 @@ export class Profiler {
             maxRunningTime: acc.maxRunningTime,
             lastRunningTime: acc.lastRunningTime,
         };
+    }
+
+    private getResolvedPercentiles(
+        nodeId: number,
+        version: number,
+        windowsByNode: Map<number, PercentileWindow>,
+        cacheByNode: Map<number, PercentileCache>,
+        exactCacheByNode: Map<number, PercentileCache>,
+    ): PercentileCache {
+        if (this.exactPercentilesReady) {
+            const exact = exactCacheByNode.get(nodeId);
+            if (exact && exact.version === version) {
+                return exact;
+            }
+            const empty: PercentileCache = { version, p50: 0, p95: 0, p99: 0 };
+            exactCacheByNode.set(nodeId, empty);
+            return empty;
+        }
+
+        return this.getCachedPercentiles(nodeId, version, windowsByNode, cacheByNode);
     }
 
     private getCachedPercentiles(
@@ -706,6 +783,20 @@ export class Profiler {
         return next;
     }
 
+    private buildPercentileCache(samples: number[], version: number): PercentileCache {
+        if (samples.length === 0) {
+            return { version, p50: 0, p95: 0, p99: 0 };
+        }
+
+        const sorted = [...samples].sort((a, b) => a - b);
+        return {
+            version,
+            p50: this.getPercentile(sorted, 0.5),
+            p95: this.getPercentile(sorted, 0.95),
+            p99: this.getPercentile(sorted, 0.99),
+        };
+    }
+
     private pushPercentileCpuSample(nodeId: number, sample: number): void {
         this.pushPercentileSample(this.percentileWindowsByNode, nodeId, sample);
     }
@@ -735,12 +826,31 @@ export class Profiler {
     }
 
     private deleteNode(nodeId: number): void {
+        this.invalidateExactPercentiles();
         this.accumulators.delete(nodeId);
         this.dirtyMinMaxNodeIds.delete(nodeId);
         this.percentileWindowsByNode.delete(nodeId);
         this.percentileCacheByNode.delete(nodeId);
         this.selfPercentileWindowsByNode.delete(nodeId);
         this.selfPercentileCacheByNode.delete(nodeId);
+        this.exactPercentileCacheByNode.delete(nodeId);
+        this.exactSelfPercentileCacheByNode.delete(nodeId);
+    }
+
+    private invalidateExactPercentiles(): void {
+        if (!this.exactPercentilesReady) return;
+        this.exactPercentilesReady = false;
+        this.exactPercentileCacheByNode.clear();
+        this.exactSelfPercentileCacheByNode.clear();
+    }
+
+    private pushSample(samplesByNode: Map<number, number[]>, nodeId: number, sample: number): void {
+        const list = samplesByNode.get(nodeId);
+        if (list) {
+            list.push(sample);
+            return;
+        }
+        samplesByNode.set(nodeId, [sample]);
     }
 
     private groupSelfCpuSamplesFromTimedEvents(timedEvents: TimedEvent[]): Map<number, number[]> {

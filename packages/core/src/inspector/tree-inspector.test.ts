@@ -351,4 +351,40 @@ describe("TreeInspector", () => {
         expect(cloned.getNodeProfilingData(1)!.totalCpuTime).toBe(60);
         expect(cloned.getStats().totalRootCpuTime).toBe(60);
     });
+
+    it("cloneForTimeTravel computes exact window percentiles by default", () => {
+        const inspector = new TreeInspector({ maxTicks: 2 });
+        inspector.indexTree(makeTree());
+
+        inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 100 }]));
+        inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 1 }]));
+        inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 2 }]));
+
+        const liveData = inspector.getNodeProfilingData(1)!;
+        // Live mode keeps fast sampled percentiles and can include evicted outliers.
+        expect(liveData.tickCount).toBe(2);
+        expect(liveData.cpuP95).toBe(100);
+
+        const frozen = inspector.cloneForTimeTravel();
+        const frozenData = frozen.getNodeProfilingData(1)!;
+        expect(frozenData.tickCount).toBe(2);
+        expect(frozenData.cpuP50).toBe(1);
+        expect(frozenData.cpuP95).toBe(2);
+        expect(frozenData.cpuP99).toBe(2);
+        expect(frozenData.selfCpuP95).toBe(2);
+    });
+
+    it("cloneForTimeTravel can preserve sampled percentiles when exact recompute is disabled", () => {
+        const inspector = new TreeInspector({ maxTicks: 2 });
+        inspector.indexTree(makeTree());
+
+        inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 100 }]));
+        inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 1 }]));
+        inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 2 }]));
+
+        const sampledClone = inspector.cloneForTimeTravel({ exactPercentiles: false });
+        const sampledData = sampledClone.getNodeProfilingData(1)!;
+        expect(sampledData.tickCount).toBe(2);
+        expect(sampledData.cpuP95).toBe(100);
+    });
 });

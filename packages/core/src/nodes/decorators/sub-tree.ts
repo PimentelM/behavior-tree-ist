@@ -1,5 +1,5 @@
 import { AnyDecoratorSpec, BTNode, TickContext, ValidateDecoratorSpecs } from "../../base/node";
-import { decorate, Decorator } from "../../base/decorator";
+import { Decorator } from "../../base/decorator";
 import { NodeFlags, NodeResult, SerializableState } from "../../base/types";
 
 export type SubTreeMetadata = {

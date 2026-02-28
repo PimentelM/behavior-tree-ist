@@ -81,6 +81,7 @@ function getSortLabel(sortKey: SortKey, percentile: PercentileKey): string {
 interface HotNodesTableProps {
   hotNodes: NodeProfilingData[];
   rootTotalCpuTime: number;
+  percentilesApproximate?: boolean;
   windowTickCount: number;
   windowSpan: number;
   onSelectNode: (nodeId: number) => void;
@@ -94,6 +95,7 @@ interface HotNodesTableProps {
 function HotNodesTableInner({
   hotNodes,
   rootTotalCpuTime,
+  percentilesApproximate = false,
   windowTickCount,
   windowSpan,
   onSelectNode,
@@ -230,6 +232,14 @@ function HotNodesTableInner({
               </button>
             ))}
           </div>
+          {percentilesApproximate && (
+            <span
+              className="bt-hot-nodes__approx-badge"
+              title="Live percentiles are sampled for responsiveness. Pause or time travel for exact window percentiles."
+            >
+              Approx
+            </span>
+          )}
           <button className="bt-hot-nodes__toggle bt-hot-nodes__toggle--advanced" onClick={toggleAdvanced} type="button">
             {showAdvanced ? 'Hide Inclusive metrics' : 'Show Inclusive metrics'}
           </button>

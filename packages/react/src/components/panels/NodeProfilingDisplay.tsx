@@ -4,9 +4,13 @@ import { formatMs } from '../../utils/format';
 
 interface NodeProfilingDisplayProps {
   profilingData: NodeProfilingData;
+  percentilesApproximate?: boolean;
 }
 
-function NodeProfilingDisplayInner({ profilingData }: NodeProfilingDisplayProps) {
+function NodeProfilingDisplayInner({
+  profilingData,
+  percentilesApproximate = false,
+}: NodeProfilingDisplayProps) {
   if (profilingData.tickCount === 0) return null;
 
   const avgCpu = profilingData.totalCpuTime / profilingData.tickCount;
@@ -18,7 +22,17 @@ function NodeProfilingDisplayInner({ profilingData }: NodeProfilingDisplayProps)
 
   return (
     <div className="bt-profiling">
-      <div className="bt-profiling__title">Profiling</div>
+      <div className="bt-profiling__title-row">
+        <div className="bt-profiling__title">Profiling</div>
+        {percentilesApproximate && (
+          <span
+            className="bt-profiling__approx-badge"
+            title="Live percentiles are sampled for responsiveness. Pause or time travel for exact window percentiles."
+          >
+            Approx Percentiles
+          </span>
+        )}
+      </div>
       <div className="bt-profiling__grid">
         <div className="bt-profiling__section">
           <div className="bt-profiling__section-label">CPU Time</div>

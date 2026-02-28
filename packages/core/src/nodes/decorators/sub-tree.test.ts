@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BTNode, NodeFlags, NodeResult } from "../../base";
+import { BTNode, Decorator, NodeFlags, NodeResult } from "../../base";
 import { createTickContext, StubAction } from "../../test-helpers";
 import { SubTree } from "./sub-tree";
 import { Inverter } from "./inverter";
@@ -56,7 +56,7 @@ describe("SubTree Decorator", () => {
 
         // And the child of the subTree should now be an Inverter
         expect(subTree.child).toBeInstanceOf(Inverter);
-        expect((subTree.child as any).child).toBe(action);
+        expect((subTree.child as unknown as Decorator).child).toBe(action);
 
         // Verify the behavior is correctly applied (child should now return Failed)
         const result = BTNode.Tick(subTree, {
@@ -66,7 +66,7 @@ describe("SubTree Decorator", () => {
             refEvents: [],
             isTracingEnabled: false,
             trace: () => { }
-        } as any);
+        });
 
         expect(result).toBe(NodeResult.Failed);
     });

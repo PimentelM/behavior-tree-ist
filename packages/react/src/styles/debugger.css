@@ -1097,6 +1097,27 @@
   margin-bottom: 7px;
 }
 
+.bt-profiling__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bt-profiling__approx-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--bt-accent-color) 38%, var(--bt-border-color));
+  background: color-mix(in srgb, var(--bt-accent-color) 14%, transparent);
+  color: var(--bt-text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  margin-bottom: 7px;
+  cursor: help;
+}
+
 .bt-profiling__grid {
   background: var(--bt-bg-tertiary);
   border-radius: 8px;
@@ -1863,6 +1884,21 @@
 .bt-hot-nodes__percentile-btn--active {
   color: var(--bt-text-primary);
   background: color-mix(in srgb, var(--bt-accent-color) 16%, var(--bt-bg-tertiary));
+}
+
+.bt-hot-nodes__approx-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--bt-accent-color) 38%, var(--bt-border-color));
+  background: color-mix(in srgb, var(--bt-accent-color) 14%, transparent);
+  color: var(--bt-text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 4px 8px;
+  cursor: help;
+  white-space: nowrap;
 }
 
 .bt-hot-nodes__table-wrap {

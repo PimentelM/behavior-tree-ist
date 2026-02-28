@@ -115,11 +115,12 @@ export function BehaviourTreeDebugger({
 
     if (pausedInspector) return;
 
-    const frozen = inspector.cloneForTimeTravel();
+    const frozen = inspector.cloneForTimeTravel({ exactPercentiles: true });
     setPausedInspector(frozen);
   }, [timeTravelControls.mode, pausedInspector, inspector]);
 
   const activeInspector = pausedInspector ?? inspector;
+  const percentilesApproximate = timeTravelControls.mode === 'live';
 
   // Layout: only recomputes when tree changes
   const { nodes: baseNodes, edges: baseEdges } = useTreeLayout(
@@ -382,6 +383,7 @@ export function BehaviourTreeDebugger({
               frames={performanceData.frames}
               hotNodes={performanceData.hotNodes}
               stats={performanceData.stats}
+              percentilesApproximate={percentilesApproximate}
               onSelectNode={handleNodeClick}
               selectedNodeId={selectedNodeId}
               treeIndex={activeInspector.tree ?? null}
@@ -405,6 +407,7 @@ export function BehaviourTreeDebugger({
               details={nodeDetails}
               refEvents={refEvents}
               viewedTickId={viewedTickId}
+              percentilesApproximate={percentilesApproximate}
               openDetailsSignal={openDetailsSignal}
               showRefTraces={showRefTraces}
               onGoToTick={handleGoToTick}

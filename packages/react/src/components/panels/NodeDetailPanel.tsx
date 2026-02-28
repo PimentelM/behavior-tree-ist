@@ -12,6 +12,7 @@ interface NodeDetailPanelProps {
   details: NodeDetailsData | null;
   refEvents: RefChangeEvent[];
   viewedTickId: number | null;
+  percentilesApproximate?: boolean;
   openDetailsSignal: number;
   showRefTraces: boolean;
   onGoToTick: (tickId: number) => void;
@@ -22,6 +23,7 @@ function NodeDetailPanelInner({
   details,
   refEvents,
   viewedTickId,
+  percentilesApproximate = false,
   openDetailsSignal,
   showRefTraces,
   onGoToTick,
@@ -77,7 +79,10 @@ function NodeDetailPanelInner({
               <NodeHeader details={details} />
               <NodeResultSummary resultSummary={details.resultSummary} />
               {details.profilingData && (
-                <NodeProfilingDisplay profilingData={details.profilingData} />
+                <NodeProfilingDisplay
+                  profilingData={details.profilingData}
+                  percentilesApproximate={percentilesApproximate}
+                />
               )}
               {details.currentDisplayState && (
                 <NodeStateDisplay

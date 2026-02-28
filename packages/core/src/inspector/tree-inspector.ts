@@ -122,21 +122,26 @@ export class TreeInspector {
         return Profiler.buildFlameGraphFrames(record.events, this._tree);
     }
 
-    cloneForTimeTravel(): TreeInspector {
+    cloneForTimeTravel(options: { exactPercentiles?: boolean } = {}): TreeInspector {
+        const exactPercentiles = options.exactPercentiles ?? true;
         const cloned = new TreeInspector({ maxTicks: this.maxTicks });
         cloned._tree = this._tree;
 
+        const range: TickRecord[] = [];
         const tickIds = this.store.getStoredTickIds();
         if (tickIds.length > 0) {
             const firstTickId = tickIds[0]!;
             const lastTickId = tickIds[tickIds.length - 1]!;
-            const range = this.store.getTickRange(firstTickId, lastTickId);
+            range.push(...this.store.getTickRange(firstTickId, lastTickId));
             for (const record of range) {
                 cloned.store.push(record);
             }
         }
 
         cloned.profiler.copyFrom(this.profiler);
+        if (exactPercentiles) {
+            cloned.profiler.recomputeExactPercentilesFromTickEvents(range.map((record) => record.events));
+        }
         cloned.totalTickCount = this.totalTickCount;
         cloned.totalRootCpuTime = this.totalRootCpuTime;
         for (const [tickId, rootCpuTime] of this.rootCpuByTick) {
