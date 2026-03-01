@@ -5,11 +5,11 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn typecheck && yarn workspace @behavior-tree-ist/core run build && yarn workspace @behavior-tree-ist/react run build && yarn workspace @behavior-tree-ist/studio-transport run build",
+    "build": "yarn typecheck && yarn workspace @behavior-tree-ist/core run build && yarn workspace @behavior-tree-ist/react run build && yarn workspace @behavior-tree-ist/studio-transport run build && yarn workspace @behavior-tree-ist/studio run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint packages/*/src",
-    "typecheck": "yarn workspace @behavior-tree-ist/core run typecheck && yarn workspace @behavior-tree-ist/react run typecheck && yarn workspace @behavior-tree-ist/studio-transport run typecheck"
+    "typecheck": "yarn workspace @behavior-tree-ist/core run typecheck && yarn workspace @behavior-tree-ist/react run typecheck && yarn workspace @behavior-tree-ist/studio-transport run typecheck && yarn workspace @behavior-tree-ist/studio run typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
