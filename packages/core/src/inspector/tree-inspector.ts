@@ -1,4 +1,4 @@
-import { NodeResult, SerializableNode, SerializableState, TickTraceEvent, TickRecord } from "../base/types";
+import { NodeResult, SerializableNode, SerializableState, NodeHistoryEvent, TickRecord } from "../base/types";
 import { TreeIndex } from "./tree-index";
 import { TickStore } from "./tick-store";
 import { Profiler } from "./profiler";
@@ -53,7 +53,7 @@ export class TreeInspector {
 
         const evicted = this.store.push(record);
         if (evicted) {
-            this.profiler.removeTick(evicted.events);
+            this.profiler.removeTick(evicted.tickId, evicted.events);
             const evictedRootCpu = this.rootCpuByTick.get(evicted.tickId) ?? 0;
             this.totalRootCpuTime -= evictedRootCpu;
             this.rootCpuByTick.delete(evicted.tickId);
@@ -62,7 +62,7 @@ export class TreeInspector {
         const rootCpuTime = this.getRootCpuTime(record);
         this.rootCpuByTick.set(record.tickId, rootCpuTime);
         this.totalRootCpuTime += rootCpuTime;
-        this.profiler.ingestTick(record.events);
+        this.profiler.ingestTick(record.tickId, record.events);
     }
 
     // --- State reconstruction ---
@@ -84,7 +84,7 @@ export class TreeInspector {
 
     // --- History ---
 
-    getNodeHistory(nodeId: number): TickTraceEvent[] {
+    getNodeHistory(nodeId: number): NodeHistoryEvent[] {
         return this.store.getNodeHistory(nodeId);
     }
 

@@ -49,8 +49,6 @@ describe("BehaviourTree", () => {
         const { events } = tree.tick({ now: 0 });
 
         expect(events).toEqual([{
-            tickId: 1,
-            timestamp: 0,
             nodeId: root.id,
             result: NodeResult.Succeeded,
         }]);
@@ -86,8 +84,6 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 100 });
 
             expect(events[0]).toEqual({
-                tickId: 1,
-                timestamp: 100,
                 nodeId: root.id,
                 result: NodeResult.Succeeded,
             });

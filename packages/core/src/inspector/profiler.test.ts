@@ -5,9 +5,7 @@ import { TreeIndex } from "./tree-index";
 
 function makeEvents(tickId: number, timings: Array<{ nodeId: number; start: number; end: number }>): TickTraceEvent[] {
     return timings.map(t => ({
-        tickId,
         nodeId: t.nodeId,
-        timestamp: tickId * 1000,
         result: NodeResult.Succeeded,
         startedAt: t.start,
         finishedAt: t.end,
@@ -17,7 +15,7 @@ function makeEvents(tickId: number, timings: Array<{ nodeId: number; start: numb
 describe("Profiler", () => {
     it("accumulates timing data from ticks", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [
+        profiler.ingestTick(1, makeEvents(1, [
             { nodeId: 1, start: 0, end: 10 },
             { nodeId: 2, start: 2, end: 5 },
         ]));
@@ -35,10 +33,10 @@ describe("Profiler", () => {
 
     it("accumulates across multiple ticks", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [
+        profiler.ingestTick(1, makeEvents(1, [
             { nodeId: 1, start: 0, end: 10 },
         ]));
-        profiler.ingestTick(makeEvents(2, [
+        profiler.ingestTick(2, makeEvents(2, [
             { nodeId: 1, start: 0, end: 20 },
         ]));
 
@@ -52,8 +50,8 @@ describe("Profiler", () => {
 
     it("ignores duplicate tick ids", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
-        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
 
         expect(profiler.tickCount).toBe(1);
         expect(profiler.getNodeData(1)!.totalCpuTime).toBe(10);
@@ -61,10 +59,8 @@ describe("Profiler", () => {
 
     it("ignores events without timing", () => {
         const profiler = new Profiler();
-        profiler.ingestTick([{
-            tickId: 1,
+        profiler.ingestTick(1, [{
             nodeId: 1,
-            timestamp: 1000,
             result: NodeResult.Succeeded,
             // no startedAt/finishedAt
         }]);
@@ -78,9 +74,9 @@ describe("Profiler", () => {
         const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]);
         const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 20 }]);
 
-        profiler.ingestTick(tick1);
-        profiler.ingestTick(tick2);
-        profiler.removeTick(tick1);
+        profiler.ingestTick(1, tick1);
+        profiler.ingestTick(2, tick2);
+        profiler.removeTick(1, tick1);
 
         expect(profiler.tickCount).toBe(1);
         expect(profiler.getNodeData(1)!.totalCpuTime).toBe(20);
@@ -91,16 +87,16 @@ describe("Profiler", () => {
         const profiler = new Profiler();
         const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]);
 
-        profiler.ingestTick(tick1);
-        profiler.removeTick(tick1);
+        profiler.ingestTick(1, tick1);
+        profiler.removeTick(1, tick1);
 
         expect(profiler.getNodeData(1)).toBeUndefined();
     });
 
     it("getAverageCpuTime computes correctly", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
-        profiler.ingestTick(makeEvents(2, [{ nodeId: 1, start: 0, end: 30 }]));
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(2, makeEvents(2, [{ nodeId: 1, start: 0, end: 30 }]));
 
         expect(profiler.getAverageCpuTime(1)).toBe(20);
         expect(profiler.getAverageCpuTime(999)).toBeUndefined();
@@ -108,7 +104,7 @@ describe("Profiler", () => {
 
     it("tracks self cpu time for nested timed events", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [
+        profiler.ingestTick(1, makeEvents(1, [
             { nodeId: 1, start: 0, end: 100 },
             { nodeId: 2, start: 20, end: 60 },
         ]));
@@ -123,11 +119,11 @@ describe("Profiler", () => {
 
     it("computes cpu percentiles from exact window samples", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 1 }]));
-        profiler.ingestTick(makeEvents(2, [{ nodeId: 1, start: 0, end: 2 }]));
-        profiler.ingestTick(makeEvents(3, [{ nodeId: 1, start: 0, end: 3 }]));
-        profiler.ingestTick(makeEvents(4, [{ nodeId: 1, start: 0, end: 4 }]));
-        profiler.ingestTick(makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }]));
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 1 }]));
+        profiler.ingestTick(2, makeEvents(2, [{ nodeId: 1, start: 0, end: 2 }]));
+        profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 3 }]));
+        profiler.ingestTick(4, makeEvents(4, [{ nodeId: 1, start: 0, end: 4 }]));
+        profiler.ingestTick(5, makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }]));
 
         const node = profiler.getNodeData(1)!;
         expect(node.cpuP50).toBe(3);
@@ -140,11 +136,11 @@ describe("Profiler", () => {
 
     it("computes self cpu percentiles independently from cpu percentiles", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 99 }]));
-        profiler.ingestTick(makeEvents(2, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 98 }]));
-        profiler.ingestTick(makeEvents(3, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 97 }]));
-        profiler.ingestTick(makeEvents(4, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 96 }]));
-        profiler.ingestTick(makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 95 }]));
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 99 }]));
+        profiler.ingestTick(2, makeEvents(2, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 98 }]));
+        profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 97 }]));
+        profiler.ingestTick(4, makeEvents(4, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 96 }]));
+        profiler.ingestTick(5, makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 95 }]));
 
         const root = profiler.getNodeData(1)!;
         expect(root.cpuP50).toBe(100);
@@ -161,10 +157,10 @@ describe("Profiler", () => {
         const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 100 }]);
         const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 1 }]);
         const tick3 = makeEvents(3, [{ nodeId: 1, start: 0, end: 2 }]);
-        profiler.ingestTick(tick1);
-        profiler.ingestTick(tick2);
-        profiler.ingestTick(tick3);
-        profiler.removeTick(tick1);
+        profiler.ingestTick(1, tick1);
+        profiler.ingestTick(2, tick2);
+        profiler.ingestTick(3, tick3);
+        profiler.removeTick(1, tick1);
 
         const sampledData = profiler.getNodeData(1)!;
         expect(sampledData.tickCount).toBe(2);
@@ -178,7 +174,7 @@ describe("Profiler", () => {
         expect(exactData.cpuP99).toBe(2);
 
         // Any further mutation should invalidate exact caches and return to sampled mode.
-        profiler.ingestTick(makeEvents(4, [{ nodeId: 1, start: 0, end: 3 }]));
+        profiler.ingestTick(4, makeEvents(4, [{ nodeId: 1, start: 0, end: 3 }]));
         expect(profiler.getPercentileMode()).toBe("sampled");
         const backToSampled = profiler.getNodeData(1)!;
         expect(backToSampled.cpuP95).toBe(100);
@@ -190,10 +186,10 @@ describe("Profiler", () => {
         const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 10 }]);
         const tick3 = makeEvents(3, [{ nodeId: 1, start: 0, end: 20 }]);
 
-        profiler.ingestTick(tick1);
-        profiler.ingestTick(tick2);
-        profiler.ingestTick(tick3);
-        profiler.removeTick(tick1);
+        profiler.ingestTick(1, tick1);
+        profiler.ingestTick(2, tick2);
+        profiler.ingestTick(3, tick3);
+        profiler.removeTick(1, tick1);
 
         const node = profiler.getNodeData(1)!;
         expect(node.minCpuTime).toBe(10);
@@ -204,7 +200,7 @@ describe("Profiler", () => {
 
     it("getHotNodes returns sorted by total cpu time", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [
+        profiler.ingestTick(1, makeEvents(1, [
             { nodeId: 1, start: 0, end: 5 },
             { nodeId: 2, start: 0, end: 15 },
             { nodeId: 3, start: 0, end: 10 },
@@ -227,7 +223,7 @@ describe("Profiler", () => {
 
     it("clear resets all state", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
 
         profiler.clear();
 
@@ -238,15 +234,15 @@ describe("Profiler", () => {
 
     it("clone preserves state and stays isolated from further updates", () => {
         const profiler = new Profiler();
-        profiler.ingestTick(makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
-        profiler.ingestTick(makeEvents(2, [{ nodeId: 1, start: 0, end: 20 }]));
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(2, makeEvents(2, [{ nodeId: 1, start: 0, end: 20 }]));
 
         const cloned = profiler.clone();
         expect(cloned.tickCount).toBe(2);
         expect(cloned.totalCpuTime).toBe(30);
         expect(cloned.getNodeData(1)!.totalCpuTime).toBe(30);
 
-        profiler.ingestTick(makeEvents(3, [{ nodeId: 1, start: 0, end: 40 }]));
+        profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 40 }]));
         expect(profiler.tickCount).toBe(3);
         expect(profiler.totalCpuTime).toBe(70);
         expect(cloned.tickCount).toBe(2);
@@ -257,7 +253,7 @@ describe("Profiler", () => {
     describe("runningTime (duration spans)", () => {
         it("records single-tick duration correctly", () => {
             const profiler = new Profiler();
-            profiler.ingestTick(makeEvents(1, [
+            profiler.ingestTick(1, makeEvents(1, [
                 { nodeId: 1, start: 100, end: 110 }
             ]));
 
@@ -271,9 +267,9 @@ describe("Profiler", () => {
             const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]);
             const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 30 }]);
 
-            profiler.ingestTick(tick1);
-            profiler.ingestTick(tick2);
-            profiler.removeTick(tick1);
+            profiler.ingestTick(1, tick1);
+            profiler.ingestTick(2, tick2);
+            profiler.removeTick(1, tick1);
 
             const data = profiler.getNodeData(1)!;
             expect(data.minRunningTime).toBe(30);
@@ -283,30 +279,24 @@ describe("Profiler", () => {
         it("spans duration correctly across multiple running ticks", () => {
             const profiler = new Profiler();
             // Tick 1: node 1 returns Running
-            profiler.ingestTick([{
-                tickId: 1,
+            profiler.ingestTick(1, [{
                 nodeId: 1,
-                timestamp: 1000,
                 result: NodeResult.Running,
                 startedAt: 1000,
                 finishedAt: 1005,
             }]);
 
             // Tick 2: node 1 still returns Running
-            profiler.ingestTick([{
-                tickId: 2,
+            profiler.ingestTick(2, [{
                 nodeId: 1,
-                timestamp: 1500,
                 result: NodeResult.Running,
                 startedAt: 1500,
                 finishedAt: 1502,
             }]);
 
             // Tick 3: node 1 finishes Succeeded
-            profiler.ingestTick([{
-                tickId: 3,
+            profiler.ingestTick(3, [{
                 nodeId: 1,
-                timestamp: 2000,
                 result: NodeResult.Succeeded,
                 startedAt: 2000,
                 finishedAt: 2010, // The async task finally completes here
@@ -324,20 +314,16 @@ describe("Profiler", () => {
         it("handles aborted nodes without leaking tracking data", () => {
             const profiler = new Profiler();
             // Node starts running
-            profiler.ingestTick([{
-                tickId: 1,
+            profiler.ingestTick(1, [{
                 nodeId: 1,
-                timestamp: 1000,
                 result: NodeResult.Running,
                 startedAt: 1000,
                 finishedAt: 1010,
             }]);
 
             // Node is NOT ticked in tick 2 (e.g. branch aborted)
-            profiler.ingestTick([{
-                tickId: 2,
+            profiler.ingestTick(2, [{
                 nodeId: 2,
-                timestamp: 2000,
                 result: NodeResult.Succeeded,
                 startedAt: 2000,
                 finishedAt: 2010,
@@ -351,10 +337,8 @@ describe("Profiler", () => {
             expect(data.runningTimeCount).toBe(0);
 
             // Ticking Node 1 again as a fresh execution shouldn't use the old timestamp
-            profiler.ingestTick([{
-                tickId: 3,
+            profiler.ingestTick(3, [{
                 nodeId: 1,
-                timestamp: 3000,
                 result: NodeResult.Succeeded,
                 startedAt: 3000,
                 finishedAt: 3010,
@@ -369,13 +353,13 @@ describe("Profiler", () => {
             const profiler = new Profiler();
 
             // First execution span: ticks 1 to 3
-            profiler.ingestTick([{ tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Running, startedAt: 100, finishedAt: 110 }]);
-            profiler.ingestTick([{ tickId: 2, nodeId: 1, timestamp: 2000, result: NodeResult.Running, startedAt: 200, finishedAt: 220 }]);
-            profiler.ingestTick([{ tickId: 3, nodeId: 1, timestamp: 3000, result: NodeResult.Running, startedAt: 300, finishedAt: 330 }]);
+            profiler.ingestTick(1, [{ nodeId: 1, result: NodeResult.Running, startedAt: 100, finishedAt: 110 }]);
+            profiler.ingestTick(2, [{ nodeId: 1, result: NodeResult.Running, startedAt: 200, finishedAt: 220 }]);
+            profiler.ingestTick(3, [{ nodeId: 1, result: NodeResult.Running, startedAt: 300, finishedAt: 330 }]);
             // Node 1 was running with start time 100.
 
             // Abortion: Tick 4 drops Node 1
-            profiler.ingestTick([{ tickId: 4, nodeId: 2, timestamp: 4000, result: NodeResult.Succeeded, startedAt: 400, finishedAt: 410 }]);
+            profiler.ingestTick(4, [{ nodeId: 2, result: NodeResult.Succeeded, startedAt: 400, finishedAt: 410 }]);
             // Node 1 should be swept from runningStartTimes. No running time logged yet.
             expect(profiler.getNodeData(1)!.totalRunningTime).toBe(0);
             expect(profiler.getNodeData(1)!.runningTimeCount).toBe(0);
@@ -383,11 +367,11 @@ describe("Profiler", () => {
             expect(profiler.getNodeData(1)!.totalCpuTime).toBe(60);
 
             // Second execution span: ticks 5 to 7
-            profiler.ingestTick([{ tickId: 5, nodeId: 1, timestamp: 5000, result: NodeResult.Running, startedAt: 500, finishedAt: 510 }]);
-            profiler.ingestTick([{ tickId: 6, nodeId: 1, timestamp: 6000, result: NodeResult.Running, startedAt: 600, finishedAt: 620 }]);
+            profiler.ingestTick(5, [{ nodeId: 1, result: NodeResult.Running, startedAt: 500, finishedAt: 510 }]);
+            profiler.ingestTick(6, [{ nodeId: 1, result: NodeResult.Running, startedAt: 600, finishedAt: 620 }]);
 
             // Tick 8 resolves Node 1! (Skipped tick 7 altogether, just to simulate time gap)
-            profiler.ingestTick([{ tickId: 8, nodeId: 1, timestamp: 8000, result: NodeResult.Succeeded, startedAt: 800, finishedAt: 830 }]);
+            profiler.ingestTick(8, [{ nodeId: 1, result: NodeResult.Succeeded, startedAt: 800, finishedAt: 830 }]);
 
             // Assert metrics:
             const data = profiler.getNodeData(1)!;
@@ -409,36 +393,32 @@ describe("Profiler", () => {
 
             // Tick 1
             const tick1: TickTraceEvent[] = [{
-                tickId: 1,
                 nodeId: 1,
-                timestamp: 1000,
                 result: NodeResult.Running,
                 startedAt: 100,
                 finishedAt: 110,
             }];
-            profiler.ingestTick(tick1);
+            profiler.ingestTick(1, tick1);
 
             // Tick 2 (node finishes, resolving the duration)
             const tick2: TickTraceEvent[] = [{
-                tickId: 2,
                 nodeId: 1,
-                timestamp: 2000,
                 result: NodeResult.Succeeded,
                 startedAt: 200,
                 finishedAt: 210, // runningTime = 210 - 100 = 110
             }];
-            profiler.ingestTick(tick2);
+            profiler.ingestTick(2, tick2);
 
             expect(profiler.getNodeData(1)!.totalRunningTime).toBe(110);
             expect(profiler.getNodeData(1)!.runningTimeCount).toBe(1);
 
             // Evicting tick 1 shouldn't remove the duration (it was finalized in tick 2)
-            profiler.removeTick(tick1);
+            profiler.removeTick(1, tick1);
             expect(profiler.getNodeData(1)!.totalRunningTime).toBe(110);
             expect(profiler.getNodeData(1)!.runningTimeCount).toBe(1);
 
             // Evicting tick 2 should remove the duration
-            profiler.removeTick(tick2);
+            profiler.removeTick(2, tick2);
             expect(profiler.getNodeData(1)).toBeUndefined(); // Returns to 0 ticks
         });
 
@@ -446,21 +426,21 @@ describe("Profiler", () => {
             const profiler = new Profiler();
 
             // Start of a long running action
-            const startTick: TickTraceEvent[] = [{ tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Running, startedAt: 100, finishedAt: 110 }];
-            profiler.ingestTick(startTick);
+            const startTick: TickTraceEvent[] = [{ nodeId: 1, result: NodeResult.Running, startedAt: 100, finishedAt: 110 }];
+            profiler.ingestTick(1, startTick);
 
             // An intermediate tick that we don't hold a reference to, simulating ongoing ticks that get pushed out of a sliding window buffer
-            profiler.ingestTick([{ tickId: 2, nodeId: 1, timestamp: 2000, result: NodeResult.Running, startedAt: 200, finishedAt: 210 }]);
+            profiler.ingestTick(2, [{ nodeId: 1, result: NodeResult.Running, startedAt: 200, finishedAt: 210 }]);
 
             // Evict the intermediate running tick 2 while the node is still active
-            profiler.removeTick([{ tickId: 2, nodeId: 1, timestamp: 2000, result: NodeResult.Running, startedAt: 200, finishedAt: 210 }]);
+            profiler.removeTick(2, [{ nodeId: 1, result: NodeResult.Running, startedAt: 200, finishedAt: 210 }]);
 
             // Also evict the original starting tick (simulating a very old tick rolling out)
-            profiler.removeTick(startTick);
+            profiler.removeTick(1, startTick);
 
             // Tick 3: Finally resolves the long running action
             // Notice how startedAt continues to tick higher CPU time, but we care about the span from tick 1
-            profiler.ingestTick([{ tickId: 3, nodeId: 1, timestamp: 3000, result: NodeResult.Succeeded, startedAt: 300, finishedAt: 310 }]);
+            profiler.ingestTick(3, [{ nodeId: 1, result: NodeResult.Succeeded, startedAt: 300, finishedAt: 310 }]);
 
             // Let's assert!
             const data = profiler.getNodeData(1)!;

@@ -41,9 +41,7 @@ function makeTree(): SerializableNode {
 
 function makeTickRecord(tickId: number, timings: Array<{ nodeId: number; start: number; end: number; result?: NodeResult }>): TickRecord {
     const events: TickTraceEvent[] = timings.map(t => ({
-        tickId,
         nodeId: t.nodeId,
-        timestamp: tickId * 1000,
         result: t.result ?? NodeResult.Succeeded,
         startedAt: t.start,
         finishedAt: t.end,
@@ -122,7 +120,7 @@ describe("TreeInspector", () => {
             timestamp: 1000,
             refEvents: [],
             events: [
-                { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Running, state: { remainingCooldown: 50 } },
+                { nodeId: 2, result: NodeResult.Running, state: { remainingCooldown: 50 } },
             ],
         });
         inspector.ingestTick({
@@ -130,7 +128,7 @@ describe("TreeInspector", () => {
             timestamp: 2000,
             refEvents: [],
             events: [
-                { tickId: 2, nodeId: 3, timestamp: 2000, result: NodeResult.Succeeded },
+                { nodeId: 3, result: NodeResult.Succeeded },
             ],
         });
 
@@ -306,14 +304,14 @@ describe("TreeInspector", () => {
             tickId: 1,
             timestamp: 1000,
             refEvents: [],
-            events: [{ tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Succeeded }],
+            events: [{ nodeId: 1, result: NodeResult.Succeeded }],
         });
         inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 10, end: 20 }]));
         inspector.ingestTick({
             tickId: 3,
             timestamp: 1800,
             refEvents: [],
-            events: [{ tickId: 3, nodeId: 1, timestamp: 1800, result: NodeResult.Succeeded }],
+            events: [{ nodeId: 1, result: NodeResult.Succeeded }],
         });
 
         const stats = inspector.getStats();

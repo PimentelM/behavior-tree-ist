@@ -65,12 +65,12 @@ function makeTickRecord(): TickRecord {
         timestamp: 12000,
         refEvents: [],
         events: [
-            { tickId: 12, timestamp: 12000, nodeId: 3, result: NodeResult.Succeeded },
-            { tickId: 12, timestamp: 12000, nodeId: 4, result: NodeResult.Succeeded },
-            { tickId: 12, timestamp: 12000, nodeId: 2, result: NodeResult.Succeeded },
-            { tickId: 12, timestamp: 12000, nodeId: 6, result: NodeResult.Running },
-            { tickId: 12, timestamp: 12000, nodeId: 5, result: NodeResult.Running },
-            { tickId: 12, timestamp: 12000, nodeId: 1, result: NodeResult.Running },
+            { nodeId: 3, result: NodeResult.Succeeded },
+            { nodeId: 4, result: NodeResult.Succeeded },
+            { nodeId: 2, result: NodeResult.Succeeded },
+            { nodeId: 6, result: NodeResult.Running },
+            { nodeId: 5, result: NodeResult.Running },
+            { nodeId: 1, result: NodeResult.Running },
         ],
     };
 }
@@ -103,7 +103,7 @@ describe("activity projector", () => {
             tickId: 3,
             timestamp: 3000,
             refEvents: [],
-            events: [{ tickId: 3, timestamp: 3000, nodeId: 4, result: NodeResult.Running }],
+            events: [{ nodeId: 4, result: NodeResult.Running }],
         });
         expect(snapshot.branches).toEqual([]);
     });
@@ -145,10 +145,10 @@ describe("activity projector", () => {
             timestamp: 7000,
             refEvents: [],
             events: [
-                { tickId: 7, timestamp: 7000, nodeId: 3, result: NodeResult.Running },
-                { tickId: 7, timestamp: 7000, nodeId: 4, result: NodeResult.Succeeded },
-                { tickId: 7, timestamp: 7000, nodeId: 2, result: NodeResult.Running },
-                { tickId: 7, timestamp: 7000, nodeId: 1, result: NodeResult.Running },
+                { nodeId: 3, result: NodeResult.Running },
+                { nodeId: 4, result: NodeResult.Succeeded },
+                { nodeId: 2, result: NodeResult.Running },
+                { nodeId: 1, result: NodeResult.Running },
             ],
         }, { mode: "all" });
 
@@ -182,8 +182,8 @@ describe("activity projector", () => {
             timestamp: 1000,
             refEvents: [],
             events: [
-                { tickId: 1, timestamp: 1000, nodeId: 2, result: NodeResult.Running },
-                { tickId: 1, timestamp: 1000, nodeId: 1, result: NodeResult.Running },
+                { nodeId: 2, result: NodeResult.Running },
+                { nodeId: 1, result: NodeResult.Running },
             ],
         }, { mode: "running" });
 

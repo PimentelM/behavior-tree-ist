@@ -118,10 +118,9 @@ export class Profiler {
     /**
      * Accumulate timing data from a tick's events.
      */
-    ingestTick(events: TickTraceEvent[]): void {
+    ingestTick(tickId: number, events: TickTraceEvent[]): void {
         if (events.length === 0) return;
         this.invalidateExactPercentiles();
-        const tickId = events[0].tickId;
         if (tickId <= this.lastProcessedTickId) return;
         this.lastProcessedTickId = tickId;
         this._tickCount++;
@@ -189,10 +188,9 @@ export class Profiler {
     /**
      * Subtract an evicted tick's contribution.
      */
-    removeTick(events: TickTraceEvent[]): void {
+    removeTick(tickId: number, events: TickTraceEvent[]): void {
         if (events.length === 0) return;
         this.invalidateExactPercentiles();
-        const tickId = events[0].tickId;
         if (this._tickCount > 0) {
             this._tickCount--;
         }

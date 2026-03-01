@@ -1,5 +1,5 @@
 import { RingBuffer } from "./ring-buffer";
-import { TickTraceEvent, TickRecord } from "../base/types";
+import { TickTraceEvent, NodeHistoryEvent, TickRecord } from "../base/types";
 import { NodeTickSnapshot, TreeTickSnapshot } from "./types";
 
 export class TickStore {
@@ -73,12 +73,12 @@ export class TickStore {
     /**
      * Get all events for a specific node across all stored ticks.
      */
-    getNodeHistory(nodeId: number): TickTraceEvent[] {
-        const result: TickTraceEvent[] = [];
+    getNodeHistory(nodeId: number): NodeHistoryEvent[] {
+        const result: NodeHistoryEvent[] = [];
         this.buffer.forEach(record => {
             for (const event of record.events) {
                 if (event.nodeId === nodeId) {
-                    result.push(event);
+                    result.push({ ...event, tickId: record.tickId, timestamp: record.timestamp });
                 }
             }
         });

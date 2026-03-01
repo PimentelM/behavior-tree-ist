@@ -52,13 +52,16 @@ export interface SerializableNode {
 }
 
 export type TickTraceEvent = {
-    tickId: number;
     nodeId: number;
-    timestamp: number;
     result: NodeResult;
     state?: SerializableState;
     startedAt?: number;
     finishedAt?: number;
+};
+
+export type NodeHistoryEvent = TickTraceEvent & {
+    tickId: number;
+    timestamp: number;
 };
 
 export type RefChangeEvent = {

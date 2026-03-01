@@ -68,8 +68,6 @@ export class BehaviourTree {
             runtime: this.runtime,
             trace: (node, result, startedAt, finishedAt) => {
                 const event: TickTraceEvent = {
-                    tickId: ctx.tickId,
-                    timestamp: ctx.now,
                     nodeId: node.id,
                     result
                 };

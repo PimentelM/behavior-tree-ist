@@ -87,8 +87,8 @@ describe("TickStore", () => {
             timestamp: 1000,
             refEvents: [],
             events: [
-                { tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Succeeded, startedAt: 110, finishedAt: 140 },
-                { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Succeeded, startedAt: 90, finishedAt: 120 },
+                { nodeId: 1, result: NodeResult.Succeeded, startedAt: 110, finishedAt: 140 },
+                { nodeId: 2, result: NodeResult.Succeeded, startedAt: 90, finishedAt: 120 },
             ],
         });
         store.push({
@@ -96,7 +96,7 @@ describe("TickStore", () => {
             timestamp: 2000,
             refEvents: [],
             events: [
-                { tickId: 2, nodeId: 1, timestamp: 2000, result: NodeResult.Succeeded, startedAt: 200, finishedAt: 230 },
+                { nodeId: 1, result: NodeResult.Succeeded, startedAt: 200, finishedAt: 230 },
             ],
         });
         store.push({
@@ -104,8 +104,8 @@ describe("TickStore", () => {
             timestamp: 3000,
             refEvents: [],
             events: [
-                { tickId: 3, nodeId: 1, timestamp: 3000, result: NodeResult.Succeeded, startedAt: 310, finishedAt: 340 },
-                { tickId: 3, nodeId: 2, timestamp: 3000, result: NodeResult.Succeeded, startedAt: 320, finishedAt: 380 },
+                { nodeId: 1, result: NodeResult.Succeeded, startedAt: 310, finishedAt: 340 },
+                { nodeId: 2, result: NodeResult.Succeeded, startedAt: 320, finishedAt: 380 },
             ],
         });
 
@@ -122,13 +122,13 @@ describe("TickStore", () => {
             tickId: 10,
             timestamp: 1000,
             refEvents: [],
-            events: [{ tickId: 10, nodeId: 1, timestamp: 1000, result: NodeResult.Succeeded }],
+            events: [{ nodeId: 1, result: NodeResult.Succeeded }],
         });
         store.push({
             tickId: 11,
             timestamp: 1800,
             refEvents: [],
-            events: [{ tickId: 11, nodeId: 1, timestamp: 1800, result: NodeResult.Succeeded }],
+            events: [{ nodeId: 1, result: NodeResult.Succeeded }],
         });
 
         const bounds = store.getProfilingWindowBounds();
@@ -140,8 +140,8 @@ describe("TickStore", () => {
     it("getSnapshotAtTick reconstructs per-node state", () => {
         const store = new TickStore(100);
         const events: TickTraceEvent[] = [
-            { tickId: 1, nodeId: 10, timestamp: 1000, result: NodeResult.Running, state: { hp: 50 }, startedAt: 0, finishedAt: 5 },
-            { tickId: 1, nodeId: 20, timestamp: 1000, result: NodeResult.Succeeded, startedAt: 5, finishedAt: 8 },
+            { nodeId: 10, result: NodeResult.Running, state: { hp: 50 }, startedAt: 0, finishedAt: 5 },
+            { nodeId: 20, result: NodeResult.Succeeded, startedAt: 5, finishedAt: 8 },
         ];
         store.push({ tickId: 1, timestamp: 1000, events, refEvents: [] });
 
@@ -164,14 +164,14 @@ describe("TickStore", () => {
         const store = new TickStore(100);
         store.push({
             tickId: 1, timestamp: 1000, refEvents: [], events: [
-                { tickId: 1, nodeId: 5, timestamp: 1000, result: NodeResult.Running },
-                { tickId: 1, nodeId: 6, timestamp: 1000, result: NodeResult.Failed },
+                { nodeId: 5, result: NodeResult.Running },
+                { nodeId: 6, result: NodeResult.Failed },
             ]
         });
         store.push({
             tickId: 2, timestamp: 2000, refEvents: [], events: [
-                { tickId: 2, nodeId: 5, timestamp: 2000, result: NodeResult.Succeeded },
-                { tickId: 2, nodeId: 6, timestamp: 2000, result: NodeResult.Running },
+                { nodeId: 5, result: NodeResult.Succeeded },
+                { nodeId: 6, result: NodeResult.Running },
             ]
         });
 
@@ -190,7 +190,7 @@ describe("TickStore", () => {
             timestamp: 1000,
             refEvents: [],
             events: [
-                { tickId: 1, nodeId: 5, timestamp: 1000, result: NodeResult.Running, state: { cooldown: 300 } },
+                { nodeId: 5, result: NodeResult.Running, state: { cooldown: 300 } },
             ],
         });
         store.push({
@@ -198,7 +198,7 @@ describe("TickStore", () => {
             timestamp: 2000,
             refEvents: [],
             events: [
-                { tickId: 2, nodeId: 6, timestamp: 2000, result: NodeResult.Succeeded },
+                { nodeId: 6, result: NodeResult.Succeeded },
             ],
         });
         store.push({
@@ -206,7 +206,7 @@ describe("TickStore", () => {
             timestamp: 3000,
             refEvents: [],
             events: [
-                { tickId: 3, nodeId: 5, timestamp: 3000, result: NodeResult.Failed, state: { cooldown: 120 } },
+                { nodeId: 5, result: NodeResult.Failed, state: { cooldown: 120 } },
             ],
         });
 
