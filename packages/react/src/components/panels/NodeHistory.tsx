@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, UIEvent } from 'react';
-import type { NodeResult } from '@behavior-tree-ist/core';
+import type { NodeResult, SerializableState } from '@behavior-tree-ist/core';
 import { getResultColor } from '../../constants';
 
 const HISTORY_PAGE_SIZE = 80;
@@ -9,7 +9,7 @@ interface HistoryEntry {
   tickId: number;
   result: NodeResult;
   timestamp: number;
-  state?: Record<string, unknown>;
+  state?: SerializableState;
 }
 
 interface NodeHistoryProps {

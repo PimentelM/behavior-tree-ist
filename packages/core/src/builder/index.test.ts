@@ -125,7 +125,8 @@ describe("Subtree Builder Factory", () => {
         }, action({ execute: () => NodeResult.Succeeded }));
 
         expect(node.displayName).toBe("CombatBoundary");
-        expect(node.getDisplayState?.()).toEqual({ id: "combat-root", namespace: "combat" });
+        expect(node.metadata).toEqual({ id: "combat-root", namespace: "combat" });
+        expect(node.getDisplayState?.()).toBeUndefined();
         expect(tickNode(node)).toBe(NodeResult.Succeeded);
     });
 

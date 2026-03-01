@@ -15,9 +15,7 @@ import { BTNode, TickContext } from "../../base/node";
  * are stable, or when you explicitly want "resume from where we left off" behavior.
  */
 
-export type SequenceWithMemoryState = {
-    runningChildIndex: number | undefined;
-};
+export type SequenceWithMemoryState = number | undefined;
 export class SequenceWithMemory extends Composite {
     public override readonly defaultName = "SequenceWithMemory";
     private _runningChildIndex: number | undefined;
@@ -42,7 +40,7 @@ export class SequenceWithMemory extends Composite {
     }
 
     public override getDisplayState(): SequenceWithMemoryState {
-        return { runningChildIndex: this._runningChildIndex };
+        return this._runningChildIndex;
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

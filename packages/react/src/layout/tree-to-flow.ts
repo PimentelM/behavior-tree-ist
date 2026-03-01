@@ -1,5 +1,6 @@
 import type { Node, Edge } from '@xyflow/react';
 import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
+import type { SerializableValue } from '@behavior-tree-ist/core';
 import type { TreeIndex } from '@behavior-tree-ist/core/inspector';
 import type { BTNodeData, BTEdgeData } from '../types';
 import { getCapabilityBadges, getNodeVisualKind } from '../constants';
@@ -42,21 +43,30 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
     const baseId = currentId ?? logicalNodeId;
     const baseNode = treeIndex.getById(baseId);
     if (!baseNode || visitedHosts.has(baseId)) return;
+    const baseNodeMetadata = (baseNode as typeof baseNode & {
+      metadata?: Readonly<Record<string, SerializableValue>>;
+    }).metadata;
     visitedHosts.add(baseId);
 
     const stackedDecorators = stackedDecoratorIds
       .map((id) => treeIndex.getById(id))
       .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
-      .map((entry) => ({
-        nodeId: entry.id,
-        name: entry.name,
-        defaultName: entry.defaultName,
-        nodeFlags: entry.nodeFlags,
-        result: null,
-        displayState: undefined,
-        displayStateIsStale: false,
-        refEvents: [],
-      }));
+      .map((entry) => {
+        const metadata = (entry as typeof entry & {
+          metadata?: Readonly<Record<string, SerializableValue>>;
+        }).metadata;
+        return {
+          nodeId: entry.id,
+          name: entry.name,
+          defaultName: entry.defaultName,
+          nodeFlags: entry.nodeFlags,
+          result: null,
+          displayState: undefined,
+          displayStateIsStale: false,
+          metadata,
+          refEvents: [],
+        };
+      });
 
     const lifecycleDecorators = lifecycleDecoratorIds
       .map((id) => treeIndex.getById(id))
@@ -82,6 +92,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
         result: null,
         displayState: undefined,
         displayStateIsStale: false,
+        metadata: baseNodeMetadata,
         isSelected: false,
         isOnActivityPath: false,
         isActivityTail: false,

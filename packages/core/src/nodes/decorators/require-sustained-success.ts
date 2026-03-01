@@ -2,9 +2,7 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-export type RequireSustainedSuccessState = {
-    remainingSustainedSuccess: number;
-};
+export type RequireSustainedSuccessState = number;
 
 
 export class RequireSustainedSuccess extends Decorator {
@@ -32,7 +30,7 @@ export class RequireSustainedSuccess extends Decorator {
     }
 
     public override getDisplayState(): RequireSustainedSuccessState {
-        return { remainingSustainedSuccess: Math.max(0, this.requireSustainedSuccess - this.successDuration) };
+        return Math.max(0, this.requireSustainedSuccess - this.successDuration);
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

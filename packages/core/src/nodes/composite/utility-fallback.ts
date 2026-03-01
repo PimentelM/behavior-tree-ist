@@ -5,9 +5,7 @@ import { Utility } from "../decorators/utility";
 
 export type UtilitySelectorState = UtilityFallbackState;
 
-export type UtilityFallbackState = {
-    lastScores: number[];
-};
+export type UtilityFallbackState = number[];
 
 
 export class UtilityFallback extends Composite {
@@ -61,7 +59,7 @@ export class UtilityFallback extends Composite {
     }
 
     public override getDisplayState(): UtilityFallbackState {
-        return { lastScores: this.lastScores };
+        return this.lastScores;
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

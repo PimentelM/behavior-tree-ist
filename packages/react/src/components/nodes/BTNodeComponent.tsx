@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps, Node } from '@xyflow/react';
 import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
+import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
 import type { BTNodeData, NodeVisualKind } from '../../types';
 import {
   getDebuggerDisplayName,
@@ -302,7 +303,7 @@ function areNodePropsEqual(prev: NodeProps<BTFlowNode>, next: NodeProps<BTFlowNo
     && prev.selected === next.selected
     && prev.data.result === next.data.result
     && prev.data.isSelected === next.data.isSelected
-    && shallowEqualRecord(prev.data.displayState, next.data.displayState)
+    && shallowEqualState(prev.data.displayState, next.data.displayState)
     && prev.data.displayStateIsStale === next.data.displayStateIsStale
     && prev.data.name === next.data.name
     && prev.data.defaultName === next.data.defaultName
@@ -345,29 +346,44 @@ function shallowEqualDecorators(
     if (left[i].nodeId !== right[i].nodeId) return false;
     if (left[i].result !== right[i].result) return false;
     if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
-    if (!shallowEqualRecord(left[i].displayState, right[i].displayState)) return false;
+    if (!shallowEqualState(left[i].displayState, right[i].displayState)) return false;
     if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
   }
   return true;
 }
 
-function shallowEqualRecord(
-  left: Record<string, unknown> | undefined,
-  right: Record<string, unknown> | undefined,
+function shallowEqualState(
+  left: SerializableState | undefined,
+  right: SerializableState | undefined,
 ): boolean {
   if (left === right) return true;
-  if (!left || !right) return false;
+  if (left === undefined || right === undefined) return false;
 
-  const leftKeys = Object.keys(left);
-  const rightKeys = Object.keys(right);
-  if (leftKeys.length !== rightKeys.length) return false;
-
-  for (const key of leftKeys) {
-    if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
-    if (!Object.is(left[key], right[key])) return false;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    if (left.length !== right.length) return false;
+    for (let i = 0; i < left.length; i++) {
+      if (!Object.is(left[i], right[i])) return false;
+    }
+    return true;
   }
 
-  return true;
+  if (isStateRecord(left) && isStateRecord(right)) {
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+    if (leftKeys.length !== rightKeys.length) return false;
+    for (const key of leftKeys) {
+      if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
+      if (!Object.is(left[key], right[key])) return false;
+    }
+    return true;
+  }
+
+  return Object.is(left, right);
+}
+
+function isStateRecord(state: SerializableState): state is Record<string, SerializableValue> {
+  return typeof state === 'object' && state !== null && !Array.isArray(state);
 }
 
 export const BTNodeComponent = memo(BTNodeComponentInner, areNodePropsEqual);

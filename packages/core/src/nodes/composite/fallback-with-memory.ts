@@ -15,9 +15,7 @@ import { BTNode, TickContext } from "../../base/node";
  * "finish what you started" behavior rather than immediate preemption.
  */
 
-export type FallbackWithMemoryState = {
-    runningChildIndex: number | undefined;
-};
+export type FallbackWithMemoryState = number | undefined;
 export class FallbackWithMemory extends Composite {
     public override readonly defaultName = "FallbackWithMemory";
     private _runningChildIndex: number | undefined;
@@ -42,7 +40,7 @@ export class FallbackWithMemory extends Composite {
     }
 
     public override getDisplayState(): FallbackWithMemoryState {
-        return { runningChildIndex: this._runningChildIndex };
+        return this._runningChildIndex;
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

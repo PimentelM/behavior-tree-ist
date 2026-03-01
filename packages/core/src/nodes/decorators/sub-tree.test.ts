@@ -32,16 +32,17 @@ describe("SubTree Decorator", () => {
         expect(subTree.nodeFlags & NodeFlags.SubTree).toBeTruthy();
     });
 
-    it("exposes metadata through display state", () => {
+    it("exposes metadata through immutable node metadata", () => {
         const subTree = new SubTree(new StubAction(NodeResult.Succeeded), {
             id: "combat-root",
             namespace: "combat",
         });
 
-        expect(subTree.getDisplayState?.()).toEqual({
+        expect(subTree.metadata).toEqual({
             id: "combat-root",
             namespace: "combat",
         });
+        expect(subTree.getDisplayState?.()).toBeUndefined();
     });
 
     it("forwards .decorate calls to the child node and keeps SubTree in place", () => {

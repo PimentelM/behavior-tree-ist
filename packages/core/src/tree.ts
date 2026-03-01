@@ -76,7 +76,7 @@ export class BehaviourTree {
 
                 if (this.stateTraceEnabled && node.getDisplayState) {
                     const state = node.getDisplayState();
-                    if (state) {
+                    if (state !== undefined) {
                         event.state = state;
                     }
                 }

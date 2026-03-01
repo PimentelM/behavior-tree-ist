@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import { NodeResult, NodeFlags, hasFlag } from '@behavior-tree-ist/core';
-import type { RefChangeEvent } from '@behavior-tree-ist/core';
+import type { RefChangeEvent, SerializableState, SerializableValue } from '@behavior-tree-ist/core';
 import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
 import type { BTNodeData, BTEdgeData } from '../types';
 
@@ -45,7 +45,7 @@ export function useSnapshotOverlay(
       getLastDisplayState?: (nodeId: number, atOrBeforeTickId?: number) => unknown;
     };
 
-    const rememberedStateByNode = new Map<number, Record<string, unknown> | undefined>();
+    const rememberedStateByNode = new Map<number, SerializableState | undefined>();
     const representedNodeIdToHostNodeId = new Map<number, number>();
     const representedNodeIdsByHostNodeId = new Map<number, number[]>();
     const highlightedHostEdgeIds = new Set<string>();
@@ -61,13 +61,13 @@ export function useSnapshotOverlay(
       const latestState = inspectorWithStateLookup.getLastDisplayState?.(node.data.nodeId, stateLookupTick);
       rememberedStateByNode.set(
         node.data.nodeId,
-        latestState as Record<string, unknown> | undefined,
+        latestState as SerializableState | undefined,
       );
       for (const decorator of node.data.stackedDecorators) {
         const decoratorState = inspectorWithStateLookup.getLastDisplayState?.(decorator.nodeId, stateLookupTick);
         rememberedStateByNode.set(
           decorator.nodeId,
-          decoratorState as Record<string, unknown> | undefined,
+          decoratorState as SerializableState | undefined,
         );
       }
     }
@@ -106,7 +106,7 @@ export function useSnapshotOverlay(
     }
 
     const utilityDecoratorStateByNodeId = new Map<number, {
-      displayState: Record<string, unknown>;
+      displayState: SerializableState;
       isStale: boolean;
     }>();
 
@@ -121,7 +121,7 @@ export function useSnapshotOverlay(
         if (!indexedParent) continue;
 
         const parentSnapshot = snapshot?.nodes.get(parentNode.data.nodeId);
-        const parentSnapshotState = parentSnapshot?.state as Record<string, unknown> | undefined;
+        const parentSnapshotState = parentSnapshot?.state as SerializableState | undefined;
         const parentFallbackState = rememberedStateByNode.get(parentNode.data.nodeId);
         const parentDisplayState = parentSnapshotState ?? parentFallbackState;
         const parentStateIsStale = parentDisplayState !== undefined
@@ -157,7 +157,7 @@ export function useSnapshotOverlay(
     const nodes = baseNodes.map((baseNode) => {
       const nodeSnapshot = snapshot?.nodes.get(baseNode.data.nodeId);
       const nextResult = nodeSnapshot?.result ?? null;
-      const snapshotState = nodeSnapshot?.state as Record<string, unknown> | undefined;
+      const snapshotState = nodeSnapshot?.state as SerializableState | undefined;
       const fallbackState = rememberedStateByNode.get(baseNode.data.nodeId);
       const nextDisplayState = snapshotState ?? fallbackState;
       const nextDisplayStateIsStale = nextDisplayState !== undefined
@@ -176,7 +176,7 @@ export function useSnapshotOverlay(
 
       const nextStackedDecorators = baseNode.data.stackedDecorators.map((decorator) => {
         const decoratorSnapshot = snapshot?.nodes.get(decorator.nodeId);
-        const decoratorSnapshotState = decoratorSnapshot?.state as Record<string, unknown> | undefined;
+        const decoratorSnapshotState = decoratorSnapshot?.state as SerializableState | undefined;
         const decoratorFallbackState = rememberedStateByNode.get(decorator.nodeId);
         const syntheticUtilityState = utilityDecoratorStateByNodeId.get(decorator.nodeId);
 
@@ -216,7 +216,7 @@ export function useSnapshotOverlay(
         && previousNode.data.isActivityTail === nextIsActivityTail
         && previousNode.selected === nextIsSelected
         && previousNode.data.displayStateIsStale === nextDisplayStateIsStale
-        && shallowEqualRecord(previousNode.data.displayState, nextDisplayState)
+        && shallowEqualState(previousNode.data.displayState, nextDisplayState)
         && shallowEqualRefEvents(previousNode.data.refEvents, nextRefEvents)
         && shallowEqualDecoratorData(previousNode.data.stackedDecorators, nextStackedDecorators)
         && previousNode.data.selectedNodeId === selectedNodeId
@@ -297,20 +297,55 @@ export function useSnapshotOverlay(
 }
 
 function getUtilityScores(
-  displayState: Record<string, unknown> | undefined,
+  displayState: SerializableState | undefined,
 ): number[] | undefined {
-  if (!displayState) return undefined;
+  if (displayState === undefined) return undefined;
+
+  if (Array.isArray(displayState)) {
+    return displayState.every((score) => typeof score === 'number')
+      ? displayState
+      : undefined;
+  }
+
+  if (!isStateRecord(displayState)) return undefined;
 
   const maybeScores = displayState.lastScores;
   if (!Array.isArray(maybeScores)) return undefined;
+  if (!maybeScores.every((score) => typeof score === 'number')) return undefined;
+  return maybeScores as number[];
+}
 
-  const scores: number[] = [];
-  for (const maybeScore of maybeScores) {
-    if (typeof maybeScore !== 'number') continue;
-    scores.push(maybeScore);
+function isStateRecord(state: SerializableState): state is Record<string, SerializableValue> {
+  return typeof state === 'object' && state !== null && !Array.isArray(state);
+}
+
+function shallowEqualState(
+  left: SerializableState | undefined,
+  right: SerializableState | undefined,
+): boolean {
+  if (left === right) return true;
+  if (left === undefined || right === undefined) return false;
+
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    if (left.length !== right.length) return false;
+    for (let i = 0; i < left.length; i++) {
+      if (!Object.is(left[i], right[i])) return false;
+    }
+    return true;
   }
 
-  return scores;
+  if (isStateRecord(left) && isStateRecord(right)) {
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+    if (leftKeys.length !== rightKeys.length) return false;
+    for (const key of leftKeys) {
+      if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
+      if (!Object.is(left[key], right[key])) return false;
+    }
+    return true;
+  }
+  return Object.is(left, right);
 }
 
 function hasSameBaseNodeShape(
@@ -341,25 +376,6 @@ function hasSameBaseEdgeShape(
     && previousEdge.target === baseEdge.target;
 }
 
-function shallowEqualRecord(
-  left: Record<string, unknown> | undefined,
-  right: Record<string, unknown> | undefined,
-): boolean {
-  if (left === right) return true;
-  if (!left || !right) return false;
-
-  const leftKeys = Object.keys(left);
-  const rightKeys = Object.keys(right);
-  if (leftKeys.length !== rightKeys.length) return false;
-
-  for (const key of leftKeys) {
-    if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
-    if (!Object.is(left[key], right[key])) return false;
-  }
-
-  return true;
-}
-
 function shallowEqualRefEvents(
   left: BTNodeData['refEvents'],
   right: BTNodeData['refEvents'],
@@ -384,7 +400,7 @@ function shallowEqualDecoratorData(
     if (left[i].nodeId !== right[i].nodeId) return false;
     if (left[i].result !== right[i].result) return false;
     if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
-    if (!shallowEqualRecord(left[i].displayState, right[i].displayState)) return false;
+    if (!shallowEqualState(left[i].displayState, right[i].displayState)) return false;
     if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
   }
   return true;

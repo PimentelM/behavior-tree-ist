@@ -1,4 +1,5 @@
 import { NodeResult, NodeFlags, hasFlag } from '@behavior-tree-ist/core';
+import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
 import type { ThemeOverrides, NodeVisualKind } from './types';
 
 export const DARK_THEME: Required<ThemeOverrides> = {
@@ -196,7 +197,7 @@ export function getDebuggerDisplayName({
   name: string;
   defaultName: string;
   nodeFlags: number;
-  displayState?: Record<string, unknown>;
+  displayState?: SerializableState;
 }): string {
   const trimmedName = name.trim();
 
@@ -223,29 +224,47 @@ export function getDebuggerDisplayName({
 
 export function getVisibleDisplayStateEntries(
   nodeFlags: number,
-  displayState: Record<string, unknown> | undefined,
+  displayState: SerializableState | undefined,
 ): Array<[string, unknown]> {
-  if (!displayState) return [];
+  if (displayState === undefined) return [];
 
-  const entries = Object.entries(displayState);
   if (isUtilityComposite(nodeFlags)) {
-    return entries.filter(([key]) => key !== 'lastScores');
+    if (Array.isArray(displayState)) {
+      return [];
+    }
+    if (isStateRecord(displayState)) {
+      return Object.entries(displayState).filter(([key]) => key !== 'lastScores');
+    }
   }
 
   if (isMemoryComposite(nodeFlags)) {
-    return entries.filter(([key]) => key !== 'runningChildIndex');
+    if (typeof displayState === 'number') {
+      return [];
+    }
+    if (isStateRecord(displayState)) {
+      return Object.entries(displayState).filter(([key]) => key !== 'runningChildIndex');
+    }
   }
-  return entries;
+
+  if (isStateRecord(displayState)) {
+    return Object.entries(displayState);
+  }
+
+  return [['value', displayState]];
 }
 
 function getMemoryCompositeRunningChildIndex(
   nodeFlags: number,
-  displayState: Record<string, unknown> | undefined,
+  displayState: SerializableState | undefined,
 ): number | undefined {
-  if (!displayState || !isMemoryComposite(nodeFlags)) return undefined;
-  const runningChildIndex = displayState.runningChildIndex;
-  if (typeof runningChildIndex !== 'number') return undefined;
-  return runningChildIndex;
+  if (!isMemoryComposite(nodeFlags) || displayState === undefined) return undefined;
+  if (typeof displayState === 'number') return displayState;
+
+  if (isStateRecord(displayState)) {
+    const runningChildIndex = displayState.runningChildIndex;
+    if (typeof runningChildIndex === 'number') return runningChildIndex;
+  }
+  return undefined;
 }
 
 function isMemoryComposite(nodeFlags: number): boolean {
@@ -256,8 +275,29 @@ function isUtilityComposite(nodeFlags: number): boolean {
   return hasFlag(nodeFlags, NodeFlags.Utility) && hasFlag(nodeFlags, NodeFlags.Composite);
 }
 
-function getDisplayStateValue(displayState: Record<string, unknown> | undefined): string | undefined {
-  if (!displayState) return undefined;
+function getDisplayStateValue(displayState: SerializableState | undefined): string | undefined {
+  if (displayState === undefined) return undefined;
+
+  if (
+    typeof displayState === 'number'
+    || typeof displayState === 'string'
+    || typeof displayState === 'boolean'
+  ) {
+    return formatCompactValue(displayState);
+  }
+
+  if (Array.isArray(displayState)) {
+    for (const value of displayState) {
+      if (typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean') {
+        return formatCompactValue(value);
+      }
+    }
+    return undefined;
+  }
+
+  if (!isStateRecord(displayState)) {
+    return undefined;
+  }
 
   const priorityKeys = [
     'remainingTime',
@@ -289,6 +329,10 @@ function getDisplayStateValue(displayState: Record<string, unknown> | undefined)
   }
 
   return undefined;
+}
+
+function isStateRecord(value: SerializableState): value is Record<string, SerializableValue> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function formatCompactValue(value: unknown): string {

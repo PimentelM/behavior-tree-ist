@@ -1,6 +1,11 @@
 import { BTNode, TickContext } from "./node";
 import { CancellationSignal, CancellationHandle, createCancellationHandle } from "./cancellation";
-import { NodeFlags, NodeResult, SerializableState } from "./types";
+import { NodeFlags, NodeResult } from "./types";
+
+export type AsyncActionState = {
+    status: 'idle' | 'pending' | 'resolved' | 'rejected';
+    error?: string;
+};
 
 export abstract class AsyncAction extends BTNode {
     public readonly defaultName = "AsyncAction";
@@ -28,8 +33,8 @@ export abstract class AsyncAction extends BTNode {
         return this._error;
     }
 
-    public override getDisplayState(): SerializableState {
-        let status = 'idle';
+    public override getDisplayState(): AsyncActionState {
+        let status: AsyncActionState["status"] = 'idle';
         if (this._currentRun) {
             status = this._settled ? 'resolved' : 'pending';
             if (this._error !== undefined) {

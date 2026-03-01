@@ -3,9 +3,7 @@ import { NodeResult, NodeFlags } from "../../base/types";
 import { BTNode, TickContext } from "../../base/node";
 import { Utility } from "../decorators/utility";
 
-export type UtilitySequenceState = {
-    lastScores: number[];
-};
+export type UtilitySequenceState = number[];
 
 export class UtilitySequence extends Composite {
     public override readonly defaultName = "UtilitySequence";
@@ -58,7 +56,7 @@ export class UtilitySequence extends Composite {
     }
 
     public override getDisplayState(): UtilitySequenceState {
-        return { lastScores: this.lastScores };
+        return this.lastScores;
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

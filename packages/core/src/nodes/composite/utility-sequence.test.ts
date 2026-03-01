@@ -117,9 +117,7 @@ describe("UtilitySequence", () => {
 
         tickNode(sequence);
 
-        expect(sequence.getDisplayState()).toEqual({
-            lastScores: [10, 30, 20],
-        });
+        expect(sequence.getDisplayState()).toEqual([10, 30, 20]);
     });
 
     describe("mutation protection", () => {

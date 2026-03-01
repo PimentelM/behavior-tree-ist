@@ -1,9 +1,7 @@
 import { TickContext } from "../../base";
 import { Action } from "../../base/action";
 import { NodeResult, NodeFlags } from "../../base/types";
-export type SleepState = {
-    remainingTime: number;
-};
+export type SleepState = number;
 
 
 export class Sleep extends Action {
@@ -19,7 +17,7 @@ export class Sleep extends Action {
     }
 
     public override getDisplayState(): SleepState {
-        return { remainingTime: Math.max(0, this.remainingTime) };
+        return Math.max(0, this.remainingTime);
     }
 
     private get remainingTime(): number {

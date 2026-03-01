@@ -149,7 +149,7 @@ describe("BehaviourTree", () => {
                 [throttle.id, NodeResult.Succeeded],
                 [root.id, NodeResult.Succeeded],
             ]);
-            expect(events1.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottle: 1000 });
+            expect(events1.find(e => e.nodeId === throttle.id)?.state).toEqual(1000);
 
             const { events: events2 } = tree.tick({ now: 2 });
             expect(events2.map(e => [e.nodeId, e.result])).toEqual([
@@ -158,7 +158,7 @@ describe("BehaviourTree", () => {
                 [throttle.id, NodeResult.Failed],
                 [root.id, NodeResult.Failed],
             ]);
-            expect(events2.find(e => e.nodeId === throttle.id)?.state).toEqual({ remainingThrottle: 999 });
+            expect(events2.find(e => e.nodeId === throttle.id)?.state).toEqual(999);
         })
 
         it('includes state in trace events for stateful nodes', () => {
@@ -166,10 +166,10 @@ describe("BehaviourTree", () => {
             const tree = new BehaviourTree(wait).enableStateTrace();
 
             const { events: events1 } = tree.tick({ now: 0 });
-            expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 500 });
+            expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual(500);
 
             const { events: events2 } = tree.tick({ now: 200 });
-            expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 300 });
+            expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual(300);
         });
     })
 

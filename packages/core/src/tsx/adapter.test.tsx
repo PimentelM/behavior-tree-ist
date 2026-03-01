@@ -436,7 +436,8 @@ describe("TSX Adapter", () => {
         expect(tree).toBeInstanceOf(SubTree);
         expect(tree.displayName).toBe("CombatBoundary");
         expect(tree.nodeFlags & NodeFlags.SubTree).toBeTruthy();
-        expect(tree.getDisplayState?.()).toEqual({ id: "combat-root", namespace: "combat" });
+        expect(tree.metadata).toEqual({ id: "combat-root", namespace: "combat" });
+        expect(tree.getDisplayState?.()).toBeUndefined();
         expect(tickNode(tree)).toBe(NodeResult.Succeeded);
     });
 

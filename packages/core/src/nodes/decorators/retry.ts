@@ -2,9 +2,7 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-export type RetryState = {
-    failedCount: number;
-};
+export type RetryState = number;
 
 export class Retry extends Decorator {
     public override readonly defaultName = "Retry";
@@ -26,7 +24,7 @@ export class Retry extends Decorator {
     }
 
     public override getDisplayState(): RetryState {
-        return { failedCount: this.failedCount };
+        return this.failedCount;
     }
 
     protected override onReset(): void {

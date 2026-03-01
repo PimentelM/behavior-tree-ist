@@ -1,6 +1,8 @@
 import type { MutableRefObject, ReactNode } from 'react';
 import type {
   SerializableNode,
+  SerializableState,
+  SerializableValue,
   TickRecord,
   NodeResult,
   NodeFlags,
@@ -13,6 +15,8 @@ import type {
   ActivityBranch,
   ActivityDisplayMode,
 } from '@behavior-tree-ist/core/inspector';
+
+type NodeMetadata = Readonly<Record<string, SerializableValue>>;
 
 export interface PanelConfig {
   nodeDetails?: boolean;
@@ -51,8 +55,9 @@ export interface NodeDecoratorData {
   defaultName: string;
   nodeFlags: NodeFlags;
   result: NodeResult | null;
-  displayState: Record<string, unknown> | undefined;
+  displayState: SerializableState | undefined;
   displayStateIsStale: boolean;
+  metadata: NodeMetadata | undefined;
   refEvents: Array<{
     refName: string | undefined;
     newValue: unknown;
@@ -97,8 +102,9 @@ export interface BTNodeData extends Record<string, unknown> {
   nodeFlags: NodeFlags;
   visualKind: NodeVisualKind;
   result: NodeResult | null;
-  displayState: Record<string, unknown> | undefined;
+  displayState: SerializableState | undefined;
   displayStateIsStale: boolean;
+  metadata: NodeMetadata | undefined;
   isSelected: boolean;
   isOnActivityPath: boolean;
   isActivityTail: boolean;
@@ -148,11 +154,12 @@ export interface NodeDetailsData {
     tickId: number;
     result: NodeResult;
     timestamp: number;
-    state?: Record<string, unknown>;
+    state?: SerializableState;
   }>;
   currentResult: NodeResult | null;
-  currentDisplayState: Record<string, unknown> | undefined;
+  currentDisplayState: SerializableState | undefined;
   currentDisplayStateIsStale: boolean;
+  metadata: NodeMetadata | undefined;
   profilingData: NodeProfilingData | undefined;
 }
 

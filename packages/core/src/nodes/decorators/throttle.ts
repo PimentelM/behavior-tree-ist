@@ -3,9 +3,7 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 
 
-export type ThrottleState = {
-    remainingThrottle: number;
-};
+export type ThrottleState = number;
 export class Throttle extends Decorator {
     public override readonly defaultName = "Throttle";
 
@@ -29,7 +27,7 @@ export class Throttle extends Decorator {
     }
 
     public override getDisplayState(): ThrottleState {
-        return { remainingThrottle: this.remainingThrottle };
+        return this.remainingThrottle;
     }
 
     private hasThrottle(): boolean {

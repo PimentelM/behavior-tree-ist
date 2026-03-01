@@ -113,9 +113,7 @@ describe("UtilityFallback", () => {
 
         tickNode(fallback);
 
-        expect(fallback.getDisplayState()).toEqual({
-            lastScores: [15, 25, 5],
-        });
+        expect(fallback.getDisplayState()).toEqual([15, 25, 5]);
     });
 
     describe("mutation protection", () => {

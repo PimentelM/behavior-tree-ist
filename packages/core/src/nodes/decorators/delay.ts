@@ -2,9 +2,7 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-export type DelayState = {
-    remainingDelay: number;
-};
+export type DelayState = number;
 
 export class Delay extends Decorator {
     public override readonly defaultName = "Delay";
@@ -21,7 +19,7 @@ export class Delay extends Decorator {
     }
 
     public override getDisplayState(): DelayState {
-        return { remainingDelay: Math.max(0, this.remainingTime) };
+        return Math.max(0, this.remainingTime);
     }
 
     private get remainingTime(): number {

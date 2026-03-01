@@ -24,6 +24,7 @@ function makeDetails(overrides: Partial<NodeDetailsData> = {}): NodeDetailsData 
     currentResult: NodeResult.Succeeded,
     currentDisplayState: undefined,
     currentDisplayStateIsStale: false,
+    metadata: undefined,
     profilingData: undefined,
     ...overrides,
   };

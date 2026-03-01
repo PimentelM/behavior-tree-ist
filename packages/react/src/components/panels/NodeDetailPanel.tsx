@@ -84,7 +84,15 @@ function NodeDetailPanelInner({
                   percentilesApproximate={percentilesApproximate}
                 />
               )}
-              {details.currentDisplayState && (
+              {details.metadata && (
+                <NodeStateDisplay
+                  nodeFlags={details.flags}
+                  state={details.metadata}
+                  isStale={false}
+                  title="Metadata"
+                />
+              )}
+              {details.currentDisplayState !== undefined && (
                 <NodeStateDisplay
                   nodeFlags={details.flags}
                   state={details.currentDisplayState}

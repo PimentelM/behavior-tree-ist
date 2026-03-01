@@ -18,6 +18,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import { NodeResult } from '@behavior-tree-ist/core';
+import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
 import '@xyflow/react/dist/style.css';
 import { BTNodeComponent } from './nodes/BTNodeComponent';
 import { BTEdgeComponent } from './edges/BTEdgeComponent';
@@ -196,7 +197,7 @@ function mergeMutableNodeData(
     const nextSelected = nextNode.selected;
 
     const sameMutableData = previousNode.data.result === nextResult
-      && shallowEqualRecord(previousNode.data.displayState, nextDisplayState)
+      && shallowEqualState(previousNode.data.displayState, nextDisplayState)
       && previousNode.data.displayStateIsStale === nextDisplayStateIsStale
       && previousNode.data.isSelected === nextIsSelected
       && previousNode.data.isOnActivityPath === nextIsOnActivityPath
@@ -275,23 +276,39 @@ function mergeMutableEdgeData(
   return changed ? merged : previousEdges;
 }
 
-function shallowEqualRecord(
-  left: Record<string, unknown> | undefined,
-  right: Record<string, unknown> | undefined,
+function shallowEqualState(
+  left: SerializableState | undefined,
+  right: SerializableState | undefined,
 ): boolean {
   if (left === right) return true;
-  if (!left || !right) return false;
+  if (left === undefined || right === undefined) return false;
 
-  const leftKeys = Object.keys(left);
-  const rightKeys = Object.keys(right);
-  if (leftKeys.length !== rightKeys.length) return false;
-
-  for (const key of leftKeys) {
-    if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
-    if (!Object.is(left[key], right[key])) return false;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    if (left.length !== right.length) return false;
+    for (let i = 0; i < left.length; i++) {
+      if (!Object.is(left[i], right[i])) return false;
+    }
+    return true;
   }
 
-  return true;
+  if (isStateRecord(left) && isStateRecord(right)) {
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+    if (leftKeys.length !== rightKeys.length) return false;
+
+    for (const key of leftKeys) {
+      if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
+      if (!Object.is(left[key], right[key])) return false;
+    }
+    return true;
+  }
+
+  return Object.is(left, right);
+}
+
+function isStateRecord(state: SerializableState): state is Record<string, SerializableValue> {
+  return typeof state === 'object' && state !== null && !Array.isArray(state);
 }
 
 function shallowEqualRefEvents(left: BTNodeData['refEvents'], right: BTNodeData['refEvents']): boolean {
@@ -318,7 +335,7 @@ function shallowEqualDecorators(
     if (left[i].nodeId !== right[i].nodeId) return false;
     if (left[i].result !== right[i].result) return false;
     if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
-    if (!shallowEqualRecord(left[i].displayState, right[i].displayState)) return false;
+    if (!shallowEqualState(left[i].displayState, right[i].displayState)) return false;
     if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
   }
 

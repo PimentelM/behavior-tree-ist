@@ -4,6 +4,7 @@ import { Action } from "../base/action";
 import { Decorator } from "../base/decorator";
 import { Composite } from "../base/composite";
 import { NodeResult, NodeFlags, SerializableState, TickContext, BTNode } from "../base";
+import { SubTree } from "../nodes/decorators/sub-tree";
 
 class MockAction extends Action {
     public override readonly defaultName = "MockAction";
@@ -106,6 +107,28 @@ describe("Serialization", () => {
 
         // Structure should be identical — no state leaks into serialization
         expect(beforeTick).toEqual(afterTick);
+    });
+
+    it("serializes static metadata independently from includeState", () => {
+        const boundary = new SubTree(new MockAction(), {
+            id: "combat-root",
+            namespace: "combat",
+        });
+        const tree = new BehaviourTree(boundary);
+
+        const withoutState = tree.serialize();
+        const withState = tree.serialize({ includeState: true });
+
+        expect(withoutState.metadata).toEqual({
+            id: "combat-root",
+            namespace: "combat",
+        });
+        expect(withoutState.state).toBeUndefined();
+
+        expect(withState.metadata).toEqual({
+            id: "combat-root",
+            namespace: "combat",
+        });
     });
 
     describe('Options', () => {

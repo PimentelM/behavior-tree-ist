@@ -1,9 +1,7 @@
 import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
-export type TimeoutState = {
-    remaining: number;
-};
+export type TimeoutState = number;
 
 
 export class Timeout extends Decorator {
@@ -20,7 +18,7 @@ export class Timeout extends Decorator {
     }
 
     public override getDisplayState(): TimeoutState {
-        return { remaining: this.remaining };
+        return this.remaining;
     }
 
     private get elapsed(): number {

@@ -1,6 +1,6 @@
 import { AnyDecoratorSpec, BTNode, TickContext, ValidateDecoratorSpecs } from "../../base/node";
 import { Decorator } from "../../base/decorator";
-import { NodeFlags, NodeResult, SerializableState } from "../../base/types";
+import { NodeFlags, NodeResult } from "../../base/types";
 
 export type SubTreeMetadata = {
     id?: string;
@@ -9,21 +9,22 @@ export type SubTreeMetadata = {
 
 export class SubTree extends Decorator {
     public override readonly defaultName = "SubTree";
+    private readonly _subTreeMetadata: Readonly<SubTreeMetadata>;
 
-    constructor(child: BTNode, public readonly metadata: SubTreeMetadata = {}) {
+    constructor(child: BTNode, metadata: SubTreeMetadata = {}) {
         super(child);
         this.addFlags(NodeFlags.SubTree);
+        this._subTreeMetadata = Object.freeze({
+            id: metadata.id,
+            namespace: metadata.namespace,
+        });
+        if (this._subTreeMetadata.id !== undefined || this._subTreeMetadata.namespace !== undefined) {
+            this.setMetadata(this._subTreeMetadata);
+        }
     }
 
-    public override getDisplayState(): SerializableState | undefined {
-        if (this.metadata.id === undefined && this.metadata.namespace === undefined) {
-            return undefined;
-        }
-
-        return {
-            id: this.metadata.id,
-            namespace: this.metadata.namespace,
-        };
+    public get subTreeMetadata(): Readonly<SubTreeMetadata> {
+        return this._subTreeMetadata;
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

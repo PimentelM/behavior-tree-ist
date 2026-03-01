@@ -1,19 +1,21 @@
 import { memo } from 'react';
+import type { SerializableState } from '@behavior-tree-ist/core';
 import { getVisibleDisplayStateEntries } from '../../constants';
 
 interface NodeStateDisplayProps {
   nodeFlags: number;
-  state: Record<string, unknown>;
+  state: SerializableState;
   isStale: boolean;
+  title?: string;
 }
 
-function NodeStateDisplayInner({ nodeFlags, state, isStale }: NodeStateDisplayProps) {
+function NodeStateDisplayInner({ nodeFlags, state, isStale, title = 'Display State' }: NodeStateDisplayProps) {
   const entries = getVisibleDisplayStateEntries(nodeFlags, state);
   if (entries.length === 0) return null;
 
   return (
     <div className="bt-state-display">
-      <div className="bt-state-display__title">Display State{isStale ? ' (Stale)' : ''}</div>
+      <div className="bt-state-display__title">{title}{isStale ? ' (Stale)' : ''}</div>
       <div className="bt-state-display__entries">
         {entries.map(([key, value]) => (
           <div key={key} className="bt-state-display__entry">

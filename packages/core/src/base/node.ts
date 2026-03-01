@@ -1,5 +1,5 @@
 import { TickTraceEvent, RefChangeEvent, ActivityMetadata } from "./types";
-import { NodeResult, NodeFlags, SerializableState } from "./types";
+import { NodeResult, NodeFlags, SerializableState, SerializableMetadata } from "./types";
 import { AmbientContext } from "./ambient-context";
 
 export type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];
@@ -32,6 +32,7 @@ export abstract class BTNode {
 
     private _tags: string[] = [];
     private _activity: ActivityMetadata | undefined;
+    private _metadata: SerializableMetadata | undefined;
     private _nodeFlags: NodeFlags = 0;
 
     constructor(name?: string) {
@@ -69,6 +70,20 @@ export abstract class BTNode {
 
     public get nodeFlags(): NodeFlags {
         return this._nodeFlags;
+    }
+
+    public get metadata(): SerializableMetadata | undefined {
+        return this._metadata;
+    }
+
+    protected setMetadata(metadata: SerializableMetadata | undefined): void {
+        if (metadata === undefined) {
+            return;
+        }
+        if (this._metadata !== undefined) {
+            throw new Error(`Metadata for node ${this.displayName} (id: ${this.id}) is immutable and cannot be reassigned.`);
+        }
+        this._metadata = Object.freeze({ ...metadata });
     }
 
     protected addFlags(...flags: number[]): void {
@@ -121,6 +136,7 @@ export abstract class BTNode {
             nodeFlags: this.nodeFlags,
             tags: this.tags.length > 0 ? this.tags : undefined,
             activity: this.activity,
+            metadata: this.metadata,
             children: this.getChildren?.(),
             state: this.getDisplayState?.(),
         };

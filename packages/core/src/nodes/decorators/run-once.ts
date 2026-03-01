@@ -2,10 +2,7 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-export type RunOnceState = {
-    hasCompleted: boolean;
-    result: NodeResult | null;
-};
+export type RunOnceState = NodeResult | null;
 
 export class RunOnce extends Decorator {
     public override readonly defaultName = "RunOnce";
@@ -21,10 +18,7 @@ export class RunOnce extends Decorator {
     }
 
     public override getDisplayState(): RunOnceState {
-        return {
-            hasCompleted: this.completedResult !== null,
-            result: this.completedResult
-        };
+        return this.completedResult;
     }
 
     protected override onTick(ctx: TickContext): NodeResult {

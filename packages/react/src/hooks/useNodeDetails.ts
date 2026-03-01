@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
+import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
 import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
 import type { NodeDetailsData } from '../types';
 
@@ -17,13 +18,16 @@ export function useNodeDetails(
 
     const indexed = treeIndex.getById(selectedNodeId);
     if (!indexed) return null;
+    const indexedMetadata = (indexed as typeof indexed & {
+      metadata?: Readonly<Record<string, SerializableValue>>;
+    }).metadata;
 
     const resultSummary = inspector.getNodeResultSummary(selectedNodeId);
     const rawHistory = inspector.getNodeHistory(selectedNodeId);
 
     // Get current state from snapshot
     let currentResult = null;
-    let currentDisplayState: Record<string, unknown> | undefined;
+    let currentDisplayState: SerializableState | undefined;
     let currentDisplayStateIsStale = false;
     const inspectorWithStateLookup = inspector as TreeInspector & {
       getLastDisplayState?: (nodeId: number, atOrBeforeTickId?: number) => unknown;
@@ -40,7 +44,7 @@ export function useNodeDetails(
       ? undefined
       : inspector.getNodeAtTick(selectedNodeId, viewedTickId);
 
-    currentDisplayState = inspectorWithStateLookup.getLastDisplayState?.(selectedNodeId, stateLookupTick) as Record<string, unknown> | undefined;
+    currentDisplayState = inspectorWithStateLookup.getLastDisplayState?.(selectedNodeId, stateLookupTick) as SerializableState | undefined;
     if (currentDisplayState !== undefined && viewedTickId !== null) {
       currentDisplayStateIsStale = selectedNodeSnapshot === undefined || selectedNodeSnapshot.state === undefined;
     }
@@ -78,6 +82,7 @@ export function useNodeDetails(
       currentResult,
       currentDisplayState,
       currentDisplayStateIsStale,
+      metadata: indexedMetadata,
       profilingData,
     };
   }, [inspector, selectedNodeId, viewedTickId, tickGeneration]);
@@ -87,7 +92,7 @@ function getSyntheticUtilityDecoratorState(
   inspector: TreeInspector,
   nodeId: number,
   atOrBeforeTickId: number | undefined,
-): { state: Record<string, unknown>; isStale: boolean } | undefined {
+): { state: SerializableState; isStale: boolean } | undefined {
   const treeIndex = inspector.tree;
   if (!treeIndex) return undefined;
 
@@ -113,11 +118,9 @@ function getSyntheticUtilityDecoratorState(
     getLastDisplayState?: (selectedNodeId: number, atOrBeforeTickId?: number) => unknown;
   };
 
-  const parentState = inspectorWithStateLookup.getLastDisplayState?.(parentId, atOrBeforeTickId) as Record<string, unknown> | undefined;
-  if (!parentState) return undefined;
-
-  const lastScores = parentState.lastScores;
-  if (!Array.isArray(lastScores)) return undefined;
+  const parentState = inspectorWithStateLookup.getLastDisplayState?.(parentId, atOrBeforeTickId) as SerializableState | undefined;
+  const lastScores = getUtilityScores(parentState);
+  if (!lastScores) return undefined;
 
   const score = lastScores[childIndex];
   if (typeof score !== 'number') return undefined;
@@ -130,4 +133,25 @@ function getSyntheticUtilityDecoratorState(
     state: { lastScore: score },
     isStale: atOrBeforeTickId !== undefined && (parentNodeSnapshot === undefined || parentNodeSnapshot.state === undefined),
   };
+}
+
+function getUtilityScores(displayState: SerializableState | undefined): number[] | undefined {
+  if (displayState === undefined) return undefined;
+
+  if (Array.isArray(displayState)) {
+    return displayState.every((value) => typeof value === 'number')
+      ? displayState
+      : undefined;
+  }
+
+  if (!isStateRecord(displayState)) return undefined;
+  const maybeScores = displayState.lastScores;
+  if (!Array.isArray(maybeScores) || !maybeScores.every((value) => typeof value === 'number')) {
+    return undefined;
+  }
+  return maybeScores as number[];
+}
+
+function isStateRecord(state: SerializableState): state is Record<string, SerializableValue> {
+  return typeof state === 'object' && state !== null && !Array.isArray(state);
 }
