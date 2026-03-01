@@ -3,9 +3,7 @@
     "playwright": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest",
-        "--cdp-endpoint",
-        "http://192.168.3.10:9222"
+        "@playwright/mcp@latest"
       ]
     },
     "context7": {
