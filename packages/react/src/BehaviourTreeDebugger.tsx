@@ -27,6 +27,7 @@ const SHADOW_BASE_CSS = [
   ':host *,:host *::before,:host *::after{box-sizing:border-box;}',
 ].join('');
 const ACTIVITY_WINDOW_PADDING = 8;
+type ActivityLabelMode = 'activity' | 'node';
 
 type ActivityWindowPosition = {
   x: number;
@@ -119,7 +120,10 @@ export function BehaviourTreeDebugger({
   const [timeFormatOverride, setTimeFormatOverride] = useState<boolean | null>(null);
   const [activityWindowVisible, setActivityWindowVisible] = useState(activityWindowEnabled);
   const [activityWindowCollapsed, setActivityWindowCollapsed] = useState(false);
+  const [activityOptionsCollapsed, setActivityOptionsCollapsed] = useState(true);
   const [selectedActivityTailNodeId, setSelectedActivityTailNodeId] = useState<number | null>(null);
+  const [activityModeState, setActivityModeState] = useState(activityDisplayMode);
+  const [activityLabelMode, setActivityLabelMode] = useState<ActivityLabelMode>('activity');
   const [activityWindowPosition, setActivityWindowPosition] = useState<ActivityWindowPosition | null>(null);
   const canvasSurfaceRef = useRef<HTMLDivElement | null>(null);
   const activityWindowRef = useRef<HTMLDivElement | null>(null);
@@ -140,6 +144,10 @@ export function BehaviourTreeDebugger({
       setActivityWindowVisible(true);
     }
   }, [activityWindowEnabled]);
+
+  useEffect(() => {
+    setActivityModeState(activityDisplayMode);
+  }, [activityDisplayMode]);
 
   const timeTravelControls = useTimeTravelControls(pausedInspector ?? inspector, tickGeneration);
   const { viewedTickId } = timeTravelControls;
@@ -245,10 +253,10 @@ export function BehaviourTreeDebugger({
       getActivitySnapshotAtTick?: (tickId: number, mode?: 'running' | 'running_or_success' | 'all') => { branches: readonly ActivityBranchData[] } | undefined;
     };
     const snapshot = viewedTickId === null
-      ? inspectorWithActivity.getLatestActivitySnapshot?.(activityDisplayMode)
-      : inspectorWithActivity.getActivitySnapshotAtTick?.(viewedTickId, activityDisplayMode);
+      ? inspectorWithActivity.getLatestActivitySnapshot?.(activityModeState)
+      : inspectorWithActivity.getActivitySnapshotAtTick?.(viewedTickId, activityModeState);
     return snapshot?.branches ?? [];
-  }, [activeInspector, viewedTickId, activityDisplayMode, tickGeneration]);
+  }, [activeInspector, viewedTickId, activityModeState, tickGeneration]);
 
   useEffect(() => {
     if (selectedActivityTailNodeId === null) return;
@@ -287,6 +295,24 @@ export function BehaviourTreeDebugger({
     setFocusNodeSignal((value) => value + 1);
     onNodeSelect?.(branch.tailNodeId);
   }, [onNodeSelect]);
+
+  const getActivityBranchText = useCallback((branch: ActivityBranchData): string => {
+    if (activityLabelMode === 'activity') {
+      return branch.labels.join(' > ');
+    }
+
+    const treeIndex = activeInspector.tree;
+    if (!treeIndex) return branch.labels.join(' > ');
+
+    const names = branch.nodeIds.map((nodeId) => {
+      const node = treeIndex.getById(nodeId);
+      if (!node) return `#${nodeId}`;
+      const customName = node.name.trim();
+      return customName.length > 0 ? customName : node.defaultName;
+    });
+
+    return names.join(' > ');
+  }, [activityLabelMode, activeInspector.tree]);
 
   const handleNodeClick = useCallback(
     (nodeId: number) => {
@@ -403,13 +429,32 @@ export function BehaviourTreeDebugger({
     setActivityWindowVisible((visible) => !visible);
   }, []);
 
-  const handleCloseActivityWindow = useCallback(() => {
-    setActivityWindowVisible(false);
-    setSelectedActivityTailNodeId(null);
-  }, []);
-
   const handleToggleActivityWindowCollapsed = useCallback(() => {
     setActivityWindowCollapsed((collapsed) => !collapsed);
+  }, []);
+
+  const handleToggleActivityOptionsCollapsed = useCallback(() => {
+    setActivityOptionsCollapsed((collapsed) => !collapsed);
+  }, []);
+
+  const handleSetRunningMode = useCallback(() => {
+    setActivityModeState('running');
+  }, []);
+
+  const handleSetRunningOrSuccessMode = useCallback(() => {
+    setActivityModeState('running_or_success');
+  }, []);
+
+  const handleSetAllMode = useCallback(() => {
+    setActivityModeState('all');
+  }, []);
+
+  const handleSetActivityLabelMode = useCallback(() => {
+    setActivityLabelMode('activity');
+  }, []);
+
+  const handleSetNodeLabelMode = useCallback(() => {
+    setActivityLabelMode('node');
   }, []);
 
   const clampActivityWindowPosition = useCallback((x: number, y: number): ActivityWindowPosition => {
@@ -527,9 +572,9 @@ export function BehaviourTreeDebugger({
   const collapsedActivityEntry = useMemo(() => {
     const branch = collapsedActivityBranch;
     if (!branch) return 'No activity';
-    const label = branch.labels.join(' > ').trim();
+    const label = getActivityBranchText(branch).trim();
     return label.length > 0 ? label : 'No activity';
-  }, [collapsedActivityBranch]);
+  }, [collapsedActivityBranch, getActivityBranchText]);
 
   const collapsedActivityResultColor = useMemo(
     () => getResultColor(collapsedActivityBranch?.tailResult),
@@ -652,11 +697,11 @@ export function BehaviourTreeDebugger({
                       type="button"
                       className="bt-canvas-surface__activity-control"
                       onPointerDown={handleActivityWindowControlPointerDown}
-                      onClick={handleCloseActivityWindow}
-                      aria-label="Close current activity window"
-                      title="Close current activity window"
+                      onClick={handleToggleActivityOptionsCollapsed}
+                      aria-label={activityOptionsCollapsed ? 'Show activity options menu' : 'Hide activity options menu'}
+                      title={activityOptionsCollapsed ? 'Show activity options menu' : 'Hide activity options menu'}
                     >
-                      ×
+                      {activityOptionsCollapsed ? '⚙' : '⋯'}
                     </button>
                     <button
                       type="button"
@@ -670,10 +715,78 @@ export function BehaviourTreeDebugger({
                     </button>
                   </div>
                 </div>
+                {!activityWindowCollapsed && !activityOptionsCollapsed && (
+                  <div className="bt-canvas-surface__activity-settings">
+                    <div
+                      className="bt-canvas-surface__activity-segmented"
+                      role="group"
+                      aria-label="Activity result filter mode"
+                    >
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityModeState === 'running' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetRunningMode}
+                        title="Show only Running activity entries"
+                        aria-label="Show only running activities"
+                      >
+                        R
+                      </button>
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityModeState === 'running_or_success' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetRunningOrSuccessMode}
+                        title="Show Running and Succeeded activity entries"
+                        aria-label="Show running and success activities"
+                      >
+                        R+S
+                      </button>
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityModeState === 'all' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetAllMode}
+                        title="Show all activity entries"
+                        aria-label="Show all activities"
+                      >
+                        All
+                      </button>
+                    </div>
+                    <div
+                      className="bt-canvas-surface__activity-segmented"
+                      role="group"
+                      aria-label="Activity text source"
+                    >
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityLabelMode === 'activity' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetActivityLabelMode}
+                        title="Show activity labels"
+                        aria-label="Show activity labels"
+                      >
+                        Activity
+                      </button>
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityLabelMode === 'node' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetNodeLabelMode}
+                        title="Show node names"
+                        aria-label="Show node names"
+                      >
+                        Node
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {!activityWindowCollapsed && (
                   <ActivityNowPanel
                     branches={activityBranches}
                     onSelectBranch={handleSelectActivityBranch}
+                    selectedTailNodeId={selectedActivityTailNodeId}
+                    getBranchText={getActivityBranchText}
                     variant="floating"
                     showTitle={false}
                   />

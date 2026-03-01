@@ -229,8 +229,10 @@ The debugger renders a compact floating "Current Activity" panel over the canvas
 - Label path is rendered from branch labels (for example `Hunting > Movement > Kiting`)
 - Rows are anchored to the branch tail activity node (last node in the active path that defines `activity`)
 - Click a row to focus/select its tail activity node and highlight the graph path from root to that tail
-- `activityDisplayMode` controls whether only `Running`, `Running + Succeeded`, or all branch outcomes are shown
-- The panel can be shown/hidden from the toolbar, dragged around the canvas, collapsed to a single-line summary, or closed from window controls
+- Use the in-window mode control (`R`, `R+S`, `All`) to switch whether only `Running`, `Running + Succeeded`, or all branch outcomes are shown
+- Use the in-window label source control (`Activity` / `Node`) to switch row text between activity labels and node names (`name || defaultName`)
+- The panel can be shown/hidden from the toolbar, dragged around the canvas, and collapsed to a single-line summary
+- The options strip inside the window can be collapsed independently via the header options toggle
 
 ## Theming
 

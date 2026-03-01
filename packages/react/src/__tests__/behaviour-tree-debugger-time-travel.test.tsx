@@ -114,6 +114,45 @@ function makeDiagnosticsTick(): TickRecord {
   };
 }
 
+function makeModeSwitchTree(): SerializableNode {
+  return {
+    id: 1,
+    nodeFlags: NodeFlags.Composite | NodeFlags.Parallel,
+    defaultName: 'Parallel',
+    name: 'RootNode',
+    activity: 'Guarding',
+    children: [
+      {
+        id: 2,
+        nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
+        defaultName: 'AttackAction',
+        name: 'AttackIntent',
+        activity: 'Attacking',
+      },
+      {
+        id: 3,
+        nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
+        defaultName: 'PatrolAction',
+        name: 'PatrolIntent',
+        activity: 'Patrolling',
+      },
+    ],
+  };
+}
+
+function makeModeSwitchTick(): TickRecord {
+  return {
+    tickId: 1,
+    timestamp: 1000,
+    refEvents: [],
+    events: [
+      { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Succeeded },
+      { tickId: 1, nodeId: 3, timestamp: 1000, result: NodeResult.Running },
+      { tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Running },
+    ],
+  };
+}
+
 describe('BehaviourTreeDebugger time-travel percentile mode', () => {
   it('switches performance percentiles from sampled to exact when pausing', async () => {
     const ticks: TickRecord[] = [
@@ -209,22 +248,6 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     expect(local.getByText('No activity for this tick')).toBeTruthy();
   });
 
-  it('closes the floating current activity window from the window controls', () => {
-    const { container } = render(
-      <BehaviourTreeDebugger
-        tree={makeTree()}
-        ticks={[makeTick(1, 2)]}
-        isolateStyles={false}
-      />,
-    );
-
-    const local = within(container);
-    fireEvent.click(local.getByRole('button', { name: 'Close current activity window' }));
-
-    expect(container.querySelector('.bt-canvas-surface__activity')).toBeNull();
-    expect(local.getByRole('button', { name: 'Show current activity window' })).toBeTruthy();
-  });
-
   it('dedupes duplicate terminal entries and anchors selection to tail activity node', () => {
     const onNodeSelect = vi.fn();
     const { container } = render(
@@ -256,5 +279,54 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     const edgeFlags = edgeFlagsEntries[edgeFlagsEntries.length - 1]?.textContent ?? '';
     expect(edgeFlags).toContain('e-1-2');
     expect(edgeFlags).toContain('e-2-3');
+  });
+
+  it('supports switching activity modes and text source from activity window controls', () => {
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeModeSwitchTree()}
+        ticks={[makeModeSwitchTick()]}
+        isolateStyles={false}
+      />,
+    );
+
+    const local = within(container);
+    expect(local.getByTitle('Guarding > Patrolling')).toBeTruthy();
+    expect(local.queryByTitle('Guarding > Attacking')).toBeNull();
+
+    fireEvent.click(local.getByRole('button', { name: 'Show activity options menu' }));
+    fireEvent.click(local.getByRole('button', { name: 'Show running and success activities' }));
+    expect(local.getByTitle('Guarding > Attacking')).toBeTruthy();
+
+    fireEvent.click(local.getByRole('button', { name: 'Show node names' }));
+    expect(local.getByTitle('RootNode > AttackIntent')).toBeTruthy();
+    expect(local.getByTitle('RootNode > PatrolIntent')).toBeTruthy();
+  });
+
+  it('allows collapsing and expanding the activity options menu', () => {
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeModeSwitchTree()}
+        ticks={[makeModeSwitchTick()]}
+        isolateStyles={false}
+      />,
+    );
+
+    const local = within(container);
+    expect(local.queryByRole('button', { name: 'Show only running activities' })).toBeNull();
+    expect(local.queryByRole('button', { name: 'Show activity labels' })).toBeNull();
+
+    fireEvent.click(local.getByRole('button', { name: 'Show activity options menu' }));
+    expect(local.getByRole('button', { name: 'Show only running activities' })).toBeTruthy();
+    expect(local.getByRole('button', { name: 'Show activity labels' })).toBeTruthy();
+
+    fireEvent.click(local.getByRole('button', { name: 'Hide activity options menu' }));
+    expect(local.queryByRole('button', { name: 'Show only running activities' })).toBeNull();
+    expect(local.queryByRole('button', { name: 'Show activity labels' })).toBeNull();
+    expect(local.getByTitle('Guarding > Patrolling')).toBeTruthy();
+
+    fireEvent.click(local.getByRole('button', { name: 'Show activity options menu' }));
+    expect(local.getByRole('button', { name: 'Show only running activities' })).toBeTruthy();
+    expect(local.getByRole('button', { name: 'Show activity labels' })).toBeTruthy();
   });
 });
