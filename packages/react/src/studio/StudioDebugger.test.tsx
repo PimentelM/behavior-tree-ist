@@ -23,6 +23,8 @@ function buildConnectionModel(): StudioConnectionModel {
     setMode: vi.fn(),
     connectTarget: vi.fn(),
     selectAgent: vi.fn(),
+    detachAgent: vi.fn(),
+    retryNow: vi.fn(),
     selectTree: vi.fn(),
     setCapture: vi.fn(),
   };
@@ -33,7 +35,7 @@ describe('StudioDebugger', () => {
     mockedUseStudioConnection.mockReturnValue(buildConnectionModel());
   });
 
-  it('defaults to dark theme, shares theme toggle with controls, and renders no-tree state', () => {
+  it('renders integrated studio title, dark theme by default, and no-tree state', () => {
     const { container } = render(
       <StudioDebugger
         debuggerProps={{
@@ -43,12 +45,14 @@ describe('StudioDebugger', () => {
       />,
     );
 
-    const studioShell = container.querySelector('.bt-studio-shell');
-    expect(studioShell?.className).toContain('bt-debugger--dark');
+    const debuggerRoot = container.querySelector('.bt-debugger');
+    expect(debuggerRoot?.className).toContain('bt-debugger--dark');
+    expect(screen.getByText('Behavior Tree Studio')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Show connection panel' })).toBeTruthy();
     expect(screen.getByText('No tree loaded')).toBeTruthy();
     expect(screen.getByText(/No ticks/)).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }));
-    expect(studioShell?.className).toContain('bt-debugger--light');
+    expect(debuggerRoot?.className).toContain('bt-debugger--light');
   });
 });

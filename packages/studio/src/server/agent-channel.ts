@@ -147,6 +147,20 @@ export class AgentChannel {
     await this.sendRequest(agentId, 'agent.restoreBaseline', params);
   }
 
+  public closeAll(reason = 'Server shutdown'): void {
+    for (const agent of this.agents.values()) {
+      for (const pending of agent.pending.values()) {
+        pending.reject(new Error(reason));
+      }
+      agent.pending.clear();
+      if (agent.socket.readyState === WebSocket.OPEN || agent.socket.readyState === WebSocket.CONNECTING) {
+        agent.socket.close(1001, reason);
+      }
+    }
+    this.agents.clear();
+    this.emitAgentsChanged();
+  }
+
   private sendRequest(agentId: string, method: string, params?: unknown): Promise<unknown> {
     const agent = this.agents.get(agentId);
     if (!agent) {

@@ -69,6 +69,7 @@ const UiSetCaptureParamsSchema = z.object({
 export const UiRequestSchema = z.union([
   RequestFrameSchema.extend({ method: z.literal('ui.getSessionState') }),
   RequestFrameSchema.extend({ method: z.literal('ui.heartbeat') }),
+  RequestFrameSchema.extend({ method: z.literal('ui.detachAgent') }),
   RequestFrameSchema.extend({
     method: z.literal('ui.configureChannel'),
     params: UiConfigureChannelParamsSchema,

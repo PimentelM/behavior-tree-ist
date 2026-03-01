@@ -8,6 +8,7 @@
     },
     "scripts": {
         "dev": "tsx src/dev.ts",
+        "dev:server": "tsx src/cli.ts",
         "dev:ui": "vite",
         "build": "yarn run build:server && yarn run build:ui",
         "build:server": "tsup --config tsup.config.ts",

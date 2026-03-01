@@ -103,6 +103,15 @@ export class UiChannel {
     }));
   }
 
+  public closeAll(reason = 'Server shutdown'): void {
+    for (const [id, client] of this.clients) {
+      if (client.socket.readyState === WebSocket.OPEN || client.socket.readyState === WebSocket.CONNECTING) {
+        client.socket.close(1001, reason);
+      }
+      this.clients.delete(id);
+    }
+  }
+
   private async handleRequest(clientId: string, request: UiRequest): Promise<void> {
     for (const handler of this.requestHandlers) {
       try {

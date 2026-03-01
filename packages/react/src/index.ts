@@ -4,6 +4,7 @@ export { StudioControls } from './studio/StudioControls';
 export { useStudioConnection } from './studio/useStudioConnection';
 export type {
   BehaviourTreeDebuggerProps,
+  BehaviourTreeStudioOptions,
   PanelConfig,
   ThemeOverrides,
   ThemeMode,

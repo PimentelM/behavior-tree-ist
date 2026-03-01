@@ -7,6 +7,7 @@
   "scripts": {
     "build": "yarn workspace @behavior-tree-ist/core run build && yarn workspace @behavior-tree-ist/react run build",
     "studio:dev": "yarn workspace @behavior-tree-ist/studio run dev",
+    "studio:dev:server": "yarn workspace @behavior-tree-ist/studio run dev:server",
     "studio:dev:ui": "yarn workspace @behavior-tree-ist/studio run dev:ui",
     "studio:mock-agent": "yarn workspace @behavior-tree-ist/studio run mock-agent",
     "test": "vitest run",

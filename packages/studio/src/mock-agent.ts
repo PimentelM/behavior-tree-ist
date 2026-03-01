@@ -1,10 +1,8 @@
 import type { OffFunction } from '@behavior-tree-ist/core';
-import * as coreStudioModule from '@behavior-tree-ist/core/studio';
-import { connectNodeWebSocket } from '@behavior-tree-ist/transports';
-import { createHeavyProfilerDemoTree } from './heavy-profiler-demo-tree';
-import { unwrapDefaultExport } from './module-interop';
+import { fileURLToPath } from 'node:url';
+import { Worker } from 'node:worker_threads';
 
-const { BehaviourTreeRegistry, StudioAgent } = unwrapDefaultExport(coreStudioModule) as typeof import('@behavior-tree-ist/core/studio');
+export type MockAgentDriver = 'manual' | 'interval';
 
 export interface MockAgentOptions {
   serverUrl: string;
@@ -12,11 +10,22 @@ export interface MockAgentOptions {
   clientName?: string;
   treeName?: string;
   treeDescription?: string;
+  driver?: MockAgentDriver;
 }
 
 export interface RunningMockAgent {
+  tick: (now?: number) => void;
   stop: OffFunction;
 }
+
+type WorkerCommand =
+  | { type: 'tick'; now?: number }
+  | { type: 'stop' };
+
+type WorkerEvent =
+  | { type: 'ready' }
+  | { type: 'stopped' }
+  | { type: 'error'; message: string };
 
 function normalizeTickRateMs(value: number | undefined): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
@@ -25,49 +34,98 @@ function normalizeTickRateMs(value: number | undefined): number {
   return Math.max(1, Math.floor(value));
 }
 
+function normalizeDriver(value: MockAgentDriver | undefined): MockAgentDriver {
+  return value === 'manual' ? 'manual' : 'interval';
+}
+
 export async function startMockAgent(options: MockAgentOptions): Promise<RunningMockAgent> {
   const tickRateMs = normalizeTickRateMs(options.tickRateMs);
+  const driver = normalizeDriver(options.driver);
   const clientName = options.clientName ?? 'Studio Mock Agent';
   const treeName = options.treeName ?? 'Heavy Profiler Demo';
   const treeDescription = options.treeDescription ?? 'Synthetic high-load behavior tree for studio debugging';
 
-  const tree = createHeavyProfilerDemoTree();
-  const registry = new BehaviourTreeRegistry();
-  const { off: offTree } = registry.registerTree(tree, {
-    name: treeName,
-    description: treeDescription,
-    treeKey: 'heavy-profiler-demo',
+  const workerEntrypoint = fileURLToPath(new URL('./mock-agent.worker.ts', import.meta.url));
+  const workerBootstrap = `
+    const { workerData } = require('node:worker_threads');
+    require('tsx/cjs');
+    require(workerData.entrypoint);
+  `;
+  const worker = new Worker(workerBootstrap, {
+    eval: true,
+    workerData: {
+      entrypoint: workerEntrypoint,
+      config: {
+        serverUrl: options.serverUrl,
+        tickRateMs,
+        clientName,
+        treeName,
+        treeDescription,
+        driver,
+      },
+    },
   });
 
-  const agent = new StudioAgent({
-    registry,
-    clientName,
-    flushIntervalMs: 50,
-    heartbeatIntervalMs: 3000,
-    maxBatchTicks: 128,
-    maxQueuedTicksPerTree: 5000,
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+
+    const onMessage = (event: WorkerEvent) => {
+      if (event.type === 'ready') {
+        settled = true;
+        worker.off('message', onMessage);
+        resolve();
+        return;
+      }
+      if (event.type === 'error') {
+        settled = true;
+        worker.off('message', onMessage);
+        reject(new Error(event.message));
+      }
+    };
+
+    worker.on('message', onMessage);
+    worker.once('error', (error) => {
+      if (settled) return;
+      settled = true;
+      worker.off('message', onMessage);
+      reject(error);
+    });
+
+    worker.once('exit', (code) => {
+      if (settled) return;
+      settled = true;
+      worker.off('message', onMessage);
+      reject(new Error(`Mock-agent worker exited before ready (code ${code})`));
+    });
   });
 
-  agent.provideDialer(async () => connectNodeWebSocket(options.serverUrl));
+  let stopped = false;
 
-  try {
-    const transport = await connectNodeWebSocket(options.serverUrl);
-    agent.attachTransport(transport);
-  } catch {
-    // Initial connect can fail during startup races. Agent.tick() will retry.
-  }
-
-  const timer = setInterval(() => {
-    const now = Date.now();
-    tree.tick({ now });
-    agent.tick(now);
-  }, tickRateMs);
-
-  const stop = () => {
-    clearInterval(timer);
-    agent.disconnect();
-    offTree();
+  const tick = (now?: number) => {
+    if (stopped) {
+      return;
+    }
+    const command: WorkerCommand = { type: 'tick', now };
+    worker.postMessage(command);
   };
 
-  return { stop };
+  const stop = () => {
+    if (stopped) {
+      return;
+    }
+    stopped = true;
+
+    const command: WorkerCommand = { type: 'stop' };
+    worker.postMessage(command);
+
+    const forceStopTimer = setTimeout(() => {
+      void worker.terminate();
+    }, 750);
+
+    worker.once('exit', () => {
+      clearTimeout(forceStopTimer);
+    });
+  };
+
+  return { tick, stop };
 }

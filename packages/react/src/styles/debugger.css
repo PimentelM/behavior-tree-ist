@@ -64,6 +64,214 @@
   min-height: 0;
 }
 
+.bt-debugger-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.bt-debugger-frame--studio {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.bt-debugger-frame__body {
+  min-height: 0;
+  position: relative;
+}
+
+.bt-studio-titlebar {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--bt-border-color);
+  background: color-mix(in srgb, var(--bt-bg-secondary) 85%, transparent);
+  color: var(--bt-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.bt-studio-panel {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  width: min(460px, calc(100% - 16px));
+  max-height: calc(100% - 16px);
+  overflow: auto;
+  border: 1px solid var(--bt-border-color);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bt-bg-secondary) 94%, transparent);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--bt-bg-primary) 45%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.bt-studio-panel__header {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--bt-border-color);
+  padding: 0 10px;
+}
+
+.bt-studio-panel__title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--bt-text-primary);
+}
+
+.bt-studio-panel__close {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--bt-border-color);
+  border-radius: 6px;
+  background: var(--bt-bg-tertiary);
+  color: var(--bt-text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.bt-studio-panel__close:hover {
+  color: var(--bt-text-primary);
+}
+
+.bt-studio-panel__section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--bt-border-color) 80%, transparent);
+}
+
+.bt-studio-panel__section--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.bt-studio-panel__status {
+  height: 28px;
+  border: 1px solid var(--bt-border-color);
+  border-radius: 8px;
+  background: var(--bt-bg-tertiary);
+  color: var(--bt-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.bt-studio-panel__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.bt-studio-panel__status-dot--connected {
+  background: var(--bt-color-succeeded);
+}
+
+.bt-studio-panel__status-dot--connecting {
+  background: var(--bt-color-running);
+}
+
+.bt-studio-panel__status-dot--disconnected {
+  background: var(--bt-color-failed);
+}
+
+.bt-studio-panel__status-label {
+  text-transform: capitalize;
+}
+
+.bt-studio-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bt-studio-panel__field-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bt-text-muted);
+  font-weight: 600;
+}
+
+.bt-studio-panel__inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bt-studio-panel__inline--between {
+  justify-content: space-between;
+}
+
+.bt-studio-panel__input,
+.bt-studio-panel__select {
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--bt-border-color);
+  background: var(--bt-bg-tertiary);
+  color: var(--bt-text-primary);
+  padding: 0 10px;
+  min-width: 0;
+  width: 100%;
+}
+
+.bt-studio-panel__button {
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--bt-border-color);
+  background: var(--bt-bg-tertiary);
+  color: var(--bt-text-secondary);
+  cursor: pointer;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+.bt-studio-panel__button:hover {
+  color: var(--bt-text-primary);
+}
+
+.bt-studio-panel__button--primary {
+  border-color: color-mix(in srgb, var(--bt-accent-color) 34%, var(--bt-border-color));
+  background: color-mix(in srgb, var(--bt-accent-color) 11%, var(--bt-bg-tertiary));
+  color: color-mix(in srgb, var(--bt-accent-color) 68%, var(--bt-text-primary));
+}
+
+.bt-studio-panel__button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.bt-studio-panel__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bt-studio-panel__attached-label {
+  font-size: 11px;
+  color: var(--bt-text-secondary);
+}
+
+.bt-studio-panel__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--bt-text-muted);
+}
+
 .bt-studio-controls {
   display: flex;
   flex-direction: column;
@@ -560,6 +768,57 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+
+.bt-toolbar__studio-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--bt-border-color);
+  background: var(--bt-bg-tertiary);
+  color: var(--bt-text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.bt-toolbar__studio-btn--active {
+  border-color: color-mix(in srgb, var(--bt-accent-color) 30%, var(--bt-border-color));
+  color: color-mix(in srgb, var(--bt-accent-color) 72%, var(--bt-text-primary));
+  background: color-mix(in srgb, var(--bt-accent-color) 11%, var(--bt-bg-tertiary));
+}
+
+.bt-toolbar__studio-tree-wrap {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--bt-border-color);
+  border-radius: 8px;
+  background: var(--bt-bg-tertiary);
+}
+
+.bt-toolbar__studio-tree-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bt-text-muted);
+}
+
+.bt-toolbar__studio-tree {
+  height: 22px;
+  border: 0;
+  background: transparent;
+  color: var(--bt-text-primary);
+  font-size: 11px;
+  min-width: 120px;
+}
+
+.bt-toolbar__studio-window {
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  padding: 0 2px;
+  white-space: nowrap;
 }
 
 .bt-toolbar__actions :where(button) {
@@ -1996,6 +2255,17 @@
 }
 
 @media (max-width: 900px) {
+
+  .bt-studio-panel {
+    top: 6px;
+    left: 6px;
+    width: calc(100% - 12px);
+    max-height: calc(100% - 12px);
+  }
+
+  .bt-toolbar__studio-window {
+    display: none;
+  }
 
   .bt-studio-controls {
     padding: 8px;

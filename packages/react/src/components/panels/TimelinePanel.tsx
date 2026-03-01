@@ -16,12 +16,14 @@ function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): str
 interface TimelinePanelProps {
   controls: TimeTravelControls;
   displayTimeAsTimestamp: boolean;
+  windowLimit?: number;
   onTickChange?: (tickId: number) => void;
 }
 
 function TimelinePanelInner({
   controls,
   displayTimeAsTimestamp,
+  windowLimit,
   onTickChange,
 }: TimelinePanelProps) {
   const {
@@ -103,9 +105,8 @@ function TimelinePanelInner({
           &#9654;
         </button>
         <button
-          className={`bt-timeline__btn bt-timeline__btn--live ${
-            mode === 'live' ? 'bt-timeline__btn--live-active' : ''
-          }`}
+          className={`bt-timeline__btn bt-timeline__btn--live ${mode === 'live' ? 'bt-timeline__btn--live-active' : ''
+            }`}
           onClick={handleJumpToLive}
           disabled={mode === 'live'}
           title="Jump to live"

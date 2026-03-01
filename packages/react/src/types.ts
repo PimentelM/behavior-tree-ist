@@ -15,6 +15,7 @@ import type {
   ActivityBranch,
   ActivityDisplayMode,
 } from '@behavior-tree-ist/core/inspector';
+import type { StudioConnectionModel } from './studio/types';
 
 type NodeMetadata = Readonly<Record<string, SerializableValue>>;
 
@@ -24,6 +25,15 @@ export interface PanelConfig {
   refTraces?: boolean;
   performance?: boolean;
   activityNow?: boolean;
+}
+
+export interface BehaviourTreeStudioOptions {
+  enabled?: boolean;
+  title?: string;
+  connection: StudioConnectionModel;
+  defaultConnectionPanelOpen?: boolean;
+  showCaptureControls?: boolean;
+  tickWindowLimit?: number;
 }
 
 export interface ThemeOverrides {
@@ -91,6 +101,7 @@ export interface BehaviourTreeDebuggerProps {
   width?: string | number;
   height?: string | number;
   isolateStyles?: boolean;
+  studio?: BehaviourTreeStudioOptions;
   onNodeSelect?: (nodeId: number | null) => void;
   onTickChange?: (tickId: number) => void;
   className?: string;

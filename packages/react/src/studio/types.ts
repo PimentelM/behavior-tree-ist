@@ -38,6 +38,8 @@ export interface StudioConnectionControls {
   setMode: (mode: StudioChannelMode) => void;
   connectTarget: (url: string) => void;
   selectAgent: (agentId: string) => void;
+  detachAgent: () => void;
+  retryNow: () => void;
   selectTree: (treeKey: string) => void;
   setCapture: (params: { scope: 'tree' | 'all'; traceState?: boolean; profiling?: boolean }) => void;
 }

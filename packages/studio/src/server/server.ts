@@ -45,9 +45,11 @@ export class StudioServer {
   private readonly httpServer = createServer(this.handleHttpRequest.bind(this));
   private readonly uiWss = new WebSocketServer({ noServer: true });
   private readonly agentWss = new WebSocketServer({ noServer: true });
+  private readonly sockets = new Set<Socket>();
 
   private uiPushTimer: NodeJS.Timeout | null = null;
   private heartbeatTimer: NodeJS.Timeout | null = null;
+  private stopPromise: Promise<void> | null = null;
 
   constructor(options: StudioServerOptions = {}) {
     this.host = options.host ?? '0.0.0.0';
@@ -77,9 +79,17 @@ export class StudioServer {
         return;
       }
 
+      const trees = this.agentChannel.getAgentTrees(selectedAgentId);
+      const selectedTreeKey = this.session.selectedTreeKey;
+      const hasSelectedTree = selectedTreeKey !== null && trees.some((tree) => tree.treeKey === selectedTreeKey);
+      if (!hasSelectedTree) {
+        this.session.selectedTreeKey = trees[0]?.treeKey ?? null;
+      }
+
       this.uiChannel.broadcastEvent('ui.treeListChanged', {
-        trees: this.agentChannel.getAgentTrees(selectedAgentId),
+        trees,
       });
+      void this.ensureSelectionActive();
     });
 
     this.agentChannel.onTreeUpdated(({ agentId, treeKey, tree }) => {
@@ -103,10 +113,15 @@ export class StudioServer {
     this.uiChannel.onRequest(async (clientId, request) => {
       switch (request.method) {
         case 'ui.getSessionState': {
+          await this.ensureSelectionActive();
           return this.createUiSessionState();
         }
         case 'ui.heartbeat': {
           this.uiChannel.updateHeartbeat(clientId, Date.now());
+          return { ok: true };
+        }
+        case 'ui.detachAgent': {
+          await this.detachSelectedAgent();
           return { ok: true };
         }
         case 'ui.configureChannel': {
@@ -116,6 +131,8 @@ export class StudioServer {
             this.session.selectedAgentId = agentId;
             const trees = this.agentChannel.getAgentTrees(agentId);
             this.session.selectedTreeKey = trees[0]?.treeKey ?? null;
+            this.uiChannel.broadcastEvent('ui.treeListChanged', { trees });
+            await this.ensureSelectionActive();
           }
           return { ok: true, mode: this.session.mode };
         }
@@ -124,6 +141,7 @@ export class StudioServer {
           const trees = this.agentChannel.getAgentTrees(request.params.agentId);
           this.session.selectedTreeKey = trees[0]?.treeKey ?? null;
           this.uiChannel.broadcastEvent('ui.treeListChanged', { trees });
+          await this.ensureSelectionActive();
           return { ok: true };
         }
         case 'ui.selectTree': {
@@ -166,6 +184,13 @@ export class StudioServer {
 
       socket.destroy();
     });
+
+    this.httpServer.on('connection', (socket) => {
+      this.sockets.add(socket);
+      socket.once('close', () => {
+        this.sockets.delete(socket);
+      });
+    });
   }
 
   public async start(): Promise<void> {
@@ -186,25 +211,51 @@ export class StudioServer {
   }
 
   public async stop(): Promise<void> {
-    if (this.uiPushTimer) {
-      clearInterval(this.uiPushTimer);
-      this.uiPushTimer = null;
+    if (this.stopPromise) {
+      return this.stopPromise;
     }
 
-    if (this.heartbeatTimer) {
-      clearInterval(this.heartbeatTimer);
-      this.heartbeatTimer = null;
-    }
+    this.stopPromise = (async () => {
+      if (this.uiPushTimer) {
+        clearInterval(this.uiPushTimer);
+        this.uiPushTimer = null;
+      }
 
-    await new Promise<void>((resolve, reject) => {
-      this.httpServer.close((error?: Error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve();
+      if (this.heartbeatTimer) {
+        clearInterval(this.heartbeatTimer);
+        this.heartbeatTimer = null;
+      }
+
+      this.uiChannel.closeAll('Server shutdown');
+      this.agentChannel.closeAll('Server shutdown');
+
+      await Promise.all([
+        this.closeWss(this.uiWss),
+        this.closeWss(this.agentWss),
+      ]);
+
+      const closePromise = new Promise<void>((resolve, reject) => {
+        this.httpServer.close((error?: Error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve();
+        });
       });
-    });
+
+      const forceDestroyTimer = setTimeout(() => {
+        for (const socket of this.sockets) {
+          socket.destroy();
+        }
+      }, 750);
+
+      await closePromise.finally(() => {
+        clearTimeout(forceDestroyTimer);
+      });
+    })();
+
+    return this.stopPromise;
   }
 
   public getUiUrl(): string {
@@ -253,6 +304,48 @@ export class StudioServer {
         message: error instanceof Error ? error.message : 'Could not fetch tree snapshot',
       });
     }
+  }
+
+  private async detachSelectedAgent(): Promise<void> {
+    const selectedAgentId = this.session.selectedAgentId;
+    this.session.selectedAgentId = null;
+    this.session.selectedTreeKey = null;
+    this.uiChannel.broadcastEvent('ui.treeListChanged', { trees: [] });
+
+    if (!selectedAgentId) {
+      return;
+    }
+
+    try {
+      await this.agentChannel.requestSetStreaming(selectedAgentId, false);
+      await this.agentChannel.requestRestoreBaseline(selectedAgentId, { scope: 'all' });
+    } catch (error) {
+      this.uiChannel.broadcastEvent('ui.warning', {
+        code: 'DETACH_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to detach selected agent',
+      });
+    }
+  }
+
+  private async ensureSelectionActive(): Promise<void> {
+    const selectedAgentId = this.session.selectedAgentId;
+    if (!selectedAgentId) {
+      return;
+    }
+
+    const trees = this.agentChannel.getAgentTrees(selectedAgentId);
+    if (trees.length === 0) {
+      this.session.selectedTreeKey = null;
+      return;
+    }
+
+    const selectedTreeKey = this.session.selectedTreeKey;
+    const hasSelectedTree = selectedTreeKey !== null && trees.some((tree) => tree.treeKey === selectedTreeKey);
+    if (!hasSelectedTree) {
+      this.session.selectedTreeKey = trees[0]?.treeKey ?? null;
+    }
+
+    await this.pushTreeSnapshotIfAvailable();
   }
 
   private flushTicksToUi(): void {
@@ -307,6 +400,14 @@ export class StudioServer {
     const clientId = this.uiChannel.attachSocket(ws);
     this.uiChannel.updateHeartbeat(clientId, Date.now());
     this.uiChannel.sendEvent(clientId, 'ui.sessionState', this.createUiSessionState());
+  }
+
+  private closeWss(server: WebSocketServer): Promise<void> {
+    return new Promise((resolve) => {
+      server.close(() => {
+        resolve();
+      });
+    });
   }
 
   private handleHttpRequest(request: IncomingMessage, response: ServerResponse): void {
