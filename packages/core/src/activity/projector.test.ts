@@ -158,4 +158,38 @@ describe("activity projector", () => {
         expect(snapshot.branches[0].tailResult).toBe(NodeResult.Running);
         expect(snapshot.branches[0].pathNodeIds).toEqual([1, 2]);
     });
+
+    it("uses node name or defaultName when activity metadata is true", () => {
+        const tree: SerializableNode = {
+            id: 1,
+            nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
+            defaultName: "RootSequence",
+            name: "",
+            activity: true,
+            children: [
+                {
+                    id: 2,
+                    nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
+                    defaultName: "PatrolAction",
+                    name: "Patrolling",
+                    activity: true,
+                },
+            ],
+        };
+
+        const snapshot = projectActivity(tree, {
+            tickId: 1,
+            timestamp: 1000,
+            refEvents: [],
+            events: [
+                { tickId: 1, timestamp: 1000, nodeId: 2, result: NodeResult.Running },
+                { tickId: 1, timestamp: 1000, nodeId: 1, result: NodeResult.Running },
+            ],
+        }, { mode: "running" });
+
+        expect(snapshot.branches).toHaveLength(1);
+        expect(snapshot.branches[0].labels).toEqual(["RootSequence", "Patrolling"]);
+        expect(snapshot.branches[0].tailNodeId).toBe(2);
+        expect(snapshot.branches[0].tailResult).toBe(NodeResult.Running);
+    });
 });

@@ -14,6 +14,10 @@ test("Activity decorator sets activity and returns the original node", () => {
     const replaced = new Activity(withActivity, "Kiting") as unknown as Action;
     expect(replaced).toBe(action);
     expect(replaced.activity).toBe("Kiting");
+
+    const withDefaultLabel = new Activity(replaced, true) as unknown as Action;
+    expect(withDefaultLabel).toBe(action);
+    expect(withDefaultLabel.activity).toBe(true);
 });
 
 test("Decorators transparently forward activity to their child nodes", () => {

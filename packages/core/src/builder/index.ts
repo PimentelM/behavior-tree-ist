@@ -1,5 +1,6 @@
 import { ConditionNode } from "../base/condition";
 import { Action, AsyncAction, BTNode, CancellationSignal, NodeResult, TickContext, SerializableState } from "../base";
+import { ActivityMetadata } from "../base/types";
 import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse, DisplayState } from "../nodes";
 import { ParallelPolicy } from "../nodes/composite/parallel";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
@@ -16,8 +17,8 @@ export interface NodeProps {
 
     tag?: string;
     tags?: string[];
-    activity?: string;
-    displayActivity?: string;
+    activity?: ActivityMetadata;
+    displayActivity?: ActivityMetadata;
 
     // Generic decorators array application
     decorate?: AnyDecoratorSpec | readonly AnyDecoratorSpec[];
@@ -145,18 +146,31 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
         current.addTags(props.tags);
     }
 
-    const activity = props.activity?.trim();
-    const displayActivity = props.displayActivity?.trim();
-    if (activity && displayActivity) {
+    const activity = normalizeActivityMetadata(props.activity, "activity");
+    const displayActivity = normalizeActivityMetadata(props.displayActivity, "displayActivity");
+    if (activity !== undefined && displayActivity !== undefined) {
         throw new Error("Only one activity label prop is allowed. Use either \"activity\" or \"displayActivity\".");
     }
 
     const resolvedActivity = activity ?? displayActivity;
-    if (resolvedActivity) {
+    if (resolvedActivity !== undefined) {
         current.setActivity(resolvedActivity);
     }
 
     return current;
+}
+
+function normalizeActivityMetadata(
+    value: ActivityMetadata | undefined,
+    propName: "activity" | "displayActivity",
+): ActivityMetadata | undefined {
+    if (value === undefined) return undefined;
+    if (value === true) return true;
+    if (typeof value === "string") {
+        const normalized = value.trim();
+        return normalized.length > 0 ? normalized : undefined;
+    }
+    throw new Error(`"${propName}" must be a string or true.`);
 }
 
 export function sequence(props: NodeProps, children: BTNode[]): BTNode {

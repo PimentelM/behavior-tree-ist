@@ -1,4 +1,4 @@
-import { TickTraceEvent, RefChangeEvent } from "./types";
+import { TickTraceEvent, RefChangeEvent, ActivityMetadata } from "./types";
 import { NodeResult, NodeFlags, SerializableState } from "./types";
 import { AmbientContext } from "./ambient-context";
 
@@ -31,7 +31,7 @@ export abstract class BTNode {
     public abstract readonly defaultName: string;
 
     private _tags: string[] = [];
-    private _activity: string | undefined;
+    private _activity: ActivityMetadata | undefined;
     private _nodeFlags: NodeFlags = 0;
 
     constructor(name?: string) {
@@ -53,11 +53,15 @@ export abstract class BTNode {
         return this;
     }
 
-    public get activity(): string | undefined {
+    public get activity(): ActivityMetadata | undefined {
         return this._activity;
     }
 
-    public setActivity(activity: string | undefined): this {
+    public setActivity(activity: ActivityMetadata | undefined): this {
+        if (activity === true) {
+            this._activity = true;
+            return this;
+        }
         const normalized = activity?.trim();
         this._activity = normalized ? normalized : undefined;
         return this;

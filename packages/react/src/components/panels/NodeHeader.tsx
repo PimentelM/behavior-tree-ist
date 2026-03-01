@@ -30,6 +30,9 @@ function NodeHeaderInner({ details }: NodeHeaderProps) {
   const temporalIndicator = getTemporalIndicatorIcon(flags);
   const flagLabels = getFlagLabels(flags);
   const resultColor = getResultColor(currentResult);
+  const activityLabel = activity === true
+    ? (trimmedName.length > 0 ? trimmedName : defaultName)
+    : activity;
 
   return (
     <div className="bt-node-header">
@@ -47,9 +50,9 @@ function NodeHeaderInner({ details }: NodeHeaderProps) {
         )}
       </div>
       <div className="bt-node-header__path">{path}</div>
-      {activity && (
+      {activityLabel && (
         <div className="bt-node-header__activity" title="Node activity label">
-          {activity}
+          {activityLabel}
         </div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>

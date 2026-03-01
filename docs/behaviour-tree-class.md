@@ -120,7 +120,7 @@ interface SerializableNode {
   children?: SerializableNode[];
   state?: SerializableState;   // Only with includeState
   tags?: readonly string[];
-  activity?: string;
+  activity?: string | true;
 }
 ```
 

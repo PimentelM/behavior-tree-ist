@@ -1,4 +1,4 @@
-import { NodeFlags, NodeResult, SerializableState } from "../base/types";
+import { ActivityMetadata, NodeFlags, NodeResult, SerializableState } from "../base/types";
 
 /** Flat node from serialized tree, with parent/children refs for fast lookups */
 export interface IndexedNode {
@@ -7,7 +7,7 @@ export interface IndexedNode {
     defaultName: string;
     name: string;
     tags: readonly string[];
-    activity: string | undefined;
+    activity: ActivityMetadata | undefined;
     parentId: number | undefined;
     childrenIds: number[];
     depth: number;

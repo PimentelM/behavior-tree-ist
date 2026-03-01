@@ -116,7 +116,7 @@ interface IndexedNode {
   defaultName: string;
   name: string;
   tags: readonly string[];
-  activity: string | undefined;
+  activity: string | true | undefined;
   parentId: number | undefined;
   childrenIds: number[];
   depth: number;
@@ -147,6 +147,8 @@ interface ActivityBranch {
   lastEventIndex: number;         // ordering hint (latest first)
 }
 ```
+
+When a node has `activity: true`, the projector uses `name || defaultName` for that label segment.
 
 ## Tick Snapshots
 

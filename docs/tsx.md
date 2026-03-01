@@ -184,6 +184,7 @@ All hooks: `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure
 <action name="Attack" tags={['combat', 'offensive']} execute={fn} />
 <action name="Attack" activity="Attacking" execute={fn} />
 <action name="Attack" displayActivity="Attacking" execute={fn} />
+<action name="Attack" activity={true} execute={fn} />
 ```
 
 ### Subtree Boundaries

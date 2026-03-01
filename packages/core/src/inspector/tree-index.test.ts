@@ -104,6 +104,10 @@ describe("TreeIndex", () => {
         const index = new TreeIndex(withActivity);
         expect(index.getById(1)!.activity).toBe("RootActivity");
         expect(index.getById(2)!.activity).toBeUndefined();
+
+        withActivity.activity = true;
+        const withDefaultLabelActivity = new TreeIndex(withActivity);
+        expect(withDefaultLabelActivity.getById(1)!.activity).toBe(true);
     });
 
     it("pre-order traversal", () => {

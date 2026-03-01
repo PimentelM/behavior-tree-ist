@@ -268,12 +268,28 @@ describe("TSX Adapter", () => {
             />
         );
         expect(withAlias.activity).toBe("Kiting");
+
+        const withDefaultLabel = (
+            <action
+                activity={true}
+                execute={() => NodeResult.Succeeded}
+            />
+        );
+        expect(withDefaultLabel.activity).toBe(true);
     });
 
     it("throws when both activity and displayActivity props are provided", () => {
         expect(() => (
             <action
                 activity="Attacking"
+                displayActivity="Attacking"
+                execute={() => NodeResult.Succeeded}
+            />
+        )).toThrow("Only one activity label prop is allowed");
+
+        expect(() => (
+            <action
+                activity={true}
                 displayActivity="Attacking"
                 execute={() => NodeResult.Succeeded}
             />

@@ -152,6 +152,18 @@ describe("Subtree Builder Factory", () => {
             execute: () => NodeResult.Succeeded,
         });
         expect(byAlias.activity).toBe("Kiting");
+
+        const byDefaultLabel = action({
+            activity: true,
+            execute: () => NodeResult.Succeeded,
+        });
+        expect(byDefaultLabel.activity).toBe(true);
+
+        const byAliasDefaultLabel = action({
+            displayActivity: true,
+            execute: () => NodeResult.Succeeded,
+        });
+        expect(byAliasDefaultLabel.activity).toBe(true);
     });
 
     it("throws when both activity and displayActivity are provided", () => {
@@ -164,6 +176,12 @@ describe("Subtree Builder Factory", () => {
         expect(() => action({
             activity: "A",
             displayActivity: "B",
+            execute: () => NodeResult.Succeeded,
+        })).toThrow("Only one activity label prop is allowed");
+
+        expect(() => action({
+            activity: true,
+            displayActivity: "A",
             execute: () => NodeResult.Succeeded,
         })).toThrow("Only one activity label prop is allowed");
     });

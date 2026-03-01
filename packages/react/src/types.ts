@@ -4,6 +4,7 @@ import type {
   TickRecord,
   NodeResult,
   NodeFlags,
+  ActivityMetadata,
 } from '@behavior-tree-ist/core';
 import type {
   TreeInspector,
@@ -138,7 +139,7 @@ export interface NodeDetailsData {
   nodeId: number;
   name: string;
   defaultName: string;
-  activity?: string;
+  activity?: ActivityMetadata;
   flags: NodeFlags;
   path: string;
   tags: readonly string[];

@@ -1,4 +1,5 @@
 import { BTNode, TickContext } from "./node";
+import { ActivityMetadata } from "./types";
 import { NodeFlags } from "./types";
 
 export abstract class Decorator extends BTNode {
@@ -23,11 +24,11 @@ export abstract class Decorator extends BTNode {
         return this;
     }
 
-    public override get activity(): string | undefined {
+    public override get activity(): ActivityMetadata | undefined {
         return undefined;
     }
 
-    public override setActivity(activity: string | undefined): this {
+    public override setActivity(activity: ActivityMetadata | undefined): this {
         this.child.setActivity(activity);
         return this;
     }

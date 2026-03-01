@@ -27,7 +27,7 @@ type NodeResult = "Succeeded" | "Failed" | "Running";
 | `name` | `string` | Custom instance name, defaults to `displayName` |
 | `displayName` | `string` | Returns custom `name` if set, otherwise `defaultName` |
 | `tags` | `readonly string[]` | Metadata tags for filtering and inspection |
-| `activity` | `string \| undefined` | Optional runtime activity label for compact activity displays |
+| `activity` | `string \| true \| undefined` | Optional runtime activity label (`true` falls back to `name \|\| defaultName`) for compact activity displays |
 | `nodeFlags` | `NodeFlags` | Bitfield for classification (see [Node Flags](node-flags.md)) |
 | `wasRunning` | `boolean` | True if the previous tick returned `Running` |
 

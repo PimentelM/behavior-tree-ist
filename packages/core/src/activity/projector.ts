@@ -147,8 +147,10 @@ function toBranch(
     for (let i = 0; i < candidate.pathNodeIds.length; i++) {
         const nodeId = candidate.pathNodeIds[i];
         const node = index.getById(nodeId);
-        if (!node || !node.activity) continue;
-        labels.push(node.activity);
+        if (!node) continue;
+        const activityLabel = resolveActivityLabel(node);
+        if (activityLabel === undefined) continue;
+        labels.push(activityLabel);
         labeledNodeIds.push(node.id);
         tailPathEndIndex = i;
     }
@@ -170,6 +172,18 @@ function toBranch(
         tailResult: tailEvent.result,
         lastEventIndex: tailEventIndex,
     };
+}
+
+function resolveActivityLabel(
+    node: ReturnType<TreeIndex["getById"]>,
+): string | undefined {
+    if (!node) return undefined;
+    if (node.activity === true) {
+        return node.name || node.defaultName;
+    }
+    if (typeof node.activity !== "string") return undefined;
+    const normalized = node.activity.trim();
+    return normalized.length > 0 ? normalized : undefined;
 }
 
 function includeResult(result: NodeResult, mode: ActivityDisplayMode): boolean {

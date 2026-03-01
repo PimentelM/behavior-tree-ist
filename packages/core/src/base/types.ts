@@ -36,6 +36,7 @@ export function hasFlag(nodeFlags: NodeFlags, flag: number): boolean {
 
 export type SerializableValue = string | number | boolean | null | undefined | SerializableValue[] | { [key: string]: SerializableValue };
 export type SerializableState = Record<string, SerializableValue>;
+export type ActivityMetadata = string | true;
 
 export interface SerializableNode {
     id: number;
@@ -45,7 +46,7 @@ export interface SerializableNode {
     children?: SerializableNode[];
     state?: SerializableState;
     tags?: readonly string[];
-    activity?: string;
+    activity?: ActivityMetadata;
 }
 
 export type TickTraceEvent = {

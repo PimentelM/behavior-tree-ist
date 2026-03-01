@@ -276,7 +276,7 @@ const activityNode = new Activity(
 activityNode.activity; // 'Attacking'
 ```
 
-You can also set it directly via `node.setActivity('Attacking')`.
+You can also set it directly via `node.setActivity('Attacking')` or `node.setActivity(true)` (`true` means use `name || defaultName` in activity displays).
 
 ## SubTree
 
