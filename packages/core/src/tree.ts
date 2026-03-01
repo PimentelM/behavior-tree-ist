@@ -14,6 +14,9 @@ export class BehaviourTree {
     private root: BTNode;
     private stateTraceEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
+    private cachedProfilingTimeProvider: (() => number) | undefined;
+    private useNowAsTickIdEnabled: boolean = false;
+    private lastNowTickId: number | undefined;
 
     private runtime: TickRuntime = {
         treeId: this.treeId,
@@ -36,8 +39,23 @@ export class BehaviourTree {
         return this;
     }
 
-    public enableProfiling(getTime: () => number): BehaviourTree {
-        this.profilingTimeProvider = getTime;
+    public useNowAsTickId(): BehaviourTree {
+        this.useNowAsTickIdEnabled = true;
+        return this;
+    }
+
+
+
+    public enableProfiling(getTime?: () => number): BehaviourTree {
+        if (getTime) {
+            this.profilingTimeProvider = getTime;
+            this.cachedProfilingTimeProvider = getTime;
+        } else {
+            if (!this.cachedProfilingTimeProvider) {
+                throw new Error("Cannot enable profiling without a cached time provider. Provide a getTime function first.");
+            }
+            this.profilingTimeProvider = this.cachedProfilingTimeProvider;
+        }
         return this;
     }
 
@@ -57,8 +75,22 @@ export class BehaviourTree {
     public tick(pCtx: PublicTickContext = {}): TickRecord {
         const events: TickTraceEvent[] = [];
         const refEvents: RefChangeEvent[] = [];
-        const now = pCtx.now ?? Date.now();
-        const tickId = this.currentTickId;
+        let now = pCtx.now ?? Date.now();
+        let tickId = this.currentTickId;
+
+        if (this.useNowAsTickIdEnabled) {
+            if (pCtx.now === undefined) {
+                throw new Error("now parameter is required when useNowAsTickId is enabled");
+            }
+            now = pCtx.now;
+            tickId = now;
+
+            if (this.lastNowTickId !== undefined && now <= this.lastNowTickId) {
+                throw new Error(`now tick id must be strictly increasing. Received ${now}, but last was ${this.lastNowTickId}`);
+            }
+            this.lastNowTickId = now;
+        }
+
         const ctx: TickContext = {
             tickId,
             now,
@@ -112,7 +144,9 @@ export class BehaviourTree {
             this.runtime.isTickRunning = false;
         }
 
-        this.currentTickId++;
+        if (!this.useNowAsTickIdEnabled) {
+            this.currentTickId++;
+        }
         return { tickId, timestamp: now, events, refEvents };
     }
 
