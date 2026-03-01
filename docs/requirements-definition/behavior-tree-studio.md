@@ -176,3 +176,25 @@ We should properly handle server disconnections or restarts or wipes.
 Careful analisys should be done to decide which method to use to sync the UI in real time. In any case, it should still be possible to set the rate at which the UI will process batches of tick records (to avoid rendering issues with very fast tick rates). The default processing rate should be of 200ms and it should be configurable in the UI settings panel//window.
 
 
+## Products
+
+As a final result from this endeavor we would like to have:
+
+
+1- A npm-publishable package at `package/studio` that would allow a user to invoke a npx command to download and run a command line tool that will serve both the studio-server and the UI. User should be able to configure at which port and ip address the server will bind to.
+
+2- User would be able to specify a --demo param to make the CLI also spawn a nodejs process that will simulate a client connecting to the server and running the `heavy-profiler-demo-tree`
+
+3- The CLI should be extremamly responsive and sending a Ctrl + C signal should promptly terminate gracefully the studio-server, kill the UI server, and kill the mock agent if one was spawned with --demo
+
+4- A packages/transport will be created for ready-to-use transport solutions (if necessary)
+
+5- A packages/studio-common will be created for common dependencies between studio-server and studio-ui that cannot go into /core
+
+
+
+---
+
+For development, yarn:dev should spawn both the studio-ui server, studio-server server and mock agent, all with hot reload. we can maybe use `concurrently` to do that.
+
+
