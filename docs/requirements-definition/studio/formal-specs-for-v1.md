@@ -93,6 +93,45 @@ Data ownership:
 
 This is required so UI can show errors and revert optimistic button states.
 
+### 5.4 Message Catalog
+
+Message types are defined as numeric constants (`as const` enum object) to minimize serialization overhead.
+
+Every message uses a common envelope:
+
+```
+{ v: number, type: MessageType, ... }
+```
+
+#### Agent → Server Messages
+
+| Type | Name | Description |
+|------|------|-------------|
+| 1 | `ClientHello` | Initial handshake after connection. Payload: `clientId`. |
+| 2 | `RegisterTree` | Registers a tree. Payload: `treeId`, `serializedTree`. |
+| 3 | `RemoveTree` | Unregisters a tree. Payload: `treeId`. |
+| 4 | `TickBatch` | Batch of tick records for a tree. Payload: `treeId`, `ticks: TickRecord[]`. |
+| 5 | `TreeUpdate` | Updated serialized tree (e.g. after structural change). Payload: `treeId`, `serializedTree`. |
+| 6 | `CommandAck` | Ack for a server-forwarded command. Payload: `correlationId`, `success`, `errorCode?`, `errorMessage?`. |
+
+#### Server → Agent Messages
+
+| Type | Name | Description |
+|------|------|-------------|
+| 50 | `ServerHello` | Server ack of client connection. |
+| 51 | `Command` | Forwarded command from UI. Payload: `correlationId`, `command`, `treeId`, `args?`. |
+
+#### Command Types (within `Command` message)
+
+| Command | Description | Args |
+|---------|-------------|------|
+| `enable-streaming` | Start tick emission for target tree. | — |
+| `disable-streaming` | Stop tick emission for target tree. | — |
+| `enable-state-trace` | Enable state tracing on target tree. | — |
+| `disable-state-trace` | Disable state tracing on target tree. | — |
+| `enable-profiling` | Enable profiling on target tree. | — |
+| `disable-profiling` | Disable profiling on target tree. | — |
+
 ## 6) Client and Agent Requirements (`@behavior-tree-ist/studio-transport`)
 
 ### 6.0 Core Runtime Prerequisites (`@behavior-tree-ist/core`)
@@ -133,6 +172,7 @@ The following core runtime APIs are required by this Studio V1 design:
   - command handling
   - command ack responses
 - Must not send tick records over the wire for a tree unless streaming is enabled for that tree.
+- Tick records produced while streaming is disabled are dropped — not buffered for later delivery.
 - Opening the Studio UI must not implicitly enable streaming.
 - Streaming can be enabled/disabled in exactly two ways:
   - code-level opt-in per tree during registration
@@ -174,12 +214,10 @@ In-memory persistence only for V1:
 - tick records (ring buffer per tree)
 - server settings
 
-### 7.3 Offline and Retention Behavior
+### 7.3 Offline Detection and Retention Behavior
 
 - clients remain listed forever unless explicitly deleted by UI.
-- offline detection is heartbeat-based.
-- default heartbeat timeout: `30s`.
-- heartbeat timeout configurable by environment variable.
+- offline detection is connection-based: a client is online if and only if it has an active WebSocket connection to the server. Disconnect = offline.
 
 Delete behavior:
 
@@ -191,16 +229,49 @@ Delete behavior:
 
 ### 7.4 UI Query Surface
 
-V1 UI-server API is HTTP JSON (polling model):
+V1 UI-server API is tRPC over HTTP. All procedures are standard HTTP endpoints (queries use GET, mutations use POST) and are fully curl-able.
 
-- list clients
+V1 does not use WebSocket between UI and server. UI syncs via HTTP polling only.
+
+Query procedures (GET):
+
+- list clients (with online/offline status)
 - list trees by client
 - fetch serialized tree by `(clientId, treeId)`
 - fetch tick records by `(clientId, treeId, afterTickId?, limit?)`
-- fetch/update server settings
-- send tree-scoped command requests
+- fetch server settings
 
-### 7.5 Binding and Security Defaults
+Mutation procedures (POST):
+
+- update server settings
+- send tree-scoped command (forwarded to agent via WebSocket)
+- delete client (hard delete)
+
+### 7.5 Server Settings (V1)
+
+V1 server settings are minimal:
+
+- `maxTickRecordsPerTree`: maximum number of tick records the server retains per tree (ring buffer capacity). Default TBD during implementation.
+
+### 7.6 Server Architecture
+
+The server must follow a layered onion architecture with three layers:
+
+**App Layer**
+- Handles integration with the external world: tRPC route handlers, WebSocket connection handlers, periodic jobs if needed.
+- Calls into the Domain layer for all business logic.
+
+**Domain Layer**
+- All transport-agnostic business logic lives here.
+- Owns interfaces that are implemented by both the App and Infrastructure layers.
+- Defines domain events and domain errors as needed, keeping the layer fully independent from external concerns.
+
+**Infrastructure Layer**
+- Implements domain-defined interfaces for external integrations.
+- In V1: in-memory repository implementations.
+- Future: SQLite repository implementations would be added here without touching Domain.
+
+### 7.7 Binding and Security Defaults
 
 - default bind host: `127.0.0.1`
 - default auth: none
@@ -303,13 +374,14 @@ The implementation must satisfy at least:
    - UI polling with `afterTickId` returns ordered append-only tick windows
    - polling interval persists and restores
 3. Offline retention:
-   - offline clients remain visible with last known data
+   - client disconnection marks client as offline; last known data remains visible
    - hard delete fully removes client-scoped data
 4. Remote toggles:
    - successful ack updates UI state
    - error ack reverts button state and surfaces error feedback
    - streaming is off by default for each tree until explicitly enabled by code opt-in or play command
    - pausing streaming stops new tick uploads for the selected tree without disconnecting the client
+   - ticks produced while streaming is disabled are dropped, not retroactively delivered on re-enable
 5. Debugger empty state:
    - renders without tree/ticks and shows `No tree selected`
    - Studio controls hidden when `studio` prop is absent
