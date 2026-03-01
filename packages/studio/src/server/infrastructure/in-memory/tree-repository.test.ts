@@ -4,7 +4,7 @@ import { SerializableNode } from "@behavior-tree-ist/core";
 
 describe("InMemoryTreeRepository", () => {
     let repo: InMemoryTreeRepository;
-    const mockNode: SerializableNode = { id: 1, type: "action" as const, name: "Node", nodeFlags: 0, defaultName: "Node" };
+    const mockNode: SerializableNode = { id: 1, name: "Node", nodeFlags: 0, defaultName: "Node" };
 
     beforeEach(() => {
         repo = new InMemoryTreeRepository();

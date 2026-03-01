@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { InMemoryTickRepository } from "./tick-repository";
 
 describe("InMemoryTickRepository", () => {
@@ -11,8 +11,8 @@ describe("InMemoryTickRepository", () => {
     });
 
     it("pushes and queries ticks", () => {
-        repo.push("c1", "t1", [{ tickId: 1, trace: [] }]);
-        repo.push("c1", "t1", [{ tickId: 2, trace: [] }]);
+        repo.push("c1", "t1", [{ tickId: 1, timestamp: 0, events: [], refEvents: [] }]);
+        repo.push("c1", "t1", [{ tickId: 2, timestamp: 0, events: [], refEvents: [] }]);
 
         const ticks = repo.query("c1", "t1");
         expect(ticks).toHaveLength(2);
@@ -23,9 +23,9 @@ describe("InMemoryTickRepository", () => {
     it("respects maxTickRecordsPerTree limit", () => {
         limit = 2;
         repo.push("c1", "t1", [
-            { tickId: 1, trace: [] },
-            { tickId: 2, trace: [] },
-            { tickId: 3, trace: [] }
+            { tickId: 1, timestamp: 0, events: [], refEvents: [] },
+            { tickId: 2, timestamp: 0, events: [], refEvents: [] },
+            { tickId: 3, timestamp: 0, events: [], refEvents: [] }
         ]);
 
         const ticks = repo.query("c1", "t1");
@@ -36,9 +36,9 @@ describe("InMemoryTickRepository", () => {
 
     it("queries after specific tickId", () => {
         repo.push("c1", "t1", [
-            { tickId: 1, trace: [] },
-            { tickId: 2, trace: [] },
-            { tickId: 3, trace: [] }
+            { tickId: 1, timestamp: 0, events: [], refEvents: [] },
+            { tickId: 2, timestamp: 0, events: [], refEvents: [] },
+            { tickId: 3, timestamp: 0, events: [], refEvents: [] }
         ]);
 
         const ticks = repo.query("c1", "t1", 1);
@@ -48,9 +48,9 @@ describe("InMemoryTickRepository", () => {
 
     it("queries with limit", () => {
         repo.push("c1", "t1", [
-            { tickId: 1, trace: [] },
-            { tickId: 2, trace: [] },
-            { tickId: 3, trace: [] }
+            { tickId: 1, timestamp: 0, events: [], refEvents: [] },
+            { tickId: 2, timestamp: 0, events: [], refEvents: [] },
+            { tickId: 3, timestamp: 0, events: [], refEvents: [] }
         ]);
 
         const ticks = repo.query("c1", "t1", undefined, 2);
@@ -60,16 +60,16 @@ describe("InMemoryTickRepository", () => {
     });
 
     it("clears by tree", () => {
-        repo.push("c1", "t1", [{ tickId: 1, trace: [] }]);
+        repo.push("c1", "t1", [{ tickId: 1, timestamp: 0, events: [], refEvents: [] }]);
         repo.clearByTree("c1", "t1");
 
         expect(repo.query("c1", "t1")).toHaveLength(0);
     });
 
     it("clears by client", () => {
-        repo.push("c1", "t1", [{ tickId: 1, trace: [] }]);
-        repo.push("c1", "t2", [{ tickId: 2, trace: [] }]);
-        repo.push("c2", "t1", [{ tickId: 3, trace: [] }]);
+        repo.push("c1", "t1", [{ tickId: 1, timestamp: 0, events: [], refEvents: [] }]);
+        repo.push("c1", "t2", [{ tickId: 2, timestamp: 0, events: [], refEvents: [] }]);
+        repo.push("c2", "t1", [{ tickId: 3, timestamp: 0, events: [], refEvents: [] }]);
 
         repo.clearByClient("c1");
 

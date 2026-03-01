@@ -117,7 +117,7 @@ describe("StudioService", () => {
             return () => { };
         });
 
-        agentGateway.sendCommand.mockImplementation(async (clientId, correlationId, command, treeId) => {
+        agentGateway.sendCommand.mockImplementation(async (_clientId, correlationId, _command, _treeId) => {
             if (ackHandler) {
                 setTimeout(() => ackHandler({ correlationId, success: true }));
             }

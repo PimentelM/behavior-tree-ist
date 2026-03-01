@@ -107,7 +107,7 @@ export class StudioAgent {
         this.connected = false;
     }
 
-    public tick(ctx: { now: number }): void {
+    public tick(_ctx: { now: number }): void {
         if (!this.isConnected || !this.transport) {
             return;
         }

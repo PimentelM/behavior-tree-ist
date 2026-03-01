@@ -15,13 +15,18 @@
         "@behavior-tree-ist/core": "workspace:*",
         "@behavior-tree-ist/react": "workspace:*",
         "@behavior-tree-ist/studio-transport": "workspace:*",
+        "@trpc/client": "^11.11.0",
+        "@trpc/server": "^11.11.0",
         "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react-dom": "^18.3.1",
+        "ws": "^8.19.0",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@dogtiti/vite-plugin-react-mcp": "latest",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
+        "@types/ws": "^8.18.1",
         "@vitejs/plugin-react": "^4.3.1",
         "typescript": "^5.5.3",
         "vite": "^5.3.4",
