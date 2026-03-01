@@ -54,8 +54,6 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
         events,
         trace: (node: BTNode, result: NodeResult, _startedAt?: number, _finishedAt?: number) => {
             events.push({
-                tickId: overrides.tickId ?? 1,
-                timestamp: overrides.now ?? 0,
                 nodeId: node.id,
                 result,
             });

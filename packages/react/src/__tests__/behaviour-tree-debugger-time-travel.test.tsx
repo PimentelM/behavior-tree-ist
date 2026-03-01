@@ -46,9 +46,7 @@ function makeTick(tickId: number, durationMs: number): TickRecord {
     refEvents: [],
     events: [
       {
-        tickId,
         nodeId: 1,
-        timestamp: tickId * 1000,
         result: NodeResult.Succeeded,
         startedAt: 0,
         finishedAt: durationMs,
@@ -105,11 +103,11 @@ function makeDiagnosticsTick(): TickRecord {
     timestamp: 1000,
     refEvents: [],
     events: [
-      { tickId: 1, nodeId: 4, timestamp: 1000, result: NodeResult.Running },
-      { tickId: 1, nodeId: 5, timestamp: 1000, result: NodeResult.Succeeded },
-      { tickId: 1, nodeId: 3, timestamp: 1000, result: NodeResult.Running },
-      { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Running },
-      { tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Running },
+      { nodeId: 4, result: NodeResult.Running },
+      { nodeId: 5, result: NodeResult.Succeeded },
+      { nodeId: 3, result: NodeResult.Running },
+      { nodeId: 2, result: NodeResult.Running },
+      { nodeId: 1, result: NodeResult.Running },
     ],
   };
 }
@@ -146,9 +144,9 @@ function makeModeSwitchTick(): TickRecord {
     timestamp: 1000,
     refEvents: [],
     events: [
-      { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Succeeded },
-      { tickId: 1, nodeId: 3, timestamp: 1000, result: NodeResult.Running },
-      { tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Running },
+      { nodeId: 2, result: NodeResult.Succeeded },
+      { nodeId: 3, result: NodeResult.Running },
+      { nodeId: 1, result: NodeResult.Running },
     ],
   };
 }
