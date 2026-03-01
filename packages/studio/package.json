@@ -1,24 +1,39 @@
 {
     "name": "@behavior-tree-ist/studio",
     "version": "0.1.0",
-    "private": true,
     "type": "module",
+    "bin": {
+        "behavior-tree-ist-studio": "./dist/server/cli.js",
+        "bt-studio": "./dist/server/cli.js"
+    },
     "scripts": {
-        "dev": "vite",
-        "build": "tsc && vite build",
-        "preview": "vite preview"
+        "dev": "tsx src/dev.ts",
+        "dev:ui": "vite",
+        "build": "yarn run build:server && yarn run build:ui",
+        "build:server": "tsup --config tsup.config.ts",
+        "build:ui": "vite build",
+        "preview": "vite preview",
+        "start": "node dist/server/cli.js",
+        "mock-agent": "tsx src/mock-agent-cli.ts"
     },
     "dependencies": {
         "@behavior-tree-ist/core": "workspace:*",
         "@behavior-tree-ist/react": "workspace:*",
+        "@behavior-tree-ist/transports": "workspace:*",
         "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react-dom": "^18.3.1",
+        "ws": "^8.18.0",
+        "zod": "^3.24.1"
     },
     "devDependencies": {
         "@dogtiti/vite-plugin-react-mcp": "latest",
+        "@types/node": "^22.13.8",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
+        "@types/ws": "^8.5.14",
         "@vitejs/plugin-react": "^4.3.1",
+        "tsup": "^8.0.0",
+        "tsx": "^4.19.4",
         "typescript": "^5.5.3",
         "vite": "^5.3.4"
     }

@@ -78,3 +78,5 @@ export interface TickRecord {
 }
 
 export type Tail<T extends readonly unknown[]> = T extends readonly [unknown, ...infer Rest] ? Rest : never;
+
+export type OffFunction = () => void;

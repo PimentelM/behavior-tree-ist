@@ -1,5 +1,10 @@
-import { BehaviourTree, NodeResult, ref, Tag } from '@behavior-tree-ist/core';
-import {
+import * as coreModule from '@behavior-tree-ist/core';
+import type { BehaviourTree as BehaviourTreeType } from '@behavior-tree-ist/core';
+import * as builderModule from '@behavior-tree-ist/core/builder';
+import { unwrapDefaultExport } from './module-interop';
+
+const { BehaviourTree, NodeResult, ref, Tag } = unwrapDefaultExport(coreModule) as typeof import('@behavior-tree-ist/core');
+const {
     action,
     asyncAction,
     condition,
@@ -18,7 +23,7 @@ import {
     sleep,
     displayState,
     subTree
-} from '@behavior-tree-ist/core/builder';
+} = unwrapDefaultExport(builderModule) as typeof import('@behavior-tree-ist/core/builder');
 
 type Point = { x: number; y: number; threat: number };
 type LoadProfile = 'light' | 'medium' | 'heavy' | 'extreme';
@@ -66,7 +71,7 @@ function generateThreatPoints(seed: number, count: number): Point[] {
     }));
 }
 
-export function createHeavyProfilerDemoTree(): BehaviourTree {
+export function createHeavyProfilerDemoTree(): BehaviourTreeType {
     const multiplier = LOAD_MULTIPLIER[DEFAULT_LOAD_PROFILE];
     const scale = (base: number) => Math.max(1, Math.floor(base * multiplier));
 

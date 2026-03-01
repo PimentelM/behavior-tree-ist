@@ -42,6 +42,18 @@ export function useInspector(
   // Diff-ingest new ticks
   useEffect(() => {
     const alreadyIngested = ingestedCountRef.current;
+    if (ticks.length < alreadyIngested) {
+      inspector.reset();
+      inspector.indexTree(tree);
+      for (let i = 0; i < ticks.length; i++) {
+        inspector.ingestTick(ticks[i]);
+      }
+      ingestedCountRef.current = ticks.length;
+      prevTreeRef.current = tree;
+      setTickGeneration((g) => g + 1);
+      return;
+    }
+
     if (ticks.length > alreadyIngested) {
       for (let i = alreadyIngested; i < ticks.length; i++) {
         inspector.ingestTick(ticks[i]);

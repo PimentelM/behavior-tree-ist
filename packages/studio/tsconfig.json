@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "jsx": "react-jsx",
+    "jsxFactory": "",
+    "jsxFragmentFactory": "",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@behavior-tree-ist/core": ["../core/src/index.ts"],
+      "@behavior-tree-ist/core/*": ["../core/src/*"],
+      "@behavior-tree-ist/react": ["../react/src/index.ts"],
+      "@behavior-tree-ist/react/*": ["../react/src/*"],
+      "@behavior-tree-ist/transports": ["../transports/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

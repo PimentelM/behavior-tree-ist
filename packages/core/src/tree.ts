@@ -14,6 +14,7 @@ export class BehaviourTree {
     private root: BTNode;
     private stateTraceEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
+    private tickRecordHandlers = new Set<(record: TickRecord) => void>();
 
     private runtime: TickRuntime = {
         treeId: this.treeId,
@@ -36,6 +37,10 @@ export class BehaviourTree {
         return this;
     }
 
+    public isStateTraceEnabled(): boolean {
+        return this.stateTraceEnabled;
+    }
+
     public enableProfiling(getTime: () => number): BehaviourTree {
         this.profilingTimeProvider = getTime;
         return this;
@@ -44,6 +49,17 @@ export class BehaviourTree {
     public disableProfiling(): BehaviourTree {
         this.profilingTimeProvider = undefined;
         return this;
+    }
+
+    public isProfilingEnabled(): boolean {
+        return this.profilingTimeProvider !== undefined;
+    }
+
+    public onTickRecord(handler: (record: TickRecord) => void): () => void {
+        this.tickRecordHandlers.add(handler);
+        return () => {
+            this.tickRecordHandlers.delete(handler);
+        };
     }
 
     public serialize(options?: { includeState?: boolean }): SerializableNode {
@@ -115,7 +131,11 @@ export class BehaviourTree {
         }
 
         this.currentTickId++;
-        return { tickId, timestamp: now, events, refEvents };
+        const record = { tickId, timestamp: now, events, refEvents };
+        for (const handler of this.tickRecordHandlers) {
+            handler(record);
+        }
+        return record;
     }
 
 }

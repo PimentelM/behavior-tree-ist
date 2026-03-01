@@ -55,6 +55,16 @@
         "types": "./dist/activity.d.ts",
         "default": "./dist/activity.js"
       }
+    },
+    "./studio": {
+      "import": {
+        "types": "./dist/studio.d.mts",
+        "default": "./dist/studio.mjs"
+      },
+      "require": {
+        "types": "./dist/studio.d.ts",
+        "default": "./dist/studio.js"
+      }
     }
   },
   "files": [

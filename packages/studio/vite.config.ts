@@ -6,6 +6,9 @@ const fromRoot = (relativePath: string) => new URL(relativePath, import.meta.url
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    build: {
+        outDir: 'dist/ui',
+    },
     resolve: {
         alias: [
             {
@@ -21,12 +24,20 @@ export default defineConfig({
                 replacement: fromRoot('../core/src/inspector/index.ts'),
             },
             {
+                find: '@behavior-tree-ist/core/studio',
+                replacement: fromRoot('../core/src/studio/index.ts'),
+            },
+            {
                 find: '@behavior-tree-ist/react',
                 replacement: fromRoot('../react/src/index.ts'),
             },
             {
                 find: '@behavior-tree-ist/core',
                 replacement: fromRoot('../core/src/index.ts'),
+            },
+            {
+                find: '@behavior-tree-ist/transports',
+                replacement: fromRoot('../transports/src/index.ts'),
             },
         ],
     },
