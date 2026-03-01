@@ -1,13 +1,12 @@
 import type { StudioProps, ThemeMode } from '../../types';
 import { ClientTreeSelector } from './ClientTreeSelector';
-import React from 'react';
 
 export interface StudioToolbarProps {
     studio: StudioProps;
     themeMode: ThemeMode;
 }
 
-export function StudioToolbar({ studio, themeMode }: StudioToolbarProps) {
+export function StudioToolbar({ studio }: StudioToolbarProps) {
     const {
         clients,
         selectedClientId,

@@ -1,5 +1,5 @@
 import { type ChangeEvent } from 'react';
-import type { StudioClient, StudioTreeInfo, StudioProps } from '../../types';
+import type { StudioClient, StudioTreeInfo } from '../../types';
 
 export interface ClientTreeSelectorProps {
     clients: StudioClient[];
