@@ -3,7 +3,11 @@
     "compilerOptions": {
         "outDir": "dist",
         "rootDir": "src",
-        "types": []
+        "types": [],
+        "lib": [
+            "es2020",
+            "dom"
+        ]
     },
     "include": [
         "src"
