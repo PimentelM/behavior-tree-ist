@@ -71,7 +71,8 @@ function collectDebuggerStyles(): string {
 
 export function BehaviourTreeDebugger({
   tree,
-  ticks,
+  ticks = [],
+  emptyState,
   inspectorOptions,
   inspectorRef,
   panels = { nodeDetails: true, timeline: true, refTraces: true, activityNow: true },
@@ -166,6 +167,7 @@ export function BehaviourTreeDebugger({
   }, [timeTravelControls.mode, pausedInspector, inspector]);
 
   const activeInspector = pausedInspector ?? inspector;
+  const hasTree = Boolean(activeInspector.tree);
   const percentilesApproximate = timeTravelControls.mode === 'live';
 
   // Layout: only recomputes when tree changes
@@ -175,7 +177,13 @@ export function BehaviourTreeDebugger({
   );
 
   useEffect(() => {
-    if (baseNodes.length === 0) return;
+    if (baseNodes.length === 0) {
+      if (selectedNodeId !== null) {
+        setSelectedNodeId(null);
+        onNodeSelect?.(null);
+      }
+      return;
+    }
 
     const hasSelectedNode = selectedNodeId !== null
       && baseNodes.some((node) => node.data.representedNodeIds.includes(selectedNodeId));
@@ -400,8 +408,9 @@ export function BehaviourTreeDebugger({
   }, []);
 
   const handleTogglePerformanceMode = useCallback(() => {
+    if (!hasTree) return;
     setPerformanceMode((v) => !v);
-  }, []);
+  }, [hasTree]);
 
   const handleToggleTimeTravel = useCallback(() => {
     if (timeTravelControls.mode === 'paused') {
@@ -632,16 +641,16 @@ export function BehaviourTreeDebugger({
               onToggleTimeFormat={handleToggleTimeFormat}
               onToggleTimeTravel={handleToggleTimeTravel}
               performanceMode={performanceMode}
-              onTogglePerformanceMode={showPerformance ? handleTogglePerformanceMode : undefined}
+              onTogglePerformanceMode={showPerformance && hasTree ? handleTogglePerformanceMode : undefined}
               activityWindowEnabled={activityWindowEnabled}
               activityWindowVisible={activityWindowVisible}
-              onToggleActivityWindow={activityWindowEnabled ? handleToggleActivityWindow : undefined}
+              onToggleActivityWindow={activityWindowEnabled && hasTree ? handleToggleActivityWindow : undefined}
             />
           ) : null
         }
         canvas={
           <div className="bt-canvas-surface" ref={canvasSurfaceRef}>
-            {performanceMode ? (
+            {performanceMode && hasTree ? (
               <PerformanceView
                 frames={performanceData.frames}
                 hotNodes={performanceData.hotNodes}
@@ -652,6 +661,17 @@ export function BehaviourTreeDebugger({
                 treeIndex={activeInspector.tree ?? null}
                 viewedTickId={viewedTickId}
               />
+            ) : !hasTree ? (
+              <div className="bt-debugger-empty-state-wrap">
+                {emptyState ?? (
+                  <div className="bt-debugger-empty-state" role="status">
+                    <div className="bt-debugger-empty-state__title">No tree loaded</div>
+                    <div className="bt-debugger-empty-state__hint">
+                      Select an agent and tree to start receiving ticks.
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <TreeCanvas
                 nodes={nodes}
@@ -664,7 +684,7 @@ export function BehaviourTreeDebugger({
               />
             )}
 
-            {!performanceMode && activityWindowEnabled && activityWindowVisible && (
+            {!performanceMode && hasTree && activityWindowEnabled && activityWindowVisible && (
               <div
                 className={`bt-canvas-surface__activity ${activityWindowCollapsed ? 'bt-canvas-surface__activity--collapsed' : ''}`}
                 ref={activityWindowRef}

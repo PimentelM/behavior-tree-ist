@@ -8,7 +8,6 @@ function App() {
       <StudioDebugger
         serverUrl={serverUrl}
         debuggerProps={{
-          isolateStyles: true,
           showToolbar: true,
         }}
       />

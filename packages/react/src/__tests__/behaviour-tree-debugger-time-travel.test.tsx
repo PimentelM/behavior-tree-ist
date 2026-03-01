@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { cleanup, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { NodeFlags, NodeResult } from '@behavior-tree-ist/core';
 import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
 import { BehaviourTreeDebugger } from '../BehaviourTreeDebugger';
@@ -29,6 +29,10 @@ vi.mock('../components/TreeCanvas', () => ({
     </div>
   ),
 }));
+
+afterEach(() => {
+  cleanup();
+});
 
 function makeTree(): SerializableNode {
   return {
@@ -154,6 +158,20 @@ function makeModeSwitchTick(): TickRecord {
 }
 
 describe('BehaviourTreeDebugger time-travel percentile mode', () => {
+  it('renders debugger chrome with empty state when no tree is loaded', () => {
+    render(
+      <BehaviourTreeDebugger
+        tree={null}
+        ticks={[]}
+        isolateStyles={false}
+      />,
+    );
+
+    expect(screen.getByText('No tree loaded')).toBeTruthy();
+    expect(screen.getByText('Select an agent and tree to start receiving ticks.')).toBeTruthy();
+    expect(screen.getByText(/No ticks/)).toBeTruthy();
+  });
+
   it('switches performance percentiles from sampled to exact when pausing', async () => {
     const ticks: TickRecord[] = [
       makeTick(1, 100),

@@ -73,8 +73,9 @@ export interface NodeLifecycleDecoratorData {
 }
 
 export interface BehaviourTreeDebuggerProps {
-  tree: SerializableNode;
-  ticks: TickRecord[];
+  tree: SerializableNode | null;
+  ticks?: TickRecord[];
+  emptyState?: ReactNode;
   inspectorOptions?: TreeInspectorOptions;
   inspectorRef?: MutableRefObject<TreeInspector | null>;
   panels?: PanelConfig;

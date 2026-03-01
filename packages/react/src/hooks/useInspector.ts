@@ -9,7 +9,7 @@ export interface UseInspectorResult {
 }
 
 export function useInspector(
-  tree: SerializableNode,
+  tree: SerializableNode | null,
   ticks: TickRecord[],
   options?: TreeInspectorOptions,
 ): UseInspectorResult {
@@ -23,7 +23,9 @@ export function useInspector(
     inspectorRef.current = inst;
     ingestedCountRef.current = 0;
     prevTreeRef.current = tree;
-    inst.indexTree(tree);
+    if (tree) {
+      inst.indexTree(tree);
+    }
     return inst;
     // Re-create inspector when tree identity or options change
   }, [tree, options?.maxTicks]);
@@ -32,7 +34,9 @@ export function useInspector(
   useEffect(() => {
     if (prevTreeRef.current !== tree) {
       inspector.reset();
-      inspector.indexTree(tree);
+      if (tree) {
+        inspector.indexTree(tree);
+      }
       ingestedCountRef.current = 0;
       prevTreeRef.current = tree;
       setTickGeneration((g) => g + 1);
@@ -41,6 +45,10 @@ export function useInspector(
 
   // Diff-ingest new ticks
   useEffect(() => {
+    if (!tree) {
+      return;
+    }
+
     const alreadyIngested = ingestedCountRef.current;
     if (ticks.length < alreadyIngested) {
       inspector.reset();
@@ -61,7 +69,7 @@ export function useInspector(
       ingestedCountRef.current = ticks.length;
       setTickGeneration((g) => g + 1);
     }
-  }, [ticks, ticks.length, inspector]);
+  }, [ticks, ticks.length, inspector, tree]);
 
   return { inspector, tickGeneration };
 }
