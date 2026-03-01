@@ -1,3 +1,7 @@
+> Historical draft (pre-refinement).  
+> This document is kept for context only and is not the source of truth for V1 planning.  
+> Use `docs/requirements-definition/studio/formal-specs-for-v1.md` for the active V1 specification.
+
 ## Requirements definition of Behavior Tree Studio
 
 Behavior Tree Studio is an application designed to allow users to observe and debug the execution of behavior trees in real time.
@@ -196,5 +200,4 @@ As a final result from this endeavor we would like to have:
 ---
 
 For development, yarn:dev should spawn both the studio-ui server, studio-server server and mock agent, all with hot reload. we can maybe use `concurrently` to do that.
-
 

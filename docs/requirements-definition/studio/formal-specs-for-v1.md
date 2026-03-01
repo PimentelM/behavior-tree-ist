@@ -210,9 +210,17 @@ Studio server is a persistent gateway between agents and UI.
 In-memory persistence only for V1:
 
 - clients
-- trees (latest serialized version per `(clientId, treeId)`)
+- trees (latest serialized version per `(clientId, treeId)`, plus stable serialized hash)
 - tick records (ring buffer per tree)
 - server settings
+
+Tree lifecycle semantics:
+
+- `RegisterTree` is an upsert operation by `(clientId, treeId)`.
+- On upsert, server computes a stable hash of the serialized tree payload.
+- If incoming hash is unchanged, existing tick history is kept.
+- If incoming hash changed, existing tick history for that tree is cleared before storing the new tree snapshot/hash.
+- `RemoveTree` clears tree metadata and all retained tick records for that tree immediately.
 
 ### 7.3 Offline Detection and Retention Behavior
 
@@ -241,6 +249,13 @@ Query procedures (GET):
 - fetch tick records by `(clientId, treeId, afterTickId?, limit?)`
 - fetch server settings
 
+`fetchTickRecords` semantics:
+
+- `afterTickId` is exclusive: only ticks with `tickId > afterTickId` are returned.
+- returned ticks are always sorted ascending by `tickId`.
+- when requested `afterTickId` is older than retained history, server still returns any currently available ticks that satisfy `tickId > afterTickId`, up to `limit`.
+- no additional gap/retention metadata fields are returned in the V1 response.
+
 Mutation procedures (POST):
 
 - update server settings
@@ -251,7 +266,7 @@ Mutation procedures (POST):
 
 V1 server settings are minimal:
 
-- `maxTickRecordsPerTree`: maximum number of tick records the server retains per tree (ring buffer capacity). Default TBD during implementation.
+- `maxTickRecordsPerTree`: maximum number of tick records the server retains per tree (ring buffer capacity). Default `10000`.
 
 ### 7.6 Server Architecture
 
@@ -284,6 +299,8 @@ The server must follow a layered onion architecture with three layers:
 - polling is required by default in V1.
 - default polling interval: `200ms`.
 - polling interval is user-configurable.
+- tick fetch limit (`limit` passed to `fetchTickRecords`) is configurable in UI settings.
+- default tick fetch limit is `200`.
 
 ### 8.2 Debugger Component Contract (`@behavior-tree-ist/react`)
 
@@ -320,7 +337,9 @@ Persist minimal local state:
 - selected `clientId`
 - selected `treeId`
 - polling interval
+- tick fetch limit
 - theme
+- local TickStore capacity
 
 Local persistence requirements:
 
@@ -361,7 +380,10 @@ Operational quality:
 ### 10.2 Performance
 
 - client-side Studio integration overhead kept as low as possible
-- server and agent memory limits are configurable where applicable (for example ring buffer size)
+- CPU minimization is prioritized over additional non-essential runtime checks in hot paths.
+- memory limits are configured in number of records (not bytes) where applicable.
+- server and agent memory limits are configurable where applicable (for example ring buffer size and outbound queue capacity).
+- V1 defines no hard latency SLOs for API p95, command-ack time, reconnect time, or end-to-end UI freshness.
 
 ### 10.3 Test and Validation Scenarios
 
@@ -371,23 +393,30 @@ The implementation must satisfy at least:
    - same `(clientId, treeId)` works across restarts
    - duplicate/older now-based `tickId` is rejected
 2. Polling:
-   - UI polling with `afterTickId` returns ordered append-only tick windows
+   - UI polling with `afterTickId` returns ticks where `tickId > afterTickId` (exclusive cursor), ordered ascending
+   - if `afterTickId` is older than retained history, server still returns any available ticks matching the query up to `limit` (no gap error/flag)
+   - tick fetch `limit` is configurable in UI settings and defaults to `200`
    - polling interval persists and restores
 3. Offline retention:
    - client disconnection marks client as offline; last known data remains visible
    - hard delete fully removes client-scoped data
-4. Remote toggles:
+   - `RemoveTree` clears removed tree metadata and tick history immediately
+4. Tree upsert invalidation:
+   - `RegisterTree` behaves as upsert by `(clientId, treeId)`
+   - unchanged serialized-tree hash keeps existing tick history
+   - changed serialized-tree hash clears existing tick history before accepting new snapshots/ticks
+5. Remote toggles:
    - successful ack updates UI state
    - error ack reverts button state and surfaces error feedback
    - streaming is off by default for each tree until explicitly enabled by code opt-in or play command
    - pausing streaming stops new tick uploads for the selected tree without disconnecting the client
    - ticks produced while streaming is disabled are dropped, not retroactively delivered on re-enable
-5. Debugger empty state:
+6. Debugger empty state:
    - renders without tree/ticks and shows `No tree selected`
    - Studio controls hidden when `studio` prop is absent
-6. Backpressure:
+7. Backpressure:
    - full outbound queue drops oldest unsent records deterministically
-7. CLI:
+8. CLI:
    - each flag combination starts expected processes
    - Ctrl+C cleanly terminates all started processes
 
