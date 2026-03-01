@@ -1655,6 +1655,12 @@
   gap: 6px;
 }
 
+.bt-ref-traces__state-list {
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
 .bt-ref-traces__event-list {
   flex: 1;
   min-height: 0;
