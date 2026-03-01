@@ -31,6 +31,7 @@ export abstract class BTNode {
     public abstract readonly defaultName: string;
 
     private _tags: string[] = [];
+    private _activity: string | undefined;
     private _nodeFlags: NodeFlags = 0;
 
     constructor(name?: string) {
@@ -49,6 +50,16 @@ export abstract class BTNode {
 
     public addTags(tags: string[]): this {
         this._tags = Array.from(new Set([...this._tags, ...tags]));
+        return this;
+    }
+
+    public get activity(): string | undefined {
+        return this._activity;
+    }
+
+    public setActivity(activity: string | undefined): this {
+        const normalized = activity?.trim();
+        this._activity = normalized ? normalized : undefined;
         return this;
     }
 
@@ -105,6 +116,7 @@ export abstract class BTNode {
             defaultName: this.defaultName,
             nodeFlags: this.nodeFlags,
             tags: this.tags.length > 0 ? this.tags : undefined,
+            activity: this.activity,
             children: this.getChildren?.(),
             state: this.getDisplayState?.(),
         };
@@ -254,7 +266,7 @@ export interface TickContext {
     now: number;
     events: TickTraceEvent[];
     refEvents: RefChangeEvent[];
-    isTracingEnabled: boolean;
+    isStateTraceEnabled: boolean;
     trace: (node: BTNode, result: NodeResult, startedAt?: number, finishedAt?: number) => void;
     getTime?: () => number;
     runtime?: TickRuntime;

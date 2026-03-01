@@ -83,6 +83,8 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
         displayState: undefined,
         displayStateIsStale: false,
         isSelected: false,
+        isOnActivityPath: false,
+        isActivityTail: false,
         depth: baseNode.depth,
         representedNodeIds: [baseId, ...stackedDecoratorIds, ...lifecycleDecoratorIds],
         stackedDecorators,
@@ -98,7 +100,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
         source: String(parentHostId),
         target: String(baseId),
         type: 'btEdge',
-        data: { childResult: null },
+        data: { childResult: null, isOnActivityPathEdge: false },
       });
     }
 

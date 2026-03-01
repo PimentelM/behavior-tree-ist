@@ -7,9 +7,27 @@ export interface IndexedNode {
     defaultName: string;
     name: string;
     tags: readonly string[];
+    activity: string | undefined;
     parentId: number | undefined;
     childrenIds: number[];
     depth: number;
+}
+
+export type ActivityDisplayMode = "running" | "running_or_success" | "all";
+
+export interface ActivityBranch {
+    labels: readonly string[];
+    nodeIds: readonly number[];
+    pathNodeIds: readonly number[];
+    tailNodeId: number;
+    tailResult: NodeResult;
+    lastEventIndex: number;
+}
+
+export interface ActivitySnapshot {
+    tickId: number;
+    timestamp: number;
+    branches: readonly ActivityBranch[];
 }
 
 /** Per-node profiling accumulator */

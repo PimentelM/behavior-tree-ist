@@ -188,6 +188,8 @@ function mergeMutableNodeData(
     const nextDisplayState = nextNode.data.displayState;
     const nextDisplayStateIsStale = nextNode.data.displayStateIsStale;
     const nextIsSelected = nextNode.data.isSelected;
+    const nextIsOnActivityPath = nextNode.data.isOnActivityPath;
+    const nextIsActivityTail = nextNode.data.isActivityTail;
     const nextSelectedNodeId = nextNode.data.selectedNodeId;
     const nextRefEvents = nextNode.data.refEvents;
     const nextStackedDecorators = nextNode.data.stackedDecorators;
@@ -197,6 +199,8 @@ function mergeMutableNodeData(
       && shallowEqualRecord(previousNode.data.displayState, nextDisplayState)
       && previousNode.data.displayStateIsStale === nextDisplayStateIsStale
       && previousNode.data.isSelected === nextIsSelected
+      && previousNode.data.isOnActivityPath === nextIsOnActivityPath
+      && previousNode.data.isActivityTail === nextIsActivityTail
       && previousNode.data.selectedNodeId === nextSelectedNodeId
       && shallowEqualRefEvents(previousNode.data.refEvents, nextRefEvents)
       && shallowEqualDecorators(previousNode.data.stackedDecorators, nextStackedDecorators)
@@ -216,6 +220,8 @@ function mergeMutableNodeData(
         displayState: nextDisplayState,
         displayStateIsStale: nextDisplayStateIsStale,
         isSelected: nextIsSelected,
+        isOnActivityPath: nextIsOnActivityPath,
+        isActivityTail: nextIsActivityTail,
         selectedNodeId: nextSelectedNodeId,
         refEvents: nextRefEvents,
         stackedDecorators: nextStackedDecorators,
@@ -244,7 +250,9 @@ function mergeMutableEdgeData(
     if (!nextEdge) return nextEdges;
 
     const nextChildResult = nextEdge.data?.childResult ?? null;
+    const nextIsOnActivityPathEdge = nextEdge.data?.isOnActivityPathEdge ?? false;
     const sameMutableData = previousEdge.data?.childResult === nextChildResult
+      && (previousEdge.data?.isOnActivityPathEdge ?? false) === nextIsOnActivityPathEdge
       && previousEdge.animated === nextEdge.animated;
 
     if (sameMutableData) {
@@ -258,6 +266,7 @@ function mergeMutableEdgeData(
       data: {
         ...(previousEdge.data ?? {}),
         childResult: nextChildResult,
+        isOnActivityPathEdge: nextIsOnActivityPathEdge,
       } as BTEdgeData,
       animated: nextEdge.animated,
     });

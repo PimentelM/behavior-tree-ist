@@ -9,7 +9,10 @@ import {
     FlameGraphFrame,
     TreeStats,
     NodeProfilingData,
+    ActivityDisplayMode,
+    ActivitySnapshot,
 } from "./types";
+import { projectActivityFromTreeIndex } from "../activity/projector";
 
 export class TreeInspector {
     private _tree: TreeIndex | undefined;
@@ -124,6 +127,18 @@ export class TreeInspector {
         const record = this.store.getByTickId(tickId);
         if (!record || !this._tree) return [];
         return Profiler.buildFlameGraphFrames(record.events, this._tree);
+    }
+
+    getActivitySnapshotAtTick(tickId: number, mode: ActivityDisplayMode = "running"): ActivitySnapshot | undefined {
+        const record = this.store.getByTickId(tickId);
+        if (!record || !this._tree) return undefined;
+        return projectActivityFromTreeIndex(this._tree, record, { mode });
+    }
+
+    getLatestActivitySnapshot(mode: ActivityDisplayMode = "running"): ActivitySnapshot | undefined {
+        const record = this.store.newestRecord;
+        if (!record || !this._tree) return undefined;
+        return projectActivityFromTreeIndex(this._tree, record, { mode });
     }
 
     cloneForTimeTravel(options: { exactPercentiles?: boolean } = {}): TreeInspector {

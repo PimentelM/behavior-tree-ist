@@ -1,11 +1,33 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { NodeFlags, NodeResult } from '@behavior-tree-ist/core';
 import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
 import { BehaviourTreeDebugger } from '../BehaviourTreeDebugger';
+import type { BTNodeData, BTEdgeData } from '../types';
+import type { Node, Edge } from '@xyflow/react';
 
 vi.mock('../components/TreeCanvas', () => ({
-  TreeCanvas: () => <div data-testid="tree-canvas" />,
+  TreeCanvas: ({
+    nodes,
+    edges,
+  }: {
+    nodes: Node<BTNodeData>[];
+    edges: Edge<BTEdgeData>[];
+  }) => (
+    <div data-testid="tree-canvas">
+      <div data-testid="tree-canvas-node-flags">
+        {nodes
+          .map((node) => `${node.data.nodeId}:${node.data.isOnActivityPath ? 'p' : ''}${node.data.isActivityTail ? 't' : ''}`)
+          .join('|')}
+      </div>
+      <div data-testid="tree-canvas-edge-flags">
+        {edges
+          .filter((edge) => edge.data?.isOnActivityPathEdge)
+          .map((edge) => edge.id)
+          .join('|')}
+      </div>
+    </div>
+  ),
 }));
 
 function makeTree(): SerializableNode {
@@ -35,6 +57,63 @@ function makeTick(tickId: number, durationMs: number): TickRecord {
   };
 }
 
+function makeDiagnosticsTree(): SerializableNode {
+  return {
+    id: 1,
+    nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
+    defaultName: 'Sequence',
+    name: 'Root',
+    activity: 'Guarding',
+    children: [
+      {
+        id: 2,
+        nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
+        defaultName: 'Sequence',
+        name: 'Diagnostics',
+        activity: 'Diagnostics',
+        children: [
+          {
+            id: 3,
+            nodeFlags: NodeFlags.Composite | NodeFlags.Parallel,
+            defaultName: 'Parallel',
+            name: 'DiagnosticsParallel',
+            activity: 'Diagnostics Loop',
+            children: [
+              {
+                id: 4,
+                nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
+                defaultName: 'AlwaysRunning',
+                name: 'AlwaysRunning',
+              },
+              {
+                id: 5,
+                nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
+                defaultName: 'ResultsTransformersShowcase',
+                name: 'ResultsTransformersShowcase',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function makeDiagnosticsTick(): TickRecord {
+  return {
+    tickId: 1,
+    timestamp: 1000,
+    refEvents: [],
+    events: [
+      { tickId: 1, nodeId: 4, timestamp: 1000, result: NodeResult.Running },
+      { tickId: 1, nodeId: 5, timestamp: 1000, result: NodeResult.Succeeded },
+      { tickId: 1, nodeId: 3, timestamp: 1000, result: NodeResult.Running },
+      { tickId: 1, nodeId: 2, timestamp: 1000, result: NodeResult.Running },
+      { tickId: 1, nodeId: 1, timestamp: 1000, result: NodeResult.Running },
+    ],
+  };
+}
+
 describe('BehaviourTreeDebugger time-travel percentile mode', () => {
   it('switches performance percentiles from sampled to exact when pausing', async () => {
     const ticks: TickRecord[] = [
@@ -60,5 +139,122 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     await waitFor(() => {
       expect(screen.queryByText('Approx')).toBeNull();
     });
+  });
+
+  it('toggles the floating current activity window from toolbar', () => {
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(1, 2)]}
+        isolateStyles={false}
+      />,
+    );
+
+    const local = within(container);
+    expect(local.getAllByText('Current Activity').length).toBeGreaterThan(0);
+
+    fireEvent.click(local.getByRole('button', { name: 'Hide current activity window' }));
+    expect(local.queryByText('No activity for this tick')).toBeNull();
+    expect(local.getByRole('button', { name: 'Show current activity window' })).toBeTruthy();
+  });
+
+  it('allows dragging the floating current activity window', async () => {
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(1, 2)]}
+        isolateStyles={false}
+      />,
+    );
+
+    const surface = container.querySelector('.bt-canvas-surface') as HTMLElement;
+    const activityWindow = container.querySelector('.bt-canvas-surface__activity') as HTMLElement;
+    const dragHandle = container.querySelector('.bt-canvas-surface__activity-header') as HTMLElement;
+
+    Object.defineProperty(surface, 'clientWidth', { value: 900, configurable: true });
+    Object.defineProperty(surface, 'clientHeight', { value: 500, configurable: true });
+    Object.defineProperty(activityWindow, 'offsetWidth', { value: 320, configurable: true });
+    Object.defineProperty(activityWindow, 'offsetHeight', { value: 160, configurable: true });
+
+    const initialTransform = activityWindow.style.transform;
+
+    fireEvent.pointerDown(dragHandle, { pointerId: 1, clientX: 10, clientY: 10, button: 0 });
+    fireEvent.pointerMove(window, { pointerId: 1, clientX: 210, clientY: 140 });
+    fireEvent.pointerUp(window, { pointerId: 1 });
+
+    await waitFor(() => {
+      expect(activityWindow.style.transform).not.toBe(initialTransform);
+    });
+  });
+
+  it('collapses and expands the floating current activity window', () => {
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(1, 2)]}
+        isolateStyles={false}
+      />,
+    );
+
+    const local = within(container);
+    expect(local.getByText('No activity for this tick')).toBeTruthy();
+
+    fireEvent.click(local.getByRole('button', { name: 'Collapse current activity window' }));
+    expect(local.queryByText('No activity for this tick')).toBeNull();
+    const collapsedTitle = container.querySelector('.bt-canvas-surface__activity-title');
+    expect(collapsedTitle?.textContent ?? '').toContain('Current Activity:');
+    expect(collapsedTitle?.textContent ?? '').toContain('No activity');
+
+    fireEvent.click(local.getByRole('button', { name: 'Expand current activity window' }));
+    expect(local.getByText('No activity for this tick')).toBeTruthy();
+  });
+
+  it('closes the floating current activity window from the window controls', () => {
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(1, 2)]}
+        isolateStyles={false}
+      />,
+    );
+
+    const local = within(container);
+    fireEvent.click(local.getByRole('button', { name: 'Close current activity window' }));
+
+    expect(container.querySelector('.bt-canvas-surface__activity')).toBeNull();
+    expect(local.getByRole('button', { name: 'Show current activity window' })).toBeTruthy();
+  });
+
+  it('dedupes duplicate terminal entries and anchors selection to tail activity node', () => {
+    const onNodeSelect = vi.fn();
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeDiagnosticsTree()}
+        ticks={[makeDiagnosticsTick()]}
+        activityDisplayMode="all"
+        isolateStyles={false}
+        onNodeSelect={onNodeSelect}
+      />,
+    );
+
+    const local = within(container);
+    const label = 'Guarding > Diagnostics > Diagnostics Loop';
+    const entries = local.getAllByRole('button', { name: new RegExp(label, 'i') });
+    expect(entries).toHaveLength(1);
+
+    onNodeSelect.mockClear();
+    fireEvent.click(entries[0]);
+    expect(onNodeSelect).toHaveBeenCalledWith(3);
+
+    const nodeFlagsEntries = screen.getAllByTestId('tree-canvas-node-flags');
+    const nodeFlags = nodeFlagsEntries[nodeFlagsEntries.length - 1]?.textContent ?? '';
+    expect(nodeFlags).toContain('1:p');
+    expect(nodeFlags).toContain('2:p');
+    expect(nodeFlags).toContain('3:pt');
+
+    const edgeFlagsEntries = screen.getAllByTestId('tree-canvas-edge-flags');
+    const edgeFlags = edgeFlagsEntries[edgeFlagsEntries.length - 1]?.textContent ?? '';
+    expect(edgeFlags).toContain('e-1-2');
+    expect(edgeFlags).toContain('e-2-3');
   });
 });

@@ -2,18 +2,21 @@ import { describe, it, expect } from "vitest";
 import { NodeResult, NodeFlags, SerializableNode, TickTraceEvent, TickRecord } from "../base/types";
 import { TreeInspector } from "./tree-inspector";
 
+// TODO: Extract shared SerializableNode test stubs into a common test-stubs module.
 function makeTree(): SerializableNode {
     return {
         id: 1,
         nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
         defaultName: "Root",
         name: "",
+        activity: "Hunting",
         children: [
             {
                 id: 2,
                 nodeFlags: NodeFlags.Decorator,
                 defaultName: "Dec",
                 name: "",
+                activity: "Targeting",
                 children: [
                     {
                         id: 3,
@@ -21,6 +24,7 @@ function makeTree(): SerializableNode {
                         defaultName: "Attack",
                         name: "",
                         tags: ["combat"],
+                        activity: "Attacking",
                     },
                 ],
             },
@@ -29,6 +33,7 @@ function makeTree(): SerializableNode {
                 nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
                 defaultName: "Idle",
                 name: "",
+                activity: "Idle",
             },
         ],
     };
@@ -218,6 +223,36 @@ describe("TreeInspector", () => {
         inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]));
 
         expect(inspector.getFlameGraphFrames(1)).toEqual([]);
+    });
+
+    it("projects activity snapshot from a stored tick", () => {
+        const inspector = new TreeInspector();
+        inspector.indexTree(makeTree());
+        inspector.ingestTick(makeTickRecord(1, [
+            { nodeId: 3, start: 1, end: 2, result: NodeResult.Succeeded },
+            { nodeId: 2, start: 1, end: 3, result: NodeResult.Succeeded },
+            { nodeId: 1, start: 0, end: 4, result: NodeResult.Running },
+        ]));
+
+        const snapshot = inspector.getActivitySnapshotAtTick(1, "running_or_success");
+        expect(snapshot).toBeDefined();
+        expect(snapshot!.branches.map((branch) => branch.labels.join(" > "))).toEqual([
+            "Hunting > Targeting > Attacking",
+        ]);
+    });
+
+    it("getLatestActivitySnapshot reads newest stored tick", () => {
+        const inspector = new TreeInspector();
+        inspector.indexTree(makeTree());
+        inspector.ingestTick(makeTickRecord(1, [
+            { nodeId: 4, start: 0, end: 1, result: NodeResult.Running },
+            { nodeId: 1, start: 0, end: 2, result: NodeResult.Running },
+        ]));
+
+        const latest = inspector.getLatestActivitySnapshot("running");
+        expect(latest).toBeDefined();
+        expect(latest!.tickId).toBe(1);
+        expect(latest!.branches[0].labels).toEqual(["Hunting", "Idle"]);
     });
 
     it("getStats returns aggregate statistics", () => {

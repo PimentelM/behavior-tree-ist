@@ -98,6 +98,7 @@ const root = (
 | `@behavior-tree-ist/core/builder` | Builder functions with `NodeProps`-based decorator application |
 | `@behavior-tree-ist/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
 | `@behavior-tree-ist/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
+| `@behavior-tree-ist/core/activity` | Standalone activity projection from `SerializableNode` + `TickRecord` |
 
 ## Documentation
 
@@ -109,7 +110,7 @@ const root = (
 6. [Construction APIs](docs/construction-apis.md) - Direct instantiation, builder, TSX comparison
 7. [TSX](docs/tsx.md) - Full JSX/TSX reference
 8. [Inspector](docs/inspector.md) - TreeInspector, profiling, serialization
-9. [BehaviourTree Class](docs/behaviour-tree-class.md) - Wrapper class, tracing, tick loop
+9. [BehaviourTree Class](docs/behaviour-tree-class.md) - Wrapper class, state tracing, tick loop
 10. [Custom Nodes](docs/custom-nodes.md) - Extending the library
 11. [Node Flags](docs/node-flags.md) - NodeFlags bitfield reference
 12. [Roadmap](docs/roadmap.md) - Planned features

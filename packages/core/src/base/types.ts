@@ -45,6 +45,7 @@ export interface SerializableNode {
     children?: SerializableNode[];
     state?: SerializableState;
     tags?: readonly string[];
+    activity?: string;
 }
 
 export type TickTraceEvent = {

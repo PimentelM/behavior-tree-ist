@@ -13,6 +13,10 @@ export function serializeTree(root: BTNode, options?: { includeState?: boolean }
         serialized.tags = root.tags;
     }
 
+    if (root.activity) {
+        serialized.activity = root.activity;
+    }
+
     if (options?.includeState) {
         const state = root.getDisplayState?.();
         if (state) {

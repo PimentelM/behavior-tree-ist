@@ -110,12 +110,14 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
         subTree({ name: 'Guard Npc Demo', namespace: 'npc-guard', id: 'npc-guard-bt' },
             parallel({
                 name: 'GuardAgentDemoRoot',
+                activity: 'Guarding',
                 policy: () => NodeResult.Running,
                 tag: 'demo',
                 onTicked: (result) => supressedLog(`Root ticked: ${result}`)
             }, [
                 sequence({
                     name: 'WorldSimulation',
+                    activity: 'World Simulation',
                     tag: 'world-sim'
                 }, [
                     sequence({
@@ -176,10 +178,12 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
 
                 sequence({
                     name: 'Perception',
+                    activity: 'Perception',
                     tag: 'perception'
                 }, [
                     sequence({
                         name: 'SensorSweep',
+                        activity: 'Targeting',
                         tags: ['sensor', 'heavy'],
                         onRunning: () => supressedLog('Perception running'),
                         throttle: 180,
@@ -300,16 +304,19 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
 
                 sequence({
                     name: 'DecisionAndExecution',
+                    activity: 'Hunting',
                     tag: 'decision-exec'
                 }, [
                     selector({
                         name: 'HighLevelIntent',
+                        activity: 'Intent',
                         onFailedOrRunning: () => supressedLog('Decision branch failed or running'),
                         onSuccessOrRunning: () => supressedLog('Decision branch success or running'),
                         onFailure: () => supressedLog('No intent available')
                     }, [
                         sequence({
                             name: 'EngageIntent',
+                            activity: 'Combat',
                             precondition: { name: 'EnemyVisible', condition: () => enemyVisible.value },
                             onEnter: () => supressedLog('Entering engage intent')
                         }, [
@@ -352,7 +359,7 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
                                     onFailedOrRunning: () => supressedLog('Attack unstable')
                                 }, [
                                     condition({ name: 'HasAmmo', eval: () => ammo.value > 0 }),
-                                    sequence({ name: 'TargetingPipeline' }, [
+                                    sequence({ name: 'TargetingPipeline', activity: 'Targeting' }, [
                                         action({
                                             name: 'SmoothAimJitter',
                                             execute: () => {
@@ -404,6 +411,7 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
                                     ]),
                                     asyncAction({
                                         name: 'FireBurstAsync',
+                                        activity: 'Attacking',
                                         execute: async (ctx, signal) => {
                                             for (let burst = 0; burst < 4; burst += 1) {
                                                 if (signal.aborted) {
@@ -432,7 +440,7 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
                                 ])
                             ])
                         ]),
-                        sequence({ name: 'PatrolIntent', delay: 120, repeat: 2 }, [
+                        sequence({ name: 'PatrolIntent', activity: 'Movement', delay: 120, repeat: 2 }, [
                             action({
                                 name: 'MediumPatrolRiskFieldUpdate',
                                 execute: () => {
@@ -444,7 +452,7 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
                                     return NodeResult.Succeeded;
                                 }
                             }),
-                            utilitySequence({ name: 'PatrolTaskOrder', cooldown: 120 }, [
+                            utilitySequence({ name: 'PatrolTaskOrder', activity: 'Patrolling', cooldown: 120 }, [
                                 utility({ scorer: () => (100 - stamina.value) * 1.4 }, action({
                                     name: 'BreathingControl',
                                     execute: () => {
@@ -469,10 +477,12 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
 
                 sequence({
                     name: 'NeedsAndUtility',
+                    activity: 'Needs',
                     tag: 'needs'
                 }, [
                     utilityFallback({
                         name: 'NeedPrioritization',
+                        activity: 'Need Selection',
                         throttle: 140,
                         cooldown: 100,
                         decorate: [[Tag, 'simulation', 'utility', 'needs']]
@@ -563,10 +573,12 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
 
                 sequence({
                     name: 'Diagnostics',
+                    activity: 'Diagnostics',
                     tag: 'diagnostics'
                 }, [
                     parallel({
                         name: 'DiagnosticsParallel',
+                        activity: 'Diagnostics Loop',
                         policy: () => NodeResult.Running,
                         tag: 'profiler'
                     }, [
@@ -692,8 +704,9 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
 
                 alwaysRunning({
                     name: 'AmbientHeartbeat',
+                    activity: 'Idle',
                     onReset: () => supressedLog('Ambient heartbeat reset')
                 })
             ]))
-    ).enableTrace().enableProfiling(() => performance.now());
+    ).enableStateTrace().enableProfiling(() => performance.now());
 }

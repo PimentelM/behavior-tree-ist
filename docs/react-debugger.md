@@ -23,7 +23,7 @@ const root = sequence({ name: 'Main' }, [
   condition({ name: 'Ready?', eval: () => true }),
   action({ name: 'Work', execute: () => NodeResult.Running }),
 ]);
-const tree = new BehaviourTree(root).enableTrace();
+const tree = new BehaviourTree(root).enableStateTrace();
 
 // Collect tick records
 const ticks: TickRecord[] = [];
@@ -52,7 +52,8 @@ function App() {
   ticks={tickRecords}             // TickRecord[] — append-only, component diffs internally
   inspectorOptions={{ maxTicks: 500 }}  // optional TreeInspector config
   inspectorRef={inspectorRef}     // optional escape-hatch to internal TreeInspector
-  panels={{ nodeDetails: true, timeline: true, refTraces: true }}
+  panels={{ nodeDetails: true, timeline: true, refTraces: true, activityNow: true }}
+  activityDisplayMode="running_or_success" // "running" | "running_or_success" | "all"
   theme={{ colorSucceeded: '#22c55e' }}
   themeMode="dark"               // controlled: "dark" | "light"
   defaultThemeMode="dark"        // uncontrolled initial mode
@@ -77,7 +78,8 @@ function App() {
 | `ticks` | `TickRecord[]` | **required** | Append-only array of tick records. The component diffs internally to ingest only new ticks. |
 | `inspectorOptions` | `TreeInspectorOptions` | `{}` | Options passed to the internal `TreeInspector` (e.g., `{ maxTicks: 500 }`) |
 | `inspectorRef` | `MutableRefObject<TreeInspector \| null>` | — | Escape-hatch ref to access the internal `TreeInspector` for advanced queries |
-| `panels` | `PanelConfig` | `{ nodeDetails: true, timeline: true, refTraces: true }` | Toggle which panels are visible |
+| `panels` | `PanelConfig` | `{ nodeDetails: true, timeline: true, refTraces: true, activityNow: true }` | Toggle which panels are visible |
+| `activityDisplayMode` | `"running" \| "running_or_success" \| "all"` | `"running"` | Controls which activity branch results appear in the floating "Current Activity" panel |
 | `theme` | `ThemeOverrides` | — | Partial token overrides for the active theme mode |
 | `themeMode` | `"light" \| "dark"` | — | Controlled color mode. When provided, parent controls mode state. |
 | `defaultThemeMode` | `"light" \| "dark"` | `"dark"` | Initial mode for uncontrolled usage |
@@ -218,6 +220,17 @@ The "Ref Details" tab combines current ref state and historical event exploratio
 - **Click to time-travel**: selecting either a latest-state row or a timeline event jumps to that tick, selects the actor node, and moves the canvas camera to it when present (without forcing a tab switch)
 
 Node-attributed ref changes are shown directly below each node/decorator in the graph.
+
+## Current Activity Panel
+
+The debugger renders a compact floating "Current Activity" panel over the canvas (similar to minimap placement). It is derived from per-tick events and node `activity` metadata.
+
+- One row per active branch (parallel branches produce multiple rows)
+- Label path is rendered from branch labels (for example `Hunting > Movement > Kiting`)
+- Rows are anchored to the branch tail activity node (last node in the active path that defines `activity`)
+- Click a row to focus/select its tail activity node and highlight the graph path from root to that tail
+- `activityDisplayMode` controls whether only `Running`, `Running + Succeeded`, or all branch outcomes are shown
+- The panel can be shown/hidden from the toolbar, dragged around the canvas, collapsed to a single-line summary, or closed from window controls
 
 ## Theming
 

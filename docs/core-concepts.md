@@ -27,6 +27,7 @@ type NodeResult = "Succeeded" | "Failed" | "Running";
 | `name` | `string` | Custom instance name, defaults to `displayName` |
 | `displayName` | `string` | Returns custom `name` if set, otherwise `defaultName` |
 | `tags` | `readonly string[]` | Metadata tags for filtering and inspection |
+| `activity` | `string \| undefined` | Optional runtime activity label for compact activity displays |
 | `nodeFlags` | `NodeFlags` | Bitfield for classification (see [Node Flags](node-flags.md)) |
 | `wasRunning` | `boolean` | True if the previous tick returned `Running` |
 
@@ -119,8 +120,9 @@ The context object passed to every hook and `onTick`:
 interface TickContext {
   tickId: number;               // Current tick identifier (auto-incremented by BehaviourTree)
   now: number;                  // Time value for this tick (see below)
-  events: TickTraceEvent[];     // Accumulated trace events (when tracing enabled)
-  refEvents: RefChangeEvent[];  // Ref change events recorded during this tick
+  events: TickTraceEvent[];     // Accumulated per-node events
+  refEvents: RefChangeEvent[];  // Ref change events recorded during this tick (when state trace is enabled)
+  isStateTraceEnabled: boolean; // Enables state/ref tracing
   trace: (node, result, startedAt?, finishedAt?) => void;  // Trace recording function
   getTime?: () => number;       // High-res timer for profiling (when profiling enabled)
 }
@@ -134,7 +136,7 @@ The library provides a `Ref<T>` primitive for type-safe, auto-traced state shari
 
 ### Ref\<T\>
 
-A mutable container with automatic tracing. When a named ref is written during a tick, a `RefChangeEvent` is pushed to the ambient `TickContext.refEvents`.
+A mutable container with automatic tracing. When a named ref is written during a tick and state trace is enabled, a `RefChangeEvent` is pushed to the ambient `TickContext.refEvents`.
 
 ```typescript
 import { ref } from '@behavior-tree-ist/core';

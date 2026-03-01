@@ -10,5 +10,8 @@ export type {
     TreeInspectorOptions,
     FlameGraphFrame,
     TreeStats,
+    ActivityDisplayMode,
+    ActivityBranch,
+    ActivitySnapshot,
 } from "./types";
 export type { TickRecord } from "../base/types";

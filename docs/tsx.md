@@ -182,6 +182,8 @@ All hooks: `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure
 ```tsx
 <sequence name="Combat" tag="ai" />
 <action name="Attack" tags={['combat', 'offensive']} execute={fn} />
+<action name="Attack" activity="Attacking" execute={fn} />
+<action name="Attack" displayActivity="Attacking" execute={fn} />
 ```
 
 ### Subtree Boundaries

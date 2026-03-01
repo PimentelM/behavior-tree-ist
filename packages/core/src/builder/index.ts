@@ -16,6 +16,8 @@ export interface NodeProps {
 
     tag?: string;
     tags?: string[];
+    activity?: string;
+    displayActivity?: string;
 
     // Generic decorators array application
     decorate?: AnyDecoratorSpec | readonly AnyDecoratorSpec[];
@@ -141,6 +143,17 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     }
     if (props.tags && props.tags.length > 0) {
         current.addTags(props.tags);
+    }
+
+    const activity = props.activity?.trim();
+    const displayActivity = props.displayActivity?.trim();
+    if (activity && displayActivity) {
+        throw new Error("Only one activity label prop is allowed. Use either \"activity\" or \"displayActivity\".");
+    }
+
+    const resolvedActivity = activity ?? displayActivity;
+    if (resolvedActivity) {
+        current.setActivity(resolvedActivity);
     }
 
     return current;

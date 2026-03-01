@@ -117,9 +117,13 @@ All builder functions accept these props for automatic decorator application:
 | Prop | Type | Effect |
 |---|---|---|
 | `name` | `string` | Sets node name |
-| `tag` | `string` | Adds a single tag |
-| `tags` | `string[]` | Adds multiple tags |
+| `tag` | `string` | Adds a single classification tag |
+| `tags` | `string[]` | Adds multiple classification tags |
+| `activity` | `string` | Sets runtime activity label |
+| `displayActivity` | `string` | Alias for `activity` |
 | `decorate` | `AnyDecoratorSpec \| AnyDecoratorSpec[]` | Apply arbitrary decorator specs |
+
+Only one of `activity` or `displayActivity` can be provided at a time.
 
 **Result Transformers:**
 

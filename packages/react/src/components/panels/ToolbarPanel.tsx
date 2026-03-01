@@ -17,6 +17,9 @@ interface ToolbarPanelProps {
   onToggleTimeTravel?: () => void;
   performanceMode?: boolean;
   onTogglePerformanceMode?: () => void;
+  activityWindowEnabled?: boolean;
+  activityWindowVisible?: boolean;
+  onToggleActivityWindow?: () => void;
 }
 
 function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
@@ -46,9 +49,13 @@ function ToolbarPanelInner({
   onToggleTimeTravel,
   performanceMode,
   onTogglePerformanceMode,
+  activityWindowEnabled,
+  activityWindowVisible,
+  onToggleActivityWindow,
 }: ToolbarPanelProps) {
   const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
   const toggleTimeFormatLabel = displayTimeAsTimestamp ? 'Show time as number' : 'Show time as timestamp';
+  const toggleActivityLabel = activityWindowVisible ? 'Hide current activity window' : 'Show current activity window';
 
   if (showSidebar) {
     return (
@@ -74,6 +81,17 @@ function ToolbarPanelInner({
                   title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
                 >
                   <ChartIcon />
+                </button>
+              )}
+              {activityWindowEnabled && onToggleActivityWindow && (
+                <button
+                  className={`bt-toolbar__activity-btn ${activityWindowVisible ? 'bt-toolbar__activity-btn--active' : ''}`}
+                  onClick={onToggleActivityWindow}
+                  type="button"
+                  aria-label={toggleActivityLabel}
+                  title={toggleActivityLabel}
+                >
+                  <ActivityIcon />
                 </button>
               )}
               {actions}
@@ -157,6 +175,17 @@ function ToolbarPanelInner({
             title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
           >
             <ChartIcon />
+          </button>
+        )}
+        {activityWindowEnabled && onToggleActivityWindow && (
+          <button
+            className={`bt-toolbar__activity-btn ${activityWindowVisible ? 'bt-toolbar__activity-btn--active' : ''}`}
+            onClick={onToggleActivityWindow}
+            type="button"
+            aria-label={toggleActivityLabel}
+            title={toggleActivityLabel}
+          >
+            <ActivityIcon />
           </button>
         )}
         {actions}
@@ -255,6 +284,22 @@ function ClockIcon() {
       <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="1.8" />
       <path
         d="M12 8v4.2l2.8 1.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ActivityIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
+      <rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M7 12h3l2-3 2.2 6 1.8-3H19"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.8"

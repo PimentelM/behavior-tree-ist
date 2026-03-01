@@ -9,6 +9,8 @@ import type {
   TreeInspector,
   TreeInspectorOptions,
   NodeProfilingData,
+  ActivityBranch,
+  ActivityDisplayMode,
 } from '@behavior-tree-ist/core/inspector';
 
 export interface PanelConfig {
@@ -16,6 +18,7 @@ export interface PanelConfig {
   timeline?: boolean;
   refTraces?: boolean;
   performance?: boolean;
+  activityNow?: boolean;
 }
 
 export interface ThemeOverrides {
@@ -69,6 +72,7 @@ export interface BehaviourTreeDebuggerProps {
   inspectorOptions?: TreeInspectorOptions;
   inspectorRef?: MutableRefObject<TreeInspector | null>;
   panels?: PanelConfig;
+  activityDisplayMode?: ActivityDisplayMode;
   theme?: ThemeOverrides;
   themeMode?: ThemeMode;
   defaultThemeMode?: ThemeMode;
@@ -95,6 +99,8 @@ export interface BTNodeData extends Record<string, unknown> {
   displayState: Record<string, unknown> | undefined;
   displayStateIsStale: boolean;
   isSelected: boolean;
+  isOnActivityPath: boolean;
+  isActivityTail: boolean;
   depth: number;
   representedNodeIds: number[];
   stackedDecorators: NodeDecoratorData[];
@@ -107,6 +113,7 @@ export interface BTNodeData extends Record<string, unknown> {
 
 export interface BTEdgeData extends Record<string, unknown> {
   childResult: NodeResult | null;
+  isOnActivityPathEdge: boolean;
 }
 
 export interface TimeTravelState {
@@ -131,6 +138,7 @@ export interface NodeDetailsData {
   nodeId: number;
   name: string;
   defaultName: string;
+  activity?: string;
   flags: NodeFlags;
   path: string;
   tags: readonly string[];
@@ -146,3 +154,5 @@ export interface NodeDetailsData {
   currentDisplayStateIsStale: boolean;
   profilingData: NodeProfilingData | undefined;
 }
+
+export type ActivityBranchData = ActivityBranch;

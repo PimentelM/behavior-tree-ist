@@ -27,11 +27,13 @@ function BTEdgeComponentInner({
   });
 
   const childResult = data?.childResult ?? null;
+  const isOnActivityPathEdge = data?.isOnActivityPathEdge ?? false;
 
   let className = 'bt-edge-path bt-edge-path--idle';
   if (childResult === NodeResult.Succeeded) className = 'bt-edge-path bt-edge-path--succeeded';
   else if (childResult === NodeResult.Failed) className = 'bt-edge-path bt-edge-path--failed';
   else if (childResult === NodeResult.Running) className = 'bt-edge-path bt-edge-path--running';
+  if (isOnActivityPathEdge) className += ' bt-edge-path--activity-path';
 
   return (
     <BaseEdge

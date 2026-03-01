@@ -23,6 +23,15 @@ export abstract class Decorator extends BTNode {
         return this;
     }
 
+    public override get activity(): string | undefined {
+        return undefined;
+    }
+
+    public override setActivity(activity: string | undefined): this {
+        this.child.setActivity(activity);
+        return this;
+    }
+
     protected override onAbort(ctx: TickContext): void {
         BTNode.Abort(this.child, ctx);
     }

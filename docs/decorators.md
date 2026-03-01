@@ -245,7 +245,7 @@ scoredAction.getScore(ctx);
 
 ## Tag
 
-Adds string tags to a node for filtering and inspection. Unlike other decorators, `Tag` returns the child node itself (with tags added), not a wrapper.
+Adds string classification tags to a node for filtering and inspection. Unlike other decorators, `Tag` returns the child node itself (with tags added), not a wrapper.
 
 ```typescript
 import { Tag, Action, NodeResult } from '@behavior-tree-ist/core';
@@ -260,6 +260,23 @@ tagged.tags; // ['combat', 'offensive']
 ```
 
 Tags can also be added directly: `node.addTags(['combat', 'offensive'])`.
+
+## Activity
+
+Sets a single runtime activity label on a node for compact current-activity displays. `Activity` is metadata-only and returns the child node itself (no wrapper).
+
+```typescript
+import { Activity, Action, NodeResult } from '@behavior-tree-ist/core';
+
+const activityNode = new Activity(
+  Action.from('Attack', () => NodeResult.Succeeded),
+  'Attacking',
+);
+
+activityNode.activity; // 'Attacking'
+```
+
+You can also set it directly via `node.setActivity('Attacking')`.
 
 ## SubTree
 
@@ -294,4 +311,4 @@ const combatBoundary = new SubTree(
 | Lifecycle | OnEnter, OnResume, OnReset, OnTicked, OnSuccess, OnFailure, OnRunning, OnFinished, OnSuccessOrRunning, OnFailedOrRunning, OnAbort | `Lifecycle` |
 | Abort Propagation | NonAbortable | `Decorator` |
 | Scoring | Utility | `Utility` |
-| Metadata | Tag, SubTree | `SubTree` (SubTree only) |
+| Metadata | Tag, Activity, SubTree | `SubTree` (SubTree only) |

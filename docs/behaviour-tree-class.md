@@ -1,6 +1,6 @@
 # BehaviourTree Class
 
-`BehaviourTree` is the top-level wrapper that manages tick execution, tracing, profiling, and serialization.
+`BehaviourTree` is the top-level wrapper that manages tick execution, state tracing, profiling, and serialization.
 
 ## Constructor
 
@@ -33,8 +33,8 @@ const result = tree.tick({ now: Date.now() });
 interface TickRecord {
   tickId: number;             // Auto-incremented tick identifier
   timestamp: number;          // The `now` value used for this tick
-  events: TickTraceEvent[];   // Trace events (empty if tracing is disabled)
-  refEvents: RefChangeEvent[]; // Ref changes recorded during this tick
+  events: TickTraceEvent[];   // Lightweight per-node events (always present for ticked nodes)
+  refEvents: RefChangeEvent[]; // Ref changes recorded during this tick (when state trace is enabled)
 }
 ```
 
@@ -53,27 +53,28 @@ setInterval(() => {
   const record = tree.tick({ now: Date.now() }); // Real-time ms (one common pattern)
 
   if (record.events.length > 0) {
-    // Process trace events if tracing is enabled
+    // Process node events
   }
 }, TICK_RATE);
 ```
 
-## Tracing
+## State Tracing
 
-Tracing records a `TickTraceEvent` for every node ticked. This is the foundation for the [inspector](inspector.md) system.
+`TickTraceEvent` base fields (`tickId`, `timestamp`, `nodeId`, `result`) are always recorded for ticked nodes.  
+State tracing controls heavier state-related capture used by inspector/debugger tooling.
 
 ```typescript
-tree.enableTrace();  // Start recording events
-tree.disableTrace(); // Stop recording (also disables profiling)
+tree.enableStateTrace();   // Enable getDisplayState() + refEvents capture
+tree.disableStateTrace();  // Disable getDisplayState() + refEvents capture
 ```
 
 Both methods return `this` for chaining:
 
 ```typescript
-const tree = new BehaviourTree(root).enableTrace();
+const tree = new BehaviourTree(root).enableStateTrace();
 ```
 
-When tracing is enabled, each tick's `TickRecord.events` array contains one entry per node ticked:
+Each tick's `TickRecord.events` array contains one entry per node ticked:
 
 ```typescript
 type TickTraceEvent = {
@@ -81,7 +82,7 @@ type TickTraceEvent = {
   nodeId: number;
   timestamp: number;
   result: NodeResult;
-  state?: SerializableState;  // Only for Stateful nodes with getDisplayState()
+  state?: SerializableState;  // Included when state tracing is enabled
   startedAt?: number;         // Profiling timing (if enabled)
   finishedAt?: number;        // Profiling timing (if enabled)
 };
@@ -96,7 +97,7 @@ tree.enableProfiling(performance.now.bind(performance));
 tree.disableProfiling();
 ```
 
-`enableProfiling()` implicitly enables tracing. Each trace event will include `startedAt` and `finishedAt` timestamps from the provided function, enabling per-node execution time measurement.
+Profiling is independent from state tracing. Each tick event includes `startedAt` and `finishedAt` when profiling is enabled.
 
 ## Serialization
 
@@ -119,6 +120,7 @@ interface SerializableNode {
   children?: SerializableNode[];
   state?: SerializableState;   // Only with includeState
   tags?: readonly string[];
+  activity?: string;
 }
 ```
 
@@ -128,7 +130,7 @@ All configuration methods return `this`:
 
 ```typescript
 const tree = new BehaviourTree(root)
-  .enableTrace()
+  .enableStateTrace()
   .enableProfiling(performance.now.bind(performance));
 ```
 
@@ -140,7 +142,7 @@ The typical pattern for runtime debugging:
 import { BehaviourTree } from '@behavior-tree-ist/core';
 import { TreeInspector } from '@behavior-tree-ist/core/inspector';
 
-const tree = new BehaviourTree(root).enableTrace();
+const tree = new BehaviourTree(root).enableStateTrace();
 const inspector = new TreeInspector({ maxTicks: 2000 });
 
 // Index tree structure once

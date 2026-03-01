@@ -6,6 +6,7 @@ export default defineConfig({
     builder: 'src/builder/index.ts',
     tsx: 'src/tsx/index.ts',
     inspector: 'src/inspector/index.ts',
+    activity: 'src/activity/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

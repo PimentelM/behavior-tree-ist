@@ -22,6 +22,7 @@ export class TreeIndex {
             defaultName: node.defaultName,
             name: node.name,
             tags,
+            activity: node.activity,
             parentId,
             childrenIds,
             depth,

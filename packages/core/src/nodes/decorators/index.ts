@@ -25,6 +25,7 @@ export * from './succeed-if';
 export * from './fail-if';
 export * from './keep-running-until-failure';
 export * from './tag';
+export * from './activity';
 export * from './delay';
 export * from './run-once';
 export * from './utility';

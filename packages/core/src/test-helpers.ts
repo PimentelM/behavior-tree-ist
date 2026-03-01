@@ -9,7 +9,7 @@ export function createTickContext(overrides: Partial<TickContext> = {}): TickCon
         now: 0,
         events: [],
         refEvents: [],
-        isTracingEnabled: true,
+        isStateTraceEnabled: true,
         trace: () => { },
         ...overrides,
     };
@@ -49,7 +49,7 @@ export function createTracingTickContext(overrides: Partial<TickContext> = {}): 
         tickId: 1,
         now: 0,
         refEvents: [],
-        isTracingEnabled: true,
+        isStateTraceEnabled: true,
         ...overrides,
         events,
         trace: (node: BTNode, result: NodeResult, _startedAt?: number, _finishedAt?: number) => {

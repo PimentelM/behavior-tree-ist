@@ -29,7 +29,7 @@ export class Ref<T> implements ReadonlyRef<T> {
         this._value = newValue;
 
         const effectiveCtx = ctx ?? AmbientContext.getTickContext();
-        if (!effectiveCtx || !effectiveCtx.isTracingEnabled || this.name === undefined) return;
+        if (!effectiveCtx || !effectiveCtx.isStateTraceEnabled || this.name === undefined) return;
 
         const nodeId = mutationNodeId ?? AmbientContext.getCurrentMutationNodeId();
         const event: RefChangeEvent = {

@@ -12,7 +12,7 @@ export class BehaviourTree {
     public readonly treeId: number = BehaviourTree.NEXT_TREE_ID++;
     private currentTickId: number = 1;
     private root: BTNode;
-    private traceEnabled: boolean = false;
+    private stateTraceEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
 
     private runtime: TickRuntime = {
@@ -26,20 +26,18 @@ export class BehaviourTree {
         this.root = root;
     }
 
-    public enableTrace(): BehaviourTree {
-        this.traceEnabled = true;
+    public enableStateTrace(): BehaviourTree {
+        this.stateTraceEnabled = true;
         return this;
     }
 
-    public disableTrace(): BehaviourTree {
-        this.traceEnabled = false;
-        this.profilingTimeProvider = undefined;
+    public disableStateTrace(): BehaviourTree {
+        this.stateTraceEnabled = false;
         return this;
     }
 
     public enableProfiling(getTime: () => number): BehaviourTree {
         this.profilingTimeProvider = getTime;
-        this.traceEnabled = true;
         return this;
     }
 
@@ -66,10 +64,9 @@ export class BehaviourTree {
             now,
             events,
             refEvents,
-            isTracingEnabled: this.traceEnabled,
+            isStateTraceEnabled: this.stateTraceEnabled,
             runtime: this.runtime,
             trace: (node, result, startedAt, finishedAt) => {
-                if (!this.traceEnabled) return;
                 const event: TickTraceEvent = {
                     tickId: ctx.tickId,
                     timestamp: ctx.now,
@@ -77,7 +74,7 @@ export class BehaviourTree {
                     result
                 };
 
-                if (node.getDisplayState) {
+                if (this.stateTraceEnabled && node.getDisplayState) {
                     const state = node.getDisplayState();
                     if (state) {
                         event.state = state;
@@ -95,7 +92,7 @@ export class BehaviourTree {
         }
 
         // Pick up pending ref events from between ticks
-        if (this.runtime.pendingRefEvents.length > 0) {
+        if (this.runtime.pendingRefEvents.length > 0 && this.stateTraceEnabled) {
             for (const refEvent of this.runtime.pendingRefEvents) {
                 refEvent.tickId = tickId; // Attribute to this tick
                 refEvent.isAsync = true;
@@ -103,6 +100,9 @@ export class BehaviourTree {
                 refEvent.nodeId = refEvent.nodeId ?? this.root.id;
                 refEvents.push(refEvent);
             }
+            this.runtime.pendingRefEvents = [];
+        } else if (this.runtime.pendingRefEvents.length > 0) {
+            // State tracing is disabled; drop deferred ref events.
             this.runtime.pendingRefEvents = [];
         }
 

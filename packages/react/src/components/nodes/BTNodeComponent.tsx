@@ -23,6 +23,8 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
     displayState,
     displayStateIsStale,
     isSelected,
+    isOnActivityPath,
+    isActivityTail,
     visualKind,
     stackedDecorators,
     lifecycleDecorators,
@@ -53,7 +55,16 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
   const hasRefEvents = refEvents.length > 0;
 
   return (
-    <div className={`bt-node bt-node--${visualKind} ${isSelected ? 'bt-node--selected' : ''} ${hasState ? 'bt-node--with-state' : ''}`}>
+    <div
+      className={[
+        'bt-node',
+        `bt-node--${visualKind}`,
+        isSelected ? 'bt-node--selected' : '',
+        hasState ? 'bt-node--with-state' : '',
+        isOnActivityPath ? 'bt-node--activity-path' : '',
+        isActivityTail ? 'bt-node--activity-tail' : '',
+      ].filter(Boolean).join(' ')}
+    >
       <Handle type="target" position={Position.Top} />
       <div
         className="bt-node__accent"

@@ -64,7 +64,7 @@ describe("SubTree Decorator", () => {
             now: Date.now(),
             events: [],
             refEvents: [],
-            isTracingEnabled: false,
+            isStateTraceEnabled: false,
             trace: () => { }
         });
 

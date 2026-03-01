@@ -252,6 +252,34 @@ describe("TSX Adapter", () => {
         expect(tree.tags.length).toBe(3);
     });
 
+    it("accepts activity or displayActivity props", () => {
+        const withActivity = (
+            <action
+                activity="Attacking"
+                execute={() => NodeResult.Succeeded}
+            />
+        );
+        expect(withActivity.activity).toBe("Attacking");
+
+        const withAlias = (
+            <action
+                displayActivity="Kiting"
+                execute={() => NodeResult.Succeeded}
+            />
+        );
+        expect(withAlias.activity).toBe("Kiting");
+    });
+
+    it("throws when both activity and displayActivity props are provided", () => {
+        expect(() => (
+            <action
+                activity="Attacking"
+                displayActivity="Attacking"
+                execute={() => NodeResult.Succeeded}
+            />
+        )).toThrow("Only one activity label prop is allowed");
+    });
+
     it("can create utility fallbacks and wrap children in utility-node", () => {
         const tree = (
             <utility-fallback name="MyUtilityFallback">

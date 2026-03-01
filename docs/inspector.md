@@ -10,8 +10,8 @@ For a visual debugger that wraps the inspector APIs, see the [`@behavior-tree-is
 import { BehaviourTree } from '@behavior-tree-ist/core';
 import { TreeInspector } from '@behavior-tree-ist/core/inspector';
 
-// 1. Create tree with tracing enabled
-const tree = new BehaviourTree(root).enableTrace();
+// 1. Create tree with state tracing enabled (optional for display/ref state)
+const tree = new BehaviourTree(root).enableStateTrace();
 
 // 2. Create inspector
 const inspector = new TreeInspector({ maxTicks: 2000 });
@@ -54,6 +54,10 @@ class TreeInspector {
   getNodeResultSummary(nodeId: number): Map<NodeResult, number>;
   getStoredTickIds(): number[];
   getTickRange(from: number, to: number): TickRecord[];
+
+  // Activity projection
+  getActivitySnapshotAtTick(tickId: number, mode?: ActivityDisplayMode): ActivitySnapshot | undefined;
+  getLatestActivitySnapshot(mode?: ActivityDisplayMode): ActivitySnapshot | undefined;
 
   // Profiling
   getNodeProfilingData(nodeId: number): NodeProfilingData | undefined;
@@ -112,9 +116,35 @@ interface IndexedNode {
   defaultName: string;
   name: string;
   tags: readonly string[];
+  activity: string | undefined;
   parentId: number | undefined;
   childrenIds: number[];
   depth: number;
+}
+```
+
+## Activity Projection
+
+Inspector can derive compact activity branches from tick events and serialized tree metadata:
+
+```typescript
+const activity = inspector.getLatestActivitySnapshot('running_or_success');
+
+for (const branch of activity?.branches ?? []) {
+  console.log(branch.labels.join(' > '));
+}
+```
+
+`ActivityBranch` entries are keyed by the last node in the path that defines `activity`:
+
+```typescript
+interface ActivityBranch {
+  labels: readonly string[];      // e.g. ["Guarding", "Diagnostics", "Diagnostics Loop"]
+  nodeIds: readonly number[];     // activity-labeled node ids for labels[]
+  pathNodeIds: readonly number[]; // full root -> tail path (for UI highlighting)
+  tailNodeId: number;             // click/select target for this activity entry
+  tailResult: NodeResult;         // result of tailNodeId in this tick
+  lastEventIndex: number;         // ordering hint (latest first)
 }
 ```
 

@@ -25,7 +25,6 @@ describe("BehaviourTree", () => {
     it("increments tickId each tick", () => {
         const root = new StubAction(NodeResult.Succeeded);
         const tree = new BehaviourTree(root);
-        tree.enableTrace();
 
         const tick1 = tree.tick({ now: 0 });
         const tick2 = tree.tick({ now: 100 });
@@ -37,38 +36,52 @@ describe("BehaviourTree", () => {
     it("uses provided now", () => {
         const root = new StubAction(NodeResult.Succeeded);
         const tree = new BehaviourTree(root);
-        tree.enableTrace();
 
         const tick = tree.tick({ now: 999 });
 
         expect(tick.timestamp).toBe(999);
     });
 
-    it("returns empty events when tracing disabled", () => {
+    it("returns lightweight events when state tracing is disabled", () => {
         const root = new StubAction(NodeResult.Succeeded);
         const tree = new BehaviourTree(root);
 
         const { events } = tree.tick({ now: 0 });
 
-        expect(events).toEqual([]);
+        expect(events).toEqual([{
+            tickId: 1,
+            timestamp: 0,
+            nodeId: root.id,
+            result: NodeResult.Succeeded,
+        }]);
     });
 
-    describe('tracing', () => {
-        it("returns events when tracing enabled", () => {
+    describe('state tracing', () => {
+        it("returns events regardless of state trace mode", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableTrace();
+
+            const noStateTrace = tree.tick({ now: 0 });
+            tree.enableStateTrace();
+            const withStateTrace = tree.tick({ now: 1 });
+
+            expect(noStateTrace.events).toHaveLength(1);
+            expect(withStateTrace.events).toHaveLength(1);
+        });
+
+        it("omits node state from events when state tracing is disabled", () => {
+            const wait = new Sleep(500);
+            const tree = new BehaviourTree(wait);
 
             const { events } = tree.tick({ now: 0 });
 
-            expect(events).toHaveLength(1);
-            expect(events[0].result).toBe(NodeResult.Succeeded);
+            expect(events.find(e => e.nodeId === wait.id)?.state).toBeUndefined();
         });
 
         it("trace events contain correct node metadata", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             const { events } = tree.tick({ now: 100 });
 
@@ -80,11 +93,11 @@ describe("BehaviourTree", () => {
             });
         });
 
-        it("enableTrace and disableTrace support chaining", () => {
+        it("enableStateTrace and disableStateTrace support chaining", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
 
-            const result = tree.enableTrace().disableTrace();
+            const result = tree.enableStateTrace().disableStateTrace();
 
             expect(result).toBe(tree);
         });
@@ -104,7 +117,7 @@ describe("BehaviourTree", () => {
             const fallback1 = action({ name: "fallback1", execute: () => NodeResult.Succeeded });
             const root = fallback({ name: "root" }, [seq1, seq2, fallback1]);
 
-            const tree = new BehaviourTree(root).enableTrace();
+            const tree = new BehaviourTree(root);
 
             const { events } = tree.tick({ now: 0 });
 
@@ -126,7 +139,7 @@ describe("BehaviourTree", () => {
             const innerAction = Action.from("decoratedNode", () => NodeResult.Succeeded);
             const throttle = new Throttle(innerAction, 1000);
             const root = sequence({ name: "root" }, [isReady, doSomething, throttle]);
-            const tree = new BehaviourTree(root).enableTrace();
+            const tree = new BehaviourTree(root).enableStateTrace();
 
             const { events: events1 } = tree.tick({ now: 1 });
             expect(events1.map(e => [e.nodeId, e.result])).toEqual([
@@ -150,7 +163,7 @@ describe("BehaviourTree", () => {
 
         it('includes state in trace events for stateful nodes', () => {
             const wait = new Sleep(500);
-            const tree = new BehaviourTree(wait).enableTrace();
+            const tree = new BehaviourTree(wait).enableStateTrace();
 
             const { events: events1 } = tree.tick({ now: 0 });
             expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual({ remainingTime: 500 });
@@ -163,7 +176,7 @@ describe("BehaviourTree", () => {
     describe('refEvents', () => {
         it("tick() returns refEvents in TickRecord", () => {
             const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root).enableTrace();
+            const tree = new BehaviourTree(root).enableStateTrace();
 
             const record = tree.tick({ now: 0 });
 
@@ -176,7 +189,7 @@ describe("BehaviourTree", () => {
                 counter.value = 1;
                 return NodeResult.Succeeded;
             });
-            const tree = new BehaviourTree(root).enableTrace();
+            const tree = new BehaviourTree(root).enableStateTrace();
 
             const record = tree.tick({ now: 100 });
 
@@ -194,7 +207,7 @@ describe("BehaviourTree", () => {
         it("empty refEvents when no refs written", () => {
             const _unused = ref(0, "unused");
             const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root).enableTrace();
+            const tree = new BehaviourTree(root).enableStateTrace();
 
             const record = tree.tick({ now: 0 });
 
@@ -207,7 +220,7 @@ describe("BehaviourTree", () => {
                 myNumber.value = 123;
                 return NodeResult.Succeeded;
             });
-            const tree = new BehaviourTree(root).enableTrace();
+            const tree = new BehaviourTree(root).enableStateTrace();
 
             const record = tree.tick({ now: 100 });
 
@@ -226,7 +239,7 @@ describe("BehaviourTree", () => {
                     return NodeResult.Succeeded;
                 });
 
-                const tree = new BehaviourTree(asyncNode).enableTrace();
+                const tree = new BehaviourTree(asyncNode).enableStateTrace();
 
                 // Tick 1: Starts the async action
                 const tick1 = tree.tick();
@@ -258,7 +271,7 @@ describe("BehaviourTree", () => {
                     return NodeResult.Succeeded;
                 });
 
-                const tree = new BehaviourTree(asyncNode).enableTrace();
+                const tree = new BehaviourTree(asyncNode).enableStateTrace();
 
                 // Tick 1: Starts the async action
                 const tick1 = tree.tick();
@@ -291,7 +304,7 @@ describe("BehaviourTree", () => {
             expect(events[0].finishedAt).toBeDefined();
         });
 
-        it("enableProfiling implicitly enables tracing", () => {
+        it("enableProfiling emits timing events without state tracing", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
             tree.enableProfiling(() => 0);
@@ -299,6 +312,8 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
+            expect(events[0].startedAt).toBeDefined();
+            expect(events[0].finishedAt).toBeDefined();
         });
 
         it("disableProfiling stops profiling data but keeps tracing", () => {
@@ -314,29 +329,32 @@ describe("BehaviourTree", () => {
             expect(events[0].finishedAt).toBeUndefined();
         });
 
-        it("disableTrace also disables profiling", () => {
+        it("disableStateTrace does not disable profiling timings", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
             tree.enableProfiling(() => 0);
-            tree.disableTrace();
-
-            const { events } = tree.tick({ now: 0 });
-
-            expect(events).toHaveLength(0);
-        });
-
-        it("re-enabling trace after disableTrace does not restore profiling", () => {
-            const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
-            tree.disableTrace();
-            tree.enableTrace();
+            tree.disableStateTrace();
 
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
-            expect(events[0].startedAt).toBeUndefined();
-            expect(events[0].finishedAt).toBeUndefined();
+            expect(events[0].startedAt).toBeDefined();
+            expect(events[0].finishedAt).toBeDefined();
+            expect(events[0].state).toBeUndefined();
+        });
+
+        it("re-enabling state trace after disable does not affect profiling timings", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            tree.enableProfiling(() => 0);
+            tree.disableStateTrace();
+            tree.enableStateTrace();
+
+            const { events } = tree.tick({ now: 0 });
+
+            expect(events).toHaveLength(1);
+            expect(events[0].startedAt).toBeDefined();
+            expect(events[0].finishedAt).toBeDefined();
         });
 
         it("nested node timing: parent startedAt < child startedAt, parent finishedAt > child finishedAt", () => {
@@ -359,10 +377,10 @@ describe("BehaviourTree", () => {
             expect(rootEvent.finishedAt!).toBeGreaterThan(childEvent.finishedAt!);
         });
 
-        it("no startedAt/finishedAt when only tracing (no profiling)", () => {
+        it("no startedAt/finishedAt when only state tracing (no profiling)", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             const { events } = tree.tick({ now: 0 });
 

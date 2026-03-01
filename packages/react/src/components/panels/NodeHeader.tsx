@@ -10,6 +10,7 @@ function NodeHeaderInner({ details }: NodeHeaderProps) {
   const {
     name,
     defaultName,
+    activity,
     flags,
     path,
     tags,
@@ -46,6 +47,11 @@ function NodeHeaderInner({ details }: NodeHeaderProps) {
         )}
       </div>
       <div className="bt-node-header__path">{path}</div>
+      {activity && (
+        <div className="bt-node-header__activity" title="Node activity label">
+          {activity}
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
         <span
           style={{

@@ -170,13 +170,13 @@ describe("Ref", () => {
             });
         });
 
-        it("does not produce RefChangeEvent when isTracingEnabled is false", () => {
+        it("does not produce RefChangeEvent when isStateTraceEnabled is false", () => {
             const counter = ref(0, "counter");
             const node = Action.from("inc", () => {
                 counter.value = 1;
                 return NodeResult.Succeeded;
             });
-            const ctx = createTickContext({ tickId: 5, now: 100, isTracingEnabled: false });
+            const ctx = createTickContext({ tickId: 5, now: 100, isStateTraceEnabled: false });
 
             BTNode.Tick(node, ctx);
 

@@ -64,6 +64,7 @@ export function useNodeDetails(
       nodeId: selectedNodeId,
       name: indexed.name,
       defaultName: indexed.defaultName,
+      activity: indexed.activity,
       flags: indexed.nodeFlags,
       path: treeIndex.getPathString(selectedNodeId),
       tags: indexed.tags,

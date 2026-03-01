@@ -139,4 +139,32 @@ describe("Subtree Builder Factory", () => {
 
         expect(child.abortCount).toBe(0);
     });
+
+    it("supports activity metadata and displayActivity alias", () => {
+        const byActivity = action({
+            activity: "Patrolling",
+            execute: () => NodeResult.Succeeded,
+        });
+        expect(byActivity.activity).toBe("Patrolling");
+
+        const byAlias = action({
+            displayActivity: "Kiting",
+            execute: () => NodeResult.Succeeded,
+        });
+        expect(byAlias.activity).toBe("Kiting");
+    });
+
+    it("throws when both activity and displayActivity are provided", () => {
+        expect(() => action({
+            activity: "A",
+            displayActivity: "A",
+            execute: () => NodeResult.Succeeded,
+        })).toThrow("Only one activity label prop is allowed");
+
+        expect(() => action({
+            activity: "A",
+            displayActivity: "B",
+            execute: () => NodeResult.Succeeded,
+        })).toThrow("Only one activity label prop is allowed");
+    });
 });

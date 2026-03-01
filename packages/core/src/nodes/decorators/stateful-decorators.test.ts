@@ -48,7 +48,7 @@ describe("Stateful decorators in context", () => {
             const wait = new Sleep(500);
             const timeout = new Timeout(wait, 200);
             const tree = new BehaviourTree(timeout);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             tree.tick({ now: 100 });       // wait Running, timeout starts
             const { events: events1 } = tree.tick({ now: 300 });  // 200ms elapsed -> timeout fires, aborts wait
@@ -60,7 +60,7 @@ describe("Stateful decorators in context", () => {
             const wait = new Sleep(100);
             const timeout = new Timeout(wait, 500);
             const tree = new BehaviourTree(timeout);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             tree.tick({ now: 100 });
             const { events } = tree.tick({ now: 200 });
@@ -72,7 +72,7 @@ describe("Stateful decorators in context", () => {
             const wait = new Sleep(100);
             const timeout = new Timeout(wait, 500);
             const tree = new BehaviourTree(timeout);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             // First: wait completes
             tree.tick({ now: 100 });
@@ -139,7 +139,7 @@ describe("Stateful decorators in context", () => {
             const throttledAction = new Throttle(action, 1000);
             const sequence = Sequence.from([condition, throttledAction]);
             const tree = new BehaviourTree(sequence);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             tree.tick({ now: 5000 });     // condition passes, action succeeds
             const { events } = tree.tick({ now: 5100 });  // condition passes, throttle -> Failed
@@ -153,7 +153,7 @@ describe("Stateful decorators in context", () => {
             const throttledAction = new Throttle(action, 1000);
             const sequence = Sequence.from([condition, throttledAction]);
             const tree = new BehaviourTree(sequence);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             tree.tick({ now: 5000 });
             const { events } = tree.tick({ now: 6000 });
@@ -204,7 +204,7 @@ describe("Stateful decorators in context", () => {
             const throttle2 = new Throttle(action2, 1000);
             const selector = Fallback.from([throttle1, throttle2]);
             const tree = new BehaviourTree(selector);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             // Both throttles tick (both children fail, selector sees all Failed)
             tree.tick({ now: 5000 });
@@ -237,7 +237,7 @@ describe("Stateful decorators in context", () => {
             const child = new StubAction([NodeResult.Running, NodeResult.Succeeded]);
             const timeout = new Timeout(child, 1000);
             const tree = new BehaviourTree(timeout);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             tree.tick({ now: 100 });
             const { events } = tree.tick({ now: 600 });
@@ -252,7 +252,7 @@ describe("Stateful decorators in context", () => {
             ]);
             const timeout = new Timeout(child, 100);
             const tree = new BehaviourTree(timeout);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             tree.tick({ now: 100 });       // Running, timer starts at 100
             tree.tick({ now: 150 });       // Succeeded, timer resets
@@ -266,7 +266,7 @@ describe("Stateful decorators in context", () => {
             const child = new StubAction(NodeResult.Running);
             const timeout = new Timeout(child, 100);
             const tree = new BehaviourTree(timeout);
-            tree.enableTrace();
+            tree.enableStateTrace();
 
             tree.tick({ now: 100 });
             const { events } = tree.tick({ now: 200 });

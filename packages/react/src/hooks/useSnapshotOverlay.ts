@@ -11,6 +11,8 @@ export function useSnapshotOverlay(
   inspector: TreeInspector,
   tickId: number | null,
   selectedNodeId: number | null,
+  activityPathNodeIds: readonly number[] | undefined,
+  activityTailNodeId: number | null,
   refEventsByNodeId: Map<number, RefChangeEvent[]>,
   onSelectNode: (nodeId: number) => void,
   tickGeneration: number,
@@ -45,9 +47,13 @@ export function useSnapshotOverlay(
 
     const rememberedStateByNode = new Map<number, Record<string, unknown> | undefined>();
     const representedNodeIdToHostNodeId = new Map<number, number>();
+    const representedNodeIdsByHostNodeId = new Map<number, number[]>();
+    const highlightedHostEdgeIds = new Set<string>();
+    const activityPathNodeIdsSet = activityPathNodeIds ? new Set(activityPathNodeIds) : undefined;
     const stateLookupTick = tickId ?? undefined;
 
     for (const node of baseNodes) {
+      representedNodeIdsByHostNodeId.set(node.data.nodeId, [...node.data.representedNodeIds]);
       for (const representedNodeId of node.data.representedNodeIds) {
         representedNodeIdToHostNodeId.set(representedNodeId, node.data.nodeId);
       }
@@ -63,6 +69,39 @@ export function useSnapshotOverlay(
           decorator.nodeId,
           decoratorState as Record<string, unknown> | undefined,
         );
+      }
+    }
+
+    if (activityPathNodeIds && activityPathNodeIds.length > 1) {
+      const pathNodeIds = activityPathNodeIds;
+      const pathNodeIndexById = new Map<number, number>();
+      for (let i = 0; i < pathNodeIds.length; i++) {
+        pathNodeIndexById.set(pathNodeIds[i], i);
+      }
+
+      for (const baseEdge of baseEdges) {
+        const sourceNodeId = parseInt(baseEdge.source, 10);
+        const targetNodeId = parseInt(baseEdge.target, 10);
+        const sourceRepresentedNodeIds = representedNodeIdsByHostNodeId.get(sourceNodeId);
+        const targetRepresentedNodeIds = representedNodeIdsByHostNodeId.get(targetNodeId);
+        if (!sourceRepresentedNodeIds || !targetRepresentedNodeIds) continue;
+
+        let sourcePathIndex = -1;
+        let targetPathIndex = -1;
+        for (const representedNodeId of sourceRepresentedNodeIds) {
+          const index = pathNodeIndexById.get(representedNodeId);
+          if (index !== undefined) sourcePathIndex = Math.max(sourcePathIndex, index);
+        }
+        for (const representedNodeId of targetRepresentedNodeIds) {
+          const index = pathNodeIndexById.get(representedNodeId);
+          if (index !== undefined && (targetPathIndex === -1 || index < targetPathIndex)) {
+            targetPathIndex = index;
+          }
+        }
+
+        if (sourcePathIndex === -1 || targetPathIndex === -1) continue;
+        if (targetPathIndex <= sourcePathIndex) continue;
+        highlightedHostEdgeIds.add(baseEdge.id);
       }
     }
 
@@ -125,6 +164,10 @@ export function useSnapshotOverlay(
         && tickId !== null
         && (nodeSnapshot === undefined || snapshotState === undefined);
       const nextIsSelected = isNodeSelected(baseNode.data.representedNodeIds);
+      const nextIsOnActivityPath = activityPathNodeIdsSet !== undefined
+        && baseNode.data.representedNodeIds.some((nodeId) => activityPathNodeIdsSet.has(nodeId));
+      const nextIsActivityTail = activityTailNodeId !== null
+        && baseNode.data.representedNodeIds.includes(activityTailNodeId);
       const nextRefEvents = (refEventsByNodeId.get(baseNode.data.nodeId) ?? []).map((event) => ({
         refName: event.refName,
         newValue: event.newValue,
@@ -169,6 +212,8 @@ export function useSnapshotOverlay(
         && hasSameBaseNodeShape(previousNode, baseNode)
         && previousNode.data.result === nextResult
         && previousNode.data.isSelected === nextIsSelected
+        && previousNode.data.isOnActivityPath === nextIsOnActivityPath
+        && previousNode.data.isActivityTail === nextIsActivityTail
         && previousNode.selected === nextIsSelected
         && previousNode.data.displayStateIsStale === nextDisplayStateIsStale
         && shallowEqualRecord(previousNode.data.displayState, nextDisplayState)
@@ -188,6 +233,8 @@ export function useSnapshotOverlay(
           displayState: nextDisplayState,
           displayStateIsStale: nextDisplayStateIsStale,
           isSelected: nextIsSelected,
+          isOnActivityPath: nextIsOnActivityPath,
+          isActivityTail: nextIsActivityTail,
           refEvents: nextRefEvents,
           stackedDecorators: nextStackedDecorators,
           selectedNodeId,
@@ -204,12 +251,14 @@ export function useSnapshotOverlay(
       const targetNodeId = parseInt(baseEdge.target, 10);
       const childResult = nodeResultById.get(targetNodeId) ?? null;
       const nextAnimated = childResult === NodeResult.Running;
+      const nextIsOnActivityPathEdge = highlightedHostEdgeIds.has(baseEdge.id);
 
       const previousEdge = previousEdgesById.get(baseEdge.id);
       if (
         previousEdge
         && hasSameBaseEdgeShape(previousEdge, baseEdge)
         && previousEdge.data?.childResult === childResult
+        && previousEdge.data?.isOnActivityPathEdge === nextIsOnActivityPathEdge
         && previousEdge.animated === nextAnimated
       ) {
         nextEdgesById.set(baseEdge.id, previousEdge);
@@ -218,7 +267,7 @@ export function useSnapshotOverlay(
 
       const nextEdge: Edge<BTEdgeData> = {
         ...baseEdge,
-        data: { ...baseEdge.data, childResult } as BTEdgeData,
+        data: { ...baseEdge.data, childResult, isOnActivityPathEdge: nextIsOnActivityPathEdge } as BTEdgeData,
         animated: nextAnimated,
       };
 
@@ -233,7 +282,18 @@ export function useSnapshotOverlay(
 
     return { nodes, edges };
     // tickGeneration is used to trigger re-computation when new ticks arrive
-  }, [baseNodes, baseEdges, inspector, tickId, selectedNodeId, refEventsByNodeId, onSelectNode, tickGeneration]);
+  }, [
+    baseNodes,
+    baseEdges,
+    inspector,
+    tickId,
+    selectedNodeId,
+    activityPathNodeIds,
+    activityTailNodeId,
+    refEventsByNodeId,
+    onSelectNode,
+    tickGeneration,
+  ]);
 }
 
 function getUtilityScores(

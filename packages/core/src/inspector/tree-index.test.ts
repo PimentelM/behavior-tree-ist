@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { NodeFlags, SerializableNode } from "../base/types";
 import { TreeIndex } from "./tree-index";
 
+// TODO: Extract shared SerializableNode test stubs into a common test-stubs module.
 function makeTree(): SerializableNode {
     return {
         id: 1,
@@ -95,6 +96,14 @@ describe("TreeIndex", () => {
         expect(index.getById(1)!.childrenIds).toEqual([2, 6]);
         expect(index.getById(2)!.childrenIds).toEqual([3, 5]);
         expect(index.getById(4)!.childrenIds).toEqual([]);
+    });
+
+    it("stores optional activity metadata", () => {
+        const withActivity = makeTree();
+        withActivity.activity = "RootActivity";
+        const index = new TreeIndex(withActivity);
+        expect(index.getById(1)!.activity).toBe("RootActivity");
+        expect(index.getById(2)!.activity).toBeUndefined();
     });
 
     it("pre-order traversal", () => {

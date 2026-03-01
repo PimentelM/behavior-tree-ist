@@ -45,6 +45,16 @@
         "types": "./dist/inspector.d.ts",
         "default": "./dist/inspector.js"
       }
+    },
+    "./activity": {
+      "import": {
+        "types": "./dist/activity.d.mts",
+        "default": "./dist/activity.mjs"
+      },
+      "require": {
+        "types": "./dist/activity.d.ts",
+        "default": "./dist/activity.js"
+      }
     }
   },
   "files": [

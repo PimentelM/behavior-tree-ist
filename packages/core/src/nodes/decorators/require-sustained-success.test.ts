@@ -8,7 +8,7 @@ describe("RequireSustainedSuccess", () => {
     it("returns failed until child node has succeeded for the required duration", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const requireSustainedSuccess = new RequireSustainedSuccess(child, 100);
-        const tree = new BehaviourTree(requireSustainedSuccess).enableTrace();
+        const tree = new BehaviourTree(requireSustainedSuccess).enableStateTrace();
 
         const { events } = tree.tick({ now: 0 }); // child is Succeeded, but duration not met
 
@@ -18,7 +18,7 @@ describe("RequireSustainedSuccess", () => {
     it("returns succeeded only after the child remains successful for the complete duration", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const requireSustainedSuccess = new RequireSustainedSuccess(child, 100);
-        const tree = new BehaviourTree(requireSustainedSuccess).enableTrace();
+        const tree = new BehaviourTree(requireSustainedSuccess).enableStateTrace();
 
         tree.tick({ now: 0 }); // first success
         tree.tick({ now: 50 }); // still succeeding, but duration not met
@@ -30,7 +30,7 @@ describe("RequireSustainedSuccess", () => {
     it("resets success timer and requires fresh sustained success if child returns Running", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const requireSustainedSuccess = new RequireSustainedSuccess(child, 100);
-        const tree = new BehaviourTree(requireSustainedSuccess).enableTrace();
+        const tree = new BehaviourTree(requireSustainedSuccess).enableStateTrace();
 
         tree.tick({ now: 0 }); // first success
 
@@ -46,7 +46,7 @@ describe("RequireSustainedSuccess", () => {
     it("works correctly when the first success occurs exactly at tick 0", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const requireSustainedSuccess = new RequireSustainedSuccess(child, 100);
-        const tree = new BehaviourTree(requireSustainedSuccess).enableTrace();
+        const tree = new BehaviourTree(requireSustainedSuccess).enableStateTrace();
 
         // First success at now=0
         const { events: e1 } = tree.tick({ now: 0 });
@@ -62,7 +62,7 @@ describe("RequireSustainedSuccess", () => {
     it("resets success timer and requires fresh sustained success if child returns Failed", () => {
         const child = new StubAction(NodeResult.Succeeded);
         const requireSustainedSuccess = new RequireSustainedSuccess(child, 100);
-        const tree = new BehaviourTree(requireSustainedSuccess).enableTrace();
+        const tree = new BehaviourTree(requireSustainedSuccess).enableStateTrace();
 
         tree.tick({ now: 0 }); // first success
 
