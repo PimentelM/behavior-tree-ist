@@ -30,7 +30,7 @@ export class MockClientProcess {
         // We simulate the game loop checking the tree
         this.timer = setInterval(() => {
             if (this.tree) {
-                this.tree.tick();
+                this.tree.tick({ now: Date.now() });
             }
             if (this.agent) {
                 this.agent.tick({ now: Date.now() });

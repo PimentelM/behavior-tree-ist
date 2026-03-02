@@ -8,7 +8,8 @@ import { StudioService } from "../domain";
 import { WebSocketHandler } from "./websocket-handler";
 import { RouterContext, appRouter } from "./router";
 import * as ws from "ws";
-import { createHTTPServer } from "@trpc/server/adapters/standalone";
+import http from "http";
+import { createHTTPHandler } from "@trpc/server/adapters/standalone";
 
 export type StudioServer = {
     wss: ws.WebSocketServer;
@@ -56,9 +57,28 @@ export function createStudioServer(options: StudioServerOptions = {}): StudioSer
         service
     };
 
-    const server = createHTTPServer({
+    const trpcHandler = createHTTPHandler({
         router: appRouter,
         createContext: () => trpcCtx,
+        basePath: '/trpc/',
+    });
+
+    const CORS_HEADERS = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+
+    const server = http.createServer((req, res) => {
+        // Handle CORS preflight
+        if (req.method === 'OPTIONS') {
+            res.writeHead(204, CORS_HEADERS);
+            res.end();
+            return;
+        }
+        // Inject CORS headers on every response
+        Object.entries(CORS_HEADERS).forEach(([k, v]) => res.setHeader(k, v));
+        trpcHandler(req, res);
     });
 
     server.listen(options.port ?? 3000);

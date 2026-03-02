@@ -5,6 +5,7 @@ export interface CliArgs {
     host: string;
     port: number;
     uiPort: number;
+    serverUrl: string | null;
 }
 
 export function parseArgs(argv: string[]): CliArgs {
@@ -15,6 +16,7 @@ export function parseArgs(argv: string[]): CliArgs {
         host: '127.0.0.1',
         port: 3000,
         uiPort: 5173,
+        serverUrl: process.env.STUDIO_SERVER_URL ?? process.env.VITE_STUDIO_SERVER_URL ?? null,
     };
 
     let hasExplicitFlags = false;
@@ -41,6 +43,8 @@ export function parseArgs(argv: string[]): CliArgs {
             args.port = parseInt(argv[++i], 10);
         } else if (arg === '--ui-port' && i + 1 < argv.length) {
             args.uiPort = parseInt(argv[++i], 10);
+        } else if (arg === '--server-url' && i + 1 < argv.length) {
+            args.serverUrl = argv[++i];
         }
     }
 

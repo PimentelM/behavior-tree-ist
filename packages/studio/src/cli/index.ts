@@ -29,7 +29,9 @@ async function main() {
     }
 
     if (args.ui) {
-        processManager.startViteServer(args.uiPort, args.host);
+        // If server is also starting locally, derive the URL automatically unless overridden
+        const serverUrl = args.serverUrl ?? (args.server ? `http://${args.host}:${args.port}` : null);
+        processManager.startViteServer(args.uiPort, args.host, serverUrl ?? undefined);
     }
 
     if (args.mockClient) {

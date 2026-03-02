@@ -276,7 +276,6 @@ describe("BehaviourTree", () => {
 
                 const asyncNode = AsyncAction.from("test", async (ctx) => {
                     // Simulation of async work
-                    // @ts-expect-error setTimeout is not defined in this context
                     await new Promise(resolve => setTimeout(resolve, 10));
                     sharedRef.set(1, ctx);
                     return NodeResult.Succeeded;
@@ -289,7 +288,6 @@ describe("BehaviourTree", () => {
                 expect(tick1.refEvents).toHaveLength(0);
 
                 // Wait for async work to complete
-                // @ts-expect-error setTimeout is not defined in this context
                 await new Promise(resolve => setTimeout(resolve, 30));
 
                 // Tick 2: Collects the result
@@ -308,7 +306,6 @@ describe("BehaviourTree", () => {
                 const sharedRef = ref(0, "shared");
                 const asyncNode = AsyncAction.from("test", async () => {
                     // Simulation of async work
-                    // @ts-expect-error setTimeout is not defined in this context
                     await new Promise(resolve => setTimeout(resolve, 5));
                     sharedRef.set(1);
                     return NodeResult.Succeeded;
@@ -323,7 +320,6 @@ describe("BehaviourTree", () => {
 
                 // During 10ms loop every 1ms and assert refEvents is empty
                 for (let i = 0; i < 10; i++) {
-                    // @ts-expect-error setTimeout is not defined in this context
                     await new Promise(resolve => setTimeout(resolve, 1));
                     const tick = tree.tick();
                     expect(tick.refEvents).toHaveLength(0);

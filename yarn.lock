@@ -280,6 +280,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.3.1"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    tsup: "npm:^8.5.1"
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.5.3"
     vite: "npm:^5.3.4"
@@ -4644,7 +4645,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsup@npm:^8.0.0":
+"tsup@npm:^8.0.0, tsup@npm:^8.5.1":
   version: 8.5.1
   resolution: "tsup@npm:8.5.1"
   dependencies:
