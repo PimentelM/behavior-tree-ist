@@ -3,11 +3,8 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
-    builder: 'src/builder/index.ts',
     tsx: 'src/tsx/index.ts',
     inspector: 'src/inspector/index.ts',
-    activity: 'src/activity/index.ts',
-    registry: 'src/registry/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

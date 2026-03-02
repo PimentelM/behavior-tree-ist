@@ -1,5 +1,5 @@
-import { BehaviourTree, NodeResult, ref, Tag } from '@behavior-tree-ist/core';
 import {
+    BehaviourTree, NodeResult, ref, Tag,
     action,
     asyncAction,
     condition,
@@ -18,7 +18,7 @@ import {
     sleep,
     displayState,
     subTree
-} from '@behavior-tree-ist/core/builder';
+} from '@behavior-tree-ist/core';
 
 type Point = { x: number; y: number; threat: number };
 type LoadProfile = 'light' | 'medium' | 'heavy' | 'extreme';

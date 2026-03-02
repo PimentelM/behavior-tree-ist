@@ -13,10 +13,6 @@ export default defineConfig({
                 replacement: fromRoot('../react/src/styles/debugger.css'),
             },
             {
-                find: '@behavior-tree-ist/core/builder',
-                replacement: fromRoot('../core/src/builder/index.ts'),
-            },
-            {
                 find: '@behavior-tree-ist/core/inspector',
                 replacement: fromRoot('../core/src/inspector/index.ts'),
             },

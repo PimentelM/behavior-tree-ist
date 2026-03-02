@@ -16,16 +16,6 @@
         "default": "./dist/index.js"
       }
     },
-    "./builder": {
-      "import": {
-        "types": "./dist/builder.d.mts",
-        "default": "./dist/builder.mjs"
-      },
-      "require": {
-        "types": "./dist/builder.d.ts",
-        "default": "./dist/builder.js"
-      }
-    },
     "./tsx": {
       "import": {
         "types": "./dist/tsx.d.mts",
@@ -44,16 +34,6 @@
       "require": {
         "types": "./dist/inspector.d.ts",
         "default": "./dist/inspector.js"
-      }
-    },
-    "./activity": {
-      "import": {
-        "types": "./dist/activity.d.mts",
-        "default": "./dist/activity.mjs"
-      },
-      "require": {
-        "types": "./dist/activity.d.ts",
-        "default": "./dist/activity.js"
       }
     }
   },
