@@ -39,7 +39,7 @@ async function main() {
         setTimeout(async () => {
             const wsUrl = `ws://${args.host}:4000`;
             console.log(`[cli] Starting mock client connecting to ${wsUrl}`);
-            mockClient = new MockClientProcess(wsUrl);
+            mockClient = new MockClientProcess(wsUrl, 500);
             await mockClient.start();
         }, 1000);
     }

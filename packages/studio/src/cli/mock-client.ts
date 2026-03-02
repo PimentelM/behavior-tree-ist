@@ -5,7 +5,7 @@ import { BehaviourTree } from '@behavior-tree-ist/core';
 
 export class MockClientProcess {
     private agent: StudioAgent | null = null;
-    private ws: WebSocket | null = null;
+    private transport: WebSocketTransport | null = null;
     private timer: NodeJS.Timeout | null = null;
     private tree: BehaviourTree | null = null;
 
@@ -13,18 +13,24 @@ export class MockClientProcess {
 
     public async start(): Promise<void> {
         const registry = new TreeRegistry();
-        this.tree = createHeavyProfilerDemoTree();
-        registry.register('demo-tree-1', this.tree);
+        const tree = createHeavyProfilerDemoTree();
+        this.tree = tree;
 
-        this.ws = new WebSocket(this.url);
-        const transport = new WebSocketTransport(this.ws as any);
+        setTimeout(() => {
+            registry.register('demo-tree-1', tree);
+        }, 5000);
+
+        // WebSocketTransport manages the connection itself — pass the URL and the ws implementation
+        this.transport = new WebSocketTransport(this.url, {
+            WebSocketImpl: WebSocket as unknown as typeof globalThis.WebSocket,
+        });
 
         this.agent = new StudioAgent(
             `mock-client-${Math.floor(Math.random() * 10000)}`,
             registry
         );
 
-        this.agent.connect(transport);
+        this.agent.connect(this.transport);
 
         // The agent will automatically connect when the WebSocket opens
         // We simulate the game loop checking the tree
@@ -51,9 +57,9 @@ export class MockClientProcess {
             this.agent = null;
         }
 
-        if (this.ws) {
-            this.ws.close();
-            this.ws = null;
+        if (this.transport) {
+            this.transport.close();
+            this.transport = null;
         }
 
         console.log('[mock-client] Stopped');

@@ -39,6 +39,7 @@ export class StudioAgent {
             transport.onMessage((msg) => this.handleTransportMessage(msg)),
 
             this.registry.onTreeRegistered((entry) => {
+                console.log(`[agent] Registering tree ${entry.treeId}`);
                 this.knownHashes.set(entry.treeId, entry.serializedTreeHash);
                 if (this.isConnected) {
                     this.queueMessage({
@@ -53,6 +54,7 @@ export class StudioAgent {
             }),
 
             this.registry.onTreeRemoved((treeId) => {
+                console.log(`[agent] Removing tree ${treeId}`);
                 this.knownHashes.delete(treeId);
                 if (this.isConnected) {
                     this.queueMessage({
@@ -64,6 +66,7 @@ export class StudioAgent {
             }),
 
             this.registry.onTick((treeId, record) => {
+                console.log(`[agent] Ticking tree ${treeId}`);
                 if (this.registry.isStreaming(treeId)) {
                     this.queueMessage({
                         v: PROTOCOL_VERSION,
@@ -109,8 +112,11 @@ export class StudioAgent {
 
     public tick(_ctx: { now: number }): void {
         if (!this.isConnected || !this.transport) {
+            console.log(`[agent] Not connected, skipping tick`);
             return;
         }
+
+        console.log(`[agent] Ticking`);
 
         const messages = this.queue.drain();
         for (const msg of messages) {
