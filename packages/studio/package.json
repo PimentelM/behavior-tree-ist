@@ -3,23 +3,41 @@
     "version": "0.1.0",
     "private": true,
     "type": "module",
+    "bin": "./dist/cli/index.js",
     "scripts": {
+        "studio:dev": "tsx src/cli/index.ts",
+        "studio:dev:env": "node --env-file=.env --import tsx/esm src/cli/index.ts",
+        "studio:run": "node dist/cli/index.js",
+        "studio:run:env": "node --env-file=.env dist/cli/index.js",
         "dev": "vite",
-        "build": "tsc && vite build",
-        "preview": "vite preview"
+        "build:cli": "tsup --config tsup.config.cli.ts",
+        "build": "tsc && vite build && yarn build:cli",
+        "preview": "vite preview",
+        "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+        "typecheck": "tsc --noEmit",
+        "test": "vitest run"
     },
     "dependencies": {
         "@behavior-tree-ist/core": "workspace:*",
         "@behavior-tree-ist/react": "workspace:*",
+        "@behavior-tree-ist/studio-transport": "workspace:*",
+        "@trpc/client": "^11.11.0",
+        "@trpc/server": "^11.11.0",
         "react": "^18.3.1",
-        "react-dom": "^18.3.1"
+        "react-dom": "^18.3.1",
+        "ws": "^8.19.0",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@dogtiti/vite-plugin-react-mcp": "latest",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
+        "@types/ws": "^8.18.1",
         "@vitejs/plugin-react": "^4.3.1",
+        "tsup": "^8.5.1",
+        "tsx": "^4.21.0",
         "typescript": "^5.5.3",
-        "vite": "^5.3.4"
+        "vite": "^5.3.4",
+        "vitest": "^2.1.8"
     }
 }

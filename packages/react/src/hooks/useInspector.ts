@@ -9,21 +9,23 @@ export interface UseInspectorResult {
 }
 
 export function useInspector(
-  tree: SerializableNode,
-  ticks: TickRecord[],
+  tree: SerializableNode | undefined,
+  ticks: TickRecord[] | undefined,
   options?: TreeInspectorOptions,
 ): UseInspectorResult {
   const inspectorRef = useRef<TreeInspector | null>(null);
   const ingestedCountRef = useRef(0);
   const [tickGeneration, setTickGeneration] = useState(0);
-  const prevTreeRef = useRef<SerializableNode | null>(null);
+  const prevTreeRef = useRef<SerializableNode | undefined>(undefined);
 
   const inspector = useMemo(() => {
     const inst = new TreeInspector(options);
     inspectorRef.current = inst;
     ingestedCountRef.current = 0;
     prevTreeRef.current = tree;
-    inst.indexTree(tree);
+    if (tree) {
+      inst.indexTree(tree);
+    }
     return inst;
     // Re-create inspector when tree identity or options change
   }, [tree, options?.maxTicks]);
@@ -32,7 +34,9 @@ export function useInspector(
   useEffect(() => {
     if (prevTreeRef.current !== tree) {
       inspector.reset();
-      inspector.indexTree(tree);
+      if (tree) {
+        inspector.indexTree(tree);
+      }
       ingestedCountRef.current = 0;
       prevTreeRef.current = tree;
       setTickGeneration((g) => g + 1);
@@ -41,15 +45,16 @@ export function useInspector(
 
   // Diff-ingest new ticks
   useEffect(() => {
+    const currentTicks = ticks ?? [];
     const alreadyIngested = ingestedCountRef.current;
-    if (ticks.length > alreadyIngested) {
-      for (let i = alreadyIngested; i < ticks.length; i++) {
-        inspector.ingestTick(ticks[i]);
+    if (currentTicks.length > alreadyIngested) {
+      for (let i = alreadyIngested; i < currentTicks.length; i++) {
+        inspector.ingestTick(currentTicks[i]);
       }
-      ingestedCountRef.current = ticks.length;
+      ingestedCountRef.current = currentTicks.length;
       setTickGeneration((g) => g + 1);
     }
-  }, [ticks, ticks.length, inspector]);
+  }, [ticks?.length, inspector]);
 
   return { inspector, tickGeneration };
 }

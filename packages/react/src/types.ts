@@ -72,9 +72,41 @@ export interface NodeLifecycleDecoratorData {
   nodeFlags: NodeFlags;
 }
 
+export interface StudioClient {
+  clientId: string;
+  isOnline: boolean;
+}
+
+export interface StudioTreeInfo {
+  treeId: string;
+}
+
+export interface StudioCommandResult {
+  success: boolean;
+  errorCode?: string;
+  errorMessage?: string;
+}
+
+export interface StudioProps {
+  clients: StudioClient[];
+  selectedClientId: string | null;
+  selectedTreeId: string | null;
+  trees: StudioTreeInfo[];
+  onSelectClient: (clientId: string) => void;
+  onSelectTree: (treeId: string) => void;
+  onSendCommand: (command: string, treeId: string) => Promise<StudioCommandResult>;
+  streamingEnabled: boolean;
+  stateTraceEnabled: boolean;
+  profilingEnabled: boolean;
+  isClientOnline: boolean;
+  isLive: boolean;
+  onOpenSettings?: () => void;
+}
+
 export interface BehaviourTreeDebuggerProps {
-  tree: SerializableNode;
-  ticks: TickRecord[];
+  tree?: SerializableNode;
+  ticks?: TickRecord[];
+  studio?: StudioProps;
   inspectorOptions?: TreeInspectorOptions;
   inspectorRef?: MutableRefObject<TreeInspector | null>;
   panels?: PanelConfig;

@@ -54,6 +54,53 @@ describe("BehaviourTree", () => {
         }]);
     });
 
+    describe("useNowAsTickId", () => {
+        it("when enabled, tickId equals the provided now value", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root).useNowAsTickId();
+            const tick = tree.tick({ now: 1234 });
+            expect(tick.tickId).toBe(1234);
+            expect(tick.timestamp).toBe(1234);
+        });
+
+        it("rejects duplicate now (same value as previous tick) with error", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root).useNowAsTickId();
+            tree.tick({ now: 100 });
+            expect(() => tree.tick({ now: 100 })).toThrow(/now tick id must be strictly increasing/);
+        });
+
+        it("rejects older now (lower than previous tick) with error", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root).useNowAsTickId();
+            tree.tick({ now: 100 });
+            expect(() => tree.tick({ now: 99 })).toThrow(/now tick id must be strictly increasing/);
+        });
+
+        it("accepts strictly increasing now values", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root).useNowAsTickId();
+            tree.tick({ now: 100 });
+            const tick2 = tree.tick({ now: 105 });
+            expect(tick2.tickId).toBe(105);
+        });
+
+        it("throws when now is not provided while mode is enabled", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root).useNowAsTickId();
+            expect(() => tree.tick()).toThrow(/now parameter is required/);
+        });
+
+        it("does not interfere with auto-increment mode when not enabled", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            const tick1 = tree.tick({ now: 100 });
+            expect(tick1.tickId).toBe(1);
+            const tick2 = tree.tick({ now: 100 });
+            expect(tick2.tickId).toBe(2);
+        });
+    });
+
     describe('state tracing', () => {
         it("returns events regardless of state trace mode", () => {
             const root = new StubAction(NodeResult.Succeeded);
@@ -229,7 +276,6 @@ describe("BehaviourTree", () => {
 
                 const asyncNode = AsyncAction.from("test", async (ctx) => {
                     // Simulation of async work
-                    // @ts-expect-error setTimeout is not defined in this context
                     await new Promise(resolve => setTimeout(resolve, 10));
                     sharedRef.set(1, ctx);
                     return NodeResult.Succeeded;
@@ -242,7 +288,6 @@ describe("BehaviourTree", () => {
                 expect(tick1.refEvents).toHaveLength(0);
 
                 // Wait for async work to complete
-                // @ts-expect-error setTimeout is not defined in this context
                 await new Promise(resolve => setTimeout(resolve, 30));
 
                 // Tick 2: Collects the result
@@ -261,7 +306,6 @@ describe("BehaviourTree", () => {
                 const sharedRef = ref(0, "shared");
                 const asyncNode = AsyncAction.from("test", async () => {
                     // Simulation of async work
-                    // @ts-expect-error setTimeout is not defined in this context
                     await new Promise(resolve => setTimeout(resolve, 5));
                     sharedRef.set(1);
                     return NodeResult.Succeeded;
@@ -276,7 +320,6 @@ describe("BehaviourTree", () => {
 
                 // During 10ms loop every 1ms and assert refEvents is empty
                 for (let i = 0; i < 10; i++) {
-                    // @ts-expect-error setTimeout is not defined in this context
                     await new Promise(resolve => setTimeout(resolve, 1));
                     const tick = tree.tick();
                     expect(tick.refEvents).toHaveLength(0);
@@ -383,6 +426,51 @@ describe("BehaviourTree", () => {
             expect(events).toHaveLength(1);
             expect(events[0].startedAt).toBeUndefined();
             expect(events[0].finishedAt).toBeUndefined();
+        });
+
+        describe("caching", () => {
+            it("first enableProfiling() without getTime throws (no cached provider)", () => {
+                const root = new StubAction(NodeResult.Succeeded);
+                const tree = new BehaviourTree(root);
+                expect(() => tree.enableProfiling()).toThrow(/Cannot enable profiling without a cached time provider/);
+            });
+
+            it("enableProfiling(getTime) then disableProfiling() then enableProfiling() (no arg) succeeds — reuses cached provider", () => {
+                const root = new StubAction(NodeResult.Succeeded);
+                const tree = new BehaviourTree(root);
+                let clock = 10;
+                tree.enableProfiling(() => clock++);
+                tree.disableProfiling();
+                tree.enableProfiling(); // Use cached
+
+                const { events } = tree.tick({ now: 0 });
+                expect(events[0].startedAt).toBe(10);
+            });
+
+            it("profiling is active after re-enable (events include startedAt/finishedAt)", () => {
+                const root = new StubAction(NodeResult.Succeeded);
+                const tree = new BehaviourTree(root);
+                tree.enableProfiling(() => 0);
+                tree.disableProfiling();
+                tree.enableProfiling();
+
+                const { events } = tree.tick({ now: 0 });
+
+                expect(events).toHaveLength(1);
+                expect(events[0].startedAt).toBeDefined();
+                expect(events[0].finishedAt).toBeDefined();
+            });
+
+            it("providing a new getTime on re-enable replaces the cached provider", () => {
+                const root = new StubAction(NodeResult.Succeeded);
+                const tree = new BehaviourTree(root);
+                tree.enableProfiling(() => 10);
+                tree.disableProfiling();
+                tree.enableProfiling(() => 20);
+
+                const { events } = tree.tick({ now: 0 });
+                expect(events[0].startedAt).toBe(20);
+            });
         });
     })
 })

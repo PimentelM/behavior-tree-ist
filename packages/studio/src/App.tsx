@@ -1,73 +1,149 @@
+import { useState, useCallback } from 'react';
 import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
-import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
-import { useEffect, useState } from 'react';
-import type { TreeWorkerEvent, TreeWorkerRequest } from './tree-worker-protocol';
-
-const TICK_RATE = 20;
-const UPDATE_RATE = TICK_RATE * 15;
-const BUFFER_TIME_S = 20;
+import { useStudioPolling } from './ui/hooks/useStudioPolling';
+import { useStudioCommands } from './ui/hooks/useStudioCommands';
+import { useLocalPersistence } from './ui/hooks/useLocalPersistence';
+import { SettingsPanel } from './ui/components/SettingsPanel';
+import type { ThemeMode } from '@behavior-tree-ist/react';
 
 function App() {
-    const [tree, setTree] = useState<SerializableNode | null>(null);
-    const [ticks, setTicks] = useState<TickRecord[]>([]);
+    const [themeMode, setThemeMode] = useLocalPersistence<ThemeMode>('bt-studio:theme', 'dark');
+    const [selectedClientId, setSelectedClientId] = useLocalPersistence<string | null>('bt-studio:clientId', null);
+    const [selectedTreeId, setSelectedTreeId] = useLocalPersistence<string | null>('bt-studio:treeId', null);
+    const [pollingInterval, setPollingInterval] = useLocalPersistence<number>('bt-studio:pollingInterval', 500);
+    const [tickFetchLimit, setTickFetchLimit] = useLocalPersistence<number>('bt-studio:tickFetchLimit', 200);
 
-    useEffect(() => {
-        const worker = new Worker(new URL('./tree-tick.worker.ts', import.meta.url), { type: 'module' });
+    // Settings Panel State
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-        worker.onmessage = (event: MessageEvent<TreeWorkerEvent>) => {
-            const message = event.data;
-            if (message.type === 'tree') {
-                setTree(message.tree);
-                return;
-            }
+    // Polling Hook
+    const { clients, trees, rawTree, ticks, serverSettings, error: pollingError } = useStudioPolling(
+        selectedClientId,
+        selectedTreeId,
+        { intervalMs: pollingInterval, tickFetchLimit }
+    );
 
-            if (message.type === 'ticks') {
-                setTicks((prev) => [...prev, ...message.ticks]);
-                return;
-            }
+    // Commands Hook
+    const { sendCommand, error: commandError } = useStudioCommands();
 
-            console.error(`[tree-worker] ${message.message}`);
-        };
+    // Selected Client specific states
+    const selectedClient = clients.find(c => c.clientId === selectedClientId);
+    const isClientOnline = selectedClient?.isOnline ?? false;
+    // Let's assume the client is live if it's online. In a more complex scenario, this could check if ticks are actively arriving.
+    const isLive = isClientOnline;
 
-        worker.onerror = (event) => {
-            console.error('[tree-worker] fatal worker error', event.message);
-        };
+    // We could implement optimistic updates for toggle states or rely on server state if the server starts responding with it
+    // For now, we mock them enabled/disabled, or maintain local optimisitic state
+    const [streamingEnabled, setStreamingEnabled] = useState(false);
+    const [stateTraceEnabled, setStateTraceEnabled] = useState(false);
+    const [profilingEnabled, setProfilingEnabled] = useState(false);
 
-        const startMessage: TreeWorkerRequest = {
-            type: 'start',
-            tickRateMs: TICK_RATE,
-            updateRateMs: UPDATE_RATE
-        };
-        worker.postMessage(startMessage);
+    const handleSendCommand = useCallback(async (command: string, treeId: string) => {
+        const prevStreamingEnabled = streamingEnabled;
+        const prevStateTraceEnabled = stateTraceEnabled;
+        const prevProfilingEnabled = profilingEnabled;
 
-        return () => {
-            const stopMessage: TreeWorkerRequest = { type: 'stop' };
-            worker.postMessage(stopMessage);
-            worker.terminate();
-        };
-    }, []);
+        // Optimistic updates
+        if (command === 'enable-streaming') setStreamingEnabled(true);
+        if (command === 'disable-streaming') setStreamingEnabled(false);
+        if (command === 'enable-state-trace') setStateTraceEnabled(true);
+        if (command === 'disable-state-trace') setStateTraceEnabled(false);
+        if (command === 'enable-profiling') setProfilingEnabled(true);
+        if (command === 'disable-profiling') setProfilingEnabled(false);
 
-    if (tree === null) {
-        return (
-            <div style={{ position: 'fixed', inset: 0, display: 'grid', placeItems: 'center' }}>
-                Preparing behavior tree worker...
-            </div>
-        );
-    }
+        const result = await sendCommand(command, treeId, selectedClientId);
+
+        // Rollback optimistic updates when command is rejected.
+        if (!result.success) {
+            setStreamingEnabled(prevStreamingEnabled);
+            setStateTraceEnabled(prevStateTraceEnabled);
+            setProfilingEnabled(prevProfilingEnabled);
+            console.error("Command failed:", result.errorMessage);
+        }
+
+        return result;
+    }, [
+        sendCommand,
+        selectedClientId,
+        streamingEnabled,
+        stateTraceEnabled,
+        profilingEnabled,
+    ]);
+
+    // Derived properties for BehaviourTreeDebugger
+    const treeToRender = rawTree?.serializedTree;
+
+    // Server-side settings
+    const maxTickRecordsPerTree = serverSettings?.maxTickRecordsPerTree ?? 10000;
 
     return (
         <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <header style={{ padding: '0 20px', background: '#f0f0f0', borderBottom: '1px solid #ccc' }}>
-                <h1 style={{ margin: '12px 0' }}>Behavior Tree Studio</h1>
-            </header>
             <main style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+                {pollingError && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, background: 'var(--bt-color-failed, red)', color: 'white', padding: '8px', textAlign: 'center' }}>
+                        Error connecting to Studio Server: {pollingError.message}
+                    </div>
+                )}
+                {commandError && (
+                    <div style={{ position: 'absolute', top: pollingError ? '40px' : 0, left: 0, right: 0, zIndex: 1000, background: 'var(--bt-color-failed, red)', color: 'white', padding: '8px', textAlign: 'center' }}>
+                        Command failed: {commandError.message}
+                    </div>
+                )}
+
                 <BehaviourTreeDebugger
-                    tree={tree}
+                    tree={treeToRender}
                     ticks={ticks}
                     isolateStyles={true}
+                    themeMode={themeMode}
+                    onThemeModeChange={(mode) => setThemeMode(mode)}
+                    studio={{
+                        clients,
+                        trees,
+                        selectedClientId,
+                        selectedTreeId,
+                        onSelectClient: setSelectedClientId,
+                        onSelectTree: setSelectedTreeId,
+                        onSendCommand: handleSendCommand,
+                        streamingEnabled,
+                        stateTraceEnabled,
+                        profilingEnabled,
+                        isClientOnline,
+                        isLive,
+                        onOpenSettings: () => setIsSettingsOpen(true),
+                    }}
                     inspectorOptions={{
-                        maxTicks: (1000 / TICK_RATE) * BUFFER_TIME_S
-                    }} />
+                        // Convert max server records back to buffer time/ticks or just allow maximum
+                        maxTicks: maxTickRecordsPerTree,
+                    }}
+                />
+
+                {/* Settings Panel Drawer */}
+                {isSettingsOpen && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0, bottom: 0, right: 0,
+                            width: '320px',
+                            zIndex: 9999,
+                            boxShadow: '-4px 0 16px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        <SettingsPanel
+                            onClose={() => setIsSettingsOpen(false)}
+                            pollingInterval={pollingInterval}
+                            onPollingIntervalChange={setPollingInterval}
+                            tickFetchLimit={tickFetchLimit}
+                            onTickFetchLimitChange={setTickFetchLimit}
+                            maxTickRecordsPerTree={maxTickRecordsPerTree}
+                            onMaxTickRecordsPerTreeChange={(val) => {
+                                // In a complete implementation, we'd also trigger an updateSettings mutation here.
+                                console.log("Saving new server max ticks:", val);
+                            }}
+                            themeMode={themeMode}
+                            onThemeModeChange={setThemeMode}
+                        />
+                    </div>
+                )}
             </main>
         </div>
     );
