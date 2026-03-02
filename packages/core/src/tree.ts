@@ -14,9 +14,7 @@ export class BehaviourTree {
     private readonly root: BTNode;
     private stateTraceEnabled: boolean = false;
     private profilingEnabled: boolean = false;
-    private useNowAsTickIdEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
-    private lastNowTickId: number | undefined;
 
     private runtime: TickRuntime = {
         treeId: this.treeId,
@@ -39,15 +37,7 @@ export class BehaviourTree {
         return this;
     }
 
-    public enableProfiling(getTime?: () => number): BehaviourTree {
-        if (getTime) {
-            this.profilingTimeProvider = getTime;
-        }
-
-        if (!this.profilingTimeProvider) {
-            throw new Error("Cannot enable profiling without a cached time provider. Provide a getTime function first.");
-        }
-
+    public enableProfiling(): BehaviourTree {
         this.profilingEnabled = true;
         return this;
     }
@@ -57,8 +47,8 @@ export class BehaviourTree {
         return this;
     }
 
-    public useNowAsTickId(): BehaviourTree {
-        this.useNowAsTickIdEnabled = true;
+    public setProfilingTimeProvider(provider: () => number): BehaviourTree {
+        this.profilingTimeProvider = provider;
         return this;
     }
 
@@ -74,16 +64,7 @@ export class BehaviourTree {
         const events: TickTraceEvent[] = [];
         const refEvents: RefChangeEvent[] = [];
         const now = pCtx.now ?? Date.now();
-        let tickId = this.currentTickId;
-
-        if (this.lastNowTickId !== undefined && now <= this.lastNowTickId) {
-            throw new Error(`now tick id must be strictly increasing. Received ${now}, but last was ${this.lastNowTickId}`);
-        }
-
-        if (this.useNowAsTickIdEnabled) {
-            tickId = now;
-            this.lastNowTickId = now;
-        }
+        const tickId = this.currentTickId;
 
         const ctx: TickContext = {
             tickId,

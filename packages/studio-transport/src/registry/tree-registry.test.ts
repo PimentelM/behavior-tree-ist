@@ -87,15 +87,6 @@ describe("TreeRegistry", () => {
         expect(handler).toHaveBeenCalledWith("tree-1", tickRecord);
     });
 
-    it("useNowAsTickId() is called on the tree during registration", () => {
-        const registry = new TreeRegistry();
-        const tree = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
-        const spy = vi.spyOn(tree, 'useNowAsTickId');
-
-        registry.register("tree-1", tree);
-        expect(spy).toHaveBeenCalledTimes(1);
-    });
-
     it("default streaming state is false", () => {
         const registry = new TreeRegistry();
         const tree = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));

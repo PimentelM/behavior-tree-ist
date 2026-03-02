@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { BehaviourTree } from "./tree";
 import { NodeResult } from "./base/types";
 import { StubAction } from "./test-helpers";
@@ -52,47 +52,6 @@ describe("BehaviourTree", () => {
             nodeId: root.id,
             result: NodeResult.Succeeded,
         }]);
-    });
-
-    describe("useNowAsTickId", () => {
-        it("when enabled, tickId equals the provided now value", () => {
-            const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root).useNowAsTickId();
-            const tick = tree.tick({ now: 1234 });
-            expect(tick.tickId).toBe(1234);
-            expect(tick.timestamp).toBe(1234);
-        });
-
-        it("rejects duplicate now (same value as previous tick) with error", () => {
-            const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root).useNowAsTickId();
-            tree.tick({ now: 100 });
-            expect(() => tree.tick({ now: 100 })).toThrow(/now tick id must be strictly increasing/);
-        });
-
-        it("rejects older now (lower than previous tick) with error", () => {
-            const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root).useNowAsTickId();
-            tree.tick({ now: 100 });
-            expect(() => tree.tick({ now: 99 })).toThrow(/now tick id must be strictly increasing/);
-        });
-
-        it("accepts strictly increasing now values", () => {
-            const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root).useNowAsTickId();
-            tree.tick({ now: 100 });
-            const tick2 = tree.tick({ now: 105 });
-            expect(tick2.tickId).toBe(105);
-        });
-
-        it("does not interfere with auto-increment mode when not enabled", () => {
-            const root = new StubAction(NodeResult.Succeeded);
-            const tree = new BehaviourTree(root);
-            const tick1 = tree.tick({ now: 100 });
-            expect(tick1.tickId).toBe(1);
-            const tick2 = tree.tick({ now: 100 });
-            expect(tick2.tickId).toBe(2);
-        });
     });
 
     describe('state tracing', () => {
@@ -265,12 +224,22 @@ describe("BehaviourTree", () => {
         })
 
         describe("AsyncAction Trace Recording", () => {
+            beforeEach(() => {
+                vi.useFakeTimers();
+            });
+
+            afterEach(() => {
+                vi.useRealTimers();
+            });
+
             it("mutations to shared Refs during AsyncAction should be recorded in the trace if ctx is provided", async () => {
                 const sharedRef = ref(0, "shared");
 
+                let finishWork!: () => void;
+                const mockWorkPromise = new Promise<void>(resolve => { finishWork = resolve; });
+
                 const asyncNode = AsyncAction.from("test", async (ctx) => {
-                    // Simulation of async work
-                    await new Promise(resolve => setTimeout(resolve, 10));
+                    await mockWorkPromise;
                     sharedRef.set(1, ctx);
                     return NodeResult.Succeeded;
                 });
@@ -281,8 +250,9 @@ describe("BehaviourTree", () => {
                 const tick1 = tree.tick();
                 expect(tick1.refEvents).toHaveLength(0);
 
-                // Wait for async work to complete
-                await new Promise(resolve => setTimeout(resolve, 30));
+                // Simulate async work completion
+                finishWork();
+                await vi.advanceTimersByTimeAsync(30);
 
                 // Tick 2: Collects the result
                 const tick2 = tree.tick();
@@ -298,9 +268,12 @@ describe("BehaviourTree", () => {
 
             it("mutations to shared Refs during AsyncAction will be ignored in the trace if ctx is not provided", async () => {
                 const sharedRef = ref(0, "shared");
+
+                let finishWork!: () => void;
+                const mockWorkPromise = new Promise<void>(resolve => { finishWork = resolve; });
+
                 const asyncNode = AsyncAction.from("test", async () => {
-                    // Simulation of async work
-                    await new Promise(resolve => setTimeout(resolve, 5));
+                    await mockWorkPromise;
                     sharedRef.set(1);
                     return NodeResult.Succeeded;
                 });
@@ -314,10 +287,13 @@ describe("BehaviourTree", () => {
 
                 // During 10ms loop every 1ms and assert refEvents is empty
                 for (let i = 0; i < 10; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 1));
+                    await vi.advanceTimersByTimeAsync(1);
                     const tick = tree.tick();
                     expect(tick.refEvents).toHaveLength(0);
                 }
+
+                finishWork();
+                await vi.advanceTimersByTimeAsync(5);
             })
         });
 
@@ -328,7 +304,7 @@ describe("BehaviourTree", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
             let clock = 0;
-            tree.enableProfiling(() => clock++);
+            tree.setProfilingTimeProvider(() => clock++).enableProfiling();
 
             const { events } = tree.tick({ now: 0 });
 
@@ -340,7 +316,7 @@ describe("BehaviourTree", () => {
         it("enableProfiling emits timing events without state tracing", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
 
             const { events } = tree.tick({ now: 0 });
 
@@ -352,7 +328,7 @@ describe("BehaviourTree", () => {
         it("disableProfiling stops profiling data but keeps tracing", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
             tree.disableProfiling();
 
             const { events } = tree.tick({ now: 0 });
@@ -365,7 +341,7 @@ describe("BehaviourTree", () => {
         it("disableStateTrace does not disable profiling timings", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
             tree.disableStateTrace();
 
             const { events } = tree.tick({ now: 0 });
@@ -379,7 +355,7 @@ describe("BehaviourTree", () => {
         it("re-enabling state trace after disable does not affect profiling timings", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
             tree.disableStateTrace();
             tree.enableStateTrace();
 
@@ -395,7 +371,7 @@ describe("BehaviourTree", () => {
             const root = sequence({ name: "root" }, [child]);
             const tree = new BehaviourTree(root);
             let clock = 0;
-            tree.enableProfiling(() => clock++);
+            tree.setProfilingTimeProvider(() => clock++).enableProfiling();
 
             const { events } = tree.tick({ now: 0 });
 
@@ -422,49 +398,5 @@ describe("BehaviourTree", () => {
             expect(events[0].finishedAt).toBeUndefined();
         });
 
-        describe("caching", () => {
-            it("first enableProfiling() without getTime throws (no cached provider)", () => {
-                const root = new StubAction(NodeResult.Succeeded);
-                const tree = new BehaviourTree(root);
-                expect(() => tree.enableProfiling()).toThrow(/Cannot enable profiling without a cached time provider/);
-            });
-
-            it("enableProfiling(getTime) then disableProfiling() then enableProfiling() (no arg) succeeds — reuses cached provider", () => {
-                const root = new StubAction(NodeResult.Succeeded);
-                const tree = new BehaviourTree(root);
-                let clock = 10;
-                tree.enableProfiling(() => clock++);
-                tree.disableProfiling();
-                tree.enableProfiling(); // Use cached
-
-                const { events } = tree.tick({ now: 0 });
-                expect(events[0].startedAt).toBe(10);
-            });
-
-            it("profiling is active after re-enable (events include startedAt/finishedAt)", () => {
-                const root = new StubAction(NodeResult.Succeeded);
-                const tree = new BehaviourTree(root);
-                tree.enableProfiling(() => 0);
-                tree.disableProfiling();
-                tree.enableProfiling();
-
-                const { events } = tree.tick({ now: 0 });
-
-                expect(events).toHaveLength(1);
-                expect(events[0].startedAt).toBeDefined();
-                expect(events[0].finishedAt).toBeDefined();
-            });
-
-            it("providing a new getTime on re-enable replaces the cached provider", () => {
-                const root = new StubAction(NodeResult.Succeeded);
-                const tree = new BehaviourTree(root);
-                tree.enableProfiling(() => 10);
-                tree.disableProfiling();
-                tree.enableProfiling(() => 20);
-
-                const { events } = tree.tick({ now: 0 });
-                expect(events[0].startedAt).toBe(20);
-            });
-        });
-    })
-})
+    });
+});

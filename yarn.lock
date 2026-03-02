@@ -256,6 +256,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@behavior-tree-ist/studio-transport@workspace:packages/studio-transport":
+  version: 0.0.0-use.local
+  resolution: "@behavior-tree-ist/studio-transport@workspace:packages/studio-transport"
+  peerDependencies:
+    "@behavior-tree-ist/core": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@behavior-tree-ist/studio@workspace:packages/studio":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/studio@workspace:packages/studio"

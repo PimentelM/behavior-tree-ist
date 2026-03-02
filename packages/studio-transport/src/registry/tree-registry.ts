@@ -17,8 +17,6 @@ export class TreeRegistry {
             throw new Error(`Tree with id "${treeId}" is already registered`);
         }
 
-        tree.useNowAsTickId();
-
         const serializedTree = tree.toJSON();
 
         const entry: RegisteredTree = {

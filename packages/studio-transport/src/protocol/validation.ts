@@ -1,5 +1,5 @@
 export function isValidTreeId(treeId: string): boolean {
-    return /^([A-Za-z0-9_-]|\:|\@|\.|\/)+$/.test(treeId);
+    return /^([A-Za-z0-9_-]|:|@|\.|\/)+$/.test(treeId);
 }
 
 export function assertValidTreeId(treeId: string): void {
