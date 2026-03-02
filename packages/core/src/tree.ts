@@ -13,6 +13,7 @@ export class BehaviourTree {
     private currentTickId: number = 1;
     private root: BTNode;
     private stateTraceEnabled: boolean = false;
+    private profilingEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
     private tickRecordHandlers = new Set<(record: TickRecord) => void>();
 
@@ -41,18 +42,23 @@ export class BehaviourTree {
         return this.stateTraceEnabled;
     }
 
-    public enableProfiling(getTime: () => number): BehaviourTree {
-        this.profilingTimeProvider = getTime;
+    public enableProfiling(): BehaviourTree {
+        this.profilingEnabled = true;
         return this;
     }
 
     public disableProfiling(): BehaviourTree {
-        this.profilingTimeProvider = undefined;
+        this.profilingEnabled = false;
         return this;
     }
 
     public isProfilingEnabled(): boolean {
-        return this.profilingTimeProvider !== undefined;
+        return this.profilingEnabled;
+    }
+
+    public setProfilingTimeProvider(provider: () => number): BehaviourTree {
+        this.profilingTimeProvider = provider;
+        return this;
     }
 
     public onTickRecord(handler: (record: TickRecord) => void): () => void {
@@ -104,7 +110,7 @@ export class BehaviourTree {
 
                 events.push(event);
             },
-            getTime: this.profilingTimeProvider,
+            getTime: this.profilingEnabled ? this.profilingTimeProvider : undefined,
         }
 
         // Pick up pending ref events from between ticks

@@ -130,7 +130,8 @@ export class BehaviourTreeRegistry {
             if (typeof input.profiling === "boolean") {
                 if (input.profiling) {
                     const clock = entry.preferredProfilingClock ?? entry.baseline.profilingClock ?? defaultProfilingClock;
-                    entry.tree.enableProfiling(clock);
+                    entry.tree.setProfilingTimeProvider(clock);
+                    entry.tree.enableProfiling();
                 } else {
                     entry.tree.disableProfiling();
                 }
@@ -149,7 +150,8 @@ export class BehaviourTreeRegistry {
 
             if (entry.baseline.profilingEnabled) {
                 const clock = entry.baseline.profilingClock ?? entry.preferredProfilingClock ?? defaultProfilingClock;
-                entry.tree.enableProfiling(clock);
+                entry.tree.setProfilingTimeProvider(clock);
+                entry.tree.enableProfiling();
             } else {
                 entry.tree.disableProfiling();
             }

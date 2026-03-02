@@ -291,7 +291,7 @@ describe("BehaviourTree", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
             let clock = 0;
-            tree.enableProfiling(() => clock++);
+            tree.setProfilingTimeProvider(() => clock++).enableProfiling();
 
             const { events } = tree.tick({ now: 0 });
 
@@ -303,7 +303,7 @@ describe("BehaviourTree", () => {
         it("enableProfiling emits timing events without state tracing", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
 
             const { events } = tree.tick({ now: 0 });
 
@@ -315,7 +315,7 @@ describe("BehaviourTree", () => {
         it("disableProfiling stops profiling data but keeps tracing", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
             tree.disableProfiling();
 
             const { events } = tree.tick({ now: 0 });
@@ -328,7 +328,7 @@ describe("BehaviourTree", () => {
         it("disableStateTrace does not disable profiling timings", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
             tree.disableStateTrace();
 
             const { events } = tree.tick({ now: 0 });
@@ -342,7 +342,7 @@ describe("BehaviourTree", () => {
         it("re-enabling state trace after disable does not affect profiling timings", () => {
             const root = new StubAction(NodeResult.Succeeded);
             const tree = new BehaviourTree(root);
-            tree.enableProfiling(() => 0);
+            tree.setProfilingTimeProvider(() => 0).enableProfiling();
             tree.disableStateTrace();
             tree.enableStateTrace();
 
@@ -358,7 +358,7 @@ describe("BehaviourTree", () => {
             const root = sequence({ name: "root" }, [child]);
             const tree = new BehaviourTree(root);
             let clock = 0;
-            tree.enableProfiling(() => clock++);
+            tree.setProfilingTimeProvider(() => clock++).enableProfiling();
 
             const { events } = tree.tick({ now: 0 });
 
@@ -411,7 +411,7 @@ describe("BehaviourTree", () => {
             expect(tree.isProfilingEnabled()).toBe(false);
 
             tree.enableStateTrace();
-            tree.enableProfiling(() => 1);
+            tree.setProfilingTimeProvider(() => 1).enableProfiling();
             expect(tree.isStateTraceEnabled()).toBe(true);
             expect(tree.isProfilingEnabled()).toBe(true);
 
