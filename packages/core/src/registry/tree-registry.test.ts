@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { TreeRegistry } from "./tree-registry";
-import { BehaviourTree, Action, NodeResult } from "@behavior-tree-ist/core";
+import { BehaviourTree } from "../tree";
+import { Action, NodeResult } from "../base";
 
 describe("TreeRegistry", () => {
     it("register with valid treeId succeeds, entry is retrievable", () => {
@@ -13,7 +14,6 @@ describe("TreeRegistry", () => {
         expect(entry).toBeDefined();
         expect(entry?.treeId).toBe("tree-1");
         expect(entry?.tree).toBe(tree);
-        expect(entry?.streaming).toBe(false);
     });
 
     it("register with invalid treeId throws", () => {
@@ -72,41 +72,18 @@ describe("TreeRegistry", () => {
         expect(handler).toHaveBeenCalledWith("tree-1");
     });
 
-    it("onTick callback fires when reportTick() is called", () => {
+    it("onTreeTick callback fires when tree is ticked", () => {
         const registry = new TreeRegistry();
         const tree = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
         const handler = vi.fn();
 
         registry.register("tree-1", tree);
-        registry.onTick(handler);
+        registry.onTreeTick(handler);
 
         const tickRecord = tree.tick({ now: Date.now() });
-        registry.reportTick("tree-1", tickRecord);
 
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler).toHaveBeenCalledWith("tree-1", tickRecord);
-    });
-
-    it("default streaming state is false", () => {
-        const registry = new TreeRegistry();
-        const tree = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
-        registry.register("tree-1", tree);
-        expect(registry.isStreaming("tree-1")).toBe(false);
-    });
-
-    it("enableStreaming/disableStreaming toggles work", () => {
-        const registry = new TreeRegistry();
-        const tree = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
-
-        registry.register("tree-1", tree);
-
-        registry.enableStreaming("tree-1");
-        expect(registry.isStreaming("tree-1")).toBe(true);
-        expect(registry.get("tree-1")?.streaming).toBe(true);
-
-        registry.disableStreaming("tree-1");
-        expect(registry.isStreaming("tree-1")).toBe(false);
-        expect(registry.get("tree-1")?.streaming).toBe(false);
     });
 
     it("unsubscribe stops callbacks", () => {
@@ -126,12 +103,12 @@ describe("TreeRegistry", () => {
         const tree1 = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
         const tree2 = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
 
-        registry.register("t1", tree1, { streaming: true });
+        registry.register("t1", tree1);
         registry.register("t2", tree2);
 
         const all = registry.getAll();
         expect(all.size).toBe(2);
-        expect(all.get("t1")?.streaming).toBe(true);
-        expect(all.get("t2")?.streaming).toBe(false);
+        expect(all.get("t1")?.tree).toBe(tree1);
+        expect(all.get("t2")?.tree).toBe(tree2);
     });
 });

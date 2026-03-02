@@ -54,6 +54,24 @@ describe("BehaviourTree", () => {
         }]);
     });
 
+    describe("events", () => {
+        it("emits tick record on tick", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            const handler = vi.fn();
+
+            const unsub = tree.onTickRecord(handler);
+            const tickRecord = tree.tick({ now: 123 });
+
+            expect(handler).toHaveBeenCalledTimes(1);
+            expect(handler).toHaveBeenCalledWith(tickRecord);
+
+            unsub();
+            tree.tick({ now: 124 });
+            expect(handler).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('state tracing', () => {
         it("returns events regardless of state trace mode", () => {
             const root = new StubAction(NodeResult.Succeeded);

@@ -1,6 +1,7 @@
 import { BTNode, TickContext, TickTraceEvent, SerializableNode, TickRecord, TickRuntime } from "./base";
 import { RefChangeEvent } from "./base/types";
 import { serializeTree } from "./serialization/serializer";
+import { OffFunction } from "./types";
 
 type PublicTickContext = {
     now?: number;
@@ -120,7 +121,21 @@ export class BehaviourTree {
         }
 
         this.currentTickId++;
-        return { tickId, timestamp: now, events, refEvents };
+        const tickRecord = { tickId, timestamp: now, events, refEvents };
+        this.emitTickRecord(tickRecord);
+        return tickRecord;
     }
 
+
+    // Events
+    private tickRecordListeners = new Set<(record: TickRecord) => void>();
+    private emitTickRecord(record: TickRecord): void {
+        for (const listener of this.tickRecordListeners) {
+            listener(record);
+        }
+    }
+    public onTickRecord(handler: (record: TickRecord) => void): OffFunction {
+        this.tickRecordListeners.add(handler);
+        return () => this.tickRecordListeners.delete(handler);
+    }
 }
