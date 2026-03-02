@@ -708,5 +708,5 @@ export function createHeavyProfilerDemoTree(): BehaviourTree {
                     onReset: () => supressedLog('Ambient heartbeat reset')
                 })
             ]))
-    ).enableStateTrace().enableProfiling(() => performance.now());
+    ).enableStateTrace().setProfilingTimeProvider(() => performance.now()).enableProfiling();
 }
