@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { DefaultAgentGateway } from "./agent-gateway";
+import { MessageType, PROTOCOL_VERSION } from "@behavior-tree-ist/studio-transport";
 
 describe("DefaultAgentGateway", () => {
     it("sendCommand sends correct JSON payload", async () => {
@@ -9,8 +10,8 @@ describe("DefaultAgentGateway", () => {
         await gateway.sendCommand("client-1", "corr-123", "enable-streaming", "tree-1");
 
         expect(sendMock).toHaveBeenCalledWith("client-1", JSON.stringify({
-            v: 1,
-            type: "command",
+            v: PROTOCOL_VERSION,
+            type: MessageType.Command,
             payload: {
                 correlationId: "corr-123",
                 command: "enable-streaming",

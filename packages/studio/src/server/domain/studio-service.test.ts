@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
 import { StudioService } from "./studio-service";
 import { ClientRepository, TreeRepository, TickRepository, AgentGateway } from "./interfaces";
-import { ClientNotFoundError, TreeNotFoundError } from "./errors";
+import { TreeNotFoundError } from "./errors";
 import { computeTreeHash } from "./hash";
 
 describe("StudioService", () => {
@@ -21,7 +21,7 @@ describe("StudioService", () => {
             findAll: vi.fn(),
             delete: vi.fn(),
             setOnline: vi.fn(),
-        } as any;
+        } as unknown as Mocked<ClientRepository>;
 
         treeRepo = {
             upsert: vi.fn(),
@@ -29,19 +29,19 @@ describe("StudioService", () => {
             findByClient: vi.fn(),
             delete: vi.fn(),
             deleteByClient: vi.fn(),
-        } as any;
+        } as unknown as Mocked<TreeRepository>;
 
         tickRepo = {
             push: vi.fn(),
             query: vi.fn(),
             clearByTree: vi.fn(),
             clearByClient: vi.fn(),
-        } as any;
+        } as unknown as Mocked<TickRepository>;
 
         agentGateway = {
             sendCommand: vi.fn().mockResolvedValue(undefined),
             onCommandAck: vi.fn().mockReturnValue(() => { }),
-        } as any;
+        } as unknown as Mocked<AgentGateway>;
 
         service = new StudioService(clientRepo, treeRepo, tickRepo, agentGateway);
     });
@@ -54,12 +54,21 @@ describe("StudioService", () => {
         }));
     });
 
-    it("unregisterClient marks offline and clears associated resources", () => {
+    it("unregisterClient marks offline but retains data (offline retention)", () => {
         clientRepo.findById.mockReturnValue({ clientId: "client-1", isOnline: true } as any);
 
         service.unregisterClient("client-1");
 
         expect(clientRepo.setOnline).toHaveBeenCalledWith("client-1", false, expect.any(Number));
+        // Data should NOT be deleted on disconnect (offline retention criteria)
+        expect(treeRepo.deleteByClient).not.toHaveBeenCalled();
+        expect(tickRepo.clearByClient).not.toHaveBeenCalled();
+    });
+
+    it("deleteClient hard-deletes client-scoped data", () => {
+        service.deleteClient("client-1");
+
+        expect(clientRepo.delete).toHaveBeenCalledWith("client-1");
         expect(treeRepo.deleteByClient).toHaveBeenCalledWith("client-1");
         expect(tickRepo.clearByClient).toHaveBeenCalledWith("client-1");
     });
@@ -73,9 +82,13 @@ describe("StudioService", () => {
         expect(tickRepo.clearByTree).toHaveBeenCalledWith("client-1", "tree-1");
     });
 
-    it("registerTree throws if client not found", () => {
-        clientRepo.findById.mockReturnValue(undefined);
-        expect(() => service.registerTree("client-1", "tree-1", mockNode)).toThrow(ClientNotFoundError);
+    it("registerTree upserts even when no prior tree exists (first registration clears ticks)", () => {
+        treeRepo.find.mockReturnValue(undefined);
+
+        service.registerTree("client-1", "tree-1", mockNode);
+
+        expect(treeRepo.upsert).toHaveBeenCalledWith("client-1", "tree-1", mockNode, mockHash);
+        expect(tickRepo.clearByTree).toHaveBeenCalledWith("client-1", "tree-1");
     });
 
     it("unregisterTree deletes tree and clears ticks", () => {
@@ -123,10 +136,9 @@ describe("StudioService", () => {
             }
         });
 
-        const promise = service.enableStreaming("client-1", "tree-1");
+        const result = await service.enableStreaming("client-1", "tree-1");
 
-        // Wait for the promise to resolve (the ack should trigger it)
-        await promise;
+        expect(result).toEqual({ success: true });
 
         expect(agentGateway.sendCommand).toHaveBeenCalledWith(
             "client-1",
@@ -134,5 +146,36 @@ describe("StudioService", () => {
             "enable-streaming",
             "tree-1"
         );
+    });
+
+    it("enableStreaming returns structured command rejection when ack fails", async () => {
+        clientRepo.findById.mockReturnValue({ isOnline: true } as any);
+        treeRepo.find.mockReturnValue({} as any);
+
+        let ackHandler: any;
+        agentGateway.onCommandAck.mockImplementation((handler: any) => {
+            ackHandler = handler;
+            return () => { };
+        });
+
+        agentGateway.sendCommand.mockImplementation(async (_clientId, correlationId, _command, _treeId) => {
+            if (ackHandler) {
+                setTimeout(() =>
+                    ackHandler({
+                        correlationId,
+                        success: false,
+                        errorCode: "COMMAND_EXECUTION_ERROR",
+                        errorMessage: "Cannot enable profiling without a cached time provider",
+                    })
+                );
+            }
+        });
+
+        const result = await service.enableStreaming("client-1", "tree-1");
+        expect(result).toEqual({
+            success: false,
+            errorCode: "COMMAND_EXECUTION_ERROR",
+            errorMessage: "Cannot enable profiling without a cached time provider",
+        });
     });
 });

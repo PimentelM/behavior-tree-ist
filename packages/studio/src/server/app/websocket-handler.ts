@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import { StudioService } from "../domain";
 import { DefaultAgentGateway } from "./agent-gateway";
+import { MessageType } from "@behavior-tree-ist/studio-transport";
 
 export class WebSocketHandler {
     private readonly connections = new Map<string, WebSocket>();
@@ -24,26 +25,27 @@ export class WebSocketHandler {
         ws.on("message", (data: string | Buffer) => {
             try {
                 const message = JSON.parse(data.toString());
+                console.log(`[WebSocketHandler] Received ${message.type} from ${message.payload.clientId || clientId} for treeId ${message.payload.treeId || 'N/A'}`);
 
                 // PROTOCOL_VERSION check could be here
 
-                if (message.type === "client-hello") {
+                if (message.type === MessageType.ClientHello) {
                     clientId = message.payload.clientId;
                     if (clientId) {
                         this.connections.set(clientId, ws);
                         this.service.registerClient(clientId);
                     }
-                } else if (message.type === "command-ack") {
+                } else if (message.type === MessageType.CommandAck) {
                     this.gateway.emitAck(message.payload);
                 } else if (clientId) {
                     // Tree registry and ticks handling
-                    if (message.type === "register-tree") {
+                    if (message.type === MessageType.RegisterTree) {
                         this.service.registerTree(clientId, message.payload.treeId, message.payload.serializedTree);
-                    } else if (message.type === "tree-update") {
+                    } else if (message.type === MessageType.TreeUpdate) {
                         this.service.updateTree(clientId, message.payload.treeId, message.payload.serializedTree);
-                    } else if (message.type === "remove-tree") {
+                    } else if (message.type === MessageType.RemoveTree) {
                         this.service.unregisterTree(clientId, message.payload.treeId);
-                    } else if (message.type === "tick-batch") {
+                    } else if (message.type === MessageType.TickBatch) {
                         this.service.processTicks(clientId, message.payload.treeId, message.payload.ticks);
                     }
                 }

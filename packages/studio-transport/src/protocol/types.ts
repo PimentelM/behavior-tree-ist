@@ -73,6 +73,9 @@ export interface CommandAckMessage {
     payload: {
         correlationId: string;
         success: boolean;
+        errorCode?: string;
+        errorMessage?: string;
+        // Backward-compatible alias used by older server components.
         error?: string;
     };
 }

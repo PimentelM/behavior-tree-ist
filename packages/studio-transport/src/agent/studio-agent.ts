@@ -162,7 +162,7 @@ export class StudioAgent {
         const entry = this.registry.get(treeId);
 
         if (!entry) {
-            this.sendAck(correlationId, false, `Tree "${treeId}" not found`);
+            this.sendAck(correlationId, false, "TREE_NOT_FOUND", `Tree "${treeId}" not found`);
             return;
         }
 
@@ -187,21 +187,37 @@ export class StudioAgent {
                     entry.tree.disableProfiling();
                     break;
                 default:
-                    this.sendAck(correlationId, false, `Unknown command "${command}"`);
+                    this.sendAck(correlationId, false, "UNKNOWN_COMMAND", `Unknown command "${command}"`);
                     return;
             }
             this.sendAck(correlationId, true);
-        } catch (error: any) {
-            this.sendAck(correlationId, false, error.message ?? String(error));
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.sendAck(correlationId, false, "COMMAND_EXECUTION_ERROR", errorMessage);
         }
     }
 
-    private sendAck(correlationId: string, success: boolean, error?: string): void {
+    private sendAck(
+        correlationId: string,
+        success: boolean,
+        errorCode?: string,
+        errorMessage?: string
+    ): void {
         this.queueMessage({
             v: PROTOCOL_VERSION,
             type: MessageType.CommandAck,
-            payload: { correlationId, success, error }
+            payload: {
+                correlationId,
+                success,
+                errorCode,
+                errorMessage,
+                // Backward-compatible alias used by some server code paths.
+                error: errorMessage,
+            }
         });
+        if (this.isConnected) {
+            this.tick({ now: Date.now() });
+        }
     }
 
     private queueMessage(msg: AgentToServerMessage): void {

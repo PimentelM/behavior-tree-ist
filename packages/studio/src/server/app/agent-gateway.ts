@@ -1,16 +1,23 @@
 import { AgentGateway } from "../domain";
+import {
+    MessageType,
+    PROTOCOL_VERSION,
+    type CommandAckMessage,
+} from "@behavior-tree-ist/studio-transport";
+
+type CommandAckPayload = CommandAckMessage["payload"];
 
 export type WebSocketSender = (clientId: string, data: string) => Promise<void>;
 
 export class DefaultAgentGateway implements AgentGateway {
-    private readonly listeners = new Set<(ack: { correlationId: string, success: boolean, error?: string }) => void>();
+    private readonly listeners = new Set<(ack: CommandAckPayload) => void>();
 
     constructor(private readonly send: WebSocketSender) { }
 
     async sendCommand(clientId: string, correlationId: string, command: string, treeId: string): Promise<void> {
         const payload = JSON.stringify({
-            v: 1, // PROTOCOL_VERSION
-            type: "command", // MessageType.Command
+            v: PROTOCOL_VERSION,
+            type: MessageType.Command,
             payload: {
                 correlationId,
                 command,
@@ -21,7 +28,7 @@ export class DefaultAgentGateway implements AgentGateway {
         await this.send(clientId, payload);
     }
 
-    onCommandAck(handler: (ack: { correlationId: string, success: boolean, error?: string }) => void): () => void {
+    onCommandAck(handler: (ack: CommandAckPayload) => void): () => void {
         this.listeners.add(handler);
         return () => {
             this.listeners.delete(handler);
@@ -29,7 +36,7 @@ export class DefaultAgentGateway implements AgentGateway {
     }
 
     // Called by the WebSocket handler when an ack is received
-    public emitAck(ack: { correlationId: string, success: boolean, error?: string }): void {
+    public emitAck(ack: CommandAckPayload): void {
         for (const listener of this.listeners) {
             try {
                 listener(ack);

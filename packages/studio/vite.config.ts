@@ -28,6 +28,10 @@ export default defineConfig({
                 find: '@behavior-tree-ist/core',
                 replacement: fromRoot('../core/src/index.ts'),
             },
+            {
+                find: '@behavior-tree-ist/studio-transport',
+                replacement: fromRoot('../studio-transport/src/index.ts'),
+            },
         ],
     },
     plugins: [

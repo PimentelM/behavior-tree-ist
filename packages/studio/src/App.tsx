@@ -24,7 +24,7 @@ function App() {
     );
 
     // Commands Hook
-    const { sendCommand } = useStudioCommands();
+    const { sendCommand, error: commandError } = useStudioCommands();
 
     // Selected Client specific states
     const selectedClient = clients.find(c => c.clientId === selectedClientId);
@@ -34,11 +34,15 @@ function App() {
 
     // We could implement optimistic updates for toggle states or rely on server state if the server starts responding with it
     // For now, we mock them enabled/disabled, or maintain local optimisitic state
-    const [streamingEnabled, setStreamingEnabled] = useState(true);
+    const [streamingEnabled, setStreamingEnabled] = useState(false);
     const [stateTraceEnabled, setStateTraceEnabled] = useState(false);
     const [profilingEnabled, setProfilingEnabled] = useState(false);
 
     const handleSendCommand = useCallback(async (command: string, treeId: string) => {
+        const prevStreamingEnabled = streamingEnabled;
+        const prevStateTraceEnabled = stateTraceEnabled;
+        const prevProfilingEnabled = profilingEnabled;
+
         // Optimistic updates
         if (command === 'enable-streaming') setStreamingEnabled(true);
         if (command === 'disable-streaming') setStreamingEnabled(false);
@@ -49,13 +53,22 @@ function App() {
 
         const result = await sendCommand(command, treeId, selectedClientId);
 
-        // Rollback on failure could be implemented here
+        // Rollback optimistic updates when command is rejected.
         if (!result.success) {
+            setStreamingEnabled(prevStreamingEnabled);
+            setStateTraceEnabled(prevStateTraceEnabled);
+            setProfilingEnabled(prevProfilingEnabled);
             console.error("Command failed:", result.errorMessage);
         }
 
         return result;
-    }, [sendCommand, selectedClientId]);
+    }, [
+        sendCommand,
+        selectedClientId,
+        streamingEnabled,
+        stateTraceEnabled,
+        profilingEnabled,
+    ]);
 
     // Derived properties for BehaviourTreeDebugger
     const treeToRender = rawTree?.serializedTree;
@@ -69,6 +82,11 @@ function App() {
                 {pollingError && (
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1000, background: 'var(--bt-color-failed, red)', color: 'white', padding: '8px', textAlign: 'center' }}>
                         Error connecting to Studio Server: {pollingError.message}
+                    </div>
+                )}
+                {commandError && (
+                    <div style={{ position: 'absolute', top: pollingError ? '40px' : 0, left: 0, right: 0, zIndex: 1000, background: 'var(--bt-color-failed, red)', color: 'white', padding: '8px', textAlign: 'center' }}>
+                        Command failed: {commandError.message}
                     </div>
                 )}
 

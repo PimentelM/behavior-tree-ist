@@ -230,7 +230,8 @@ describe("StudioAgent", () => {
 
         const ack = JSON.parse(transport.messages[0]);
         expect(ack.payload.success).toBe(false);
-        expect(ack.payload.error).toMatch(/Cannot enable profiling without a cached time provider/);
+        expect(ack.payload.errorCode).toBe("COMMAND_EXECUTION_ERROR");
+        expect(ack.payload.errorMessage).toMatch(/Cannot enable profiling without a cached time provider/);
     });
 
     it("command for unknown tree sends CommandAck with success: false and error", () => {
@@ -249,7 +250,8 @@ describe("StudioAgent", () => {
 
         const ack = JSON.parse(transport.messages[0]);
         expect(ack.payload.success).toBe(false);
-        expect(ack.payload.error).toMatch(/Tree "unknown" not found/);
+        expect(ack.payload.errorCode).toBe("TREE_NOT_FOUND");
+        expect(ack.payload.errorMessage).toMatch(/Tree "unknown" not found/);
     });
 
     it("backpressure: when queue is full, oldest message is evicted", () => {

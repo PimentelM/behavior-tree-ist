@@ -2,6 +2,23 @@ import { useState, useCallback } from 'react';
 import type { StudioCommandResult } from '@behavior-tree-ist/react';
 import { trpc } from '../trpc-client';
 
+const SUPPORTED_COMMANDS = new Set([
+    'enable-streaming',
+    'disable-streaming',
+    'enable-state-trace',
+    'disable-state-trace',
+    'enable-profiling',
+    'disable-profiling',
+] as const);
+
+type SupportedCommand =
+    | 'enable-streaming'
+    | 'disable-streaming'
+    | 'enable-state-trace'
+    | 'disable-state-trace'
+    | 'enable-profiling'
+    | 'disable-profiling';
+
 export function useStudioCommands() {
     const [isPending, setIsPending] = useState(false);
     const [error, setError] = useState<Error | null>(null);
@@ -15,17 +32,24 @@ export function useStudioCommands() {
             setIsPending(true);
             setError(null);
             try {
-                if (command === 'enable-streaming') {
-                    await trpc.enableStreaming.mutate({ clientId, treeId });
-                } else if (command === 'disable-streaming') {
-                    await trpc.disableStreaming.mutate({ clientId, treeId });
-                } else {
-                    throw new Error(`Command not yet implemented in backend: ${command}`);
+                if (!SUPPORTED_COMMANDS.has(command as SupportedCommand)) {
+                    throw new Error(`Unsupported command: ${command}`);
                 }
 
-                return {
-                    success: true,
-                };
+                const result = await trpc.sendCommand.mutate({
+                    clientId,
+                    treeId,
+                    command: command as SupportedCommand,
+                });
+                if (!result.success) {
+                    setError(new Error(result.errorMessage ?? 'Command failed'));
+                    return {
+                        success: false,
+                        errorCode: result.errorCode,
+                        errorMessage: result.errorMessage ?? 'Command failed',
+                    };
+                }
+                return result;
             } catch (e) {
                 const err = e instanceof Error ? e : new Error('Command failed');
                 setError(err);
