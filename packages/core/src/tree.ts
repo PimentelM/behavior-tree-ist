@@ -28,6 +28,14 @@ export class BehaviourTree {
         this.root = root;
     }
 
+    public get isStateTraceEnabled(): boolean {
+        return this.stateTraceEnabled;
+    }
+
+    public get isProfilingEnabled(): boolean {
+        return this.profilingEnabled;
+    }
+
     public enableStateTrace(): BehaviourTree {
         this.stateTraceEnabled = true;
         return this;
