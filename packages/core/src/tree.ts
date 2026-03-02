@@ -11,9 +11,12 @@ export class BehaviourTree {
 
     public readonly treeId: number = BehaviourTree.NEXT_TREE_ID++;
     private currentTickId: number = 1;
-    private root: BTNode;
+    private readonly root: BTNode;
     private stateTraceEnabled: boolean = false;
+    private profilingEnabled: boolean = false;
+    private useNowAsTickIdEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
+    private lastNowTickId: number | undefined;
 
     private runtime: TickRuntime = {
         treeId: this.treeId,
@@ -36,13 +39,26 @@ export class BehaviourTree {
         return this;
     }
 
-    public enableProfiling(getTime: () => number): BehaviourTree {
-        this.profilingTimeProvider = getTime;
+    public enableProfiling(getTime?: () => number): BehaviourTree {
+        if (getTime) {
+            this.profilingTimeProvider = getTime;
+        }
+
+        if (!this.profilingTimeProvider) {
+            throw new Error("Cannot enable profiling without a cached time provider. Provide a getTime function first.");
+        }
+
+        this.profilingEnabled = true;
         return this;
     }
 
     public disableProfiling(): BehaviourTree {
-        this.profilingTimeProvider = undefined;
+        this.profilingEnabled = false;
+        return this;
+    }
+
+    public useNowAsTickId(): BehaviourTree {
+        this.useNowAsTickIdEnabled = true;
         return this;
     }
 
@@ -58,7 +74,17 @@ export class BehaviourTree {
         const events: TickTraceEvent[] = [];
         const refEvents: RefChangeEvent[] = [];
         const now = pCtx.now ?? Date.now();
-        const tickId = this.currentTickId;
+        let tickId = this.currentTickId;
+
+        if (this.lastNowTickId !== undefined && now <= this.lastNowTickId) {
+            throw new Error(`now tick id must be strictly increasing. Received ${now}, but last was ${this.lastNowTickId}`);
+        }
+
+        if (this.useNowAsTickIdEnabled) {
+            tickId = now;
+            this.lastNowTickId = now;
+        }
+
         const ctx: TickContext = {
             tickId,
             now,
@@ -86,7 +112,7 @@ export class BehaviourTree {
 
                 events.push(event);
             },
-            getTime: this.profilingTimeProvider,
+            getTime: this.profilingEnabled ? this.profilingTimeProvider : undefined,
         }
 
         // Pick up pending ref events from between ticks
