@@ -30,12 +30,22 @@
   },
   "dependencies": {
     "@behavior-tree-ist/core": "workspace:*",
+    "@trpc/server": "^11.0.0",
     "better-sqlite3": "^12.4.1",
-    "ws": "^8.19.0"
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "helmet": "^8.0.0",
+    "knex": "^3.1.0",
+    "uuid": "^11.1.0",
+    "ws": "^8.19.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.15.30",
+    "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",
