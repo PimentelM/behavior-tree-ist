@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from 'vitest';
 import { randomUUID } from 'crypto';
-import * as net from 'net';
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import {
     Action,
     NodeResult,
@@ -12,8 +10,7 @@ import {
     StudioCommandType,
 } from '@behavior-tree-ist/core';
 import { WsNodeStringTransport } from '@behavior-tree-ist/studio-transport/node';
-import { createStudioServer } from './index';
-import type { AppRouter } from './app/trpc';
+import { withTestService, type TestServiceInstance } from './test/test-service-setup';
 import {
     createClientInputStub,
     createCommandInputStub,
@@ -24,17 +21,6 @@ import {
 } from './stubs';
 
 // ── Helpers ──
-
-async function findAvailablePort(): Promise<number> {
-    return new Promise((resolve) => {
-        const server = net.createServer();
-        server.listen(0, () => {
-            const address = server.address();
-            const port = typeof address === 'object' && address ? address.port : 0;
-            server.close(() => resolve(port));
-        });
-    });
-}
 
 async function waitFor(
     predicate: () => Promise<boolean>,
@@ -56,34 +42,21 @@ function delay(ms: number): Promise<void> {
 // ── Test suite ──
 
 describe('Studio Server E2E', () => {
+    const testService = withTestService();
     let CLIENT_ID: string;
     let SESSION_ID: string;
     let TREE_ID: string;
 
-    let port: number;
-    let server: ReturnType<typeof createStudioServer>;
-    let trpc: ReturnType<typeof createTRPCClient<AppRouter>>;
+    let wsUrl: string;
+    let trpc: TestServiceInstance['trpc'];
     let registry: TreeRegistry;
     let tree: BehaviourTree;
     let agent: StudioAgent;
 
     beforeAll(async () => {
-        port = await findAvailablePort();
-
-        server = createStudioServer({
-            httpPort: port,
-            httpHost: '127.0.0.1',
-            sqlitePath: ':memory:',
-        });
-        await server.start();
-
-        trpc = createTRPCClient<AppRouter>({
-            links: [
-                httpBatchLink({
-                    url: `http://127.0.0.1:${port}/trpc`,
-                }),
-            ],
-        });
+        const service = await testService.beforeAll();
+        wsUrl = service.wsUrl;
+        trpc = service.trpc;
     });
 
     beforeEach(async () => {
@@ -108,7 +81,7 @@ describe('Studio Server E2E', () => {
         // Create the agent with a real WS transport
         const link = new StudioLink({
             createTransport: WsNodeStringTransport.createFactory(
-                `ws://127.0.0.1:${port}/ws`,
+                wsUrl,
             ),
             reconnectDelayMs: 100,
         });
@@ -136,7 +109,7 @@ describe('Studio Server E2E', () => {
     });
 
     afterAll(async () => {
-        await server?.stop();
+        await testService.afterAll();
     });
 
     it('registers the client via tRPC after agent connects', async () => {

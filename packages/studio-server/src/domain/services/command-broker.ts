@@ -12,6 +12,7 @@ interface PendingCommand {
 export class CommandBroker implements CommandBrokerInterface {
     private pending = new Map<string, PendingCommand>();
     private logger = createLogger('command-broker');
+    private isShuttingDown = false;
 
     constructor(
         private wsServer: WebSocketServerInterface,
@@ -19,6 +20,10 @@ export class CommandBroker implements CommandBrokerInterface {
     ) {}
 
     async sendCommand(wsClientId: string, command: StudioCommand): Promise<CommandResponse> {
+        if (this.isShuttingDown) {
+            throw new Error('Command broker is shutting down');
+        }
+
         const message: InboundMessage = {
             t: MessageType.Command,
             command,
@@ -53,5 +58,16 @@ export class CommandBroker implements CommandBrokerInterface {
         pending.resolve(response);
 
         this.logger.debug('Command response received', { correlationId });
+    }
+
+    shutdown(): void {
+        this.isShuttingDown = true;
+
+        for (const [correlationId, pending] of this.pending.entries()) {
+            clearTimeout(pending.timer);
+            pending.reject(new Error(`Command ${correlationId} cancelled because server is shutting down`));
+        }
+
+        this.pending.clear();
     }
 }

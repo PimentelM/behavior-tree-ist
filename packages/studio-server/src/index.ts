@@ -13,9 +13,14 @@ import { SettingsRepository } from './infra/knex/settings-repository';
 import { registerWsHandlers, createDisconnectHandler } from './app/handlers/websocket';
 import { createAppRouter } from './app/trpc';
 import { makeConfig, StudioServerConfig } from './configuration';
+import { parseStudioServerConfig } from './configuration-schema';
 import { AppDependencies } from './types/app-dependencies';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import type { Server } from 'http';
+import type { NextFunction, Request, Response } from 'express';
+import type { Knex } from 'knex';
+import type { WebSocketServerInterface } from './infra/websocket/interfaces';
+import type { CommandBrokerInterface } from './domain/interfaces';
 
 export interface StudioServerOptions {
     httpHost?: string;
@@ -24,6 +29,7 @@ export interface StudioServerOptions {
     sqlitePath?: string;
     commandTimeoutMs?: number;
     maxTicksPerTree?: number;
+    runMigrationsOnStartup?: boolean;
 }
 
 export interface StudioServerHandle {
@@ -32,7 +38,7 @@ export interface StudioServerHandle {
 }
 
 function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
-    return {
+    return parseStudioServerConfig({
         http: {
             port: options?.httpPort ?? 4100,
             host: options?.httpHost ?? '0.0.0.0',
@@ -46,7 +52,50 @@ function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
         commandTimeoutMs: options?.commandTimeoutMs ?? 5000,
         maxTicksPerTree: options?.maxTicksPerTree ?? 1000,
         logLevel: 'info',
-    };
+        migrations: {
+            runOnStartup: options?.runMigrationsOnStartup ?? true,
+        },
+    });
+}
+
+async function closeHttpServer(httpServer: Server): Promise<void> {
+    await new Promise<void>((resolve) => {
+        httpServer.close(() => resolve());
+    });
+}
+
+async function cleanupInitializedResources(params: {
+    logger: ReturnType<typeof createLogger>;
+    commandBroker?: CommandBrokerInterface;
+    wsServer?: WebSocketServerInterface;
+    httpServer?: Server;
+    knex?: Knex;
+}): Promise<void> {
+    params.commandBroker?.shutdown();
+
+    if (params.wsServer) {
+        try {
+            await params.wsServer.stop();
+        } catch (error) {
+            params.logger.warn('Error stopping WebSocket server during cleanup', { error: String(error) });
+        }
+    }
+
+    if (params.httpServer) {
+        try {
+            await closeHttpServer(params.httpServer);
+        } catch (error) {
+            params.logger.warn('Error closing HTTP server during cleanup', { error: String(error) });
+        }
+    }
+
+    if (params.knex) {
+        try {
+            await params.knex.destroy();
+        } catch (error) {
+            params.logger.warn('Error destroying database client during cleanup', { error: String(error) });
+        }
+    }
 }
 
 export function createStudioServer(options?: StudioServerOptions): StudioServerHandle {
@@ -56,6 +105,9 @@ export function createStudioServer(options?: StudioServerOptions): StudioServerH
 
     return {
         async start() {
+            if (httpServer || deps) {
+                throw new Error('Studio server is already running');
+            }
             const result = await initializeService({ config });
             httpServer = result.httpServer;
             deps = result.deps;
@@ -65,17 +117,16 @@ export function createStudioServer(options?: StudioServerOptions): StudioServerH
             const logger = createLogger('shutdown');
             logger.info('Shutting down');
 
-            try {
-                await deps.wsServer.stop();
-            } catch (e) {
-                createLogger('shutdown').warn('Error stopping WS server', { error: String(e) });
-            }
-
-            await new Promise<void>((resolve) => {
-                httpServer!.close(() => resolve());
+            await cleanupInitializedResources({
+                logger,
+                commandBroker: deps.commandBroker,
+                wsServer: deps.wsServer,
+                httpServer,
+                knex: deps.knex,
             });
 
-            await deps.knex.destroy();
+            deps = undefined;
+            httpServer = undefined;
             logger.info('Shutdown complete');
         },
     };
@@ -90,83 +141,128 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
     const setupLogger = createLogger('setup');
     setupLogger.info('Starting studio server');
 
-    // Infrastructure clients
-    const knex = createKnexFromConfig(config);
-    setupLogger.info('Running migrations');
-    await knex.migrate.latest();
+    let knex: Knex | undefined;
+    let wsServer: WebSocketServerInterface | undefined;
+    let httpServer: Server | undefined;
+    let commandBroker: CommandBroker | undefined;
 
-    // Infrastructure services
-    const wsServer = createWebSocketServer(createLogger('ws-server'));
-    const messageRouter = new MessageRouter();
+    try {
+        // Infrastructure clients
+        knex = createKnexFromConfig(config);
+        if (config.migrations.runOnStartup) {
+            setupLogger.info('Running migrations');
+            await knex.migrate.latest();
+        } else {
+            setupLogger.info('Skipping migrations');
+        }
 
-    // Domain services
-    const agentConnectionRegistry = new AgentConnectionRegistry();
-    const commandBroker = new CommandBroker(wsServer, config.commandTimeoutMs);
+        // Infrastructure services
+        wsServer = createWebSocketServer(createLogger('ws-server'));
+        const messageRouter = new MessageRouter();
 
-    // Repositories
-    const clientRepository = new ClientRepository(knex);
-    const sessionRepository = new SessionRepository(knex);
-    const treeRepository = new TreeRepository(knex);
-    const tickRepository = new TickRepository(knex);
-    const settingsRepository = new SettingsRepository(knex);
+        // Domain services
+        const agentConnectionRegistry = new AgentConnectionRegistry();
+        commandBroker = new CommandBroker(wsServer, config.commandTimeoutMs);
 
-    const deps: AppDependencies = {
-        knex,
-        wsServer,
-        messageRouter,
-        agentConnectionRegistry,
-        commandBroker,
-        clientRepository,
-        sessionRepository,
-        treeRepository,
-        tickRepository,
-        settingsRepository,
-        config,
-    };
+        // Repositories
+        const clientRepository = new ClientRepository(knex);
+        const sessionRepository = new SessionRepository(knex);
+        const treeRepository = new TreeRepository(knex);
+        const tickRepository = new TickRepository(knex);
+        const settingsRepository = new SettingsRepository(knex);
 
-    // Express + tRPC
-    const app = createExpressApp();
+        const deps: AppDependencies = {
+            knex,
+            wsServer,
+            messageRouter,
+            agentConnectionRegistry,
+            commandBroker,
+            clientRepository,
+            sessionRepository,
+            treeRepository,
+            tickRepository,
+            settingsRepository,
+            config,
+        };
 
-    const appRouter = createAppRouter(deps);
-    app.use(
-        '/trpc',
-        trpcExpress.createExpressMiddleware({
-            router: appRouter,
-            createContext: () => deps,
-        })
-    );
+        // Express + tRPC
+        const app = createExpressApp();
+        const appRouter = createAppRouter(deps);
 
-    app.get('/', (_req, res) => res.status(200).send('ok'));
-    app.get('/healthz', (_req, res) => res.status(200).json({ status: 'ok' }));
+        app.use(
+            '/trpc',
+            trpcExpress.createExpressMiddleware({
+                router: appRouter,
+                createContext: () => deps,
+            })
+        );
 
-    // WebSocket handlers
-    registerWsHandlers(deps);
+        app.get('/', (_req, res) => res.status(200).send('ok'));
+        app.get('/healthz', (_req, res) => res.status(200).json({ status: 'ok' }));
 
-    const disconnectHandler = createDisconnectHandler({ agentConnectionRegistry });
+        registerWsHandlers(deps);
 
-    wsServer.onConnection((client) => {
-        client.onMessage((message) => {
-            return messageRouter.route(message.t, message, client);
+        app.use((req, res) => {
+            res.status(404).json({
+                error: 'not_found',
+                path: req.originalUrl || req.url,
+            });
         });
-    });
 
-    wsServer.onDisconnection((wsClientId) => {
-        disconnectHandler(wsClientId);
-    });
+        app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+            const status = typeof err === 'object' && err !== null && 'status' in err && typeof (err as { status?: unknown }).status === 'number'
+                ? (err as { status: number }).status
+                : 500;
+            const isProd = process.env.NODE_ENV === 'production';
+            const message = isProd
+                ? 'internal_server_error'
+                : (err instanceof Error ? err.message : 'Unknown error');
 
-    // Start listening
-    const httpServer = app.listen(config.http.port, config.http.host, () => {
+            if (status >= 500) {
+                setupLogger.error('Unhandled request error', { error: String(err) });
+            } else {
+                setupLogger.warn('Handled request error', { status, error: String(err) });
+            }
+
+            res.status(status).json({ error: message });
+        });
+
+        const disconnectHandler = createDisconnectHandler({ agentConnectionRegistry });
+
+        wsServer.onConnection((client) => {
+            client.onMessage((message) => messageRouter.route(message.t, message, client));
+        });
+
+        wsServer.onDisconnection((wsClientId) => {
+            disconnectHandler(wsClientId);
+        });
+
+        httpServer = await new Promise<Server>((resolve, reject) => {
+            const server = app.listen(config.http.port, config.http.host);
+            server.once('listening', () => resolve(server));
+            server.once('error', reject);
+        });
         setupLogger.info(`HTTP server listening on ${config.http.host}:${config.http.port}`);
-    });
 
-    await wsServer.start({
-        server: httpServer,
-        path: config.ws.path,
-        maxConnections: 1000,
-    });
+        await wsServer.start({
+            server: httpServer,
+            path: config.ws.path,
+            maxConnections: 1000,
+        });
 
-    setupLogger.info('Studio server initialized');
-    return { httpServer, deps };
+        setupLogger.info('Studio server initialized');
+        return { httpServer, deps };
+    } catch (error) {
+        setupLogger.error('Studio server initialization failed', { error: String(error) });
+        await cleanupInitializedResources({
+            logger: setupLogger,
+            commandBroker,
+            wsServer,
+            httpServer,
+            knex,
+        });
+        throw error;
+    }
 }
 
 async function main() {

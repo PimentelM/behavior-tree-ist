@@ -18,21 +18,18 @@ export class ClientRepository extends BaseKnexRepository implements ClientReposi
 
     async upsert(clientId: string): Promise<void> {
         const now = Date.now();
-        const existing = await this.findById(clientId);
-        if (existing) {
-            await this.withTransaction(
-                this.knex('clients').where('clientId', clientId).update({ lastSeenAt: now })
-            );
-        } else {
-            const dbClient = mapClientToDb({
-                clientId,
-                firstSeenAt: now,
-                lastSeenAt: now,
-            });
-            await this.withTransaction(
-                this.knex('clients').insert(dbClient)
-            );
-        }
+        const dbClient = mapClientToDb({
+            clientId,
+            firstSeenAt: now,
+            lastSeenAt: now,
+        });
+
+        await this.withTransaction(
+            this.knex('clients')
+                .insert(dbClient)
+                .onConflict('clientId')
+                .merge({ lastSeenAt: now })
+        );
     }
 
     async findAll() {

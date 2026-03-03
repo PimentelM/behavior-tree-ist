@@ -18,24 +18,19 @@ export class SessionRepository extends BaseKnexRepository implements SessionRepo
 
     async upsert(clientId: string, sessionId: string): Promise<void> {
         const now = Date.now();
-        const existing = await this.findById(clientId, sessionId);
-        if (existing) {
-            await this.withTransaction(
-                this.knex('sessions')
-                    .where({ clientId, sessionId })
-                    .update({ lastSeenAt: now })
-            );
-        } else {
-            const dbSession = mapSessionToDb({
-                clientId,
-                sessionId,
-                startedAt: now,
-                lastSeenAt: now,
-            });
-            await this.withTransaction(
-                this.knex('sessions').insert(dbSession)
-            );
-        }
+        const dbSession = mapSessionToDb({
+            clientId,
+            sessionId,
+            startedAt: now,
+            lastSeenAt: now,
+        });
+
+        await this.withTransaction(
+            this.knex('sessions')
+                .insert(dbSession)
+                .onConflict(['clientId', 'sessionId'])
+                .merge({ lastSeenAt: now })
+        );
     }
 
     async findById(clientId: string, sessionId: string) {

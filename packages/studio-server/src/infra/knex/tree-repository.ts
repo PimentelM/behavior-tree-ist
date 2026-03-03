@@ -21,7 +21,6 @@ export class TreeRepository extends BaseKnexRepository implements TreeRepository
 
     async upsert(clientId: string, sessionId: string, treeId: string, serializedTree: SerializableNode): Promise<void> {
         const now = Date.now();
-        const existing = await this.findById(clientId, sessionId, treeId);
         const dbTree = mapTreeToDb({
             clientId,
             sessionId,
@@ -31,21 +30,16 @@ export class TreeRepository extends BaseKnexRepository implements TreeRepository
             updatedAt: now,
         });
 
-        if (existing) {
-            await this.withTransaction(
-                this.knex('trees')
-                    .where({ clientId, sessionId, treeId })
-                    .update({
-                        serializedTreeJson: dbTree.serializedTreeJson,
-                        removedAt: dbTree.removedAt,
-                        updatedAt: dbTree.updatedAt,
-                    })
-            );
-        } else {
-            await this.withTransaction(
-                this.knex('trees').insert(dbTree)
-            );
-        }
+        await this.withTransaction(
+            this.knex('trees')
+                .insert(dbTree)
+                .onConflict(['clientId', 'sessionId', 'treeId'])
+                .merge({
+                    serializedTreeJson: dbTree.serializedTreeJson,
+                    removedAt: dbTree.removedAt,
+                    updatedAt: dbTree.updatedAt,
+                })
+        );
     }
 
     async markRemoved(clientId: string, sessionId: string, treeId: string): Promise<void> {

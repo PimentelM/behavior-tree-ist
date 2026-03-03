@@ -49,4 +49,5 @@ export interface AgentConnectionRegistryInterface {
 export interface CommandBrokerInterface {
     sendCommand(wsClientId: string, command: StudioCommand): Promise<CommandResponse>;
     handleResponse(correlationId: string, response: CommandResponse): void;
+    shutdown(): void;
 }
