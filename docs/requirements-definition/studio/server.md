@@ -38,7 +38,7 @@ Out of scope for this plan: `studio-ui`, `studio-common` extraction, and CLI orc
 
 ### Session Plan (medium chunks, one session at a time)
 
-1. [x] Session 1: Package bootstrap + onion skeleton (Completed on March 3, 2026)
+1. Session 1: Package bootstrap + onion skeleton (Completed on March 3, 2026)
    - Create `packages/studio-server`, scripts, tsconfig/tsup/vitest setup, and three-layer folder layout (`domain`, `app`, `infra`).
    - Implement composition root and lifecycle (`start/stop`) with Fastify startup and graceful shutdown.
    - Define central config schema with defaults and env override support.
