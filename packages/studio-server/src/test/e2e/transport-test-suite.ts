@@ -13,7 +13,7 @@ import {
     TransportFactory,
     TreeRegistry,
 } from '@behavior-tree-ist/core';
-import { withTestService, type TestServiceInstance } from '../test/test-service-setup';
+import { withTestService, type TestServiceInstance } from '../test-service-setup';
 import {
     createClientInputStub,
     createCommandInputStub,
@@ -21,7 +21,7 @@ import {
     createTickQueryInputStub,
     createTreeInputStub,
     createTreeScopeStub,
-} from '../stubs';
+} from '../../stubs';
 
 export interface StudioServerE2ETransportConfig {
     name: string;
