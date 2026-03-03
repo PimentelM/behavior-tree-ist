@@ -232,6 +232,11 @@ __metadata:
 "@behavior-tree-ist/core@workspace:*, @behavior-tree-ist/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/core@workspace:packages/core"
+  dependencies:
+    eslint: "npm:^9.0.0"
+    tsup: "npm:^8.0.0"
+    typescript: "npm:^5.7.0"
+    vitest: "npm:^3.0.0"
   languageName: unknown
   linkType: soft
 
@@ -246,9 +251,12 @@ __metadata:
     "@types/react": "npm:^18"
     "@types/react-dom": "npm:^18"
     "@xyflow/react": "npm:^12"
+    eslint: "npm:^9.0.0"
     jsdom: "npm:^25"
     react: "npm:^18"
     react-dom: "npm:^18"
+    tsup: "npm:^8.0.0"
+    typescript: "npm:^5.7.0"
   peerDependencies:
     "@behavior-tree-ist/core": "workspace:*"
     react: ">=18.0.0"
@@ -265,7 +273,11 @@ __metadata:
     "@types/node": "npm:^22.15.30"
     "@types/ws": "npm:^8.18.1"
     better-sqlite3: "npm:^12.4.1"
+    eslint: "npm:^9.0.0"
     fastify: "npm:^4.29.1"
+    tsup: "npm:^8.0.0"
+    typescript: "npm:^5.7.0"
+    vitest: "npm:^3.0.0"
     ws: "npm:^8.19.0"
   languageName: unknown
   linkType: soft
@@ -275,6 +287,10 @@ __metadata:
   resolution: "@behavior-tree-ist/studio-transport@workspace:packages/studio-transport"
   dependencies:
     "@types/ws": "npm:^8.18.1"
+    eslint: "npm:^9.0.0"
+    tsup: "npm:^8.0.0"
+    typescript: "npm:^5.7.0"
+    vitest: "npm:^3.0.0"
   peerDependencies:
     "@behavior-tree-ist/core": "workspace:*"
     ws: ^8.0.0
