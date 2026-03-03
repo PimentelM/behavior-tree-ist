@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, Mock } from "vitest";
 import { StudioAgent, StudioAgentOptions } from "./studio-agent";
-import { StudioLink, StudioCommand } from "./studio-link";
-import { StudioCommandType, StudioErrorCode } from "./types";
+import { StudioLink } from "./studio-link";
+import { StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 import { TreeRegistry } from "../registry/tree-registry";
 import { BehaviourTree } from "../tree";
 import { Action, NodeResult } from "../base";
@@ -22,8 +22,7 @@ interface MockStudioLink extends StudioLink {
     sendTreeRegistered: Mock;
     sendTreeRemoved: Mock;
     sendTickBatch: Mock;
-    sendCommandAck: Mock;
-    sendTreeList: Mock;
+    sendCommandResponse: Mock;
     open: Mock;
     close: Mock;
 }
@@ -57,8 +56,7 @@ function createMockLink(): MockStudioLink {
         sendTreeRegistered: vi.fn(),
         sendTreeRemoved: vi.fn(),
         sendTickBatch: vi.fn(),
-        sendCommandAck: vi.fn(),
-        sendTreeList: vi.fn(),
+        sendCommandResponse: vi.fn(),
 
         onCommand(handler: CommandHandler): OffFunction {
             commandHandlers.add(handler);
@@ -351,7 +349,7 @@ describe("StudioAgent", () => {
 
             link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: StudioCommandType.EnableStreaming });
 
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", true);
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", { success: true });
         });
 
         it("acks disable-streaming", () => {
@@ -363,7 +361,7 @@ describe("StudioAgent", () => {
 
             link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: StudioCommandType.DisableStreaming });
 
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", true);
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", { success: true });
         });
 
         it("enable-state-trace calls tree.enableStateTrace()", () => {
@@ -377,7 +375,7 @@ describe("StudioAgent", () => {
             link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: StudioCommandType.EnableStateTrace });
 
             expect(spy).toHaveBeenCalledTimes(1);
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", true);
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", { success: true });
         });
 
         it("disable-state-trace calls tree.disableStateTrace()", () => {
@@ -392,7 +390,7 @@ describe("StudioAgent", () => {
             link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: StudioCommandType.DisableStateTrace });
 
             expect(spy).toHaveBeenCalledTimes(1);
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", true);
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", { success: true });
         });
 
         it("enable-profiling calls tree.enableProfiling()", () => {
@@ -406,7 +404,7 @@ describe("StudioAgent", () => {
             link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: StudioCommandType.EnableProfiling });
 
             expect(spy).toHaveBeenCalledTimes(1);
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", true);
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", { success: true });
         });
 
         it("disable-profiling calls tree.disableProfiling()", () => {
@@ -421,7 +419,7 @@ describe("StudioAgent", () => {
             link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: StudioCommandType.DisableProfiling });
 
             expect(spy).toHaveBeenCalledTimes(1);
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", true);
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", { success: true });
         });
 
         it("unknown command acks UNKNOWN_COMMAND", () => {
@@ -431,9 +429,13 @@ describe("StudioAgent", () => {
             agent.start();
             link._simulateConnect();
 
-            link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: "not-a-real-command" });
+            link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: 999 as StudioCommandType });
 
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", false, StudioErrorCode.UnknownCommand, expect.any(String));
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", {
+                success: false,
+                errorCode: StudioErrorCode.UnknownCommand,
+                errorMessage: expect.any(String),
+            });
         });
 
         it("unknown treeId acks TREE_NOT_FOUND", () => {
@@ -443,27 +445,29 @@ describe("StudioAgent", () => {
 
             link._simulateCommand({ correlationId: "c1", treeId: "missing-tree", command: StudioCommandType.EnableStreaming });
 
-            expect(link.sendCommandAck).toHaveBeenCalledWith("c1", false, StudioErrorCode.TreeNotFound, expect.any(String));
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", {
+                success: false,
+                errorCode: StudioErrorCode.TreeNotFound,
+                errorMessage: expect.any(String),
+            });
         });
 
-        it("list-trees returns summaries for all tracked trees", () => {
+        it("get-tree-statuses returns statuses in the response data", () => {
             const { agent, registry, link } = createAgent();
-            const tree1 = createTree();
-            const tree2 = createTree();
-            registry.register("tree-1", tree1);
-            registry.register("tree-2", tree2);
+            const tree = createTree();
+            registry.register("tree-1", tree);
             agent.start();
             link._simulateConnect();
 
-            // Enable streaming on tree-1
+            // Enable streaming first
             link._simulateCommand({ correlationId: "s1", treeId: "tree-1", command: StudioCommandType.EnableStreaming });
 
-            link._simulateCommand({ correlationId: "list-1", treeId: "", command: StudioCommandType.ListTrees });
+            link._simulateCommand({ correlationId: "c1", treeId: "tree-1", command: StudioCommandType.GetTreeStatuses });
 
-            expect(link.sendTreeList).toHaveBeenCalledWith("list-1", expect.arrayContaining([
-                { treeId: "tree-1", streaming: true, stateTrace: false, profiling: false },
-                { treeId: "tree-2", streaming: false, stateTrace: false, profiling: false },
-            ]));
+            expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", {
+                success: true,
+                data: { streaming: true, stateTrace: false, profiling: false },
+            });
         });
     });
 
@@ -506,7 +510,7 @@ describe("StudioAgent", () => {
             expect(link.close).toHaveBeenCalledTimes(1);
         });
 
-        it("clears tree states so list-trees returns empty after destroy", () => {
+        it("clears tree states so commands return tree-not-found after destroy", () => {
             const { agent, registry, link } = createAgent();
             const tree = createTree();
             registry.register("tree-1", tree);
@@ -515,10 +519,11 @@ describe("StudioAgent", () => {
 
             agent.destroy();
 
-            // Attempting a list-trees command won't fire because we've unsubscribed,
-            // but we can verify state was cleared by checking the link wasn't called
-            // with any trees after destroy
-            expect(link.sendTreeList).not.toHaveBeenCalled();
+            // Commands won't fire because we've unsubscribed,
+            // but we can verify state was cleared by checking no
+            // command responses were sent after destroy
+            link.sendCommandResponse.mockClear();
+            expect(link.sendCommandResponse).not.toHaveBeenCalled();
         });
     });
 

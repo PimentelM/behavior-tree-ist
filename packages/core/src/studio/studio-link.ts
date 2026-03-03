@@ -1,14 +1,6 @@
 import { SerializableNode, TickRecord } from "../base";
-import { TreeId } from "../registry";
 import { OffFunction } from "../types";
-import { StudioCommandType, TreeStatuses } from "./types";
-
-export type CorrelationId = string;
-export interface StudioCommand {
-    correlationId: CorrelationId;
-    treeId: TreeId;
-    command: StudioCommandType;
-}
+import { CommandResponse, CorrelationId, StudioCommand } from "./types";
 
 export interface StudioLink {
     // Outbound
@@ -16,9 +8,7 @@ export interface StudioLink {
     sendTreeRegistered(treeId: string, serializedTree: SerializableNode): void;
     sendTreeRemoved(treeId: string): void;
     sendTickBatch(treeId: string, ticks: TickRecord[]): void;
-    sendTreeStatuses(treeId: string, statuses: TreeStatuses): void;
-    sendCommandAck(correlationId: string, success: true): void;
-    sendCommandAck(correlationId: string, success: false, errorCode: string, errorMessage: string): void;
+    sendCommandResponse(correlationId: CorrelationId, response: CommandResponse): void;
 
     // Inbound
     onCommand(handler: (command: StudioCommand) => void): OffFunction;

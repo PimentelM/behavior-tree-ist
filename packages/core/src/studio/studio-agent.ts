@@ -3,8 +3,8 @@ import { TreeRegistry } from "../registry/tree-registry";
 import { RegisteredTree } from "../registry/types";
 import { assertValidId } from "../registry/validation";
 import { OffFunction } from "../types";
-import { StudioCommand, StudioLink } from "./studio-link";
-import { StudioCommandType, StudioErrorCode } from "./types";
+import { StudioLink } from "./studio-link";
+import { CommandResponse, CommandResponseData, CommandResponseSuccess, StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 
 interface AgentManagedTreeState {
     streaming: boolean;
@@ -120,64 +120,92 @@ export class StudioAgent {
         }
     }
 
+    private getTreeStatuses(treeId: string) {
+        const state = this.agentManagedStates.get(treeId);
+        const entry = this.registry.get(treeId);
+        if (!state || !entry) {
+            return null;
+        }
+        return {
+            streaming: state.streaming,
+            profiling: entry.tree.isProfilingEnabled,
+            stateTrace: entry.tree.isStateTraceEnabled
+        };
+    }
+
+    private sendSuccess(correlationId: string, data?: CommandResponseData): void {
+        const response: CommandResponse = data !== undefined
+            ? { success: true, data } as CommandResponseSuccess
+            : { success: true };
+        this.link.sendCommandResponse(correlationId, response);
+    }
+
+    private sendError(correlationId: string, errorCode: StudioErrorCode, errorMessage: string): void {
+        this.link.sendCommandResponse(correlationId, {
+            success: false, errorCode, errorMessage,
+        });
+    }
+
     private handleCommand(command: StudioCommand): void {
         const { correlationId, treeId, command: cmd } = command;
 
         // Tree-scoped commands
         const state = this.agentManagedStates.get(treeId);
         if (!state) {
-            this.link.sendCommandAck(correlationId, false, StudioErrorCode.TreeNotFound, `Tree "${treeId}" not found`);
+            this.sendError(correlationId, StudioErrorCode.TreeNotFound, `Tree "${treeId}" not found`);
             return;
         }
 
         const entry = this.registry.get(treeId);
         if (!entry) {
-            this.link.sendCommandAck(correlationId, false, StudioErrorCode.TreeNotFound, `Tree "${treeId}" not found`);
+            this.sendError(correlationId, StudioErrorCode.TreeNotFound, `Tree "${treeId}" not found`);
             return;
         }
 
         switch (cmd) {
             case StudioCommandType.EnableStreaming:
                 state.streaming = true;
-                this.link.sendCommandAck(correlationId, true);
+                this.sendSuccess(correlationId);
                 break;
 
             case StudioCommandType.DisableStreaming:
                 state.streaming = false;
-                this.link.sendCommandAck(correlationId, true);
+                this.sendSuccess(correlationId);
                 break;
 
             case StudioCommandType.EnableStateTrace:
                 entry.tree.enableStateTrace();
-                this.link.sendCommandAck(correlationId, true);
+                this.sendSuccess(correlationId);
                 break;
 
             case StudioCommandType.DisableStateTrace:
                 entry.tree.disableStateTrace();
-                this.link.sendCommandAck(correlationId, true);
+                this.sendSuccess(correlationId);
                 break;
 
             case StudioCommandType.EnableProfiling:
                 entry.tree.enableProfiling();
-                this.link.sendCommandAck(correlationId, true);
+                this.sendSuccess(correlationId);
                 break;
 
             case StudioCommandType.DisableProfiling:
                 entry.tree.disableProfiling();
-                this.link.sendCommandAck(correlationId, true);
+                this.sendSuccess(correlationId);
                 break;
 
-            case StudioCommandType.GetTreeStatuses:
-                const agentManagedStates = this.agentManagedStates.get(treeId);
-                this.link.sendTreeStatuses(treeId, {
-                    streaming: agentManagedStates?.streaming ?? false,
-                    profiling: entry.tree.isProfilingEnabled,
-                    stateTrace: entry.tree.isStateTraceEnabled
-                })
+            case StudioCommandType.GetTreeStatuses: {
+                const statuses = this.getTreeStatuses(treeId);
+                if (!statuses) {
+                    this.sendError(correlationId, StudioErrorCode.TreeNotFound, `Tree "${treeId}" not found`);
+                }
+                else {
+                    this.sendSuccess(correlationId, statuses);
+                }
                 break;
+            }
 
             default:
-                this.link.sendCommandAck(correlationId, false, StudioErrorCode.UnknownCommand, `Unknown command "${cmd}"`);
+                this.sendError(correlationId, StudioErrorCode.UnknownCommand, `Unknown command "${cmd}"`);
                 break;
         }
     }
