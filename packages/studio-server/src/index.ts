@@ -1,5 +1,6 @@
 import { createExpressApp } from './infra/express/express-setup';
 import { createWebSocketServer } from './infra/websocket/websocket-server';
+import { createRawTcpServer } from './infra/tcp/raw-tcp-server';
 import { createKnexFromConfig } from './infra/knex/knex-factory';
 import { MessageRouter } from './infra/message-router';
 import { createLogger } from './infra/logging';
@@ -20,11 +21,14 @@ import type { Server } from 'http';
 import type { NextFunction, Request, Response } from 'express';
 import type { Knex } from 'knex';
 import type { WebSocketServerInterface } from './infra/websocket/interfaces';
+import type { RawTcpServerInterface } from './infra/tcp/interfaces';
 import type { CommandBrokerInterface } from './domain/interfaces';
 
 export interface StudioServerOptions {
     httpHost?: string;
     httpPort?: number;
+    tcpHost?: string;
+    tcpPort?: number;
     wsPath?: string;
     sqlitePath?: string;
     commandTimeoutMs?: number;
@@ -38,10 +42,16 @@ export interface StudioServerHandle {
 }
 
 function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
+    const httpHost = options?.httpHost ?? '0.0.0.0';
+
     return parseStudioServerConfig({
         http: {
             port: options?.httpPort ?? 4100,
-            host: options?.httpHost ?? '0.0.0.0',
+            host: httpHost,
+        },
+        tcp: {
+            port: options?.tcpPort ?? 4101,
+            host: options?.tcpHost ?? httpHost,
         },
         ws: {
             path: options?.wsPath ?? '/ws',
@@ -68,6 +78,7 @@ async function cleanupInitializedResources(params: {
     logger: ReturnType<typeof createLogger>;
     commandBroker?: CommandBrokerInterface;
     wsServer?: WebSocketServerInterface;
+    tcpServer?: RawTcpServerInterface;
     httpServer?: Server;
     knex?: Knex;
 }): Promise<void> {
@@ -78,6 +89,14 @@ async function cleanupInitializedResources(params: {
             await params.wsServer.stop();
         } catch (error) {
             params.logger.warn('Error stopping WebSocket server during cleanup', { error: String(error) });
+        }
+    }
+
+    if (params.tcpServer) {
+        try {
+            await params.tcpServer.stop();
+        } catch (error) {
+            params.logger.warn('Error stopping raw TCP server during cleanup', { error: String(error) });
         }
     }
 
@@ -121,6 +140,7 @@ export function createStudioServer(options?: StudioServerOptions): StudioServerH
                 logger,
                 commandBroker: deps.commandBroker,
                 wsServer: deps.wsServer,
+                tcpServer: deps.tcpServer,
                 httpServer,
                 knex: deps.knex,
             });
@@ -143,6 +163,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
 
     let knex: Knex | undefined;
     let wsServer: WebSocketServerInterface | undefined;
+    let tcpServer: RawTcpServerInterface | undefined;
     let httpServer: Server | undefined;
     let commandBroker: CommandBroker | undefined;
 
@@ -158,11 +179,29 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
 
         // Infrastructure services
         wsServer = createWebSocketServer(createLogger('ws-server'));
+        tcpServer = createRawTcpServer(createLogger('tcp-server'));
         const messageRouter = new MessageRouter();
 
         // Domain services
         const agentConnectionRegistry = new AgentConnectionRegistry();
-        commandBroker = new CommandBroker(wsServer, config.commandTimeoutMs);
+        commandBroker = new CommandBroker(
+            {
+                sendToClient: (clientId, message) => {
+                    if (wsServer?.getClient(clientId)) {
+                        wsServer.sendToClient(clientId, message);
+                        return;
+                    }
+
+                    if (tcpServer?.getClient(clientId)) {
+                        tcpServer.sendToClient(clientId, message);
+                        return;
+                    }
+
+                    setupLogger.warn('Attempted to send command to unknown client', { clientId });
+                },
+            },
+            config.commandTimeoutMs,
+        );
 
         // Repositories
         const clientRepository = new ClientRepository(knex);
@@ -174,6 +213,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         const deps: AppDependencies = {
             knex,
             wsServer,
+            tcpServer,
             messageRouter,
             agentConnectionRegistry,
             commandBroker,
@@ -233,8 +273,16 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             client.onMessage((message) => messageRouter.route(message.t, message, client));
         });
 
-        wsServer.onDisconnection((wsClientId) => {
-            disconnectHandler(wsClientId);
+        wsServer.onDisconnection((clientId) => {
+            disconnectHandler(clientId);
+        });
+
+        tcpServer.onConnection((client) => {
+            client.onMessage((message) => messageRouter.route(message.t, message, client));
+        });
+
+        tcpServer.onDisconnection((clientId) => {
+            disconnectHandler(clientId);
         });
 
         httpServer = await new Promise<Server>((resolve, reject) => {
@@ -249,6 +297,11 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             path: config.ws.path,
             maxConnections: 1000,
         });
+        await tcpServer.start({
+            host: config.tcp.host,
+            port: config.tcp.port,
+            maxConnections: 1000,
+        });
 
         setupLogger.info('Studio server initialized');
         return { httpServer, deps };
@@ -258,6 +311,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             logger: setupLogger,
             commandBroker,
             wsServer,
+            tcpServer,
             httpServer,
             knex,
         });
