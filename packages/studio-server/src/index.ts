@@ -12,7 +12,7 @@ import { TreeRepository } from './infra/knex/tree-repository';
 import { TickRepository } from './infra/knex/tick-repository';
 import { SettingsRepository } from './infra/knex/settings-repository';
 import { registerMessageHandlers, createDisconnectHandler } from './app/handlers/messages';
-import { createAppRouter } from './app/trpc';
+import { createAppRouter } from './app/handlers/trpc';
 import { makeConfig, StudioServerConfig } from './configuration';
 import { parseStudioServerConfig } from './configuration-schema';
 import { AppDependencies } from './types/app-dependencies';
@@ -333,5 +333,5 @@ if (isMainModule) {
     });
 }
 
-export type { AppRouter } from './app/trpc';
+export type { AppRouter } from './app/handlers/trpc';
 export type { StudioServerConfig } from './configuration';

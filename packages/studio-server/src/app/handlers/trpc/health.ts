@@ -1,4 +1,4 @@
-import { router, procedure } from './trpc-setup';
+import { router, procedure } from '../../../infra/trpc/trpc-setup';
 
 export function createHealthRouter() {
     return router({

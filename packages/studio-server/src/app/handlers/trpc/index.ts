@@ -1,4 +1,4 @@
-import { router } from './trpc-setup';
+import { router } from '../../../infra/trpc/trpc-setup';
 import { createHealthRouter } from './health';
 import { createClientsRouter } from './clients';
 import { createSessionsRouter } from './sessions';
@@ -6,7 +6,7 @@ import { createTreesRouter } from './trees';
 import { createTicksRouter } from './ticks';
 import { createCommandsRouter } from './commands';
 import { createSettingsRouter } from './settings';
-import { AppDependencies } from '../../types/app-dependencies';
+import { AppDependencies } from '../../../types/app-dependencies';
 
 export function createAppRouter(deps: AppDependencies) {
     return router({
