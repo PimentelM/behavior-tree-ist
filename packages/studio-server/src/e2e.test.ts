@@ -13,6 +13,14 @@ import {
 import { WsNodeStringTransport } from '@behavior-tree-ist/studio-transport/node';
 import { createStudioServer } from './index';
 import type { AppRouter } from './app/trpc';
+import {
+    createClientInputStub,
+    createCommandInputStub,
+    createSessionInputStub,
+    createTickQueryInputStub,
+    createTreeInputStub,
+    createTreeScopeStub,
+} from './stubs';
 
 // ── Helpers ──
 
@@ -47,9 +55,10 @@ function delay(ms: number): Promise<void> {
 // ── Test suite ──
 
 describe('Studio Server E2E', () => {
-    const CLIENT_ID = 'test-client';
-    const SESSION_ID = 'test-session';
-    const TREE_ID = 'test-tree';
+    const scope = createTreeScopeStub();
+    const CLIENT_ID = scope.clientId;
+    const SESSION_ID = scope.sessionId;
+    const TREE_ID = scope.treeId;
 
     let port: number;
     let server: ReturnType<typeof createStudioServer>;
@@ -131,7 +140,7 @@ describe('Studio Server E2E', () => {
 
     it('registers the session via tRPC after agent connects', async () => {
         const sessions = await trpc.sessions.getByClientId.query({
-            clientId: CLIENT_ID,
+            ...createClientInputStub({ clientId: CLIENT_ID }),
         });
 
         expect(sessions).toHaveLength(1);
@@ -151,8 +160,7 @@ describe('Studio Server E2E', () => {
         }> = [];
         await waitFor(async () => {
             trees = await trpc.trees.getBySession.query({
-                clientId: CLIENT_ID,
-                sessionId: SESSION_ID,
+                ...createSessionInputStub({ clientId: CLIENT_ID, sessionId: SESSION_ID }),
             });
             return trees.length > 0;
         });
@@ -168,22 +176,18 @@ describe('Studio Server E2E', () => {
     });
 
     it('retrieves a specific tree by id', async () => {
-        const treeRow = await trpc.trees.getById.query({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
+        const treeRecord = await trpc.trees.getById.query({
+            ...createTreeInputStub({ clientId: CLIENT_ID, sessionId: SESSION_ID, treeId: TREE_ID }),
         });
 
-        expect(treeRow).not.toBeNull();
-        expect(treeRow!.treeId).toBe(TREE_ID);
+        expect(treeRecord).not.toBeNull();
+        expect(treeRecord!.treeId).toBe(TREE_ID);
     });
 
     it('streams ticks after enabling streaming via command', async () => {
         // Enable streaming on the tree
         const enableResult = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
+            ...createTreeInputStub({ clientId: CLIENT_ID, sessionId: SESSION_ID, treeId: TREE_ID }),
             command: StudioCommandType.EnableStreaming,
         });
         expect(enableResult).toMatchObject({ success: true });
@@ -196,17 +200,13 @@ describe('Studio Server E2E', () => {
         // Wait for ticks to be persisted on the server
         await waitFor(async () => {
             const ticks = await trpc.ticks.query.query({
-                clientId: CLIENT_ID,
-                sessionId: SESSION_ID,
-                treeId: TREE_ID,
+                ...createTickQueryInputStub({ clientId: CLIENT_ID, sessionId: SESSION_ID, treeId: TREE_ID }),
             });
             return ticks.length >= 3;
         });
 
         const ticks = await trpc.ticks.query.query({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
+            ...createTickQueryInputStub({ clientId: CLIENT_ID, sessionId: SESSION_ID, treeId: TREE_ID }),
         });
 
         expect(ticks.length).toBeGreaterThanOrEqual(3);
@@ -218,10 +218,12 @@ describe('Studio Server E2E', () => {
 
     it('sends GetTreeStatuses command and receives response with data', async () => {
         const response = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.GetTreeStatuses,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.GetTreeStatuses,
+            }),
         });
 
         expect(response).toMatchObject({
@@ -236,19 +238,23 @@ describe('Studio Server E2E', () => {
 
     it('enables and disables state trace via command', async () => {
         const enableResult = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.EnableStateTrace,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.EnableStateTrace,
+            }),
         });
         expect(enableResult).toMatchObject({ success: true });
 
         // Verify via GetTreeStatuses
         const statusAfterEnable = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.GetTreeStatuses,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.GetTreeStatuses,
+            }),
         });
         expect(statusAfterEnable).toMatchObject({
             success: true,
@@ -256,18 +262,22 @@ describe('Studio Server E2E', () => {
         });
 
         const disableResult = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.DisableStateTrace,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.DisableStateTrace,
+            }),
         });
         expect(disableResult).toMatchObject({ success: true });
 
         const statusAfterDisable = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.GetTreeStatuses,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.GetTreeStatuses,
+            }),
         });
         expect(statusAfterDisable).toMatchObject({
             success: true,
@@ -277,18 +287,22 @@ describe('Studio Server E2E', () => {
 
     it('enables and disables profiling via command', async () => {
         const enableResult = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.EnableProfiling,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.EnableProfiling,
+            }),
         });
         expect(enableResult).toMatchObject({ success: true });
 
         const statusAfterEnable = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.GetTreeStatuses,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.GetTreeStatuses,
+            }),
         });
         expect(statusAfterEnable).toMatchObject({
             success: true,
@@ -296,28 +310,30 @@ describe('Studio Server E2E', () => {
         });
 
         const disableResult = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.DisableProfiling,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.DisableProfiling,
+            }),
         });
         expect(disableResult).toMatchObject({ success: true });
     });
 
     it('disables streaming and stops receiving ticks', async () => {
         const disableResult = await trpc.commands.send.mutate({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
-            command: StudioCommandType.DisableStreaming,
+            ...createCommandInputStub({
+                clientId: CLIENT_ID,
+                sessionId: SESSION_ID,
+                treeId: TREE_ID,
+                command: StudioCommandType.DisableStreaming,
+            }),
         });
         expect(disableResult).toMatchObject({ success: true });
 
         // Record tick count before
         const ticksBefore = await trpc.ticks.query.query({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
+            ...createTickQueryInputStub({ clientId: CLIENT_ID, sessionId: SESSION_ID, treeId: TREE_ID }),
         });
         const countBefore = ticksBefore.length;
 
@@ -327,9 +343,7 @@ describe('Studio Server E2E', () => {
         await delay(200);
 
         const ticksAfter = await trpc.ticks.query.query({
-            clientId: CLIENT_ID,
-            sessionId: SESSION_ID,
-            treeId: TREE_ID,
+            ...createTickQueryInputStub({ clientId: CLIENT_ID, sessionId: SESSION_ID, treeId: TREE_ID }),
         });
 
         expect(ticksAfter.length).toBe(countBefore);
