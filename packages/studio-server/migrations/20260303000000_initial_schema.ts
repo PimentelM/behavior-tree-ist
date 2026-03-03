@@ -3,15 +3,15 @@ import type { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable('clients', (table) => {
         table.text('clientId').primary();
-        table.float('firstSeenAt').notNullable();
-        table.float('lastSeenAt').notNullable();
+        table.double('firstSeenAt').notNullable();
+        table.double('lastSeenAt').notNullable();
     });
 
     await knex.schema.createTable('sessions', (table) => {
         table.text('clientId').notNullable();
         table.text('sessionId').notNullable();
-        table.float('startedAt').notNullable();
-        table.float('lastSeenAt').notNullable();
+        table.double('startedAt').notNullable();
+        table.double('lastSeenAt').notNullable();
         table.primary(['clientId', 'sessionId']);
     });
 
@@ -20,8 +20,8 @@ export async function up(knex: Knex): Promise<void> {
         table.text('sessionId').notNullable();
         table.text('treeId').notNullable();
         table.text('serializedTreeJson').notNullable();
-        table.float('removedAt').nullable();
-        table.float('updatedAt').notNullable();
+        table.double('removedAt').nullable();
+        table.double('updatedAt').notNullable();
         table.primary(['clientId', 'sessionId', 'treeId']);
     });
 
@@ -30,7 +30,7 @@ export async function up(knex: Knex): Promise<void> {
         table.text('sessionId').notNullable();
         table.text('treeId').notNullable();
         table.integer('tickId').notNullable();
-        table.float('timestamp').notNullable();
+        table.double('timestamp').notNullable();
         table.text('payloadJson').notNullable();
         table.primary(['clientId', 'sessionId', 'treeId', 'tickId']);
     });
@@ -39,7 +39,7 @@ export async function up(knex: Knex): Promise<void> {
         table.integer('id').primary().defaultTo(1);
         table.integer('maxTicksPerTree').defaultTo(1000);
         table.integer('commandTimeoutMs').defaultTo(5000);
-        table.float('updatedAt').notNullable();
+        table.double('updatedAt').notNullable();
     });
 
     // Index for cursor queries on ticks
