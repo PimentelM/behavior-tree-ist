@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StudioLink, StudioLinkOptions } from "./studio-link";
-import { Transport, TransportData } from "./transport";
+import { TransportInterface, TransportData } from "./transport";
 import { InboundMessage, MessageType, OutboundMessage, PROTOCOL_VERSION } from "./protocol";
 import { OffFunction } from "../types";
 import { StudioCommandType } from "./types";
@@ -12,7 +12,7 @@ type MessageHandler = (data: TransportData) => void;
 type ErrorHandler = (error: Error) => void;
 type CloseHandler = () => void;
 
-interface MockTransport extends Transport {
+interface MockTransport extends TransportInterface {
     send: ReturnType<typeof vi.fn>;
     close: ReturnType<typeof vi.fn>;
     _resolveOpen: () => void;

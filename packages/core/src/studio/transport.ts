@@ -2,7 +2,7 @@ import { OffFunction } from "../types";
 
 export type TransportData = string | Uint8Array;
 
-export interface Transport {
+export interface TransportInterface {
     open(): Promise<void>;
     close(): void;
     send(data: TransportData): void;
@@ -11,4 +11,4 @@ export interface Transport {
     onClose(handler: () => void): OffFunction;
 }
 
-export type TransportFactory = () => Transport;
+export type TransportFactory = () => TransportInterface;

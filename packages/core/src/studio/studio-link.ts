@@ -2,7 +2,7 @@ import { SerializableNode, TickRecord } from "../base";
 import { OffFunction } from "../types";
 import { StudioLinkInterface } from "./interfaces";
 import { InboundMessage, MessageType, OutboundMessage, PROTOCOL_VERSION } from "./protocol";
-import { Transport, TransportData, TransportFactory } from "./transport";
+import { TransportInterface, TransportData, TransportFactory } from "./transport";
 import { CommandResponse, CorrelationId, StudioCommand } from "./types";
 
 export interface StudioLinkOptions {
@@ -37,7 +37,7 @@ export class StudioLink implements StudioLinkInterface {
     private readonly reconnectDelayMs: number;
 
     private state: ConnectionState = ConnectionState.Idle;
-    private transport: Transport | null = null;
+    private transport: TransportInterface | null = null;
     private _pendingOpen: Promise<void> | null = null;
     private lastConnectionAttemptAt = 0;
     private transportCleanup: OffFunction[] = [];
