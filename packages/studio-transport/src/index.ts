@@ -1,1 +1,1 @@
-export const PLACEHOLDER = null;
+export { encodeFrame, encodeStringFrame, FrameDecoder } from "./shared/length-framing";

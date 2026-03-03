@@ -259,8 +259,14 @@ __metadata:
 "@behavior-tree-ist/studio-transport@workspace:packages/studio-transport":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/studio-transport@workspace:packages/studio-transport"
+  dependencies:
+    "@types/ws": "npm:^8.18.1"
   peerDependencies:
     "@behavior-tree-ist/core": "workspace:*"
+    ws: ^8.0.0
+  peerDependenciesMeta:
+    ws:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -1254,6 +1260,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:*":
+  version: 25.3.3
+  resolution: "@types/node@npm:25.3.3"
+  dependencies:
+    undici-types: "npm:~7.18.0"
+  checksum: 10c0/63e1d3816a9f4a706ab5d588d18cb98aa824b97748ff585537d327528e9438f58f69f45c7762e7cd3a1ab32c1619f551aabe8075d13172f9273cf10f6d83ab91
+  languageName: node
+  linkType: hard
+
 "@types/prop-types@npm:*":
   version: 15.7.15
   resolution: "@types/prop-types@npm:15.7.15"
@@ -1277,6 +1292,15 @@ __metadata:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.2.2"
   checksum: 10c0/683e19cd12b5c691215529af2e32b5ffbaccae3bf0ba93bfafa0e460e8dfee18423afed568be2b8eadf4b837c3749dd296a4f64e2d79f68fa66962c05f5af661
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:^8.18.1":
+  version: 8.18.1
+  resolution: "@types/ws@npm:8.18.1"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/61aff1129143fcc4312f083bc9e9e168aa3026b7dd6e70796276dcfb2c8211c4292603f9c4864fae702f2ed86e4abd4d38aa421831c2fd7f856c931a481afbab
   languageName: node
   linkType: hard
 
@@ -4586,6 +4610,13 @@ __metadata:
   version: 1.6.3
   resolution: "ufo@npm:1.6.3"
   checksum: 10c0/bf0e4ebff99e54da1b9c7182ac2f40475988b41faa881d579bc97bc2a0509672107b0a0e94c4b8d31a0ab8c4bf07f4aa0b469ac6da8536d56bda5b085ea2e953
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.18.0":
+  version: 7.18.2
+  resolution: "undici-types@npm:7.18.2"
+  checksum: 10c0/85a79189113a238959d7a647368e4f7c5559c3a404ebdb8fc4488145ce9426fcd82252a844a302798dfc0e37e6fb178ff481ed03bc4caf634c5757d9ef43521d
   languageName: node
   linkType: hard
 
