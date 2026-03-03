@@ -13,7 +13,6 @@ import {
 import { WsNodeStringTransport } from '@behavior-tree-ist/studio-transport/node';
 import { createStudioServer } from './index';
 import type { AppRouter } from './app/trpc';
-import type { TreeRecord } from './domain/records';
 
 // ── Helpers ──
 
@@ -144,7 +143,12 @@ describe('Studio Server E2E', () => {
     });
 
     it('registers the tree via tRPC after agent connects', async () => {
-        let trees: TreeRecord[] = [];
+        let trees: Array<{
+            clientId: string;
+            sessionId: string;
+            treeId: string;
+            serializedTree: { name?: string };
+        }> = [];
         await waitFor(async () => {
             trees = await trpc.trees.getBySession.query({
                 clientId: CLIENT_ID,
@@ -160,9 +164,7 @@ describe('Studio Server E2E', () => {
             treeId: TREE_ID,
         });
 
-        // The serialized tree should be valid JSON
-        const serialized = JSON.parse(trees[0].serializedTreeJson);
-        expect(serialized).toHaveProperty('name');
+        expect(trees[0].serializedTree).toHaveProperty('name');
     });
 
     it('retrieves a specific tree by id', async () => {
@@ -209,13 +211,8 @@ describe('Studio Server E2E', () => {
 
         expect(ticks.length).toBeGreaterThanOrEqual(3);
         for (const tick of ticks) {
-            expect(tick.clientId).toBe(CLIENT_ID);
-            expect(tick.sessionId).toBe(SESSION_ID);
-            expect(tick.treeId).toBe(TREE_ID);
-
-            const payload = JSON.parse(tick.payloadJson);
-            expect(payload).toHaveProperty('tickId');
-            expect(payload).toHaveProperty('timestamp');
+            expect(tick).toHaveProperty('tickId');
+            expect(tick).toHaveProperty('timestamp');
         }
     });
 

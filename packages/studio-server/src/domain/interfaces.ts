@@ -1,6 +1,6 @@
-import { CommandResponse, StudioCommand } from '@behavior-tree-ist/core';
+import { CommandResponse, SerializableNode, StudioCommand, TickRecord } from '@behavior-tree-ist/core';
 import { AgentConnection } from './types';
-import type { ClientRecord, SessionRecord, TreeRecord, TickRecord, SettingsRecord } from './records';
+import type { ClientRecord, SessionRecord, TreeRecord, SettingsRecord } from './records';
 
 // ── Repository interfaces ──
 
@@ -20,13 +20,13 @@ export interface SessionRepositoryInterface {
 
 export interface TreeRepositoryInterface {
     findBySession(clientId: string, sessionId: string): Promise<TreeRecord[]>;
-    upsert(clientId: string, sessionId: string, treeId: string, serializedTreeJson: string): Promise<void>;
+    upsert(clientId: string, sessionId: string, treeId: string, serializedTree: SerializableNode): Promise<void>;
     markRemoved(clientId: string, sessionId: string, treeId: string): Promise<void>;
     findById(clientId: string, sessionId: string, treeId: string): Promise<TreeRecord | undefined>;
 }
 
 export interface TickRepositoryInterface {
-    insertBatch(clientId: string, sessionId: string, treeId: string, ticks: Array<{ tickId: number; timestamp: number; payloadJson: string }>): Promise<void>;
+    insertBatch(clientId: string, sessionId: string, treeId: string, ticks: TickRecord[]): Promise<void>;
     findAfter(clientId: string, sessionId: string, treeId: string, afterTickId: number, limit: number): Promise<TickRecord[]>;
     pruneToLimit(clientId: string, sessionId: string, treeId: string, maxTicks: number): Promise<void>;
 }

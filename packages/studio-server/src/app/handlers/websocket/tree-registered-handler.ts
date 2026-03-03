@@ -29,7 +29,7 @@ export class TreeRegisteredHandler extends BaseHandler {
             clientId,
             sessionId,
             message.treeId,
-            JSON.stringify(message.serializedTree)
+            message.serializedTree
         );
 
         this.logger.debug('Tree registered', { clientId, sessionId, treeId: message.treeId });

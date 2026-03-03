@@ -26,13 +26,7 @@ export class TickBatchHandler extends BaseHandler {
         }
 
         const { clientId, sessionId } = connection;
-        const ticks = message.ticks.map(tick => ({
-            tickId: tick.tickId,
-            timestamp: tick.timestamp,
-            payloadJson: JSON.stringify(tick),
-        }));
-
-        await this.deps.tickRepository.insertBatch(clientId, sessionId, message.treeId, ticks);
+        await this.deps.tickRepository.insertBatch(clientId, sessionId, message.treeId, message.ticks);
 
         // Prune old ticks
         const settings = await this.deps.settingsRepository.get();
@@ -47,7 +41,7 @@ export class TickBatchHandler extends BaseHandler {
             clientId,
             sessionId,
             treeId: message.treeId,
-            count: ticks.length,
+            count: message.ticks.length,
         });
     }
 }

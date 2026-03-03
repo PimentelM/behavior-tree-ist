@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import { OutboundMessage } from '@behavior-tree-ist/core';
 import { WebSocketClientInterface } from '../../types/interfaces';
 import { createLogger, Logger } from '../logging';
+import { OutboundMessageSchema } from '../../domain/core-types';
 
 export class WSWebSocketClient implements WebSocketClientInterface {
     private socket: WebSocket;
@@ -20,7 +21,16 @@ export class WSWebSocketClient implements WebSocketClientInterface {
         this.socket.on('message', (data: WebSocket.Data) => {
             this.messageQueue = this.messageQueue.then(async () => {
                 try {
-                    const message = JSON.parse(data.toString()) as OutboundMessage;
+                    const raw = JSON.parse(data.toString()) as unknown;
+                    const parsed = OutboundMessageSchema.safeParse(raw);
+                    if (!parsed.success) {
+                        this.logger.warn('Dropping invalid outbound message', {
+                            error: parsed.error.issues[0]?.message ?? 'Schema validation failed',
+                        });
+                        return;
+                    }
+
+                    const message = parsed.data as OutboundMessage;
                     for (const handler of this.messageHandlers) {
                         await handler(message);
                     }

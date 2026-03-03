@@ -2,9 +2,9 @@ import type {
     ClientRecord,
     SessionRecord,
     TreeRecord,
-    TickRecord,
     SettingsRecord,
 } from '../../domain/records';
+import type { TickRecord } from '@behavior-tree-ist/core';
 import type {
     DbClient,
     DbSession,
@@ -12,6 +12,7 @@ import type {
     DbTick,
     DbSettings,
 } from './schemas';
+import { SerializableNodeSchema, TickRecordSchema } from '../../domain/core-types';
 
 export function mapDbClientToDomain(dbClient: DbClient): ClientRecord {
     return dbClient;
@@ -34,7 +35,7 @@ export function mapDbTreeToDomain(dbTree: DbTree): TreeRecord {
         clientId: dbTree.clientId,
         sessionId: dbTree.sessionId,
         treeId: dbTree.treeId,
-        serializedTreeJson: dbTree.serializedTreeJson,
+        serializedTree: SerializableNodeSchema.parse(parseJson(dbTree.serializedTreeJson, 'tree payload')),
         removedAt: dbTree.removedAt ?? undefined,
         updatedAt: dbTree.updatedAt,
     };
@@ -45,18 +46,30 @@ export function mapTreeToDb(tree: TreeRecord): DbTree {
         clientId: tree.clientId,
         sessionId: tree.sessionId,
         treeId: tree.treeId,
-        serializedTreeJson: tree.serializedTreeJson,
+        serializedTreeJson: JSON.stringify(tree.serializedTree),
         removedAt: tree.removedAt ?? null,
         updatedAt: tree.updatedAt,
     };
 }
 
 export function mapDbTickToDomain(dbTick: DbTick): TickRecord {
-    return dbTick;
+    return TickRecordSchema.parse(parseJson(dbTick.payloadJson, 'tick payload'));
 }
 
-export function mapTickToDb(tick: TickRecord): DbTick {
-    return tick;
+export function mapTickToDb(params: {
+    clientId: string;
+    sessionId: string;
+    treeId: string;
+    tick: TickRecord;
+}): DbTick {
+    return {
+        clientId: params.clientId,
+        sessionId: params.sessionId,
+        treeId: params.treeId,
+        tickId: params.tick.tickId,
+        timestamp: params.tick.timestamp,
+        payloadJson: JSON.stringify(params.tick),
+    };
 }
 
 export function mapDbSettingsToDomain(dbSettings: DbSettings): SettingsRecord {
@@ -65,4 +78,12 @@ export function mapDbSettingsToDomain(dbSettings: DbSettings): SettingsRecord {
 
 export function mapSettingsToDb(settings: SettingsRecord): DbSettings {
     return settings;
+}
+
+function parseJson(raw: string, label: string): unknown {
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        throw new Error(`Invalid ${label} JSON: ${String(error)}`);
+    }
 }

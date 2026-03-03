@@ -1,7 +1,7 @@
 import type { Knex } from 'knex';
+import type { TickRecord } from '@behavior-tree-ist/core';
 import { BaseKnexRepository } from './base-repository';
 import { TickRepositoryInterface } from '../../domain/interfaces';
-import type { TickRecord } from '../../domain/records';
 import type { DbTick } from './schemas';
 import { mapDbTickToDomain, mapTickToDb } from './mappers';
 
@@ -14,7 +14,7 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         clientId: string,
         sessionId: string,
         treeId: string,
-        ticks: Array<{ tickId: number; timestamp: number; payloadJson: string }>
+        ticks: TickRecord[]
     ): Promise<void> {
         if (ticks.length === 0) return;
 
@@ -22,9 +22,7 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
             clientId,
             sessionId,
             treeId,
-            tickId: tick.tickId,
-            timestamp: tick.timestamp,
-            payloadJson: tick.payloadJson,
+            tick,
         }));
 
         await this.withTransaction(

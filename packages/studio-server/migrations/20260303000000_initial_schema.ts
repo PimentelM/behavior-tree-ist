@@ -20,6 +20,7 @@ export async function up(knex: Knex): Promise<void> {
         table.text('sessionId').notNullable();
         table.text('treeId').notNullable();
         table.text('serializedTreeJson').notNullable();
+        table.check('json_valid(serializedTreeJson)', [], 'chkTreesSerializedTreeJsonValidJson');
         table.double('removedAt').nullable();
         table.double('updatedAt').notNullable();
         table.primary(['clientId', 'sessionId', 'treeId']);
@@ -32,6 +33,7 @@ export async function up(knex: Knex): Promise<void> {
         table.integer('tickId').notNullable();
         table.double('timestamp').notNullable();
         table.text('payloadJson').notNullable();
+        table.check('json_valid(payloadJson)', [], 'chkTicksPayloadJsonValidJson');
         table.primary(['clientId', 'sessionId', 'treeId', 'tickId']);
     });
 

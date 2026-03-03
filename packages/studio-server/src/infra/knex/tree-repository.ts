@@ -1,4 +1,5 @@
 import type { Knex } from 'knex';
+import type { SerializableNode } from '@behavior-tree-ist/core';
 import { BaseKnexRepository } from './base-repository';
 import { TreeRepositoryInterface } from '../../domain/interfaces';
 import type { DbTree } from './schemas';
@@ -18,14 +19,14 @@ export class TreeRepository extends BaseKnexRepository implements TreeRepository
         return rows.map(mapDbTreeToDomain);
     }
 
-    async upsert(clientId: string, sessionId: string, treeId: string, serializedTreeJson: string): Promise<void> {
+    async upsert(clientId: string, sessionId: string, treeId: string, serializedTree: SerializableNode): Promise<void> {
         const now = Date.now();
         const existing = await this.findById(clientId, sessionId, treeId);
         const dbTree = mapTreeToDb({
             clientId,
             sessionId,
             treeId,
-            serializedTreeJson,
+            serializedTree,
             removedAt: undefined,
             updatedAt: now,
         });
