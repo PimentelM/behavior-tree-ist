@@ -17,6 +17,7 @@ describe('createStudioServer lifecycle', () => {
     const server = createStudioServer({
       httpHost: '127.0.0.1',
       httpPort: 0,
+      tcpPort: 0,
       logLevel: 'silent',
     })
     servers.push(server)
@@ -50,6 +51,7 @@ describe('createStudioServer lifecycle', () => {
     const server = createStudioServer({
       httpHost: '127.0.0.1',
       httpPort: 0,
+      tcpPort: 0,
       logLevel: 'silent',
     })
     servers.push(server)

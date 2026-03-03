@@ -3,6 +3,7 @@ import type { AddressInfo } from 'node:net'
 import {
   type ResolvedStudioServerConfig,
 } from '../config'
+import type { TcpAgentServer, WsAgentServer } from '../infra'
 import type { StudioRuntimeState } from '../runtime'
 import type { StudioRuntimeStateProvider } from './studio-runtime-state-provider'
 import type { StudioServerHandle } from '../studio-server-handle'
@@ -29,6 +30,8 @@ export class StudioServerService
   constructor(
     private readonly config: ResolvedStudioServerConfig,
     private readonly server: FastifyInstance,
+    private readonly wsAgentServer: WsAgentServer,
+    private readonly tcpAgentServer: TcpAgentServer,
   ) {
     this.runtimeState = {
       status: 'idle',
@@ -123,6 +126,11 @@ export class StudioServerService
         port: this.config.httpPort,
       })
 
+      this.wsAgentServer.start(this.server.server)
+      const tcpPort = await this.tcpAgentServer.start(
+        this.config.tcpHost,
+        this.config.tcpPort,
+      )
       const httpPort = addressToPort(this.server.server.address())
       this.runtimeState = {
         ...this.runtimeState,
@@ -135,13 +143,34 @@ export class StudioServerService
             port: httpPort,
             listening: true,
           },
+          tcp: {
+            host: this.config.tcpHost,
+            port: tcpPort,
+            listening: true,
+          },
         },
       }
     } catch (error) {
+      await Promise.allSettled([
+        this.tcpAgentServer.stop(),
+        this.wsAgentServer.stop(),
+        this.server.close(),
+      ])
       this.removeSignalHandlers()
       this.runtimeState = {
         ...this.runtimeState,
         status: 'idle',
+        listeners: {
+          ...this.runtimeState.listeners,
+          http: {
+            ...this.runtimeState.listeners.http,
+            listening: false,
+          },
+          tcp: {
+            ...this.runtimeState.listeners.tcp,
+            listening: false,
+          },
+        },
       }
       throw error
     }
@@ -149,7 +178,11 @@ export class StudioServerService
 
   private async stopInternal(): Promise<void> {
     try {
-      await this.server.close()
+      await Promise.allSettled([
+        this.tcpAgentServer.stop(),
+        this.wsAgentServer.stop(),
+        this.server.close(),
+      ])
     } finally {
       this.removeSignalHandlers()
       this.runtimeState = {
