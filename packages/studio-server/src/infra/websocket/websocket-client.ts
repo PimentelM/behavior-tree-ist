@@ -5,11 +5,12 @@ import { createLogger, Logger } from '../logging';
 import { OutboundMessageSchema } from '../../domain/core-types';
 
 export class WSWebSocketClient implements WebSocketClientInterface {
-    private socket: WebSocket;
-    private messageHandlers: Array<(message: OutboundMessage) => void | Promise<void>> = [];
-    private disconnectHandlers: Array<() => void> = [];
+    private readonly socket: WebSocket;
+    private readonly messageHandlers: Array<(message: OutboundMessage) => void | Promise<void>> = [];
+    private readonly disconnectHandlers: Array<() => void> = [];
     private messageQueue: Promise<void> = Promise.resolve();
-    private logger: Logger;
+    private readonly logger: Logger;
+    private prefersBinary = false;
 
     constructor(
         public readonly id: string,
@@ -18,10 +19,15 @@ export class WSWebSocketClient implements WebSocketClientInterface {
         this.logger = createLogger(`ws-client:${id.slice(0, 8)}`);
         this.socket = socket;
 
-        this.socket.on('message', (data: WebSocket.Data) => {
+        this.socket.on('message', (data: WebSocket.Data, isBinary: boolean) => {
+            if (isBinary) {
+                this.prefersBinary = true;
+            }
+
             this.messageQueue = this.messageQueue.then(async () => {
                 try {
-                    const raw = JSON.parse(data.toString()) as unknown;
+                    const rawText = this.toTextPayload(data);
+                    const raw = JSON.parse(rawText) as unknown;
                     const parsed = OutboundMessageSchema.safeParse(raw);
                     if (!parsed.success) {
                         this.logger.warn('Dropping invalid outbound message', {
@@ -35,7 +41,7 @@ export class WSWebSocketClient implements WebSocketClientInterface {
                         await handler(message);
                     }
                 } catch (error) {
-                    this.logger.error('Error parsing or handling client message', { raw: data.toString(), error: String(error) });
+                    this.logger.error('Error parsing or handling client message', { error: String(error) });
                 }
             });
         });
@@ -57,7 +63,12 @@ export class WSWebSocketClient implements WebSocketClientInterface {
         }
 
         try {
-            this.socket.send(JSON.stringify(message));
+            const payload = JSON.stringify(message);
+            if (this.prefersBinary) {
+                this.socket.send(new TextEncoder().encode(payload), { binary: true });
+            } else {
+                this.socket.send(payload);
+            }
         } catch (error) {
             this.logger.error('Error sending message', { error: String(error) });
         }
@@ -79,5 +90,25 @@ export class WSWebSocketClient implements WebSocketClientInterface {
 
     isConnected(): boolean {
         return this.socket.readyState === WebSocket.OPEN;
+    }
+
+    private toTextPayload(data: WebSocket.Data): string {
+        if (typeof data === 'string') {
+            return data;
+        }
+
+        if (Buffer.isBuffer(data)) {
+            return data.toString('utf-8');
+        }
+
+        if (data instanceof ArrayBuffer) {
+            return new TextDecoder().decode(data);
+        }
+
+        if (Array.isArray(data)) {
+            return Buffer.concat(data).toString('utf-8');
+        }
+
+        throw new Error('Unsupported WebSocket message payload type');
     }
 }

@@ -51,17 +51,7 @@ export class WSWebSocketServer implements WebSocketServerInterface {
                 this.server.on('connection', (socket, request) => {
                     const clientId = uuidv4();
                     const client = new WSWebSocketClient(clientId, socket);
-
-                    this.clients.set(clientId, client);
-                    this.logger.debug('Client connected', { clientId });
-
-                    client.onDisconnect(() => {
-                        this.clients.delete(clientId);
-                        this.logger.debug('Client disconnected', { clientId });
-                        this.disconnectionHandlers.forEach(handler => handler(clientId));
-                    });
-
-                    this.connectionHandlers.forEach(handler => handler(client, request));
+                    this.registerClient(clientId, client, request);
                 });
 
                 this.server.on('error', (error) => {
@@ -134,6 +124,19 @@ export class WSWebSocketServer implements WebSocketServerInterface {
 
     getClientCount(): number {
         return this.clients.size;
+    }
+
+    private registerClient(clientId: string, client: WebSocketClientInterface, request: IncomingMessage): void {
+        this.clients.set(clientId, client);
+        this.logger.debug('Client connected', { clientId });
+
+        client.onDisconnect(() => {
+            this.clients.delete(clientId);
+            this.logger.debug('Client disconnected', { clientId });
+            this.disconnectionHandlers.forEach(handler => handler(clientId));
+        });
+
+        this.connectionHandlers.forEach(handler => handler(client, request));
     }
 }
 

@@ -5,6 +5,10 @@ export const StudioServerConfigSchema = z.object({
         port: z.number().int().min(1).max(65535),
         host: z.string().min(1),
     }),
+    tcp: z.object({
+        port: z.number().int().min(1).max(65535),
+        host: z.string().min(1),
+    }),
     ws: z.object({
         path: z.string().min(1),
     }),

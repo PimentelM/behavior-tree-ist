@@ -51,3 +51,7 @@ export interface CommandBrokerInterface {
     handleResponse(correlationId: string, response: CommandResponse): void;
     shutdown(): void;
 }
+
+export interface CommandSenderInterface {
+    sendToClient(clientId: string, message: object): void;
+}

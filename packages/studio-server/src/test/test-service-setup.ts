@@ -6,12 +6,15 @@ import type { AppRouter } from '../app/trpc';
 export interface TestServiceOptions {
     host?: string;
     port?: number;
-    serverOptions?: Omit<StudioServerOptions, 'httpHost' | 'httpPort'>;
+    tcpPort?: number;
+    serverOptions?: Omit<StudioServerOptions, 'httpHost' | 'httpPort' | 'tcpHost' | 'tcpPort'>;
 }
 
 export interface TestServiceInstance {
     host: string;
     port: number;
+    tcpHost: string;
+    tcpPort: number;
     baseUrl: string;
     wsUrl: string;
     trpc: TRPCClient<AppRouter>;
@@ -39,10 +42,13 @@ export async function findAvailablePort(): Promise<number> {
 export async function setupTestService(options: TestServiceOptions = {}): Promise<TestServiceInstance> {
     const host = options.host ?? '127.0.0.1';
     const port = options.port ?? await findAvailablePort();
+    const tcpPort = options.tcpPort ?? await findAvailablePort();
 
     const server: StudioServerHandle = createStudioServer({
         httpHost: host,
         httpPort: port,
+        tcpHost: host,
+        tcpPort,
         sqlitePath: ':memory:',
         ...options.serverOptions,
     });
@@ -60,6 +66,8 @@ export async function setupTestService(options: TestServiceOptions = {}): Promis
     return {
         host,
         port,
+        tcpHost: host,
+        tcpPort,
         baseUrl,
         wsUrl: `ws://${host}:${port}/ws`,
         trpc,

@@ -1,6 +1,5 @@
 import { CommandResponse, StudioCommand, MessageType, InboundMessage } from '@behavior-tree-ist/core';
-import { CommandBrokerInterface } from '../interfaces';
-import { WebSocketServerInterface } from '../../infra/websocket/interfaces';
+import { CommandBrokerInterface, CommandSenderInterface } from '../interfaces';
 import { createLogger } from '../../infra/logging';
 
 interface PendingCommand {
@@ -15,9 +14,9 @@ export class CommandBroker implements CommandBrokerInterface {
     private isShuttingDown = false;
 
     constructor(
-        private wsServer: WebSocketServerInterface,
+        private commandSender: CommandSenderInterface,
         private timeoutMs: number
-    ) {}
+    ) { }
 
     async sendCommand(wsClientId: string, command: StudioCommand): Promise<CommandResponse> {
         if (this.isShuttingDown) {
@@ -36,7 +35,7 @@ export class CommandBroker implements CommandBrokerInterface {
             }, this.timeoutMs);
 
             this.pending.set(command.correlationId, { resolve, reject, timer });
-            this.wsServer.sendToClient(wsClientId, message);
+            this.commandSender.sendToClient(wsClientId, message);
 
             this.logger.debug('Command sent', {
                 correlationId: command.correlationId,

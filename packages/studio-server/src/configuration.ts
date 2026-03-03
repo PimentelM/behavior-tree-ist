@@ -31,10 +31,16 @@ function readBooleanEnv(name: string, fallback: boolean): boolean {
 }
 
 export function makeConfig(): StudioServerConfig {
+    const httpHost = process.env.HTTP_HOST || '0.0.0.0';
+
     return parseStudioServerConfig({
         http: {
             port: readIntegerEnv('HTTP_PORT', 4100),
-            host: process.env.HTTP_HOST || '0.0.0.0',
+            host: httpHost,
+        },
+        tcp: {
+            port: readIntegerEnv('TCP_PORT', 4101),
+            host: process.env.TCP_HOST || httpHost,
         },
         ws: {
             path: process.env.WS_PATH || '/ws',

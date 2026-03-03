@@ -5,42 +5,14 @@ import {
     StudioCommandType,
 } from '@behavior-tree-ist/core';
 import { describe, expect, it } from 'vitest';
-import { WebSocketServerConfigInterface, WebSocketServerInterface } from '../../infra/websocket/interfaces';
 import { CommandBroker } from './command-broker';
-import { WebSocketClientInterface } from '../../types/interfaces';
-import { IncomingMessage } from 'http';
+import type { CommandSenderInterface } from '../interfaces';
 
-class FakeWebSocketServer implements WebSocketServerInterface {
+class FakeCommandSender implements CommandSenderInterface {
     public readonly sent: Array<{ clientId: string; message: object }> = [];
-
-    async start(_config: WebSocketServerConfigInterface): Promise<void> {
-        return;
-    }
-
-    async stop(): Promise<void> {
-        return;
-    }
-
-    broadcast(_message: object): void {}
 
     sendToClient(clientId: string, message: object): void {
         this.sent.push({ clientId, message });
-    }
-
-    onConnection(_handler: (client: WebSocketClientInterface, request: IncomingMessage) => void): void {}
-
-    onDisconnection(_handler: (clientId: string) => void): void {}
-
-    getClient(_clientId: string): undefined {
-        return undefined;
-    }
-
-    getClients(): Map<string, WebSocketClientInterface> {
-        return new Map();
-    }
-
-    getClientCount(): number {
-        return 0;
     }
 }
 
@@ -55,16 +27,16 @@ function makeCommand(overrides: Partial<StudioCommand> = {}): StudioCommand {
 
 describe('CommandBroker', () => {
     it('sends command messages and resolves when response is received', async () => {
-        const wsServer = new FakeWebSocketServer();
-        const broker = new CommandBroker(wsServer, 1000);
+        const sender = new FakeCommandSender();
+        const broker = new CommandBroker(sender, 1000);
         const command = makeCommand();
         const expectedResponse: CommandResponse = { success: true };
 
         const pending = broker.sendCommand('ws-client-1', command);
 
-        expect(wsServer.sent).toHaveLength(1);
-        expect(wsServer.sent[0].clientId).toBe('ws-client-1');
-        expect(wsServer.sent[0].message).toEqual({
+        expect(sender.sent).toHaveLength(1);
+        expect(sender.sent[0].clientId).toBe('ws-client-1');
+        expect(sender.sent[0].message).toEqual({
             t: MessageType.Command,
             command,
         });
@@ -74,16 +46,16 @@ describe('CommandBroker', () => {
     });
 
     it('rejects commands that timeout', async () => {
-        const wsServer = new FakeWebSocketServer();
-        const broker = new CommandBroker(wsServer, 20);
+        const sender = new FakeCommandSender();
+        const broker = new CommandBroker(sender, 20);
 
         const pending = broker.sendCommand('ws-client-1', makeCommand({ correlationId: 'timeout-1' }));
         await expect(pending).rejects.toThrow(/timed out/);
     });
 
     it('rejects pending commands on shutdown', async () => {
-        const wsServer = new FakeWebSocketServer();
-        const broker = new CommandBroker(wsServer, 5000);
+        const sender = new FakeCommandSender();
+        const broker = new CommandBroker(sender, 5000);
 
         const pending = broker.sendCommand('ws-client-1', makeCommand({ correlationId: 'shutdown-1' }));
         broker.shutdown();

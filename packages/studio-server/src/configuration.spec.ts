@@ -15,6 +15,7 @@ describe('Configuration', () => {
 
     it('builds a valid config from defaults', () => {
         delete process.env.HTTP_PORT;
+        delete process.env.TCP_PORT;
         delete process.env.COMMAND_TIMEOUT_MS;
         delete process.env.MAX_TICKS_PER_TREE;
         delete process.env.RUN_MIGRATIONS_ON_STARTUP;
@@ -22,6 +23,7 @@ describe('Configuration', () => {
         const config = makeConfig();
 
         expect(config.http.port).toBe(4100);
+        expect(config.tcp.port).toBe(4101);
         expect(config.commandTimeoutMs).toBe(5000);
         expect(config.maxTicksPerTree).toBe(1000);
         expect(config.migrations.runOnStartup).toBe(true);
@@ -37,6 +39,11 @@ describe('Configuration', () => {
         expect(() => makeConfig()).toThrow(/http.port/);
     });
 
+    it('fails fast for invalid TCP port ranges', () => {
+        process.env.TCP_PORT = '70000';
+        expect(() => makeConfig()).toThrow(/tcp.port/);
+    });
+
     it('fails fast for invalid boolean env values', () => {
         process.env.RUN_MIGRATIONS_ON_STARTUP = 'sometimes';
         expect(() => makeConfig()).toThrow(/RUN_MIGRATIONS_ON_STARTUP must be a boolean/);
@@ -44,5 +51,6 @@ describe('Configuration', () => {
 
     it('validates options when creating the server', () => {
         expect(() => createStudioServer({ httpPort: 0 })).toThrow(/http.port/);
+        expect(() => createStudioServer({ tcpPort: 0 })).toThrow(/tcp.port/);
     });
 });
