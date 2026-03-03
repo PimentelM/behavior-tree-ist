@@ -8,7 +8,7 @@ import { CommandResponseHandler } from './command-response-handler';
 import { AgentConnectionRegistryInterface } from '../../../domain/interfaces';
 import { createLogger } from '../../../infra/logging';
 
-export function registerWsHandlers({ messageRouter, ...deps }: AppDependencies) {
+export function registerMessageHandlers({ messageRouter, ...deps }: AppDependencies) {
     messageRouter.registerHandler(
         MessageType.Hello,
         new HelloHandler({

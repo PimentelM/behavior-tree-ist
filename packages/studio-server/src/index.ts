@@ -11,7 +11,7 @@ import { SessionRepository } from './infra/knex/session-repository';
 import { TreeRepository } from './infra/knex/tree-repository';
 import { TickRepository } from './infra/knex/tick-repository';
 import { SettingsRepository } from './infra/knex/settings-repository';
-import { registerWsHandlers, createDisconnectHandler } from './app/handlers/websocket';
+import { registerMessageHandlers, createDisconnectHandler } from './app/handlers/messages';
 import { createAppRouter } from './app/trpc';
 import { makeConfig, StudioServerConfig } from './configuration';
 import { parseStudioServerConfig } from './configuration-schema';
@@ -240,7 +240,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         app.get('/', (_req, res) => res.status(200).send('ok'));
         app.get('/healthz', (_req, res) => res.status(200).json({ status: 'ok' }));
 
-        registerWsHandlers(deps);
+        registerMessageHandlers(deps);
 
         app.use((req, res) => {
             res.status(404).json({
