@@ -1,6 +1,6 @@
 import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
-import { WebSocketClientInterface } from '../../../types/interfaces';
+import { MessageConnectionInterface } from '../../../types/interfaces';
 import { CommandBrokerInterface } from '../../../domain/interfaces';
 
 interface CommandResponseHandlerDeps {
@@ -12,7 +12,7 @@ export class CommandResponseHandler extends BaseHandler {
         super(priority, 'command-response-handler');
     }
 
-    protected async handleMessage(message: OutboundMessage, _client: WebSocketClientInterface): Promise<void> {
+    protected async handleMessage(message: OutboundMessage, _client: MessageConnectionInterface): Promise<void> {
         if (message.t !== MessageType.CommandResponse) return;
 
         this.deps.commandBroker.handleResponse(message.correlationId, message.response);

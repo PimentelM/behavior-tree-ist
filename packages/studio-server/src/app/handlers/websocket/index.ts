@@ -54,13 +54,13 @@ export function registerWsHandlers({ messageRouter, ...deps }: AppDependencies) 
 export function createDisconnectHandler(deps: { agentConnectionRegistry: AgentConnectionRegistryInterface }) {
     const logger = createLogger('disconnect-handler');
 
-    return (wsClientId: string) => {
-        const connection = deps.agentConnectionRegistry.unregisterByWsClientId(wsClientId);
+    return (connectionId: string) => {
+        const connection = deps.agentConnectionRegistry.unregisterByConnectionId(connectionId);
         if (connection) {
             logger.info('Agent disconnected', {
                 clientId: connection.clientId,
                 sessionId: connection.sessionId,
-                wsClientId,
+                connectionId,
             });
         }
     };

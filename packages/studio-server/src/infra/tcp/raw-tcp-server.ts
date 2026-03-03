@@ -1,14 +1,14 @@
-import { createServer, Server as NetServer } from 'net';
+import { createServer, Server as NetServer, Socket } from 'net';
 import { v4 as uuidv4 } from 'uuid';
-import type { WebSocketClientInterface } from '../../types/interfaces';
+import type { MessageConnectionInterface } from '../../types/interfaces';
 import type { Logger } from '../logging';
-import type { RawTcpServerConfigInterface, RawTcpServerInterface } from './interfaces';
+import type { RawTcpConnectionContext, RawTcpServerConfigInterface, RawTcpServerInterface } from './interfaces';
 import { TCPSocketClient } from './tcp-socket-client';
 
 export class RawTcpServer implements RawTcpServerInterface {
     private server: NetServer | null = null;
-    private readonly clients = new Map<string, WebSocketClientInterface>();
-    private readonly connectionHandlers: Array<(client: WebSocketClientInterface) => void> = [];
+    private readonly clients = new Map<string, MessageConnectionInterface>();
+    private readonly connectionHandlers: Array<(client: MessageConnectionInterface, context: RawTcpConnectionContext) => void> = [];
     private readonly disconnectionHandlers: Array<(clientId: string) => void> = [];
     private config: RawTcpServerConfigInterface | null = null;
 
@@ -29,7 +29,7 @@ export class RawTcpServer implements RawTcpServerInterface {
 
             const clientId = uuidv4();
             const client = new TCPSocketClient(clientId, socket);
-            this.registerClient(clientId, client);
+            this.registerClient(clientId, client, socket);
         });
 
         this.server.on('error', (error) => {
@@ -107,7 +107,7 @@ export class RawTcpServer implements RawTcpServerInterface {
         client.send(message);
     }
 
-    onConnection(handler: (client: WebSocketClientInterface) => void): void {
+    onConnection(handler: (client: MessageConnectionInterface, context: RawTcpConnectionContext) => void): void {
         this.connectionHandlers.push(handler);
     }
 
@@ -115,11 +115,11 @@ export class RawTcpServer implements RawTcpServerInterface {
         this.disconnectionHandlers.push(handler);
     }
 
-    getClient(clientId: string): WebSocketClientInterface | undefined {
+    getClient(clientId: string): MessageConnectionInterface | undefined {
         return this.clients.get(clientId);
     }
 
-    getClients(): Map<string, WebSocketClientInterface> {
+    getClients(): Map<string, MessageConnectionInterface> {
         return new Map(this.clients);
     }
 
@@ -127,7 +127,7 @@ export class RawTcpServer implements RawTcpServerInterface {
         return this.clients.size;
     }
 
-    private registerClient(clientId: string, client: WebSocketClientInterface): void {
+    private registerClient(clientId: string, client: MessageConnectionInterface, socket: Socket): void {
         this.clients.set(clientId, client);
         this.logger.debug('Raw TCP client connected', { clientId });
 
@@ -137,7 +137,12 @@ export class RawTcpServer implements RawTcpServerInterface {
             this.disconnectionHandlers.forEach((handler) => handler(clientId));
         });
 
-        this.connectionHandlers.forEach((handler) => handler(client));
+        const context: RawTcpConnectionContext = {
+            transport: 'tcp',
+            remoteAddress: socket.remoteAddress,
+            remotePort: socket.remotePort,
+        };
+        this.connectionHandlers.forEach((handler) => handler(client, context));
     }
 }
 

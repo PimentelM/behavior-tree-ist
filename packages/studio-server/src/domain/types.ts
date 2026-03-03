@@ -1,5 +1,5 @@
 export interface AgentConnection {
-    wsClientId: string;
+    connectionId: string;
     clientId: string;
     sessionId: string;
     connectedAt: number;

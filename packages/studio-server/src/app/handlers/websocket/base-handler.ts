@@ -1,5 +1,5 @@
 import { OutboundMessage } from '@behavior-tree-ist/core';
-import { MessageHandler, WebSocketClientInterface } from '../../../types/interfaces';
+import { MessageConnectionInterface, MessageHandler } from '../../../types/interfaces';
 import { Logger, createLogger } from '../../../infra/logging';
 
 export abstract class BaseHandler implements MessageHandler {
@@ -12,7 +12,7 @@ export abstract class BaseHandler implements MessageHandler {
         this.logger = createLogger(loggerName);
     }
 
-    async handle(message: OutboundMessage, client: WebSocketClientInterface): Promise<void> {
+    async handle(message: OutboundMessage, client: MessageConnectionInterface): Promise<void> {
         try {
             await this.handleMessage(message, client);
         } catch (error) {
@@ -20,9 +20,9 @@ export abstract class BaseHandler implements MessageHandler {
         }
     }
 
-    protected abstract handleMessage(message: OutboundMessage, client: WebSocketClientInterface): Promise<void>;
+    protected abstract handleMessage(message: OutboundMessage, client: MessageConnectionInterface): Promise<void>;
 
-    protected handleError(error: unknown, message: OutboundMessage, client: WebSocketClientInterface): void {
+    protected handleError(error: unknown, message: OutboundMessage, client: MessageConnectionInterface): void {
         this.logger.error(`Error handling message type ${message.t} from client ${client.id}`, {
             error: error instanceof Error ? error.message : String(error),
         });

@@ -1,5 +1,5 @@
 import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
-import { WebSocketClientInterface, MessageHandler, MessageRouterInterface } from '../../types/interfaces';
+import { MessageConnectionInterface, MessageHandler, MessageRouterInterface } from '../../types/interfaces';
 import { createLogger } from '../logging';
 
 export class MessageRouter implements MessageRouterInterface {
@@ -24,7 +24,7 @@ export class MessageRouter implements MessageRouterInterface {
         }
     }
 
-    async route(messageType: MessageType, message: OutboundMessage, client: WebSocketClientInterface): Promise<void> {
+    async route(messageType: MessageType, message: OutboundMessage, client: MessageConnectionInterface): Promise<void> {
         if (!this.handlers.has(messageType)) {
             this.logger.debug('No handlers for message type', { messageType });
             return;

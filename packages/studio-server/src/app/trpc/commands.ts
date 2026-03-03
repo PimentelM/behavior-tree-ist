@@ -23,7 +23,7 @@ export function createCommandsRouter({ commandBroker, agentConnectionRegistry }:
                     });
                 }
 
-                const response = await commandBroker.sendCommand(connection.wsClientId, {
+                const response = await commandBroker.sendCommand(connection.connectionId, {
                     correlationId: uuidv4(),
                     treeId: input.treeId,
                     command: input.command as StudioCommandType,

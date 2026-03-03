@@ -18,7 +18,7 @@ export class CommandBroker implements CommandBrokerInterface {
         private timeoutMs: number
     ) { }
 
-    async sendCommand(wsClientId: string, command: StudioCommand): Promise<CommandResponse> {
+    async sendCommand(connectionId: string, command: StudioCommand): Promise<CommandResponse> {
         if (this.isShuttingDown) {
             throw new Error('Command broker is shutting down');
         }
@@ -35,11 +35,11 @@ export class CommandBroker implements CommandBrokerInterface {
             }, this.timeoutMs);
 
             this.pending.set(command.correlationId, { resolve, reject, timer });
-            this.commandSender.sendToClient(wsClientId, message);
+            this.commandSender.sendToClient(connectionId, message);
 
             this.logger.debug('Command sent', {
                 correlationId: command.correlationId,
-                wsClientId,
+                connectionId,
                 command: command.command,
             });
         });

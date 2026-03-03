@@ -3,17 +3,18 @@ import type { OutboundMessage } from '@behavior-tree-ist/core';
 import { encodeFrame, FrameDecoder } from '@behavior-tree-ist/studio-transport';
 import { OutboundMessageSchema } from '../../domain/core-types';
 import { createLogger, Logger } from '../logging';
-import type { WebSocketClientInterface } from '../../types/interfaces';
+import type { MessageConnectionInterface } from '../../types/interfaces';
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-export class TCPSocketClient implements WebSocketClientInterface {
+export class TCPSocketClient implements MessageConnectionInterface {
     private readonly messageHandlers: Array<(message: OutboundMessage) => void | Promise<void>> = [];
     private readonly disconnectHandlers: Array<() => void> = [];
     private readonly decoder: FrameDecoder;
     private messageQueue: Promise<void> = Promise.resolve();
     private readonly logger: Logger;
+    readonly transport = 'tcp' as const;
 
     constructor(
         public readonly id: string,

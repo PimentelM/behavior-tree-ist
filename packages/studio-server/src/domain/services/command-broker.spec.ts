@@ -31,11 +31,12 @@ describe('CommandBroker', () => {
         const broker = new CommandBroker(sender, 1000);
         const command = makeCommand();
         const expectedResponse: CommandResponse = { success: true };
+        const connectionId = 'connection-1';
 
-        const pending = broker.sendCommand('ws-client-1', command);
+        const pending = broker.sendCommand(connectionId, command);
 
         expect(sender.sent).toHaveLength(1);
-        expect(sender.sent[0].clientId).toBe('ws-client-1');
+        expect(sender.sent[0].clientId).toBe(connectionId);
         expect(sender.sent[0].message).toEqual({
             t: MessageType.Command,
             command,
@@ -49,7 +50,7 @@ describe('CommandBroker', () => {
         const sender = new FakeCommandSender();
         const broker = new CommandBroker(sender, 20);
 
-        const pending = broker.sendCommand('ws-client-1', makeCommand({ correlationId: 'timeout-1' }));
+        const pending = broker.sendCommand('connection-1', makeCommand({ correlationId: 'timeout-1' }));
         await expect(pending).rejects.toThrow(/timed out/);
     });
 
@@ -57,7 +58,7 @@ describe('CommandBroker', () => {
         const sender = new FakeCommandSender();
         const broker = new CommandBroker(sender, 5000);
 
-        const pending = broker.sendCommand('ws-client-1', makeCommand({ correlationId: 'shutdown-1' }));
+        const pending = broker.sendCommand('connection-1', makeCommand({ correlationId: 'shutdown-1' }));
         broker.shutdown();
 
         await expect(pending).rejects.toThrow(/shutting down/);

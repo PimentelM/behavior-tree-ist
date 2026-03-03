@@ -1,16 +1,17 @@
 import WebSocket from 'ws';
 import { OutboundMessage } from '@behavior-tree-ist/core';
-import { WebSocketClientInterface } from '../../types/interfaces';
+import { MessageConnectionInterface } from '../../types/interfaces';
 import { createLogger, Logger } from '../logging';
 import { OutboundMessageSchema } from '../../domain/core-types';
 
-export class WSWebSocketClient implements WebSocketClientInterface {
+export class WSWebSocketClient implements MessageConnectionInterface {
     private readonly socket: WebSocket;
     private readonly messageHandlers: Array<(message: OutboundMessage) => void | Promise<void>> = [];
     private readonly disconnectHandlers: Array<() => void> = [];
     private messageQueue: Promise<void> = Promise.resolve();
     private readonly logger: Logger;
     private prefersBinary = false;
+    readonly transport = 'websocket' as const;
 
     constructor(
         public readonly id: string,

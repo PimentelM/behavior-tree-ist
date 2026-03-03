@@ -1,6 +1,6 @@
 import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
-import { WebSocketClientInterface } from '../../../types/interfaces';
+import { MessageConnectionInterface } from '../../../types/interfaces';
 import { TreeRepositoryInterface, AgentConnectionRegistryInterface } from '../../../domain/interfaces';
 
 interface TreeRemovedHandlerDeps {
@@ -13,14 +13,13 @@ export class TreeRemovedHandler extends BaseHandler {
         super(priority, 'tree-removed-handler');
     }
 
-    protected async handleMessage(message: OutboundMessage, client: WebSocketClientInterface): Promise<void> {
+    protected async handleMessage(message: OutboundMessage, client: MessageConnectionInterface): Promise<void> {
         if (message.t !== MessageType.TreeRemoved) return;
 
-        const connection = this.deps.agentConnectionRegistry.getAllConnections()
-            .find(c => c.wsClientId === client.id);
+        const connection = this.deps.agentConnectionRegistry.getByConnectionId(client.id);
 
         if (!connection) {
-            this.logger.warn('TreeRemoved from unknown client', { wsClientId: client.id });
+            this.logger.warn('TreeRemoved from unknown client', { connectionId: client.id, transport: client.transport });
             return;
         }
 

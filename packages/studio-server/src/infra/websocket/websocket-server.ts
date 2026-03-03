@@ -1,8 +1,8 @@
 import { WebSocketServer, type ServerOptions } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { WebSocketServerInterface, WebSocketServerConfigInterface } from './interfaces';
+import { WebSocketServerInterface, WebSocketServerConfigInterface, WebSocketConnectionContext } from './interfaces';
 import { WSWebSocketClient } from './websocket-client';
-import { WebSocketClientInterface } from '../../types/interfaces';
+import { MessageConnectionInterface } from '../../types/interfaces';
 import { IncomingMessage } from 'http';
 import { Logger } from '../logging';
 
@@ -10,8 +10,8 @@ const TRY_AGAIN_LATER_CODE = 1008;
 
 export class WSWebSocketServer implements WebSocketServerInterface {
     private server: WebSocketServer | null = null;
-    private readonly clients: Map<string, WebSocketClientInterface> = new Map();
-    private readonly connectionHandlers: Array<(client: WebSocketClientInterface, request: IncomingMessage) => void> = [];
+    private readonly clients: Map<string, MessageConnectionInterface> = new Map();
+    private readonly connectionHandlers: Array<(client: MessageConnectionInterface, context: WebSocketConnectionContext) => void> = [];
     private readonly disconnectionHandlers: Array<(clientId: string) => void> = [];
     private config: WebSocketServerConfigInterface | null = null;
     private readonly logger: Logger;
@@ -106,7 +106,7 @@ export class WSWebSocketServer implements WebSocketServerInterface {
         }
     }
 
-    onConnection(handler: (client: WebSocketClientInterface, request: IncomingMessage) => void): void {
+    onConnection(handler: (client: MessageConnectionInterface, context: WebSocketConnectionContext) => void): void {
         this.connectionHandlers.push(handler);
     }
 
@@ -114,11 +114,11 @@ export class WSWebSocketServer implements WebSocketServerInterface {
         this.disconnectionHandlers.push(handler);
     }
 
-    getClient(clientId: string): WebSocketClientInterface | undefined {
+    getClient(clientId: string): MessageConnectionInterface | undefined {
         return this.clients.get(clientId);
     }
 
-    getClients(): Map<string, WebSocketClientInterface> {
+    getClients(): Map<string, MessageConnectionInterface> {
         return new Map(this.clients);
     }
 
@@ -126,7 +126,7 @@ export class WSWebSocketServer implements WebSocketServerInterface {
         return this.clients.size;
     }
 
-    private registerClient(clientId: string, client: WebSocketClientInterface, request: IncomingMessage): void {
+    private registerClient(clientId: string, client: MessageConnectionInterface, request: IncomingMessage): void {
         this.clients.set(clientId, client);
         this.logger.debug('Client connected', { clientId });
 
@@ -136,7 +136,11 @@ export class WSWebSocketServer implements WebSocketServerInterface {
             this.disconnectionHandlers.forEach(handler => handler(clientId));
         });
 
-        this.connectionHandlers.forEach(handler => handler(client, request));
+        const context: WebSocketConnectionContext = {
+            transport: 'websocket',
+            request,
+        };
+        this.connectionHandlers.forEach(handler => handler(client, context));
     }
 }
 
