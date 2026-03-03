@@ -269,6 +269,8 @@ __metadata:
   resolution: "@behavior-tree-ist/studio-server@workspace:packages/studio-server"
   dependencies:
     "@behavior-tree-ist/core": "workspace:*"
+    "@behavior-tree-ist/studio-transport": "workspace:^"
+    "@trpc/client": "npm:^11.11.0"
     "@trpc/server": "npm:^11.0.0"
     "@types/better-sqlite3": "npm:^7.6.13"
     "@types/cors": "npm:^2.8.17"
@@ -291,7 +293,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@behavior-tree-ist/studio-transport@workspace:packages/studio-transport":
+"@behavior-tree-ist/studio-transport@workspace:^, @behavior-tree-ist/studio-transport@workspace:packages/studio-transport":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/studio-transport@workspace:packages/studio-transport"
   dependencies:
@@ -1166,6 +1168,16 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: 10c0/f9c7f0915e1b5f7b750e6c7d8b51f091b8ae7ea99bacb761d7b8505ba25de9cfcb749a0f779f1650fb268b499dd79165dc7e1ee0b8b4cb63430d3ddc81ffe044
+  languageName: node
+  linkType: hard
+
+"@trpc/client@npm:^11.11.0":
+  version: 11.11.0
+  resolution: "@trpc/client@npm:11.11.0"
+  peerDependencies:
+    "@trpc/server": 11.11.0
+    typescript: ">=5.7.2"
+  checksum: 10c0/0e8d4e385260c08e85cd84e41d9ade0f862d235e17030843b7ae31b3074636176aa877dbca462f065d1bcf0814696f86d2c3cfd903703c5196e268899370be1e
   languageName: node
   linkType: hard
 
