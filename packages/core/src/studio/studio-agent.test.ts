@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, Mock } from "vitest";
 import { StudioAgent, StudioAgentOptions } from "./studio-agent";
-import { StudioLink } from "./studio-link";
+import { StudioLinkInterface } from "./interfaces";
 import { StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 import { TreeRegistry } from "../registry/tree-registry";
 import { BehaviourTree } from "../tree";
@@ -9,11 +9,13 @@ import { OffFunction } from "../types";
 
 type CommandHandler = (command: StudioCommand) => void;
 type VoidHandler = () => void;
+type ErrorHandler = (error: Error) => void;
 
-interface MockStudioLink extends StudioLink {
+interface MockStudioLink extends StudioLinkInterface {
     _commandHandlers: Set<CommandHandler>;
     _connectedHandlers: Set<VoidHandler>;
     _disconnectedHandlers: Set<VoidHandler>;
+    _errorHandlers: Set<ErrorHandler>;
     _simulateConnect: () => void;
     _simulateDisconnect: () => void;
     _simulateCommand: (command: StudioCommand) => void;
@@ -25,18 +27,22 @@ interface MockStudioLink extends StudioLink {
     sendCommandResponse: Mock;
     open: Mock;
     close: Mock;
+    tick: Mock;
 }
 
 function createMockLink(): MockStudioLink {
     const commandHandlers = new Set<CommandHandler>();
     const connectedHandlers = new Set<VoidHandler>();
     const disconnectedHandlers = new Set<VoidHandler>();
+    const errorHandlers = new Set<ErrorHandler>();
     let isConnected = false;
 
     const mock = {
         _commandHandlers: commandHandlers,
         _connectedHandlers: connectedHandlers,
         _disconnectedHandlers: disconnectedHandlers,
+        _errorHandlers: errorHandlers,
+
         get _isConnected() { return isConnected; },
         set _isConnected(v: boolean) { isConnected = v; },
 
@@ -71,8 +77,14 @@ function createMockLink(): MockStudioLink {
             return () => disconnectedHandlers.delete(handler);
         },
 
+        onError(handler: ErrorHandler): OffFunction {
+            errorHandlers.add(handler);
+            return () => errorHandlers.delete(handler);
+        },
+
         open: vi.fn(),
         close: vi.fn(),
+        tick: vi.fn(),
         get isConnected() { return isConnected; },
     };
 

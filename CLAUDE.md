@@ -76,3 +76,10 @@ Docs live in `docs/` with a root `README.md`. After any code change, update the 
 | `packages/core/src/tree.ts` | `docs/behaviour-tree-class.md` |
 | New node types or base class changes | `docs/custom-nodes.md` |
 | Package exports, major features | `README.md` |
+
+
+## Directive about testing code
+
+- Never use mocks when you can test with the real dependency. Avoid mocks at all costs.
+- Follow principles from the Unit Testing Principles, Practices, and Patterns.
+- Separate small tests into tree sections of arrange, act and assert by EMPTY line. Use comments for the sections only in bigger tests. 

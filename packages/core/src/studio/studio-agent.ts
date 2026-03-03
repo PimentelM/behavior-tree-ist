@@ -3,7 +3,7 @@ import { TreeRegistry } from "../registry/tree-registry";
 import { RegisteredTree } from "../registry/types";
 import { assertValidId } from "../registry/validation";
 import { OffFunction } from "../types";
-import { StudioLink } from "./studio-link";
+import { StudioLinkInterface } from "./interfaces";
 import { CommandResponse, CommandResponseData, CommandResponseSuccess, StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 
 interface AgentManagedTreeState {
@@ -14,14 +14,14 @@ export interface StudioAgentOptions {
     clientId: string;
     sessionId: string;
     registry: TreeRegistry;
-    link: StudioLink;
+    link: StudioLinkInterface;
 }
 
 export class StudioAgent {
     private readonly clientId: string;
     private readonly sessionId: string;
     private readonly registry: TreeRegistry;
-    private readonly link: StudioLink;
+    private readonly link: StudioLinkInterface;
     private readonly agentManagedStates = new Map<string, AgentManagedTreeState>();
     private readonly unsubscribers: OffFunction[] = [];
     private destroyed = false;
@@ -69,6 +69,10 @@ export class StudioAgent {
         }
 
         this.link.open();
+    }
+
+    tick(): void {
+        this.link.tick();
     }
 
     destroy(): void {
