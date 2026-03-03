@@ -144,17 +144,16 @@ export class StudioLink implements StudioLinkInterface {
         const transport = this.createTransport();
         this.transport = transport;
 
-        // Subscribe to transport events before opening
-        this.transportCleanup.push(
-            transport.onMessage((data) => this.handleTransportMessage(data)),
-            transport.onError((error) => this.emit(this.errorHandlers, error)),
-            transport.onClose(() => this.handleTransportClose()),
-        );
-
         this._pendingOpen = transport.open().then(
             () => {
                 // Guard: transport may have been discarded by close() or a new attempt
                 if (this.transport !== transport) return;
+                // Subscribe to transport events after connection is established
+                this.transportCleanup.push(
+                    transport.onMessage((data) => this.handleTransportMessage(data)),
+                    transport.onError((error) => this.emit(this.errorHandlers, error)),
+                    transport.onClose(() => this.handleTransportClose()),
+                );
                 this.state = ConnectionState.Connected;
                 this._pendingOpen = null;
                 this.emit(this.connectedHandlers);
