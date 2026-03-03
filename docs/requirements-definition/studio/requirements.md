@@ -1,46 +1,44 @@
-> Historical draft (pre-refinement).  
-> This document is kept for context only and is not the source of truth for V1 planning.  
-> Use `docs/requirements-definition/studio/formal-specs-for-v1.md` for the active V1 specification.
-
 ## Requirements definition of Behavior Tree Studio
 
 Behavior Tree Studio is an application designed to allow users to observe and debug the execution of behavior trees in real time.
 
 This app is part of the behavior-tree-ist behavior tree library and it is built around a main Single Page Application component in react. 
 
-The goal of this component being published as a standalone component is so users can make their own integrations with it in the way that they want, but Behavior Tree Studio provides a default standalone implementation that can integrate with any behavior tree written using the library.
+Althought the component encompasses the whole array of controllers belonging to the studio conectivity capbilities, the component can also be used to simply display trees when the user provivides a serialized version of the tree and a list of TickRecords.
 
-The goal of the studio is to facilitate the connection between the user and a remote behavior tree running in a separate device or process.
+In the full implementation we pass via props extra configuration and implementations that would allow the component to connect to a server and retreive list of clients, trees, and interact with them.
 
-For the debugger component to display data it only needs a serialized version of the tree and a list of tick events. The goal of the studio is to provide means of obtaining that information from the source and passing it down to the component in real time.
 
+From the studio ui, it should be possible to click little buttons in the toolbar to enable or disable streaming, profiling and state tracing remotely on the client's target tree.
 
 ### Desired capbilities
 
-The studio should have the capbility of listing clients registered in the server and see the trees available in that client. If a client is not online (not sending heartbeats to the server) we should still be able to see the persisted last version of the tree and the events recorded. 
+The studio should have the capbility of listing clients registered in the server and see the trees available in that client. If a client is not online (does not have active connection to the server) we should still be able to see the persisted last version of the tree and the events recorded. 
 
 A protocol for communication between the agents and the studio should be stablished. This protocol should support request-response type of commands that the studio-server may send to the client to request for information. The protocol should be optimized for communication between server and client taking in account that we want to minimize cpu time spent by the client to handle the sending of events, which will happen very often. (In a game for example, we can create a tick record containing hundreds of events every frame, 60 times per second, and we don't want to affect frame-rates at all even for very big behavior trees)
 
-The protocol should be transport agnostic and we will support by default raw tcp ip connections and Websocket connections. the core implementations should be abstracted from the transport details and we should provide an easy way for the user to use either a standard known javascript websocket client or TCP socket or use their own implementation (example: when running inside constrained environments such as the frida-gum runtime). Some clients may not have access to nodejs Socket or Websocket so we need to provide an interface that the user can implement so we can interop with their own socket or websocket, that should be done while supporting standard clients//servers canonically.
+The protocol should be transport agnostic and we will support either raw tcp connections or websockets. The core implementations should be abstracted from the transport details and we should provide an easy way for the user to use either a standard known javascript websocket client or TCP socket or use their own implementation (example: when running inside constrained environments such as the frida-gum runtime). Some clients may not have access to nodejs Socket or Websocket so we need to provide an interface that the user can implement so we can interop with their own socket or websocket, that should be done while supporting standard clients//servers canonically.
+
+We should have a StudioLink that will handle all the details of the protocol, reconnection, and anything else that is not strictly sending and receiving data, and StudioLink will depend on an interface called Transport that will abstract either a tcp socket or a websocket.
+
+Transport should accept either string or Uint8Array as data (string | Uint8Array), it is meant to represent a connection.
+
 
 It should be possible to remotely turn on and off the streaming of events from a client to the server while the client is connected to the server. 
 If we turn it on, the agent will continuously send his tick events to the server even if the studio UI is not open and this setting will persist during the lifetime of the agent.
 If we turn it off however, the client will not send events even if the UI is open, requiring a manual press of a button to enable the sending of events again, either persistently or during that session.
 
-####  Server 
+Each client that connects will provide a sessionId which is just a random string (or not random if the user wants to log his session persistently). We will namespace the trees and tick records we store for the client by sessionId so we can keep a record of different traces for different versions of the tree as the user changes it.
 
-A list of TickRecords (the object produced by a BehaviorTree every tick) should be persisted in the server, either in-memory or in a SQLite database. Initially we want to do it in-memory using a ring buffer but we can eventually consider adding SQLite support, not planned for the initial version.
-
-The server should also cache the last known serialized version of the tree so the UI can fetch that along with the persisted TickRecords even after the client has disconneced.
-
-The server should also persist the known clients by ID ( each client will send a unique identifier when requesting connection )
+We should store a timestamp for each session so the UI can display the timestamp of that session.
 
 From the UI it should be possible to query the server for:
 
 - List of clients
-- List of trees of a client
-- Last N TickRecords stored for a tree of a client
-- Serialized version of a tree by clientId and treeId
+- List of sessions a client had
+- List of trees a client session had or has
+- Last N TickRecords stored for a tree of a client session
+- Serialized version of a tree by clientId, sessionId and treeId
 
 ### Client ( place where the behavior tree will run )
 
@@ -54,6 +52,7 @@ A class called StudioAgent will then receive the instance of tree registry as a 
 
 Implementation of the wiring details should preferabily be event-driven, for example, BehaviorTree will implement a `onTickRecord((tickRecord)=> void): OffFunction` method that the registry can use. The Registry will implement methods such as `onTreeRegistered(...): OffFunction` and `onTreeRemoved(...)` for the agent to use and so on.
 
+> NOTE: We decided to introduce the notion of a StudioLink to manage the connection retry and protocol so we can extract away a few of the extra responsabilities that StudioAgent had. We should do a few modifications in the existing code so the agent still exposes a tick that will be then used by the StudioLink to drive reconnections whithout the need for a setTimeout.
 
 The StudioAgent will be responsible for managing connection, connection retry, sending of data, etc. everything will be done by it. Auxiliary classes can be created to act as internal dependencies of the StudioAgent if proper separation of concerns is required to achieve the agent's goal with good code quality.
 
@@ -82,7 +81,7 @@ The main goal of the server is to act as a persistent gateway between clients an
 
 The server should persist all the information received from clients and all the configuration specified by the UI.
 
-All communication between server and client will be message based and we can make request-response primitives o top of that.
+All communication between server and client will be message based and we can make request-response primitives on top of that.
 
 
 Communication between UI and server can be either message based or request response based. The most appropriate method should be used for each specific usecase. (e.g: It should be good to have tRPC or http endpoints available to serve the stored information all the time, so we could even curl it)
@@ -93,13 +92,13 @@ The server can make use of external dependencies such as the library Zod, tRPC, 
 The server should store:
 
 - Clients (connected clients or persisted ones)
+- Sessions (namespaced per client, with timestamps)
 - Trees (last version of the tree initially, but eventually we might come up with a versioning system)
 - TickRecords ( when tree versioning is introduced we might want to be able to distinguish between versions of the same tree )
 - Configurations of any kind ( Set by the UI )
 
 
-
-Initially the server can be fully in-memory but the goal is to eventually allow it to use SQLLite to fully persist information when that becomes desirable.
+Initially the server can be fully in-memory but the goal is to eventually allow it to use SQLite to fully persist information when that becomes desirable. The implementation should make use of a repository interface so we can swap the in-memory and database implementations easily, and all query and write capabilities should work the same in both implementations.
 
 The server should be fully type-safe and use a onion architecture composed of three main layers
 
@@ -137,10 +136,7 @@ This means that protocol and other lower level concerns should be abstracted awa
 
 ----
 
-We should have a prop that will allow the user to display a header on top of the debugger component (still rendered inside the component) that will contain the title 'Behavior Tree Studio', this header should have its theme synced with the theme choosen in the menu.
-
-
-New controls should be added to the UI to manage the notion of attaching to a client and selecting a tree from a list.
+New controls should be added to the existing UI to manage the notion of attaching to a client and selecting a tree from a list. (e.g: Added to the existing toolbar)
 
 In order to choose which client we want to connect to, preferably we should click on a 'Attach button' and it will open a side drawer window that will allow us to select the client from a list or something like that, so we don't need to always display the dropdown for the list of clients in the toolbar.
 
@@ -162,7 +158,7 @@ We should adapt the component to:
 
 - Allow rendering even when there is no serialized tree or list of tick records.
 - Have a visual indicator to show if the client we are attached to is online // offline
-- Have a visual indicator to show if we are seeing a live tree that is being updated live or if we are seeing old persisted tick records (that were persisted by the server and servd to us via api call)
+- Have a visual indicator to show if we are seeing a live tree that is being updated live or if we are seeing old persisted tick records (that were persisted by the server and served to us via api call)
 
 
 All controllers and visual style of the component should stay consistent after we add these new features and controllers.
@@ -194,6 +190,10 @@ As a final result from this endeavor we would like to have:
 4- A packages/transport will be created for ready-to-use transport solutions (if necessary)
 
 5- A packages/studio-common will be created for common dependencies between studio-server and studio-ui that cannot go into /core
+
+6- A package named studio-server will implement the server code. studio will import it for the CLI.
+
+7- A package named studio-ui will import the /react component and render it with the proper props and logic to connect to the server, studio cli will import it.
 
 
 
