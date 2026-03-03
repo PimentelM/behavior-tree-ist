@@ -146,7 +146,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
 
     wsServer.onConnection((client) => {
         client.onMessage((message) => {
-            messageRouter.route(message.t, message, client);
+            return messageRouter.route(message.t, message, client);
         });
     });
 

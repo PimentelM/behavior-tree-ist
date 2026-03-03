@@ -5,8 +5,9 @@ import { createLogger, Logger } from '../logging';
 
 export class WSWebSocketClient implements WebSocketClientInterface {
     private socket: WebSocket;
-    private messageHandlers: Array<(message: OutboundMessage) => void> = [];
+    private messageHandlers: Array<(message: OutboundMessage) => void | Promise<void>> = [];
     private disconnectHandlers: Array<() => void> = [];
+    private messageQueue: Promise<void> = Promise.resolve();
     private logger: Logger;
 
     constructor(
@@ -17,12 +18,16 @@ export class WSWebSocketClient implements WebSocketClientInterface {
         this.socket = socket;
 
         this.socket.on('message', (data: WebSocket.Data) => {
-            try {
-                const message = JSON.parse(data.toString()) as OutboundMessage;
-                this.messageHandlers.forEach(handler => handler(message));
-            } catch (_error) {
-                this.logger.error('Error parsing client message', { raw: data.toString() });
-            }
+            this.messageQueue = this.messageQueue.then(async () => {
+                try {
+                    const message = JSON.parse(data.toString()) as OutboundMessage;
+                    for (const handler of this.messageHandlers) {
+                        await handler(message);
+                    }
+                } catch (error) {
+                    this.logger.error('Error parsing or handling client message', { raw: data.toString(), error: String(error) });
+                }
+            });
         });
 
         this.socket.on('close', () => {
@@ -54,7 +59,7 @@ export class WSWebSocketClient implements WebSocketClientInterface {
         }
     }
 
-    onMessage(handler: (message: OutboundMessage) => void): void {
+    onMessage(handler: (message: OutboundMessage) => void | Promise<void>): void {
         this.messageHandlers.push(handler);
     }
 

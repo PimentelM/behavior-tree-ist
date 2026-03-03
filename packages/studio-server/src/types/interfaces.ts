@@ -5,7 +5,7 @@ export interface WebSocketClientInterface {
     id: string;
     send(message: object): void;
     disconnect(): void;
-    onMessage(handler: (message: OutboundMessage) => void): void;
+    onMessage(handler: (message: OutboundMessage) => void | Promise<void>): void;
     onDisconnect(handler: () => void): void;
     isConnected(): boolean;
 }
