@@ -2,6 +2,7 @@ import {
     CommandResponse,
     InboundMessage,
     MessageType,
+    NodeResult,
     OutboundMessage,
     RefChangeEvent,
     SerializableMetadata,
@@ -58,9 +59,9 @@ export const TickTraceEventSchema: z.ZodType<TickTraceEvent> = z
     .object({
         nodeId: z.number().int(),
         result: z.union([
-            z.literal('Succeeded'),
-            z.literal('Failed'),
-            z.literal('Running'),
+            z.literal(NodeResult.Succeeded),
+            z.literal(NodeResult.Failed),
+            z.literal(NodeResult.Running),
         ]),
         state: SerializableValueSchema.optional(),
         startedAt: z.number().optional(),
