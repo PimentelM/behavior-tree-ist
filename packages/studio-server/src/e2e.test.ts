@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from 'vitest';
+import { randomUUID } from 'crypto';
 import * as net from 'net';
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import {
@@ -55,10 +56,9 @@ function delay(ms: number): Promise<void> {
 // ── Test suite ──
 
 describe('Studio Server E2E', () => {
-    const scope = createTreeScopeStub();
-    const CLIENT_ID = scope.clientId;
-    const SESSION_ID = scope.sessionId;
-    const TREE_ID = scope.treeId;
+    let CLIENT_ID: string;
+    let SESSION_ID: string;
+    let TREE_ID: string;
 
     let port: number;
     let server: ReturnType<typeof createStudioServer>;
@@ -84,6 +84,18 @@ describe('Studio Server E2E', () => {
                 }),
             ],
         });
+    });
+
+    beforeEach(async () => {
+        const scopeId = randomUUID();
+        const scope = createTreeScopeStub({
+            clientId: `test-client-${scopeId}`,
+            sessionId: `test-session-${scopeId}`,
+            treeId: `test-tree-${scopeId}`,
+        });
+        CLIENT_ID = scope.clientId;
+        SESSION_ID = scope.sessionId;
+        TREE_ID = scope.treeId;
 
         // Build a simple behaviour tree
         tree = new BehaviourTree(
@@ -113,26 +125,26 @@ describe('Studio Server E2E', () => {
         // Wait for the agent to connect and the Hello handshake to complete
         await waitFor(async () => agent.isConnected);
         // Give the server a moment to process the Hello + TreeRegistered messages
-        await delay(200);
+        await delay(50);
+        agent?.tick();
+        await delay(50);
     });
 
-    beforeEach(async () => {
-        agent?.tick();
-
+    afterEach(async () => {
+        agent?.destroy();
         await delay(100);
     });
 
     afterAll(async () => {
-        agent?.destroy();
-        await delay(100);
         await server?.stop();
     });
 
     it('registers the client via tRPC after agent connects', async () => {
         const clients = await trpc.clients.getAll.query();
+        const client = clients.find((entry) => entry.clientId === CLIENT_ID);
 
-        expect(clients).toHaveLength(1);
-        expect(clients[0]).toMatchObject({
+        expect(client).toBeDefined();
+        expect(client).toMatchObject({
             clientId: CLIENT_ID,
             online: true,
         });
@@ -229,7 +241,7 @@ describe('Studio Server E2E', () => {
         expect(response).toMatchObject({
             success: true,
             data: {
-                streaming: true, // we enabled it in the previous test
+                streaming: false,
                 stateTrace: false,
                 profiling: false,
             },
@@ -375,15 +387,18 @@ describe('Studio Server E2E', () => {
     it('marks client offline after agent disconnects', async () => {
         // Agent is still connected at this point — verify
         const clientsBefore = await trpc.clients.getAll.query();
-        expect(clientsBefore[0].online).toBe(true);
+        const clientBefore = clientsBefore.find((entry) => entry.clientId === CLIENT_ID);
+        expect(clientBefore).toBeDefined();
+        expect(clientBefore!.online).toBe(true);
 
         agent.destroy();
         await delay(200);
 
         const clientsAfter = await trpc.clients.getAll.query();
+        const clientAfter = clientsAfter.find((entry) => entry.clientId === CLIENT_ID);
 
-        expect(clientsAfter).toHaveLength(1);
-        expect(clientsAfter[0]).toMatchObject({
+        expect(clientAfter).toBeDefined();
+        expect(clientAfter).toMatchObject({
             clientId: CLIENT_ID,
             online: false,
         });
