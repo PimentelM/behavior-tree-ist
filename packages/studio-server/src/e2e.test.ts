@@ -13,7 +13,7 @@ import {
 import { WsNodeStringTransport } from '@behavior-tree-ist/studio-transport/node';
 import { createStudioServer } from './index';
 import type { AppRouter } from './app/trpc';
-import { TreeRow } from './domain/interfaces';
+import type { TreeRecord } from './domain/records';
 
 // ── Helpers ──
 
@@ -125,7 +125,7 @@ describe('Studio Server E2E', () => {
 
         expect(clients).toHaveLength(1);
         expect(clients[0]).toMatchObject({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             online: true,
         });
     });
@@ -137,14 +137,14 @@ describe('Studio Server E2E', () => {
 
         expect(sessions).toHaveLength(1);
         expect(sessions[0]).toMatchObject({
-            client_id: CLIENT_ID,
-            session_id: SESSION_ID,
+            clientId: CLIENT_ID,
+            sessionId: SESSION_ID,
             online: true,
         });
     });
 
     it('registers the tree via tRPC after agent connects', async () => {
-        let trees: TreeRow[] = [];
+        let trees: TreeRecord[] = [];
         await waitFor(async () => {
             trees = await trpc.trees.getBySession.query({
                 clientId: CLIENT_ID,
@@ -155,13 +155,13 @@ describe('Studio Server E2E', () => {
 
         expect(trees).toHaveLength(1);
         expect(trees[0]).toMatchObject({
-            client_id: CLIENT_ID,
-            session_id: SESSION_ID,
-            tree_id: TREE_ID,
+            clientId: CLIENT_ID,
+            sessionId: SESSION_ID,
+            treeId: TREE_ID,
         });
 
         // The serialized tree should be valid JSON
-        const serialized = JSON.parse(trees[0].serialized_tree_json);
+        const serialized = JSON.parse(trees[0].serializedTreeJson);
         expect(serialized).toHaveProperty('name');
     });
 
@@ -173,7 +173,7 @@ describe('Studio Server E2E', () => {
         });
 
         expect(treeRow).not.toBeNull();
-        expect(treeRow!.tree_id).toBe(TREE_ID);
+        expect(treeRow!.treeId).toBe(TREE_ID);
     });
 
     it('streams ticks after enabling streaming via command', async () => {
@@ -209,11 +209,11 @@ describe('Studio Server E2E', () => {
 
         expect(ticks.length).toBeGreaterThanOrEqual(3);
         for (const tick of ticks) {
-            expect(tick.client_id).toBe(CLIENT_ID);
-            expect(tick.session_id).toBe(SESSION_ID);
-            expect(tick.tree_id).toBe(TREE_ID);
+            expect(tick.clientId).toBe(CLIENT_ID);
+            expect(tick.sessionId).toBe(SESSION_ID);
+            expect(tick.treeId).toBe(TREE_ID);
 
-            const payload = JSON.parse(tick.payload_json);
+            const payload = JSON.parse(tick.payloadJson);
             expect(payload).toHaveProperty('tickId');
             expect(payload).toHaveProperty('timestamp');
         }
@@ -351,14 +351,14 @@ describe('Studio Server E2E', () => {
     it('reads and updates settings', async () => {
         const settings = await trpc.settings.get.query();
 
-        expect(settings).toHaveProperty('max_ticks_per_tree');
-        expect(settings).toHaveProperty('command_timeout_ms');
+        expect(settings).toHaveProperty('maxTicksPerTree');
+        expect(settings).toHaveProperty('commandTimeoutMs');
 
         const updated = await trpc.settings.update.mutate({
             maxTicksPerTree: 500,
         });
 
-        expect(updated.max_ticks_per_tree).toBe(500);
+        expect(updated.maxTicksPerTree).toBe(500);
     });
 
     it('marks client offline after agent disconnects', async () => {
@@ -373,7 +373,7 @@ describe('Studio Server E2E', () => {
 
         expect(clientsAfter).toHaveLength(1);
         expect(clientsAfter[0]).toMatchObject({
-            client_id: CLIENT_ID,
+            clientId: CLIENT_ID,
             online: false,
         });
     });

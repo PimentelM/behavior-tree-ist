@@ -10,7 +10,7 @@ export function createSessionsRouter({ sessionRepository, agentConnectionRegistr
                 const sessions = await sessionRepository.findByClientId(input.clientId);
                 return sessions.map(s => ({
                     ...s,
-                    online: agentConnectionRegistry.isOnline(s.client_id, s.session_id),
+                    online: agentConnectionRegistry.isOnline(s.clientId, s.sessionId),
                 }));
             }),
     });

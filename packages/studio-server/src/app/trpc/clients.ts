@@ -8,7 +8,7 @@ export function createClientsRouter({ clientRepository, agentConnectionRegistry 
             const clients = await clientRepository.findAll();
             return clients.map(c => ({
                 ...c,
-                online: agentConnectionRegistry.getAllConnections().some(conn => conn.clientId === c.client_id),
+                online: agentConnectionRegistry.getAllConnections().some(conn => conn.clientId === c.clientId),
             }));
         }),
 
@@ -19,7 +19,7 @@ export function createClientsRouter({ clientRepository, agentConnectionRegistry 
                 if (!client) return null;
                 return {
                     ...client,
-                    online: agentConnectionRegistry.getAllConnections().some(conn => conn.clientId === client.client_id),
+                    online: agentConnectionRegistry.getAllConnections().some(conn => conn.clientId === client.clientId),
                 };
             }),
     });

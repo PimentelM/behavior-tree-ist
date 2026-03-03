@@ -1,16 +1,19 @@
 import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
-import { SessionRepositoryInterface, SessionRow } from '../../domain/interfaces';
+import { SessionRepositoryInterface } from '../../domain/interfaces';
+import type { DbSession } from './schemas';
+import { mapDbSessionToDomain, mapSessionToDb } from './mappers';
 
 export class SessionRepository extends BaseKnexRepository implements SessionRepositoryInterface {
     constructor(knex: Knex) {
         super(knex);
     }
 
-    async findByClientId(clientId: string): Promise<SessionRow[]> {
-        return this.withTransaction(
-            this.knex<SessionRow>('sessions').where('client_id', clientId).orderBy('last_seen_at', 'desc')
+    async findByClientId(clientId: string) {
+        const rows = await this.withTransaction(
+            this.knex<DbSession>('sessions').where('clientId', clientId).orderBy('lastSeenAt', 'desc')
         );
+        return rows.map(mapDbSessionToDomain);
     }
 
     async upsert(clientId: string, sessionId: string): Promise<void> {
@@ -19,34 +22,36 @@ export class SessionRepository extends BaseKnexRepository implements SessionRepo
         if (existing) {
             await this.withTransaction(
                 this.knex('sessions')
-                    .where({ client_id: clientId, session_id: sessionId })
-                    .update({ last_seen_at: now })
+                    .where({ clientId, sessionId })
+                    .update({ lastSeenAt: now })
             );
         } else {
+            const dbSession = mapSessionToDb({
+                clientId,
+                sessionId,
+                startedAt: now,
+                lastSeenAt: now,
+            });
             await this.withTransaction(
-                this.knex('sessions').insert({
-                    client_id: clientId,
-                    session_id: sessionId,
-                    started_at: now,
-                    last_seen_at: now,
-                })
+                this.knex('sessions').insert(dbSession)
             );
         }
     }
 
-    async findById(clientId: string, sessionId: string): Promise<SessionRow | undefined> {
-        return this.withTransaction(
-            this.knex<SessionRow>('sessions')
-                .where({ client_id: clientId, session_id: sessionId })
+    async findById(clientId: string, sessionId: string) {
+        const row = await this.withTransaction(
+            this.knex<DbSession>('sessions')
+                .where({ clientId, sessionId })
                 .first()
         );
+        return row ? mapDbSessionToDomain(row) : undefined;
     }
 
     async updateLastSeen(clientId: string, sessionId: string): Promise<void> {
         await this.withTransaction(
             this.knex('sessions')
-                .where({ client_id: clientId, session_id: sessionId })
-                .update({ last_seen_at: Date.now() })
+                .where({ clientId, sessionId })
+                .update({ lastSeenAt: Date.now() })
         );
     }
 }

@@ -1,6 +1,9 @@
 import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
-import { TickRepositoryInterface, TickRow } from '../../domain/interfaces';
+import { TickRepositoryInterface } from '../../domain/interfaces';
+import type { TickRecord } from '../../domain/records';
+import type { DbTick } from './schemas';
+import { mapDbTickToDomain, mapTickToDb } from './mappers';
 
 export class TickRepository extends BaseKnexRepository implements TickRepositoryInterface {
     constructor(knex: Knex) {
@@ -15,13 +18,13 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
     ): Promise<void> {
         if (ticks.length === 0) return;
 
-        const rows = ticks.map(tick => ({
-            client_id: clientId,
-            session_id: sessionId,
-            tree_id: treeId,
-            tick_id: tick.tickId,
+        const rows: DbTick[] = ticks.map((tick) => mapTickToDb({
+            clientId,
+            sessionId,
+            treeId,
+            tickId: tick.tickId,
             timestamp: tick.timestamp,
-            payload_json: tick.payloadJson,
+            payloadJson: tick.payloadJson,
         }));
 
         await this.withTransaction(
@@ -35,14 +38,15 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         treeId: string,
         afterTickId: number,
         limit: number
-    ): Promise<TickRow[]> {
-        return this.withTransaction(
-            this.knex<TickRow>('ticks')
-                .where({ client_id: clientId, session_id: sessionId, tree_id: treeId })
-                .andWhere('tick_id', '>', afterTickId)
-                .orderBy('tick_id', 'asc')
+    ): Promise<TickRecord[]> {
+        const rows = await this.withTransaction(
+            this.knex<DbTick>('ticks')
+                .where({ clientId, sessionId, treeId })
+                .andWhere('tickId', '>', afterTickId)
+                .orderBy('tickId', 'asc')
                 .limit(limit)
         );
+        return rows.map(mapDbTickToDomain);
     }
 
     async pruneToLimit(
@@ -53,28 +57,28 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
     ): Promise<void> {
         const count = await this.withTransaction(
             this.knex('ticks')
-                .where({ client_id: clientId, session_id: sessionId, tree_id: treeId })
+                .where({ clientId, sessionId, treeId })
                 .count('* as cnt')
         );
 
-        const total = (count[0] as { cnt: number }).cnt;
+        const total = Number((count[0] as { cnt: number | string }).cnt);
         if (total <= maxTicks) return;
 
         const toDelete = total - maxTicks;
         const oldest = await this.withTransaction(
             this.knex('ticks')
-                .where({ client_id: clientId, session_id: sessionId, tree_id: treeId })
-                .orderBy('tick_id', 'asc')
+                .where({ clientId, sessionId, treeId })
+                .orderBy('tickId', 'asc')
                 .limit(toDelete)
-                .select('tick_id')
+                .select('tickId')
         );
 
-        const tickIds = oldest.map((r: { tick_id: number }) => r.tick_id);
+        const tickIds = oldest.map((r: { tickId: number }) => r.tickId);
         if (tickIds.length > 0) {
             await this.withTransaction(
                 this.knex('ticks')
-                    .where({ client_id: clientId, session_id: sessionId, tree_id: treeId })
-                    .whereIn('tick_id', tickIds)
+                    .where({ clientId, sessionId, treeId })
+                    .whereIn('tickId', tickIds)
                     .delete()
             );
         }

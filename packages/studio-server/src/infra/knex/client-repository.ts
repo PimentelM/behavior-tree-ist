@@ -1,16 +1,19 @@
 import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
-import { ClientRepositoryInterface, ClientRow } from '../../domain/interfaces';
+import { ClientRepositoryInterface } from '../../domain/interfaces';
+import type { DbClient } from './schemas';
+import { mapClientToDb, mapDbClientToDomain } from './mappers';
 
 export class ClientRepository extends BaseKnexRepository implements ClientRepositoryInterface {
     constructor(knex: Knex) {
         super(knex);
     }
 
-    async findById(clientId: string): Promise<ClientRow | undefined> {
-        return this.withTransaction(
-            this.knex<ClientRow>('clients').where('client_id', clientId).first()
+    async findById(clientId: string) {
+        const row = await this.withTransaction(
+            this.knex<DbClient>('clients').where('clientId', clientId).first()
         );
+        return row ? mapDbClientToDomain(row) : undefined;
     }
 
     async upsert(clientId: string): Promise<void> {
@@ -18,24 +21,30 @@ export class ClientRepository extends BaseKnexRepository implements ClientReposi
         const existing = await this.findById(clientId);
         if (existing) {
             await this.withTransaction(
-                this.knex('clients').where('client_id', clientId).update({ last_seen_at: now })
+                this.knex('clients').where('clientId', clientId).update({ lastSeenAt: now })
             );
         } else {
+            const dbClient = mapClientToDb({
+                clientId,
+                firstSeenAt: now,
+                lastSeenAt: now,
+            });
             await this.withTransaction(
-                this.knex('clients').insert({ client_id: clientId, first_seen_at: now, last_seen_at: now })
+                this.knex('clients').insert(dbClient)
             );
         }
     }
 
-    async findAll(): Promise<ClientRow[]> {
-        return this.withTransaction(
-            this.knex<ClientRow>('clients').select('*').orderBy('last_seen_at', 'desc')
+    async findAll() {
+        const rows = await this.withTransaction(
+            this.knex<DbClient>('clients').select('*').orderBy('lastSeenAt', 'desc')
         );
+        return rows.map(mapDbClientToDomain);
     }
 
     async updateLastSeen(clientId: string): Promise<void> {
         await this.withTransaction(
-            this.knex('clients').where('client_id', clientId).update({ last_seen_at: Date.now() })
+            this.knex('clients').where('clientId', clientId).update({ lastSeenAt: Date.now() })
         );
     }
 }

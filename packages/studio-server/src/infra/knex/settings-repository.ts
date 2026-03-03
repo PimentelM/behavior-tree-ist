@@ -1,39 +1,47 @@
 import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
-import { SettingsRepositoryInterface, SettingsRow } from '../../domain/interfaces';
+import { SettingsRepositoryInterface } from '../../domain/interfaces';
+import type { SettingsRecord } from '../../domain/records';
+import type { DbSettings } from './schemas';
+import { mapDbSettingsToDomain, mapSettingsToDb } from './mappers';
 
 export class SettingsRepository extends BaseKnexRepository implements SettingsRepositoryInterface {
     constructor(knex: Knex) {
         super(knex);
     }
 
-    async get(): Promise<SettingsRow> {
+    async get(): Promise<SettingsRecord> {
         const row = await this.withTransaction(
-            this.knex<SettingsRow>('server_settings').where('id', 1).first()
+            this.knex<DbSettings>('serverSettings').where('id', 1).first()
         );
 
         if (!row) {
-            // Insert default row if missing
             const now = Date.now();
+            const defaultSettings: SettingsRecord = {
+                id: 1,
+                maxTicksPerTree: 1000,
+                commandTimeoutMs: 5000,
+                updatedAt: now,
+            };
+
             await this.withTransaction(
-                this.knex('server_settings').insert({
-                    id: 1,
-                    max_ticks_per_tree: 1000,
-                    command_timeout_ms: 5000,
-                    updated_at: now,
-                })
+                this.knex('serverSettings').insert(mapSettingsToDb(defaultSettings))
             );
-            return { id: 1, max_ticks_per_tree: 1000, command_timeout_ms: 5000, updated_at: now };
+            return defaultSettings;
         }
 
-        return row;
+        return mapDbSettingsToDomain(row);
     }
 
-    async update(settings: Partial<Pick<SettingsRow, 'max_ticks_per_tree' | 'command_timeout_ms'>>): Promise<void> {
+    async update(settings: Partial<Pick<SettingsRecord, 'maxTicksPerTree' | 'commandTimeoutMs'>>): Promise<void> {
+        const dbUpdates: Partial<DbSettings> = {};
+        if (settings.maxTicksPerTree !== undefined) dbUpdates.maxTicksPerTree = settings.maxTicksPerTree;
+        if (settings.commandTimeoutMs !== undefined) dbUpdates.commandTimeoutMs = settings.commandTimeoutMs;
+
         await this.withTransaction(
-            this.knex('server_settings')
+            this.knex('serverSettings')
                 .where('id', 1)
-                .update({ ...settings, updated_at: Date.now() })
+                .update({ ...dbUpdates, updatedAt: Date.now() })
         );
     }
 }

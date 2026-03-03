@@ -40,7 +40,7 @@ export class TickBatchHandler extends BaseHandler {
             clientId,
             sessionId,
             message.treeId,
-            settings.max_ticks_per_tree
+            settings.maxTicksPerTree
         );
 
         this.logger.debug('Tick batch processed', {

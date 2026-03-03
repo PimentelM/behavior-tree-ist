@@ -2,62 +2,62 @@ import type { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.createTable('clients', (table) => {
-        table.text('client_id').primary();
-        table.float('first_seen_at').notNullable();
-        table.float('last_seen_at').notNullable();
+        table.text('clientId').primary();
+        table.float('firstSeenAt').notNullable();
+        table.float('lastSeenAt').notNullable();
     });
 
     await knex.schema.createTable('sessions', (table) => {
-        table.text('client_id').notNullable();
-        table.text('session_id').notNullable();
-        table.float('started_at').notNullable();
-        table.float('last_seen_at').notNullable();
-        table.primary(['client_id', 'session_id']);
+        table.text('clientId').notNullable();
+        table.text('sessionId').notNullable();
+        table.float('startedAt').notNullable();
+        table.float('lastSeenAt').notNullable();
+        table.primary(['clientId', 'sessionId']);
     });
 
     await knex.schema.createTable('trees', (table) => {
-        table.text('client_id').notNullable();
-        table.text('session_id').notNullable();
-        table.text('tree_id').notNullable();
-        table.text('serialized_tree_json').notNullable();
-        table.float('removed_at').nullable();
-        table.float('updated_at').notNullable();
-        table.primary(['client_id', 'session_id', 'tree_id']);
+        table.text('clientId').notNullable();
+        table.text('sessionId').notNullable();
+        table.text('treeId').notNullable();
+        table.text('serializedTreeJson').notNullable();
+        table.float('removedAt').nullable();
+        table.float('updatedAt').notNullable();
+        table.primary(['clientId', 'sessionId', 'treeId']);
     });
 
     await knex.schema.createTable('ticks', (table) => {
-        table.text('client_id').notNullable();
-        table.text('session_id').notNullable();
-        table.text('tree_id').notNullable();
-        table.integer('tick_id').notNullable();
+        table.text('clientId').notNullable();
+        table.text('sessionId').notNullable();
+        table.text('treeId').notNullable();
+        table.integer('tickId').notNullable();
         table.float('timestamp').notNullable();
-        table.text('payload_json').notNullable();
-        table.primary(['client_id', 'session_id', 'tree_id', 'tick_id']);
+        table.text('payloadJson').notNullable();
+        table.primary(['clientId', 'sessionId', 'treeId', 'tickId']);
     });
 
-    await knex.schema.createTable('server_settings', (table) => {
+    await knex.schema.createTable('serverSettings', (table) => {
         table.integer('id').primary().defaultTo(1);
-        table.integer('max_ticks_per_tree').defaultTo(1000);
-        table.integer('command_timeout_ms').defaultTo(5000);
-        table.float('updated_at').notNullable();
+        table.integer('maxTicksPerTree').defaultTo(1000);
+        table.integer('commandTimeoutMs').defaultTo(5000);
+        table.float('updatedAt').notNullable();
     });
 
     // Index for cursor queries on ticks
     await knex.schema.alterTable('ticks', (table) => {
-        table.index(['client_id', 'session_id', 'tree_id', 'tick_id'], 'idx_ticks_cursor');
+        table.index(['clientId', 'sessionId', 'treeId', 'tickId'], 'idxTicksCursor');
     });
 
     // Insert default settings row
-    await knex('server_settings').insert({
+    await knex('serverSettings').insert({
         id: 1,
-        max_ticks_per_tree: 1000,
-        command_timeout_ms: 5000,
-        updated_at: Date.now(),
+        maxTicksPerTree: 1000,
+        commandTimeoutMs: 5000,
+        updatedAt: Date.now(),
     });
 }
 
 export async function down(knex: Knex): Promise<void> {
-    await knex.schema.dropTableIfExists('server_settings');
+    await knex.schema.dropTableIfExists('serverSettings');
     await knex.schema.dropTableIfExists('ticks');
     await knex.schema.dropTableIfExists('trees');
     await knex.schema.dropTableIfExists('sessions');
