@@ -1,4 +1,4 @@
-import knex, { Knex } from 'knex';
+import knex, { type Knex } from 'knex';
 import path from 'path';
 import { StudioServerConfig } from '../../configuration';
 

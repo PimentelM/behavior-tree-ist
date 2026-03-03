@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { WebSocketServerInterface } from '../infra/websocket/interfaces';
 import { MessageRouterInterface } from './interfaces';
 import { AgentConnectionRegistryInterface, CommandBrokerInterface, ClientRepositoryInterface, SessionRepositoryInterface, TreeRepositoryInterface, TickRepositoryInterface, SettingsRepositoryInterface } from '../domain/interfaces';

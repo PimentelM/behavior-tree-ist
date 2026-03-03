@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
 import { ClientRepositoryInterface, ClientRow } from '../../domain/interfaces';
 

@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 
 type TransactionContext = {
     trx: Knex.Transaction | null;
