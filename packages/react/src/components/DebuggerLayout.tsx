@@ -5,7 +5,9 @@ interface DebuggerLayoutProps {
   showToolbar: boolean;
   showSidebar: boolean;
   showTimeline: boolean;
+  showActivityPanel: boolean;
   toolbar: ReactNode | null;
+  activityPanel: ReactNode | null;
   canvas: ReactNode;
   sidebar: ReactNode | null;
   timeline: ReactNode | null;
@@ -15,7 +17,9 @@ function DebuggerLayoutInner({
   showToolbar,
   showSidebar,
   showTimeline,
+  showActivityPanel,
   toolbar,
+  activityPanel,
   canvas,
   sidebar,
   timeline,
@@ -28,10 +32,15 @@ function DebuggerLayoutInner({
         showToolbar ? 'bt-debugger-layout--with-toolbar' : 'bt-debugger-layout--no-toolbar'
       } ${
         showTimeline ? 'bt-debugger-layout--with-timeline' : 'bt-debugger-layout--no-timeline'
+      } ${
+        showActivityPanel ? 'bt-debugger-layout--with-activity' : ''
       }`}
     >
       {showToolbar && toolbar && (
         <div className="bt-debugger-layout__toolbar">{toolbar}</div>
+      )}
+      {showActivityPanel && activityPanel && (
+        <div className="bt-debugger-layout__activity">{activityPanel}</div>
       )}
       <div className="bt-debugger-layout__canvas">
         {canvas}

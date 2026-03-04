@@ -178,7 +178,7 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     });
   });
 
-  it('toggles the floating current activity window from toolbar', () => {
+  it('toggles the current activity panel from toolbar', () => {
     const { container } = render(
       <BehaviourTreeDebugger
         tree={makeTree()}
@@ -195,36 +195,7 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     expect(local.getByRole('button', { name: 'Show current activity window' })).toBeTruthy();
   });
 
-  it('allows dragging the floating current activity window', async () => {
-    const { container } = render(
-      <BehaviourTreeDebugger
-        tree={makeTree()}
-        ticks={[makeTick(1, 2)]}
-        isolateStyles={false}
-      />,
-    );
-
-    const surface = container.querySelector('.bt-canvas-surface') as HTMLElement;
-    const activityWindow = container.querySelector('.bt-canvas-surface__activity') as HTMLElement;
-    const dragHandle = container.querySelector('.bt-canvas-surface__activity-header') as HTMLElement;
-
-    Object.defineProperty(surface, 'clientWidth', { value: 900, configurable: true });
-    Object.defineProperty(surface, 'clientHeight', { value: 500, configurable: true });
-    Object.defineProperty(activityWindow, 'offsetWidth', { value: 320, configurable: true });
-    Object.defineProperty(activityWindow, 'offsetHeight', { value: 160, configurable: true });
-
-    const initialTransform = activityWindow.style.transform;
-
-    fireEvent.pointerDown(dragHandle, { pointerId: 1, clientX: 10, clientY: 10, button: 0 });
-    fireEvent.pointerMove(window, { pointerId: 1, clientX: 210, clientY: 140 });
-    fireEvent.pointerUp(window, { pointerId: 1 });
-
-    await waitFor(() => {
-      expect(activityWindow.style.transform).not.toBe(initialTransform);
-    });
-  });
-
-  it('collapses and expands the floating current activity window', () => {
+  it('collapses and expands the inline current activity panel', () => {
     const { container } = render(
       <BehaviourTreeDebugger
         tree={makeTree()}
@@ -236,13 +207,13 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     const local = within(container);
     expect(local.getByText('No activity for this tick')).toBeTruthy();
 
-    fireEvent.click(local.getByRole('button', { name: 'Collapse current activity window' }));
+    fireEvent.click(local.getByRole('button', { name: 'Collapse current activity panel' }));
     expect(local.queryByText('No activity for this tick')).toBeNull();
-    const collapsedTitle = container.querySelector('.bt-canvas-surface__activity-title');
+    const collapsedTitle = container.querySelector('.bt-activity-inline__title');
     expect(collapsedTitle?.textContent ?? '').toContain('Current Activity:');
     expect(collapsedTitle?.textContent ?? '').toContain('No activity');
 
-    fireEvent.click(local.getByRole('button', { name: 'Expand current activity window' }));
+    fireEvent.click(local.getByRole('button', { name: 'Expand current activity panel' }));
     expect(local.getByText('No activity for this tick')).toBeTruthy();
   });
 
