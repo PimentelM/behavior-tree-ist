@@ -264,6 +264,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@behavior-tree-ist/studio-cli@workspace:packages/studio-cli":
+  version: 0.0.0-use.local
+  resolution: "@behavior-tree-ist/studio-cli@workspace:packages/studio-cli"
+  dependencies:
+    "@behavior-tree-ist/core": "workspace:*"
+    "@behavior-tree-ist/studio-transport": "workspace:^"
+    "@types/node": "npm:^22.15.30"
+    "@types/ws": "npm:^8.18.1"
+    citty: "npm:^0.1.6"
+    eslint: "npm:^9.0.0"
+    tsup: "npm:^8.0.0"
+    typescript: "npm:^5.7.0"
+    vitest: "npm:^3.0.0"
+    ws: "npm:^8.19.0"
+  bin:
+    bt-studio: ./dist/index.js
+  languageName: unknown
+  linkType: soft
+
 "@behavior-tree-ist/studio-common@workspace:^, @behavior-tree-ist/studio-common@workspace:packages/studio-common":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/studio-common@workspace:packages/studio-common"
@@ -299,6 +318,7 @@ __metadata:
     helmet: "npm:^8.0.0"
     knex: "npm:^3.1.0"
     tsup: "npm:^8.0.0"
+    tsx: "npm:^4.21.0"
     typescript: "npm:^5.7.0"
     uuid: "npm:^11.1.0"
     vitest: "npm:^3.0.0"
@@ -2177,6 +2197,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"citty@npm:^0.1.6":
+  version: 0.1.6
+  resolution: "citty@npm:0.1.6"
+  dependencies:
+    consola: "npm:^3.2.3"
+  checksum: 10c0/d26ad82a9a4a8858c7e149d90b878a3eceecd4cfd3e2ed3cd5f9a06212e451fb4f8cbe0fa39a3acb1b3e8f18e22db8ee5def5829384bad50e823d4b301609b48
+  languageName: node
+  linkType: hard
+
 "classcat@npm:^5.0.3":
   version: 5.0.5
   resolution: "classcat@npm:5.0.5"
@@ -2244,7 +2273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"consola@npm:^3.4.0":
+"consola@npm:^3.2.3, consola@npm:^3.4.0":
   version: 3.4.2
   resolution: "consola@npm:3.4.2"
   checksum: 10c0/7cebe57ecf646ba74b300bcce23bff43034ed6fbec9f7e39c27cee1dc00df8a21cd336b466ad32e304ea70fba04ec9e890c200270de9a526ce021ba8a7e4c11a
@@ -2707,7 +2736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.27.0":
+"esbuild@npm:^0.27.0, esbuild@npm:~0.27.0":
   version: 0.27.3
   resolution: "esbuild@npm:0.27.3"
   dependencies:
@@ -3243,6 +3272,15 @@ __metadata:
     dunder-proto: "npm:^1.0.1"
     es-object-atoms: "npm:^1.0.0"
   checksum: 10c0/9224acb44603c5526955e83510b9da41baf6ae73f7398875fba50edc5e944223a89c4a72b070fcd78beb5f7bdda58ecb6294adc28f7acfc0da05f76a2399643c
+  languageName: node
+  linkType: hard
+
+"get-tsconfig@npm:^4.7.5":
+  version: 4.13.6
+  resolution: "get-tsconfig@npm:4.13.6"
+  dependencies:
+    resolve-pkg-maps: "npm:^1.0.0"
+  checksum: 10c0/bab6937302f542f97217cbe7cbbdfa7e85a56a377bc7a73e69224c1f0b7c9ae8365918e55752ae8648265903f506c1705f63c0de1d4bab1ec2830fef3e539a1a
   languageName: node
   linkType: hard
 
@@ -4550,6 +4588,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"resolve-pkg-maps@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "resolve-pkg-maps@npm:1.0.0"
+  checksum: 10c0/fb8f7bbe2ca281a73b7ef423a1cbc786fb244bd7a95cbe5c3fba25b27d327150beca8ba02f622baea65919a57e061eb5005204daa5f93ed590d9b77463a567ab
+  languageName: node
+  linkType: hard
+
 "resolve@npm:^1.20.0":
   version: 1.22.11
   resolution: "resolve@npm:1.22.11"
@@ -5233,6 +5278,22 @@ __metadata:
     tsup: dist/cli-default.js
     tsup-node: dist/cli-node.js
   checksum: 10c0/86b0a5ee5533cf5363431ffaf6a244d06fbc80e3a739f216a121a336b28e663d521bae1d3b2d9ba7d479cb4b5f7dcb5e0722e169d3daf664c78f0d68676fa06a
+  languageName: node
+  linkType: hard
+
+"tsx@npm:^4.21.0":
+  version: 4.21.0
+  resolution: "tsx@npm:4.21.0"
+  dependencies:
+    esbuild: "npm:~0.27.0"
+    fsevents: "npm:~2.3.3"
+    get-tsconfig: "npm:^4.7.5"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    tsx: dist/cli.mjs
+  checksum: 10c0/f5072923cd8459a1f9a26df87823a2ab5754641739d69df2a20b415f61814322b751fa6be85db7c6ec73cf68ba8fac2fd1cfc76bdb0aa86ded984d84d5d2126b
   languageName: node
   linkType: hard
 

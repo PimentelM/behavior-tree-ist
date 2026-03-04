@@ -1,0 +1,37 @@
+{
+  "name": "@behavior-tree-ist/studio-cli",
+  "version": "0.1.0",
+  "description": "CLI for Behavior Tree Studio",
+  "type": "module",
+  "bin": {
+    "bt-studio": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "demo": "node dist/index.js demo"
+  },
+  "dependencies": {
+    "@behavior-tree-ist/core": "workspace:*",
+    "@behavior-tree-ist/studio-transport": "workspace:^",
+    "citty": "^0.1.6",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/ws": "^8.18.1",
+    "eslint": "^9.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
