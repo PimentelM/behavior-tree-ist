@@ -21,6 +21,7 @@ yarn test <file>         # single file
 yarn build               # tsup (ESM + CJS)
 yarn lint                # ESLint
 yarn typecheck           # tsc --noEmit
+yarn check               # run after changes for lint + tests
 ```
 
 Validate: `yarn typecheck && yarn lint && yarn test`

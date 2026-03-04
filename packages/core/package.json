@@ -35,6 +35,16 @@
         "types": "./dist/inspector.d.ts",
         "default": "./dist/inspector.js"
       }
+    },
+    "./demos": {
+      "import": {
+        "types": "./dist/demos.d.mts",
+        "default": "./dist/demos.mjs"
+      },
+      "require": {
+        "types": "./dist/demos.d.ts",
+        "default": "./dist/demos.js"
+      }
     }
   },
   "files": [

@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import {
     BehaviourTree, NodeResult, ref, Tag,
     action,
@@ -18,7 +19,7 @@ import {
     sleep,
     displayState,
     subTree
-} from '@behavior-tree-ist/core';
+} from '../index.js';
 
 type Point = { x: number; y: number; threat: number };
 type LoadProfile = 'light' | 'medium' | 'heavy' | 'extreme';
@@ -66,7 +67,7 @@ function generateThreatPoints(seed: number, count: number): Point[] {
     }));
 }
 
-export function createHeavyProfilerDemoTree(): BehaviourTree {
+export function createCpuHeavyTree(): BehaviourTree {
     const multiplier = LOAD_MULTIPLIER[DEFAULT_LOAD_PROFILE];
     const scale = (base: number) => Math.max(1, Math.floor(base * multiplier));
 

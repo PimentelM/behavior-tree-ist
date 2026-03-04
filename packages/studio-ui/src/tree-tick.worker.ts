@@ -1,5 +1,5 @@
 import type { BehaviourTree } from '@behavior-tree-ist/core';
-import { createHeavyProfilerDemoTree } from './heavy-profiler-demo-tree';
+import { createCpuHeavyTree } from '@behavior-tree-ist/core/demos';
 import type { TreeWorkerEvent, TreeWorkerRequest } from './tree-worker-protocol';
 
 let tree: BehaviourTree | null = null;
@@ -11,7 +11,7 @@ function postEvent(event: TreeWorkerEvent): void {
 
 function ensureTree(): BehaviourTree {
     if (tree === null) {
-        tree = createHeavyProfilerDemoTree();
+        tree = createCpuHeavyTree();
         postEvent({ type: 'tree', tree: tree.serialize() });
     }
     return tree;

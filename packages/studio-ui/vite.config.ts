@@ -17,6 +17,10 @@ export default defineConfig({
                 replacement: fromRoot('../core/src/inspector/index.ts'),
             },
             {
+                find: '@behavior-tree-ist/core/demos',
+                replacement: fromRoot('../core/src/demos/index.ts'),
+            },
+            {
                 find: '@behavior-tree-ist/react',
                 replacement: fromRoot('../react/src/index.ts'),
             },
