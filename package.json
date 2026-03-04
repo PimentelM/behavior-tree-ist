@@ -10,7 +10,7 @@
     "test:watch": "vitest",
     "lint": "eslint packages/*/src",
     "typecheck": "yarn workspaces foreach -Atv run typecheck",
-    "check": "yarn build && yarn typecheck && yarn lint && yarn test"
+    "check": "yarn typecheck && yarn lint && yarn build && yarn test"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

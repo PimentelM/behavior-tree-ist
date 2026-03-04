@@ -1,3 +1,8 @@
+export interface ConnectionSerializer<TReceive, TSend> {
+    serialize(message: TSend): string | Uint8Array;
+    deserialize(raw: string | Uint8Array): TReceive | undefined;
+}
+
 export interface Connection<TReceive, TSend> {
     readonly id: string;
     readonly transport: string;
