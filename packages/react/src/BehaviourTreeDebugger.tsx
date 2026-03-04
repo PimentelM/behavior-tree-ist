@@ -17,6 +17,9 @@ import { TimelinePanel } from './components/panels/TimelinePanel';
 import { NodeDetailPanel } from './components/panels/NodeDetailPanel';
 import { ActivityNowPanel } from './components/panels/ActivityNowPanel';
 import { PerformanceView } from './components/panels/PerformanceView';
+import { buildStudioToolbarFragments } from './components/studio/StudioToolbarControls';
+import { AttachDrawer } from './components/studio/AttachDrawer';
+import { SettingsPanel } from './components/studio/SettingsPanel';
 import { getResultColor } from './constants';
 import { buildTheme, themeToCSSVars } from './styles/theme';
 import type { ActivityBranchData } from './types';
@@ -90,6 +93,7 @@ export function BehaviourTreeDebugger({
   onNodeSelect,
   onTickChange,
   className,
+  studioControls,
 }: BehaviourTreeDebuggerProps) {
   const activityWindowEnabled = panels.activityNow !== false;
   const [internalThemeMode, setInternalThemeMode] = useState<ThemeMode>(defaultThemeMode);
@@ -125,6 +129,8 @@ export function BehaviourTreeDebugger({
   const [activityModeState, setActivityModeState] = useState(activityDisplayMode);
   const [activityLabelMode, setActivityLabelMode] = useState<ActivityLabelMode>('activity');
   const [activityWindowPosition, setActivityWindowPosition] = useState<ActivityWindowPosition | null>(null);
+  const [studioDrawerOpen, setStudioDrawerOpen] = useState(false);
+  const [studioSettingsOpen, setStudioSettingsOpen] = useState(false);
   const canvasSurfaceRef = useRef<HTMLDivElement | null>(null);
   const activityWindowRef = useRef<HTMLDivElement | null>(null);
   const activityDragRef = useRef<ActivityDragState | null>(null);
@@ -429,6 +435,24 @@ export function BehaviourTreeDebugger({
     setActivityWindowVisible((visible) => !visible);
   }, []);
 
+  const handleOpenStudioDrawer = useCallback(() => {
+    setStudioDrawerOpen((v) => !v);
+    setStudioSettingsOpen(false);
+  }, []);
+
+  const handleCloseStudioDrawer = useCallback(() => {
+    setStudioDrawerOpen(false);
+  }, []);
+
+  const handleOpenStudioSettings = useCallback(() => {
+    setStudioSettingsOpen((v) => !v);
+    setStudioDrawerOpen(false);
+  }, []);
+
+  const handleCloseStudioSettings = useCallback(() => {
+    setStudioSettingsOpen(false);
+  }, []);
+
   const handleToggleActivityWindowCollapsed = useCallback(() => {
     setActivityWindowCollapsed((collapsed) => !collapsed);
   }, []);
@@ -606,6 +630,10 @@ export function BehaviourTreeDebugger({
     return () => observer.disconnect();
   }, [isolateStyles]);
 
+  const studioToolbar = studioControls
+    ? buildStudioToolbarFragments(studioControls, handleOpenStudioDrawer, handleOpenStudioSettings)
+    : null;
+
   const content = (
     <ReactFlowProvider>
       <DebuggerLayout
@@ -617,6 +645,9 @@ export function BehaviourTreeDebugger({
             <ToolbarPanel
               showSidebar={showSidebar}
               actions={toolbarActions}
+              studioSection={studioToolbar?.leading}
+              settingsButton={studioToolbar?.trailing}
+              connectionBadge={studioToolbar?.connectionBadge}
               showThemeToggle={showThemeToggle}
               themeMode={themeMode}
               onToggleTheme={handleToggleTheme}
@@ -657,6 +688,20 @@ export function BehaviourTreeDebugger({
                 focusNodeId={focusNodeId}
                 focusNodeSignal={focusNodeSignal}
                 onNodeClick={handleNodeClick}
+              />
+            )}
+
+            {studioControls && studioDrawerOpen && (
+              <AttachDrawer controls={studioControls} onClose={handleCloseStudioDrawer} />
+            )}
+
+            {studioControls && studioSettingsOpen && (
+              <SettingsPanel
+                serverSettings={studioControls.serverSettings}
+                uiSettings={studioControls.uiSettings}
+                onServerSettingsChange={studioControls.onServerSettingsChange}
+                onUiSettingsChange={studioControls.onUiSettingsChange}
+                onClose={handleCloseStudioSettings}
               />
             )}
 

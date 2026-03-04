@@ -10,6 +10,15 @@ export type {
   TimeTravelState,
   TimeTravelControls,
   NodeDetailsData,
+  StudioClientStatus,
+  StudioClientInfo,
+  StudioSessionInfo,
+  StudioTreeInfo,
+  StudioSelection,
+  StudioTreeStatuses,
+  StudioServerSettings,
+  StudioUiSettings,
+  StudioControls,
 } from './types';
 export {
   DEFAULT_THEME,

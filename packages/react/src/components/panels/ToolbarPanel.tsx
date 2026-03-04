@@ -5,6 +5,9 @@ import type { ThemeMode } from '../../types';
 interface ToolbarPanelProps {
   showSidebar: boolean;
   actions?: ReactNode;
+  studioSection?: ReactNode;
+  settingsButton?: ReactNode;
+  connectionBadge?: ReactNode;
   showThemeToggle: boolean;
   themeMode: ThemeMode;
   onToggleTheme?: () => void;
@@ -37,6 +40,9 @@ function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): str
 function ToolbarPanelInner({
   showSidebar,
   actions,
+  studioSection,
+  settingsButton,
+  connectionBadge,
   showThemeToggle,
   themeMode,
   onToggleTheme,
@@ -63,6 +69,7 @@ function ToolbarPanelInner({
         <div className="bt-toolbar__main">
           <div className="bt-toolbar__main-actions">
             <div className="bt-toolbar__actions">
+              {studioSection}
               <button
                 className="bt-toolbar__camera-btn"
                 onClick={onCenterTree}
@@ -98,6 +105,7 @@ function ToolbarPanelInner({
             </div>
           </div>
           <div className="bt-toolbar__main-center">
+            {connectionBadge}
             <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
               {timeTravelMode === 'paused'
                 ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
@@ -128,19 +136,10 @@ function ToolbarPanelInner({
                 {themeMode === 'dark' ? <SunIcon /> : <MoonIcon />}
               </button>
             )}
+            {settingsButton}
           </div>
         </div>
-        <div className="bt-toolbar__sidebar">
-          <button
-            className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--live' : 'bt-toolbar__mode-btn--pause'}`}
-            onClick={onToggleTimeTravel}
-            type="button"
-            aria-label={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
-            title={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
-          >
-            {timeTravelMode === 'paused' ? '▶ Live' : '⏸ Pause'}
-          </button>
-        </div>
+        <div className="bt-toolbar__sidebar" />
       </div>
     );
   }
@@ -148,6 +147,7 @@ function ToolbarPanelInner({
   return (
     <div className="bt-toolbar">
       <div className="bt-toolbar__actions">
+        {studioSection}
         <button
           className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--live' : 'bt-toolbar__mode-btn--pause'}`}
           onClick={onToggleTimeTravel}
@@ -202,6 +202,7 @@ function ToolbarPanelInner({
           </span>
         </button>
       </div>
+      {connectionBadge}
       <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
         {timeTravelMode === 'paused'
           ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
@@ -218,6 +219,7 @@ function ToolbarPanelInner({
           {themeMode === 'dark' ? <SunIcon /> : <MoonIcon />}
         </button>
       )}
+      {settingsButton}
     </div>
   );
 }
@@ -297,14 +299,12 @@ function ClockIcon() {
 function ActivityIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
-      <rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
       <path
-        d="M7 12h3l2-3 2.2 6 1.8-3H19"
+        d="M4 7h16M4 12h12M4 17h8"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );

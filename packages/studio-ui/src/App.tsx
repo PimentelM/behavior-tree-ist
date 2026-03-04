@@ -2,6 +2,7 @@ import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
 import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
 import { useEffect, useState } from 'react';
 import type { TreeWorkerEvent, TreeWorkerRequest } from './tree-worker-protocol';
+import { useMockStudioControls } from './use-mock-studio-controls';
 
 const TICK_RATE = 20;
 const UPDATE_RATE = TICK_RATE * 15;
@@ -10,6 +11,7 @@ const BUFFER_TIME_S = 20;
 function App() {
     const [tree, setTree] = useState<SerializableNode | null>(null);
     const [ticks, setTicks] = useState<TickRecord[]>([]);
+    const studioControls = useMockStudioControls();
 
     useEffect(() => {
         const worker = new Worker(new URL('./tree-tick.worker.ts', import.meta.url), { type: 'module' });
@@ -64,7 +66,8 @@ function App() {
                     isolateStyles={true}
                     inspectorOptions={{
                         maxTicks: (1000 / TICK_RATE) * BUFFER_TIME_S
-                    }} />
+                    }}
+                    studioControls={studioControls} />
             </main>
         </div>
     );
