@@ -2765,6 +2765,26 @@
   flex-shrink: 0;
 }
 
+.bt-studio-drawer__search {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  border: 1px solid var(--bt-border-color);
+  border-radius: 4px;
+  background: var(--bt-bg-tertiary);
+  color: var(--bt-text-primary);
+  outline: none;
+  margin-bottom: 4px;
+}
+.bt-studio-drawer__search:focus {
+  border-color: var(--bt-accent-color);
+}
+.bt-studio-drawer__flat-breadcrumb {
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  padding: 4px 8px 2px;
+}
+
 /* ===== Settings Panel ===== */
 
 .bt-studio-settings {
