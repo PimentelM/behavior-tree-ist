@@ -28,6 +28,10 @@ export default defineConfig({
                 find: '@behavior-tree-ist/core',
                 replacement: fromRoot('../core/src/index.ts'),
             },
+            {
+                find: '@behavior-tree-ist/studio-common',
+                replacement: fromRoot('../studio-common/src/index.ts'),
+            },
         ],
     },
     plugins: [
@@ -37,5 +41,9 @@ export default defineConfig({
     server: {
         port: 3000,
         host: true,
+        proxy: {
+            '/trpc': { target: 'http://localhost:4100', changeOrigin: true },
+            '/ui-ws': { target: 'ws://localhost:4100', ws: true },
+        },
     },
 });

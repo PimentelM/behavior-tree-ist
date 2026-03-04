@@ -283,7 +283,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@behavior-tree-ist/studio-common@workspace:^, @behavior-tree-ist/studio-common@workspace:packages/studio-common":
+"@behavior-tree-ist/studio-common@workspace:*, @behavior-tree-ist/studio-common@workspace:^, @behavior-tree-ist/studio-common@workspace:packages/studio-common":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/studio-common@workspace:packages/studio-common"
   dependencies:
@@ -296,7 +296,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@behavior-tree-ist/studio-server@workspace:packages/studio-server":
+"@behavior-tree-ist/studio-server@workspace:*, @behavior-tree-ist/studio-server@workspace:packages/studio-server":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/studio-server@workspace:packages/studio-server"
   dependencies:
@@ -351,7 +351,10 @@ __metadata:
   dependencies:
     "@behavior-tree-ist/core": "workspace:*"
     "@behavior-tree-ist/react": "workspace:*"
+    "@behavior-tree-ist/studio-common": "workspace:*"
+    "@behavior-tree-ist/studio-server": "workspace:*"
     "@dogtiti/vite-plugin-react-mcp": "npm:latest"
+    "@trpc/client": "npm:^11.11.0"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
     "@vitejs/plugin-react": "npm:^4.3.1"

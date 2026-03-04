@@ -4,6 +4,8 @@
         "outDir": "./dist",
         "rootDir": ".",
         "noEmit": true,
+        "declaration": false,
+        "declarationMap": false,
         "allowImportingTsExtensions": true,
         "jsx": "react-jsx",
         "jsxFactory": "",
