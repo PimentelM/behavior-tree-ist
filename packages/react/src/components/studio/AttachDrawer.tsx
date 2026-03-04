@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { StudioControls } from '../../types';
 
 interface AttachDrawerProps {
@@ -29,9 +29,25 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
 
   const [filter, setFilter] = useState('');
 
+  const hasAutoExpandedClient = useRef(false);
+  const hasAutoExpandedSession = useRef(false);
+  const prevClientsLen = useRef(clients.length);
+  const prevSessionsLen = useRef(sessions.length);
+
+  // Reset auto-expand flags when data changes
+  if (clients.length !== prevClientsLen.current) {
+    prevClientsLen.current = clients.length;
+    hasAutoExpandedClient.current = false;
+  }
+  if (sessions.length !== prevSessionsLen.current) {
+    prevSessionsLen.current = sessions.length;
+    hasAutoExpandedSession.current = false;
+  }
+
   // Auto-expand single client
   useEffect(() => {
-    if (clients.length === 1 && !expandedClientId) {
+    if (clients.length === 1 && !expandedClientId && !hasAutoExpandedClient.current) {
+      hasAutoExpandedClient.current = true;
       onExpandClient(clients[0].clientId);
     }
   }, [clients, expandedClientId, onExpandClient]);
@@ -43,7 +59,8 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
   );
 
   useEffect(() => {
-    if (clientSessions.length === 1 && !expandedSessionId) {
+    if (clientSessions.length === 1 && !expandedSessionId && !hasAutoExpandedSession.current) {
+      hasAutoExpandedSession.current = true;
       onExpandSession(clientSessions[0].sessionId);
     }
   }, [clientSessions, expandedSessionId, onExpandSession]);
@@ -78,29 +95,43 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
 
   const lowerFilter = useMemo(() => filter.toLowerCase(), [filter]);
 
-  const filteredClients = useMemo(
-    () => lowerFilter ? clients.filter((c) => matchesFilter(c.clientId, lowerFilter)) : clients,
-    [clients, lowerFilter],
-  );
+  const filteredClients = useMemo(() => {
+    if (!lowerFilter) return clients;
+    return clients.filter((c) => {
+      if (matchesFilter(c.clientId, lowerFilter)) return true;
+      const cSessions = sessions.filter((s) => s.clientId === c.clientId);
+      return cSessions.some((s) =>
+        matchesFilter(s.sessionId, lowerFilter) ||
+        trees.some((t) => t.clientId === c.clientId && t.sessionId === s.sessionId && matchesFilter(t.treeId, lowerFilter)),
+      );
+    });
+  }, [clients, sessions, trees, lowerFilter]);
 
-  const filteredSessions = useMemo(
-    () => lowerFilter ? clientSessions.filter((s) => matchesFilter(s.sessionId, lowerFilter)) : clientSessions,
-    [clientSessions, lowerFilter],
-  );
+  const filteredSessions = useMemo(() => {
+    if (!lowerFilter) return clientSessions;
+    return clientSessions.filter((s) =>
+      matchesFilter(s.sessionId, lowerFilter) ||
+      trees.some((t) => t.clientId === expandedClientId && t.sessionId === s.sessionId && matchesFilter(t.treeId, lowerFilter)),
+    );
+  }, [clientSessions, trees, expandedClientId, lowerFilter]);
 
   const filteredTrees = useMemo(
     () => lowerFilter ? sessionTrees.filter((t) => matchesFilter(t.treeId, lowerFilter)) : sessionTrees,
     [sessionTrees, lowerFilter],
   );
 
-  // Flat mode: exactly 1 client AND 1 session — compute trees directly to avoid
-  // empty flash before auto-expand effects set expandedSessionId
-  const isFlat = clients.length === 1 && clientSessions.length === 1;
+  // Flat mode: exactly 1 client AND 1 session — compute independently of expanded state
+  // to avoid flicker on first render before auto-expand effects fire
+  const soleClientSessions = useMemo(
+    () => clients.length === 1 ? sessions.filter((s) => s.clientId === clients[0].clientId) : [],
+    [clients, sessions],
+  );
+  const isFlat = clients.length === 1 && soleClientSessions.length === 1;
   const filteredFlatTrees = useMemo(() => {
     if (!isFlat) return [];
-    const active = trees.filter((t) => t.clientId === clients[0].clientId && t.sessionId === clientSessions[0].sessionId && !t.removedAt);
+    const active = trees.filter((t) => t.clientId === clients[0].clientId && t.sessionId === soleClientSessions[0].sessionId && !t.removedAt);
     return lowerFilter ? active.filter((t) => matchesFilter(t.treeId, lowerFilter)) : active;
-  }, [isFlat, trees, clients, clientSessions, lowerFilter]);
+  }, [isFlat, trees, clients, soleClientSessions, lowerFilter]);
 
   return (
     <div className="bt-studio-drawer">
@@ -116,7 +147,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
         </button>
       </div>
       <div className="bt-studio-drawer__body">
-        {clients.length >= 2 && (
+        {(clients.length >= 2 || sessions.length >= 2) && (
           <input
             className="bt-studio-drawer__search"
             placeholder="Filter..."
@@ -132,7 +163,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
         {isFlat ? (
           <>
             <div className="bt-studio-drawer__flat-breadcrumb">
-              {clients[0].clientId} &gt; {clientSessions[0].sessionId}
+              {clients[0].clientId} &gt; {soleClientSessions[0].sessionId}
             </div>
             <ul className="bt-studio-drawer__list">
               {loadingTrees && <li className="bt-studio-drawer__loading">Loading trees...</li>}
