@@ -24,6 +24,7 @@ import type { Knex } from 'knex';
 import type { WebSocketServerInterface } from './infra/websocket/interfaces';
 import type { RawTcpServerInterface } from './infra/tcp/interfaces';
 import type { CommandBrokerInterface } from './app/interfaces';
+import { registerLocalDomainEventHandlers } from './app/handlers/events';
 
 export interface StudioServerOptions {
     httpHost?: string;
@@ -227,6 +228,9 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             settingsRepository,
             config,
         };
+
+        // Local event handlers
+        registerLocalDomainEventHandlers(deps);
 
         // Express + tRPC
         const app = createExpressApp();
