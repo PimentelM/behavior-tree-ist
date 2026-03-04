@@ -28,6 +28,10 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@behavior-tree-ist/core": "workspace:*",
+    "zod": "^3.24.0"
+  },
   "devDependencies": {
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",

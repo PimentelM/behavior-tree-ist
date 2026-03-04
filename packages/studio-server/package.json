@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@behavior-tree-ist/core": "workspace:*",
+    "@behavior-tree-ist/studio-common": "workspace:^",
     "@behavior-tree-ist/studio-transport": "workspace:^",
     "@trpc/server": "^11.0.0",
     "better-sqlite3": "^12.4.1",
