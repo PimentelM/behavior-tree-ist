@@ -57,9 +57,6 @@ function App() {
 
     return (
         <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <header style={{ padding: '0 20px', background: '#f0f0f0', borderBottom: '1px solid #ccc' }}>
-                <h1 style={{ margin: '12px 0' }}>Behavior Tree Studio</h1>
-            </header>
             <main style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                 <BehaviourTreeDebugger
                     tree={tree}
