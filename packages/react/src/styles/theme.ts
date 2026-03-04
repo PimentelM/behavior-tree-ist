@@ -22,6 +22,7 @@ export function themeToCSSVars(theme: Required<ThemeOverrides>): Record<string, 
     '--bt-accent-color': theme.accentColor,
     '--bt-grid-color': `color-mix(in srgb, ${theme.borderColor} 38%, transparent)`,
     '--bt-minimap-mask': `color-mix(in srgb, ${theme.bgPrimary} 70%, transparent)`,
+    '--bt-flamegraph-text': theme.flamegraphText,
     '--bt-font-family': theme.fontFamily,
     '--bt-font-mono': theme.fontMono,
   };

@@ -15,6 +15,7 @@ export const DARK_THEME: Required<ThemeOverrides> = {
   textMuted: '#8b8b8b',
   borderColor: '#3c3c3c',
   accentColor: '#3794ff',
+  flamegraphText: '#ffffff',
   fontFamily: '"Geist", "Avenir Next", "Segoe UI", sans-serif',
   fontMono: '"JetBrains Mono", "SFMono-Regular", Menlo, monospace',
 };
@@ -32,6 +33,7 @@ export const LIGHT_THEME: Required<ThemeOverrides> = {
   textMuted: '#71717a',
   borderColor: '#e4e4e7',
   accentColor: '#18181b',
+  flamegraphText: '#1a1a1a',
   fontFamily: '"Geist", "Avenir Next", "Segoe UI", sans-serif',
   fontMono: '"JetBrains Mono", "SFMono-Regular", Menlo, monospace',
 };
