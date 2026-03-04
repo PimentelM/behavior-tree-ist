@@ -267,9 +267,7 @@ export function BehaviourTreeDebugger({
         cpuTime += event.finishedAt - event.startedAt;
       }
 
-      if (cpuTime > 0) {
-        entries.push({ tickId: record.tickId, cpuTimeMs: cpuTime });
-      }
+      entries.push({ tickId: record.tickId, cpuTimeMs: cpuTime });
     }
 
     return entries;
