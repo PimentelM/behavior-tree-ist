@@ -2,7 +2,8 @@ import type { Knex } from 'knex';
 import { WebSocketServerInterface } from '../infra/websocket/interfaces';
 import type { RawTcpServerInterface } from '../infra/tcp/interfaces';
 import { MessageRouterInterface } from './interfaces';
-import { AgentConnectionRegistryInterface, CommandBrokerInterface, ClientRepositoryInterface, SessionRepositoryInterface, TreeRepositoryInterface, TickRepositoryInterface, SettingsRepositoryInterface } from '../domain/interfaces';
+import { ClientRepositoryInterface, SessionRepositoryInterface, TreeRepositoryInterface, TickRepositoryInterface, SettingsRepositoryInterface } from '../domain/interfaces';
+import { AgentConnectionRegistryInterface, CommandBrokerInterface } from '../app/interfaces';
 import { StudioServerConfig } from '../configuration';
 
 export interface InfrastructureClients {
@@ -15,7 +16,7 @@ export interface InfrastructureServices {
     messageRouter: MessageRouterInterface;
 }
 
-export interface DomainServices {
+export interface AppServices {
     agentConnectionRegistry: AgentConnectionRegistryInterface;
     commandBroker: CommandBrokerInterface;
 }
@@ -31,7 +32,7 @@ export interface RepositoryServices {
 export type AppDependencies =
     InfrastructureClients &
     InfrastructureServices &
-    DomainServices &
+    AppServices &
     RepositoryServices & {
         config: StudioServerConfig;
     };

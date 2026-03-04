@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import { OutboundMessage } from '@behavior-tree-ist/core';
 import { MessageConnectionInterface } from '../../types/interfaces';
 import { createLogger, Logger } from '../logging';
-import { OutboundMessageSchema } from '../../domain/core-types';
+import { OutboundMessageSchema } from '../../domain/bt-core-types';
 
 export class WSWebSocketClient implements MessageConnectionInterface {
     private readonly socket: WebSocket;

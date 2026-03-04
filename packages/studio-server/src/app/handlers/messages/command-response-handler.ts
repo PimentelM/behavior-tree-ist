@@ -1,7 +1,7 @@
 import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
-import { CommandBrokerInterface } from '../../../domain/interfaces';
+import { CommandBrokerInterface } from '../../interfaces';
 
 interface CommandResponseHandlerDeps {
     commandBroker: CommandBrokerInterface;

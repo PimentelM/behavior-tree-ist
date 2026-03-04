@@ -1,7 +1,8 @@
 import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
-import { TreeRepositoryInterface, AgentConnectionRegistryInterface } from '../../../domain/interfaces';
+import { TreeRepositoryInterface } from '../../../domain/interfaces';
+import { AgentConnectionRegistryInterface } from '../../interfaces';
 
 interface TreeRegisteredHandlerDeps {
     treeRepository: TreeRepositoryInterface;

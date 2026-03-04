@@ -1,7 +1,8 @@
 import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
-import { TickRepositoryInterface, AgentConnectionRegistryInterface, SettingsRepositoryInterface } from '../../../domain/interfaces';
+import { TickRepositoryInterface, SettingsRepositoryInterface } from '../../../domain/interfaces';
+import { AgentConnectionRegistryInterface } from '../../interfaces';
 
 interface TickBatchHandlerDeps {
     tickRepository: TickRepositoryInterface;

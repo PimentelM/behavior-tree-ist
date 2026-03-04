@@ -5,7 +5,7 @@ import { TreeRegisteredHandler } from './tree-registered-handler';
 import { TreeRemovedHandler } from './tree-removed-handler';
 import { TickBatchHandler } from './tick-batch-handler';
 import { CommandResponseHandler } from './command-response-handler';
-import { AgentConnectionRegistryInterface } from '../../../domain/interfaces';
+import { AgentConnectionRegistryInterface } from '../../interfaces';
 import { createLogger } from '../../../infra/logging';
 
 export function registerMessageHandlers({ messageRouter, ...deps }: AppDependencies) {

@@ -1,7 +1,8 @@
 import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
-import { ClientRepositoryInterface, SessionRepositoryInterface, AgentConnectionRegistryInterface } from '../../../domain/interfaces';
+import { ClientRepositoryInterface, SessionRepositoryInterface } from '../../../domain/interfaces';
+import { AgentConnectionRegistryInterface } from '../../interfaces';
 
 interface HelloHandlerDeps {
     clientRepository: ClientRepositoryInterface;

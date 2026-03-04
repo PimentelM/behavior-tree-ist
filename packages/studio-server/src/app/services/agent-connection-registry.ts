@@ -1,5 +1,5 @@
 import { AgentConnectionRegistryInterface } from '../interfaces';
-import { AgentConnection } from '../types';
+import { AgentConnection } from '../../domain/types';
 
 export class AgentConnectionRegistry implements AgentConnectionRegistryInterface {
     private byIdentity = new Map<string, AgentConnection>();

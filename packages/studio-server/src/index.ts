@@ -4,8 +4,8 @@ import { createRawTcpServer } from './infra/tcp/raw-tcp-server';
 import { createKnexFromConfig } from './infra/knex/knex-factory';
 import { MessageRouter } from './infra/message-router';
 import { createLogger } from './infra/logging';
-import { AgentConnectionRegistry } from './domain/services/agent-connection-registry';
-import { CommandBroker } from './domain/services/command-broker';
+import { AgentConnectionRegistry } from './app/services/agent-connection-registry';
+import { CommandBroker } from './app/services/command-broker';
 import { ClientRepository } from './infra/knex/client-repository';
 import { SessionRepository } from './infra/knex/session-repository';
 import { TreeRepository } from './infra/knex/tree-repository';
@@ -22,7 +22,7 @@ import type { NextFunction, Request, Response } from 'express';
 import type { Knex } from 'knex';
 import type { WebSocketServerInterface } from './infra/websocket/interfaces';
 import type { RawTcpServerInterface } from './infra/tcp/interfaces';
-import type { CommandBrokerInterface } from './domain/interfaces';
+import type { CommandBrokerInterface } from './app/interfaces';
 
 export interface StudioServerOptions {
     httpHost?: string;
@@ -182,7 +182,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         tcpServer = createRawTcpServer(createLogger('tcp-server'));
         const messageRouter = new MessageRouter();
 
-        // Domain services
+        // App services
         const agentConnectionRegistry = new AgentConnectionRegistry();
         commandBroker = new CommandBroker(
             {

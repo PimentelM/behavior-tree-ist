@@ -1,5 +1,4 @@
-import { CommandResponse, SerializableNode, StudioCommand, TickRecord } from '@behavior-tree-ist/core';
-import { AgentConnection } from './types';
+import { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
 import type { ClientRecord, SessionRecord, TreeRecord, SettingsRecord } from './records';
 
 // ── Repository interfaces ──
@@ -34,25 +33,4 @@ export interface TickRepositoryInterface {
 export interface SettingsRepositoryInterface {
     get(): Promise<SettingsRecord>;
     update(settings: Partial<Pick<SettingsRecord, 'maxTicksPerTree' | 'commandTimeoutMs'>>): Promise<void>;
-}
-
-// ── Service interfaces ──
-
-export interface AgentConnectionRegistryInterface {
-    register(connectionId: string, clientId: string, sessionId: string): void;
-    unregisterByConnectionId(connectionId: string): AgentConnection | undefined;
-    getByConnectionId(connectionId: string): AgentConnection | undefined;
-    getByIdentity(clientId: string, sessionId: string): AgentConnection | undefined;
-    getAllConnections(): AgentConnection[];
-    isOnline(clientId: string, sessionId: string): boolean;
-}
-
-export interface CommandBrokerInterface {
-    sendCommand(connectionId: string, command: StudioCommand): Promise<CommandResponse>;
-    handleResponse(correlationId: string, response: CommandResponse): void;
-    shutdown(): void;
-}
-
-export interface CommandSenderInterface {
-    sendToClient(clientId: string, message: object): void;
 }

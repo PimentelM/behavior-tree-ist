@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SerializableNodeSchema } from './core-types';
+import { SerializableNodeSchema } from './bt-core-types';
 
 export const ClientRecord = z.object({
     clientId: z.string(),
