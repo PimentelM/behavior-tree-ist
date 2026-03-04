@@ -5,7 +5,6 @@ import { TreeRegisteredHandler } from './tree-registered-handler';
 import { TreeRemovedHandler } from './tree-removed-handler';
 import { TickBatchHandler } from './tick-batch-handler';
 import { CommandResponseHandler } from './command-response-handler';
-import { AgentConnectionRegistryInterface } from '../../interfaces';
 import { createLogger } from '../../../infra/logging';
 
 export function registerMessageHandlers({ messageRouter, ...deps }: AppDependencies) {
@@ -15,6 +14,7 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
             clientRepository: deps.clientRepository,
             sessionRepository: deps.sessionRepository,
             agentConnectionRegistry: deps.agentConnectionRegistry,
+            eventDispatcher: deps.eventDispatcher,
         })
     );
 
@@ -23,6 +23,7 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
         new TreeRegisteredHandler({
             treeRepository: deps.treeRepository,
             agentConnectionRegistry: deps.agentConnectionRegistry,
+            eventDispatcher: deps.eventDispatcher,
         })
     );
 
@@ -31,6 +32,7 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
         new TreeRemovedHandler({
             treeRepository: deps.treeRepository,
             agentConnectionRegistry: deps.agentConnectionRegistry,
+            eventDispatcher: deps.eventDispatcher,
         })
     );
 
@@ -51,7 +53,7 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
     );
 }
 
-export function createDisconnectHandler(deps: { agentConnectionRegistry: AgentConnectionRegistryInterface }) {
+export function createDisconnectHandler(deps: Pick<AppDependencies, 'agentConnectionRegistry' | 'eventDispatcher'>) {
     const logger = createLogger('disconnect-handler');
 
     return (connectionId: string) => {
@@ -61,6 +63,14 @@ export function createDisconnectHandler(deps: { agentConnectionRegistry: AgentCo
                 clientId: connection.clientId,
                 sessionId: connection.sessionId,
                 connectionId,
+            });
+
+            void deps.eventDispatcher.dispatchAgentEvent({
+                name: 'AgentDisconnected',
+                body: {
+                    clientId: connection.clientId,
+                    sessionId: connection.sessionId,
+                },
             });
         }
     };

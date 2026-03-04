@@ -2,12 +2,13 @@ import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
 import { ClientRepositoryInterface, SessionRepositoryInterface } from '../../../domain/interfaces';
-import { AgentConnectionRegistryInterface } from '../../interfaces';
+import { AgentConnectionRegistryInterface, DomainEventDispatcherInterface } from '../../interfaces';
 
 interface HelloHandlerDeps {
     clientRepository: ClientRepositoryInterface;
     sessionRepository: SessionRepositoryInterface;
     agentConnectionRegistry: AgentConnectionRegistryInterface;
+    eventDispatcher: DomainEventDispatcherInterface;
 }
 
 export class HelloHandler extends BaseHandler {
@@ -23,6 +24,10 @@ export class HelloHandler extends BaseHandler {
         await this.deps.clientRepository.upsert(clientId);
         await this.deps.sessionRepository.upsert(clientId, sessionId);
         this.deps.agentConnectionRegistry.register(client.id, clientId, sessionId);
+        await this.deps.eventDispatcher.dispatchAgentEvent({
+            name: 'AgentConnected',
+            body: { clientId, sessionId },
+        });
 
         this.logger.info('Agent connected', { clientId, sessionId, connectionId: client.id, transport: client.transport });
     }

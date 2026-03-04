@@ -38,10 +38,12 @@ export function makeEventSchemaFromMap<T extends Record<string, z.ZodTypeAny>>(
 
     // Handle single schema edge case
     if (schemas.length === 1) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return z.union([schemas[0], schemas[0]]) as any;
     }
 
     // Create union with proper typing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return z.discriminatedUnion("name", [schemas[0], schemas[1], ...schemas.slice(2)]) as any;
 }
 

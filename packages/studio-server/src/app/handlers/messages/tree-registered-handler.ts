@@ -2,11 +2,12 @@ import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
 import { TreeRepositoryInterface } from '../../../domain/interfaces';
-import { AgentConnectionRegistryInterface } from '../../interfaces';
+import { AgentConnectionRegistryInterface, DomainEventDispatcherInterface } from '../../interfaces';
 
 interface TreeRegisteredHandlerDeps {
     treeRepository: TreeRepositoryInterface;
     agentConnectionRegistry: AgentConnectionRegistryInterface;
+    eventDispatcher: DomainEventDispatcherInterface;
 }
 
 export class TreeRegisteredHandler extends BaseHandler {
@@ -31,6 +32,10 @@ export class TreeRegisteredHandler extends BaseHandler {
             message.treeId,
             message.serializedTree
         );
+        await this.deps.eventDispatcher.dispatchAgentEvent({
+            name: 'CatalogChanged',
+            body: { clientId, sessionId },
+        });
 
         this.logger.debug('Tree registered', { clientId, sessionId, treeId: message.treeId });
     }

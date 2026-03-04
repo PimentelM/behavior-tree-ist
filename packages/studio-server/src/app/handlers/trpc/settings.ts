@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { router, procedure } from '../../../infra/trpc/trpc-setup';
 import { AppDependencies } from '../../../types/app-dependencies';
 
-export function createSettingsRouter({ settingsRepository }: AppDependencies) {
+export function createSettingsRouter({ settingsRepository, eventDispatcher }: AppDependencies) {
     return router({
         get: procedure.query(async () => {
             return settingsRepository.get();
@@ -22,7 +22,21 @@ export function createSettingsRouter({ settingsRepository }: AppDependencies) {
                     await settingsRepository.update(updates);
                 }
 
-                return settingsRepository.get();
+                const settings = await settingsRepository.get();
+
+                if (Object.keys(updates).length > 0) {
+                    await eventDispatcher.dispatchServerEvent({
+                        name: 'SettingsUpdated',
+                        body: {
+                            settings: {
+                                maxTicksPerTree: settings.maxTicksPerTree,
+                                commandTimeoutMs: settings.commandTimeoutMs,
+                            },
+                        },
+                    });
+                }
+
+                return settings;
             }),
     });
 }

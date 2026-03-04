@@ -3,6 +3,7 @@ import { createWebSocketServer } from './infra/websocket/websocket-server';
 import { createRawTcpServer } from './infra/tcp/raw-tcp-server';
 import { createKnexFromConfig } from './infra/knex/knex-factory';
 import { MessageRouter } from './infra/message-router';
+import { EventDispatcher } from './infra/events/event-dispatcher';
 import { createLogger } from './infra/logging';
 import { AgentConnectionRegistry } from './app/services/agent-connection-registry';
 import { CommandBroker } from './app/services/command-broker';
@@ -181,6 +182,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         wsServer = createWebSocketServer(createLogger('ws-server'));
         tcpServer = createRawTcpServer(createLogger('tcp-server'));
         const messageRouter = new MessageRouter();
+        const eventDispatcher = new EventDispatcher(null, createLogger('domain-events'));
 
         // App services
         const agentConnectionRegistry = new AgentConnectionRegistry();
@@ -215,6 +217,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             wsServer,
             tcpServer,
             messageRouter,
+            eventDispatcher,
             agentConnectionRegistry,
             commandBroker,
             clientRepository,
@@ -267,7 +270,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             res.status(status).json({ error: message });
         });
 
-        const disconnectHandler = createDisconnectHandler({ agentConnectionRegistry });
+        const disconnectHandler = createDisconnectHandler({ agentConnectionRegistry, eventDispatcher });
 
         wsServer.onConnection((client) => {
             client.onMessage((message) => messageRouter.route(message.t, message, client));

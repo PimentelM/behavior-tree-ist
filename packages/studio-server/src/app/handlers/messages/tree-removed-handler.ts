@@ -2,11 +2,12 @@ import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
 import { TreeRepositoryInterface } from '../../../domain/interfaces';
-import { AgentConnectionRegistryInterface } from '../../interfaces';
+import { AgentConnectionRegistryInterface, DomainEventDispatcherInterface } from '../../interfaces';
 
 interface TreeRemovedHandlerDeps {
     treeRepository: TreeRepositoryInterface;
     agentConnectionRegistry: AgentConnectionRegistryInterface;
+    eventDispatcher: DomainEventDispatcherInterface;
 }
 
 export class TreeRemovedHandler extends BaseHandler {
@@ -26,6 +27,10 @@ export class TreeRemovedHandler extends BaseHandler {
 
         const { clientId, sessionId } = connection;
         await this.deps.treeRepository.markRemoved(clientId, sessionId, message.treeId);
+        await this.deps.eventDispatcher.dispatchAgentEvent({
+            name: 'CatalogChanged',
+            body: { clientId, sessionId },
+        });
 
         this.logger.debug('Tree removed', { clientId, sessionId, treeId: message.treeId });
     }

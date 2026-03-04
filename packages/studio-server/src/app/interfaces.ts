@@ -1,5 +1,7 @@
 import { CommandResponse, StudioCommand } from '@behavior-tree-ist/core';
-import { AgentConnection } from '../domain/types';
+import type { AgentConnection } from '../domain/types';
+import type { BaseEventDispatcher } from '../lib/events/base-event-dispatcher';
+import { AgentEvent, DispatchedEvent, ServerEvent } from '../domain/events';
 
 // ── App service interfaces ──
 
@@ -20,4 +22,9 @@ export interface CommandBrokerInterface {
 
 export interface CommandSenderInterface {
     sendToClient(clientId: string, message: object): void;
+}
+
+export interface DomainEventDispatcherInterface extends Pick<BaseEventDispatcher<DispatchedEvent>, 'dispatchEvent' | 'on'> {
+    dispatchAgentEvent(event: AgentEvent): Promise<void>;
+    dispatchServerEvent(event: ServerEvent): Promise<void>;
 }
