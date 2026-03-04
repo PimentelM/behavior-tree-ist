@@ -1,40 +1,16 @@
 import { OutboundMessage } from '@behavior-tree-ist/core';
 import { MessageType } from '@behavior-tree-ist/core';
+import { Connection, Server } from '../lib/connection';
+import { MessageHandler as GenericMessageHandler, MessageRouterInterface as GenericMessageRouterInterface } from '../lib/router';
 
 export type MessageTransport = 'websocket' | 'tcp';
 
-export interface MessageConnectionInterface {
-    id: string;
+export interface MessageConnectionInterface extends Connection<OutboundMessage, object> {
     transport: MessageTransport;
-    send(message: object): void;
-    disconnect(): void;
-    onMessage(handler: (message: OutboundMessage) => void | Promise<void>): void;
-    onDisconnect(handler: () => void): void;
-    isConnected(): boolean;
 }
 
-export interface MessageServerInterface<TConfig, TConnectionContext> {
-    start(config: TConfig): Promise<void>;
-    stop(): Promise<void>;
-    broadcast(message: object): void;
-    sendToClient(clientId: string, message: object): void;
-    onConnection(handler: (client: MessageConnectionInterface, context: TConnectionContext) => void): void;
-    onDisconnection(handler: (clientId: string) => void): void;
-    getClient(clientId: string): MessageConnectionInterface | undefined;
-    getClients(): Map<string, MessageConnectionInterface>;
-    getClientCount(): number;
-}
+export type MessageServerInterface<TConfig, TConnectionContext> = Server<TConfig, TConnectionContext, OutboundMessage, object, MessageConnectionInterface>;
 
-export interface MessageHandler {
-    priority: number;
-    handle(message: OutboundMessage, client: MessageConnectionInterface): Promise<void>;
-}
+export type MessageHandler = GenericMessageHandler<OutboundMessage, MessageConnectionInterface>;
 
-export interface MessageRouterInterface {
-    registerHandler(messageType: MessageType, handler: MessageHandler): void;
-    unregisterHandler(messageType: MessageType, handler: MessageHandler): void;
-    route(messageType: MessageType, message: OutboundMessage, client: MessageConnectionInterface): Promise<void>;
-    getRegisteredMessageTypes(): MessageType[];
-    getHandlersForMessageType(messageType: MessageType): MessageHandler[];
-    hasHandlersForMessageType(messageType: MessageType): boolean;
-}
+export type MessageRouterInterface = GenericMessageRouterInterface<MessageType, OutboundMessage, MessageConnectionInterface>;
