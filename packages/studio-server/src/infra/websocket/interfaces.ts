@@ -1,9 +1,8 @@
 import type { MessageServerInterface } from '../../types/interfaces';
-import { Server as HttpServer, IncomingMessage } from 'http';
+import { IncomingMessage } from 'http';
+import type { Duplex } from 'stream';
 
 export interface WebSocketServerConfigInterface {
-    server: HttpServer;
-    path: string;
     maxConnections: number;
 }
 
@@ -12,5 +11,6 @@ export interface WebSocketConnectionContext {
     request: IncomingMessage;
 }
 
-export type WebSocketServerInterface =
-    MessageServerInterface<WebSocketServerConfigInterface, WebSocketConnectionContext>;
+export interface WebSocketServerInterface extends MessageServerInterface<WebSocketServerConfigInterface, WebSocketConnectionContext> {
+    handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void;
+}

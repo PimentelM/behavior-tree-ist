@@ -1,5 +1,6 @@
 import { createExpressApp } from './infra/express/express-setup';
 import { createWebSocketServer } from './infra/websocket/websocket-server';
+import { createUiWebSocketServer } from './infra/websocket/ui-websocket-server';
 import { createRawTcpServer } from './infra/tcp/raw-tcp-server';
 import { createKnexFromConfig } from './infra/knex/knex-factory';
 import { MessageRouter } from './infra/message-router';
@@ -22,6 +23,7 @@ import type { Server } from 'http';
 import type { NextFunction, Request, Response } from 'express';
 import type { Knex } from 'knex';
 import type { WebSocketServerInterface } from './infra/websocket/interfaces';
+import type { UiWebSocketServerInterface } from './infra/websocket/ui-websocket-server';
 import type { RawTcpServerInterface } from './infra/tcp/interfaces';
 import type { CommandBrokerInterface } from './app/interfaces';
 import { registerLocalDomainEventHandlers } from './app/handlers/events';
@@ -32,6 +34,7 @@ export interface StudioServerOptions {
     tcpHost?: string;
     tcpPort?: number;
     wsPath?: string;
+    uiWsPath?: string;
     sqlitePath?: string;
     commandTimeoutMs?: number;
     maxTicksPerTree?: number;
@@ -58,6 +61,9 @@ function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
         ws: {
             path: options?.wsPath ?? '/ws',
         },
+        uiWs: {
+            path: options?.uiWsPath ?? '/ui-ws',
+        },
         sqlite: {
             path: options?.sqlitePath ?? ':memory:',
         },
@@ -80,6 +86,7 @@ async function cleanupInitializedResources(params: {
     logger: ReturnType<typeof createLogger>;
     commandBroker?: CommandBrokerInterface;
     wsServer?: WebSocketServerInterface;
+    uiWsServer?: UiWebSocketServerInterface;
     tcpServer?: RawTcpServerInterface;
     httpServer?: Server;
     knex?: Knex;
@@ -91,6 +98,14 @@ async function cleanupInitializedResources(params: {
             await params.wsServer.stop();
         } catch (error) {
             params.logger.warn('Error stopping WebSocket server during cleanup', { error: String(error) });
+        }
+    }
+
+    if (params.uiWsServer) {
+        try {
+            await params.uiWsServer.stop();
+        } catch (error) {
+            params.logger.warn('Error stopping UI WebSocket server during cleanup', { error: String(error) });
         }
     }
 
@@ -142,6 +157,7 @@ export function createStudioServer(options?: StudioServerOptions): StudioServerH
                 logger,
                 commandBroker: deps.commandBroker,
                 wsServer: deps.wsServer,
+                uiWsServer: deps.uiWsServer,
                 tcpServer: deps.tcpServer,
                 httpServer,
                 knex: deps.knex,
@@ -165,6 +181,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
 
     let knex: Knex | undefined;
     let wsServer: WebSocketServerInterface | undefined;
+    let uiWsServer: UiWebSocketServerInterface | undefined;
     let tcpServer: RawTcpServerInterface | undefined;
     let httpServer: Server | undefined;
     let commandBroker: CommandBroker | undefined;
@@ -181,6 +198,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
 
         // Infrastructure services
         wsServer = createWebSocketServer(createLogger('ws-server'));
+        uiWsServer = createUiWebSocketServer(createLogger('ui-ws-server'));
         tcpServer = createRawTcpServer(createLogger('tcp-server'));
         const messageRouter = new MessageRouter();
         const eventDispatcher = new EventDispatcher(null, createLogger('domain-events'));
@@ -216,6 +234,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         const deps: AppDependencies = {
             knex,
             wsServer,
+            uiWsServer,
             tcpServer,
             messageRouter,
             eventDispatcher,
@@ -284,6 +303,18 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             disconnectHandler(clientId);
         });
 
+        uiWsServer.onConnection((client) => {
+            client.onMessage((message) => {
+                if (message.t === 'ping') {
+                    setupLogger.debug('Received ping from UI client', { clientId: client.id });
+                }
+            });
+        });
+
+        uiWsServer.onDisconnection((clientId) => {
+            setupLogger.debug('UI client disconnected', { clientId });
+        });
+
         tcpServer.onConnection((client) => {
             client.onMessage((message) => messageRouter.route(message.t, message, client));
         });
@@ -297,11 +328,24 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             server.once('listening', () => resolve(server));
             server.once('error', reject);
         });
+
+        httpServer.on('upgrade', (request, socket, head) => {
+            const pathname = request.url?.split('?')[0];
+            if (pathname === config.ws.path) {
+                wsServer?.handleUpgrade(request, socket, head);
+            } else if (pathname === config.uiWs.path) {
+                uiWsServer?.handleUpgrade(request, socket, head);
+            } else {
+                socket.destroy();
+            }
+        });
+
         setupLogger.info(`HTTP server listening on ${config.http.host}:${config.http.port}`);
 
         await wsServer.start({
-            server: httpServer,
-            path: config.ws.path,
+            maxConnections: 1000,
+        });
+        await uiWsServer.start({
             maxConnections: 1000,
         });
         await tcpServer.start({
@@ -318,6 +362,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             logger: setupLogger,
             commandBroker,
             wsServer,
+            uiWsServer,
             tcpServer,
             httpServer,
             knex,

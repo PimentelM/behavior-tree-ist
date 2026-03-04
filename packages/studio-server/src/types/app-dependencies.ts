@@ -1,5 +1,6 @@
 import type { Knex } from 'knex';
 import { WebSocketServerInterface } from '../infra/websocket/interfaces';
+import { UiWebSocketServerInterface } from '../infra/websocket/ui-websocket-server';
 import type { RawTcpServerInterface } from '../infra/tcp/interfaces';
 import { MessageRouterInterface } from './interfaces';
 import { ClientRepositoryInterface, SessionRepositoryInterface, TreeRepositoryInterface, TickRepositoryInterface, SettingsRepositoryInterface } from '../domain/interfaces';
@@ -12,6 +13,7 @@ export interface InfrastructureClients {
 
 export interface InfrastructureServices {
     wsServer: WebSocketServerInterface;
+    uiWsServer: UiWebSocketServerInterface;
     tcpServer: RawTcpServerInterface;
     messageRouter: MessageRouterInterface;
     eventDispatcher: DomainEventDispatcherInterface;

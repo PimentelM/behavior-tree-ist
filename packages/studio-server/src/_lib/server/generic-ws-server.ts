@@ -3,14 +3,12 @@ import type WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import type { Connection, Server } from '../connection';
 import type { IncomingMessage } from 'http';
-import type { Server as HttpServer } from 'http';
+import type { Duplex } from 'stream';
 import type { Logger } from '../logger';
 
 const TRY_AGAIN_LATER_CODE = 1008;
 
 export interface GenericWebSocketServerConfig {
-    server: HttpServer;
-    path: string;
     maxConnections: number;
 }
 
@@ -48,8 +46,7 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
         return new Promise((resolve, reject) => {
             try {
                 const options: ServerOptions = {
-                    path: serverConfig.path,
-                    server: serverConfig.server,
+                    noServer: true,
                     maxPayload: 1024 * 1024,
                     verifyClient: (_, callback) => {
                         if (this.clients.size >= serverConfig.maxConnections) {
@@ -142,6 +139,18 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
 
     getClientCount(): number {
         return this.clients.size;
+    }
+
+    handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
+        if (!this.server) {
+            this.logger.warn('handleUpgrade called but server is not started');
+            socket.destroy();
+            return;
+        }
+
+        this.server.handleUpgrade(request, socket, head, (ws) => {
+            this.server?.emit('connection', ws, request);
+        });
     }
 
     private registerClient(clientId: string, client: TConnection, request: IncomingMessage): void {

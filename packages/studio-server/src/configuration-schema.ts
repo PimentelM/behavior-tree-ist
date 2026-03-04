@@ -12,6 +12,9 @@ export const StudioServerConfigSchema = z.object({
     ws: z.object({
         path: z.string().min(1),
     }),
+    uiWs: z.object({
+        path: z.string().min(1),
+    }),
     sqlite: z.object({
         path: z.string().min(1),
     }),

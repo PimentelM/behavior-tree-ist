@@ -45,6 +45,9 @@ export function makeConfig(): StudioServerConfig {
         ws: {
             path: process.env.WS_PATH || '/ws',
         },
+        uiWs: {
+            path: process.env.UI_WS_PATH || '/ui-ws',
+        },
         sqlite: {
             path: process.env.SQLITE_PATH || ':memory:',
         },
