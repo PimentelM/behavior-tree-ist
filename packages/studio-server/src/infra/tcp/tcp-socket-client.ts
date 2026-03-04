@@ -1,6 +1,6 @@
 import type { Socket } from 'net';
 import type { OutboundMessage } from '@behavior-tree-ist/core';
-import { OutboundMessageSchema } from '../../domain/bt-core-types';
+import { OutboundMessageSchema } from '../../domain/core-schemas';
 import { createLogger } from '../logging';
 import type { MessageConnectionInterface } from '../../types/interfaces';
 import { GenericTcpClient } from '../../_lib/server/generic-tcp-client';

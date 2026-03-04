@@ -12,7 +12,7 @@ import type {
     DbTick,
     DbSettings,
 } from './schemas';
-import { SerializableNodeSchema, TickRecordSchema } from '../../domain/bt-core-types';
+import { SerializableNodeSchema, TickRecordSchema } from '../../domain/core-schemas';
 
 export function mapDbClientToDomain(dbClient: DbClient): ClientRecord {
     return dbClient;

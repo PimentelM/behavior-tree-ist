@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, procedure } from '../../../infra/trpc/trpc-setup';
 import { AppDependencies } from '../../../types/app-dependencies';
-import { TickRecordSchema } from '../../../domain/bt-core-types';
+import { TickRecordSchema } from '../../../domain/core-schemas';
 
 export function createTicksRouter({ tickRepository }: AppDependencies) {
     return router({
