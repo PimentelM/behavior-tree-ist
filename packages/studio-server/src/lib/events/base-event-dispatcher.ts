@@ -36,7 +36,7 @@ export abstract class BaseEventDispatcher<DispatchedEvent extends BaseDispatched
             const currentHandlers = currentSubjectMap.get(eventName);
             if (!currentHandlers) return;
 
-            const handlerIndex = currentHandlers.indexOf(handler as any);
+            const handlerIndex = currentHandlers.indexOf(handler as ((event: DispatchedEvent) => Promise<void>));
             if (handlerIndex > -1) {
                 currentHandlers.splice(handlerIndex, 1);
 
