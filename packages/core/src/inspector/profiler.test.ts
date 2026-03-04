@@ -65,8 +65,34 @@ describe("Profiler", () => {
             // no startedAt/finishedAt
         }]);
 
-        expect(profiler.tickCount).toBe(1);
+        expect(profiler.tickCount).toBe(0);
         expect(profiler.getNodeData(1)).toBeUndefined();
+    });
+
+    it("does not count untimed ticks toward global tickCount", () => {
+        const profiler = new Profiler();
+
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(2, [{ nodeId: 1, result: NodeResult.Succeeded }]);
+        profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 20 }]));
+
+        expect(profiler.tickCount).toBe(2);
+        expect(profiler.getNodeData(1)!.totalCpuTime).toBe(30);
+        expect(profiler.getAverageCpuTime(1)).toBe(15);
+    });
+
+    it("removeTick does not decrement tickCount for untimed ticks", () => {
+        const profiler = new Profiler();
+
+        profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        profiler.ingestTick(2, [{ nodeId: 1, result: NodeResult.Succeeded }]);
+        profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 20 }]));
+
+        profiler.removeTick(2, [{ nodeId: 1, result: NodeResult.Succeeded }]);
+        expect(profiler.tickCount).toBe(2);
+
+        profiler.removeTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        expect(profiler.tickCount).toBe(1);
     });
 
     it("removeTick subtracts contribution", () => {
