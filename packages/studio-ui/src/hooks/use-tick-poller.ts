@@ -13,18 +13,24 @@ export function useTickPoller(
     const afterTickIdRef = useRef(0);
     const selectionRef = useRef(selection);
     const historicalLoadedRef = useRef(false);
+    const fetchingRef = useRef(false);
+    const ringBufferSizeRef = useRef(ringBufferSize);
+    ringBufferSizeRef.current = ringBufferSize;
 
     // Reset on selection change
     useEffect(() => {
         selectionRef.current = selection;
         afterTickIdRef.current = 0;
         historicalLoadedRef.current = false;
+        fetchingRef.current = false;
         setTicks([]);
     }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
 
     const fetchTicks = () => {
         const sel = selectionRef.current;
-        if (!sel) return;
+        if (!sel || fetchingRef.current) return;
+
+        fetchingRef.current = true;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (trpc.ticks.query.query as any)({
@@ -34,17 +40,24 @@ export function useTickPoller(
             afterTickId: afterTickIdRef.current,
             limit: 100,
         }).then((newTicks: TickRecord[]) => {
+            fetchingRef.current = false;
             if (selectionRef.current !== sel) return;
             if (newTicks.length === 0) return;
 
-            afterTickIdRef.current = newTicks[newTicks.length - 1].tickId;
+            const newLastId = newTicks[newTicks.length - 1].tickId;
+            // Discard stale responses that arrived out of order
+            if (newLastId <= afterTickIdRef.current) return;
+            afterTickIdRef.current = newLastId;
+
+            const cap = ringBufferSizeRef.current;
             setTicks((prev) => {
                 const combined = [...prev, ...newTicks];
-                return combined.length > ringBufferSize
-                    ? combined.slice(combined.length - ringBufferSize)
+                return combined.length > cap
+                    ? combined.slice(combined.length - cap)
                     : combined;
             });
         }).catch((err: unknown) => {
+            fetchingRef.current = false;
             console.log('[use-tick-poller] fetch error', err);
         });
     };

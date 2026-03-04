@@ -11,6 +11,7 @@ export function useUiWebSocket(): WsSubscribe {
     const [reconnectKey, setReconnectKey] = useState(0);
 
     useEffect(() => {
+        let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
         const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
         const ws = new WebSocket(`${protocol}//${location.host}/ui-ws`);
 
@@ -26,7 +27,7 @@ export function useUiWebSocket(): WsSubscribe {
         };
 
         ws.onclose = () => {
-            setTimeout(() => setReconnectKey((k) => k + 1), 3000);
+            reconnectTimer = setTimeout(() => setReconnectKey((k) => k + 1), 3000);
         };
 
         ws.onerror = () => {
@@ -42,6 +43,7 @@ export function useUiWebSocket(): WsSubscribe {
         }
 
         return () => {
+            if (reconnectTimer !== null) clearTimeout(reconnectTimer);
             ws.onclose = null;
             ws.close();
         };
