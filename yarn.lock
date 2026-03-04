@@ -264,6 +264,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@behavior-tree-ist/studio-common@workspace:packages/studio-common":
+  version: 0.0.0-use.local
+  resolution: "@behavior-tree-ist/studio-common@workspace:packages/studio-common"
+  dependencies:
+    eslint: "npm:^9.0.0"
+    tsup: "npm:^8.0.0"
+    typescript: "npm:^5.7.0"
+    vitest: "npm:^3.0.0"
+  languageName: unknown
+  linkType: soft
+
 "@behavior-tree-ist/studio-server@workspace:packages/studio-server":
   version: 0.0.0-use.local
   resolution: "@behavior-tree-ist/studio-server@workspace:packages/studio-server"
