@@ -94,6 +94,7 @@ export function BehaviourTreeDebugger({
   onTickChange,
   className,
   studioControls,
+  emptyState,
 }: BehaviourTreeDebuggerProps) {
   const activityWindowEnabled = panels.activityNow !== false;
   const [internalThemeMode, setInternalThemeMode] = useState<ThemeMode>(defaultThemeMode);
@@ -630,6 +631,9 @@ export function BehaviourTreeDebugger({
     return () => observer.disconnect();
   }, [isolateStyles]);
 
+  const isEmptyTree = emptyState !== undefined
+    && (!tree.children || tree.children.length === 0);
+
   const studioToolbar = studioControls
     ? buildStudioToolbarFragments(studioControls, handleOpenStudioDrawer, handleOpenStudioSettings)
     : null;
@@ -668,7 +672,9 @@ export function BehaviourTreeDebugger({
         }
         canvas={
           <div className="bt-canvas-surface" ref={canvasSurfaceRef}>
-            {performanceMode ? (
+            {isEmptyTree ? (
+              <div className="bt-canvas-surface__empty-state">{emptyState}</div>
+            ) : performanceMode ? (
               <PerformanceView
                 frames={performanceData.frames}
                 hotNodes={performanceData.hotNodes}

@@ -92,6 +92,15 @@
   position: relative;
 }
 
+.bt-canvas-surface__empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
 .bt-canvas-surface__activity {
   position: absolute;
   top: 0;
@@ -894,6 +903,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  max-height: 80px;
+  overflow: hidden;
 }
 
 .bt-node__display-state--stale {
@@ -928,8 +939,17 @@
   color: var(--bt-text-secondary);
   font-family: var(--bt-font-mono);
   text-align: right;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bt-node__state-overflow {
+  font-size: 9px;
+  color: var(--bt-text-muted);
+  font-family: var(--bt-font-mono);
+  text-align: right;
+  padding-top: 1px;
 }
 
 .bt-node__ref-events {
@@ -2480,16 +2500,22 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  min-width: 30px;
+  gap: 4px;
   height: 30px;
-  padding: 0;
+  padding: 0 8px;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   color: var(--bt-text-secondary);
   cursor: pointer;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.bt-toolbar__studio-toggle-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .bt-toolbar__studio-toggle:hover:not(:disabled) {

@@ -12,7 +12,7 @@ Evaluated on 2026-03-04 against the `demo-cpu-heavy` tree (~95 nodes).
 
 ## Issues & Suggestions
 
-### 1. Empty state is confusing
+### 1. Empty state is confusing (addressed)
 
 The "No tree selected" screen shows a huge blue-bordered placeholder node, a sidebar repeating "No tree selected" twice, and all controls disabled. Unclear what to do next.
 
@@ -24,7 +24,7 @@ Three drill-down clicks (client -> session -> tree) before anything renders. Ses
 
 **Fix**: Auto-expand when only 1 client/session exists. Show tree names in a flatter list. Add search filter for multi-agent setups.
 
-### 3. Toolbar icon discoverability
+### 3. Toolbar icon discoverability (addressed)
 
 Icon-only buttons for stream, profiling, state trace, center, perf view, activity toggle. Users must hover every icon to learn what it does.
 
@@ -78,7 +78,7 @@ No way to step through ticks, toggle streaming, or navigate nodes via keyboard. 
 
 **Fix**: Arrow keys for tick stepping (when timeline focused), space for play/pause, `n`/`p` for next/prev node.
 
-### 12. Node state data overflow
+### 12. Node state data overflow (addressed)
 
 Nodes with large state (e.g., `threat-points` JSON array) render massive unreadable strings inline on canvas nodes.
 

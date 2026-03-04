@@ -53,6 +53,7 @@ export function buildStudioToolbarFragments(
           title={toggleDisabled ? 'Select an online tree first' : statuses?.streaming ? 'Pause streaming' : 'Start streaming'}
         >
           {statuses?.streaming ? <PauseIcon /> : <StreamIcon />}
+          <span className="bt-toolbar__studio-toggle-label">Stream</span>
         </button>
 
         <button
@@ -64,6 +65,7 @@ export function buildStudioToolbarFragments(
           title={toggleDisabled ? 'Select an online tree first' : statuses?.profiling ? 'Disable profiling' : 'Enable profiling'}
         >
           <ProfilingIcon />
+          <span className="bt-toolbar__studio-toggle-label">Profile</span>
         </button>
 
         <button
@@ -75,6 +77,7 @@ export function buildStudioToolbarFragments(
           title={toggleDisabled ? 'Select an online tree first' : statuses?.stateTrace ? 'Disable state trace' : 'Enable state trace'}
         >
           <TraceIcon />
+          <span className="bt-toolbar__studio-toggle-label">Trace</span>
         </button>
 
         <span className="bt-toolbar__separator" />

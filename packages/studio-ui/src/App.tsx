@@ -9,8 +9,28 @@ const PLACEHOLDER_TREE: SerializableNode = {
     name: 'No tree selected',
 };
 
+const emptyPanels = {
+    nodeDetails: false as const,
+    timeline: false as const,
+    refTraces: false as const,
+    activityNow: false as const,
+    performance: false as const,
+};
+
+const onboardingContent = (
+    <div style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: 16, fontWeight: 600, margin: '0 0 6px', color: 'var(--bt-text-secondary)' }}>
+            No tree connected
+        </p>
+        <p style={{ fontSize: 13, margin: 0, color: 'var(--bt-text-muted)' }}>
+            Click <strong>Attach</strong> to connect to a running agent
+        </p>
+    </div>
+);
+
 function App() {
     const { studioControls, tree, ticks } = useStudioControls();
+    const isEmpty = tree === null;
 
     return (
         <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -23,6 +43,8 @@ function App() {
                         maxTicks: studioControls.uiSettings.ringBufferSize,
                     }}
                     studioControls={studioControls}
+                    panels={isEmpty ? emptyPanels : undefined}
+                    emptyState={isEmpty ? onboardingContent : undefined}
                 />
             </main>
         </div>

@@ -94,6 +94,7 @@ export interface BehaviourTreeDebuggerProps {
   onTickChange?: (tickId: number) => void;
   className?: string;
   studioControls?: StudioControls;
+  emptyState?: ReactNode;
 }
 
 export interface BTNodeData extends Record<string, unknown> {
