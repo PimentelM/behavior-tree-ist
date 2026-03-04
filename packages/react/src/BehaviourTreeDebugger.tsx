@@ -494,11 +494,7 @@ export function BehaviourTreeDebugger({
         return;
       }
 
-      const initialX = Math.max(
-        ACTIVITY_WINDOW_PADDING,
-        surface.clientWidth - panel.offsetWidth - ACTIVITY_WINDOW_PADDING,
-      );
-      setActivityWindowPosition({ x: initialX, y: ACTIVITY_WINDOW_PADDING });
+      setActivityWindowPosition({ x: ACTIVITY_WINDOW_PADDING, y: ACTIVITY_WINDOW_PADDING });
     });
 
     return () => cancelAnimationFrame(frame);
