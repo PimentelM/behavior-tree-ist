@@ -1,7 +1,7 @@
 import { CommandResponse, StudioCommand, MessageType, InboundMessage } from '@behavior-tree-ist/core';
 import { CommandBrokerInterface, CommandSenderInterface } from '../interfaces';
 import { createLogger } from '../../infra/logging';
-import { AbstractCommandBroker } from '../../lib/command-broker';
+import { AbstractCommandBroker } from '../../_lib/command-broker';
 
 export class CommandBroker extends AbstractCommandBroker<StudioCommand, CommandResponse, InboundMessage> implements CommandBrokerInterface {
     constructor(

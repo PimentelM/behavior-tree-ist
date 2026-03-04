@@ -1,5 +1,5 @@
 import { AppDependencies } from "../../../types";
 
-export function registerLocalDomainEventHandlers(appDependencies: AppDependencies) {
+export function registerLocalDomainEventHandlers(_appDependencies: AppDependencies) {
 
 }

@@ -1,7 +1,7 @@
 import { AgentEvent, DispatchedEvent, ServerEvent } from '../../domain/events';
-import { BaseEventDispatcher } from '../../lib/events/base-event-dispatcher';
-import { EventStoreInterface } from '../../lib/events/interfaces';
-import { Logger } from '../../lib/logger';
+import { BaseEventDispatcher } from '../../_lib/events/base-event-dispatcher';
+import { EventStoreInterface } from '../../_lib/events/interfaces';
+import { Logger } from '../../_lib/logger';
 
 export class EventDispatcher extends BaseEventDispatcher<DispatchedEvent> {
     constructor(

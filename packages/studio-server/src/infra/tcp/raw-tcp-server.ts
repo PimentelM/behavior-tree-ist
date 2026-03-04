@@ -1,7 +1,7 @@
 import type { Logger } from '../logging';
 import type { RawTcpServerInterface } from './interfaces';
 import { TCPSocketClient } from './tcp-socket-client';
-import { GenericTcpServer } from '../../lib/server/generic-tcp-server';
+import { GenericTcpServer } from '../../_lib/server/generic-tcp-server';
 import { OutboundMessage } from '@behavior-tree-ist/core';
 import { MessageConnectionInterface } from '../../types/interfaces';
 

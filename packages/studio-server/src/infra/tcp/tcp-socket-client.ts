@@ -3,8 +3,8 @@ import type { OutboundMessage } from '@behavior-tree-ist/core';
 import { OutboundMessageSchema } from '../../domain/bt-core-types';
 import { createLogger } from '../logging';
 import type { MessageConnectionInterface } from '../../types/interfaces';
-import { GenericTcpClient } from '../../lib/server/generic-tcp-client';
-import type { ConnectionSerializer } from '../../lib/connection';
+import { GenericTcpClient } from '../../_lib/server/generic-tcp-client';
+import type { ConnectionSerializer } from '../../_lib/connection';
 
 const textDecoder = new TextDecoder();
 

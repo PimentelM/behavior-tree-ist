@@ -1,7 +1,7 @@
 import { OutboundMessage } from '@behavior-tree-ist/core';
 import { MessageType } from '@behavior-tree-ist/core';
-import { Connection, Server } from '../lib/connection';
-import { MessageHandler as GenericMessageHandler, MessageRouterInterface as GenericMessageRouterInterface } from '../lib/router';
+import { Connection, Server } from '../_lib/connection';
+import { MessageHandler as GenericMessageHandler, MessageRouterInterface as GenericMessageRouterInterface } from '../_lib/router';
 
 export type MessageTransport = 'websocket' | 'tcp';
 

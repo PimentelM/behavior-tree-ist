@@ -1,6 +1,6 @@
 import { CommandResponse, StudioCommand } from '@behavior-tree-ist/core';
 import type { AgentConnection } from '../domain/types';
-import type { BaseEventDispatcher } from '../lib/events/base-event-dispatcher';
+import type { BaseEventDispatcher } from '../_lib/events/base-event-dispatcher';
 import { AgentEvent, DispatchedEvent, ServerEvent } from '../domain/events';
 
 // ── App service interfaces ──

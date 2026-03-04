@@ -3,8 +3,8 @@ import { OutboundMessage } from '@behavior-tree-ist/core';
 import { MessageConnectionInterface } from '../../types/interfaces';
 import { createLogger } from '../logging';
 import { OutboundMessageSchema } from '../../domain/bt-core-types';
-import { GenericWebSocketClient } from '../../lib/server/generic-ws-client';
-import type { ConnectionSerializer } from '../../lib/connection';
+import { GenericWebSocketClient } from '../../_lib/server/generic-ws-client';
+import type { ConnectionSerializer } from '../../_lib/connection';
 
 class JsonMessageSerializer implements ConnectionSerializer<OutboundMessage, object> {
     serialize(message: object): string {

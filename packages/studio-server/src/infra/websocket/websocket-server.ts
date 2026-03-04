@@ -1,7 +1,7 @@
 import { WebSocketServerInterface } from './interfaces';
 import { WSWebSocketClient } from './websocket-client';
 import { Logger } from '../logging';
-import { GenericWebSocketServer } from '../../lib/server/generic-ws-server';
+import { GenericWebSocketServer } from '../../_lib/server/generic-ws-server';
 import { OutboundMessage } from '@behavior-tree-ist/core';
 import { MessageConnectionInterface } from '../../types/interfaces';
 

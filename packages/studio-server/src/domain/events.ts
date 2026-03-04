@@ -1,5 +1,5 @@
 import z from 'zod';
-import { makeEventSchemaFromMap, SchemaMapType } from '../lib/events/utils';
+import { makeEventSchemaFromMap, SchemaMapType } from '../_lib/events/utils';
 import { ServerSettings } from './types';
 
 export const AgentConnected = z.object({
