@@ -38,7 +38,7 @@ function DebuggerLayoutInner({
       <div className="bt-debugger-layout__canvas">
         {canvas}
         {onToggleSidebar && (
-          <button className="bt-debugger-layout__sidebar-toggle" onClick={onToggleSidebar} type="button">
+          <button className="bt-debugger-layout__sidebar-toggle" onClick={onToggleSidebar} type="button" aria-label="Toggle sidebar">
             {showSidebar ? '›' : '‹'}
           </button>
         )}

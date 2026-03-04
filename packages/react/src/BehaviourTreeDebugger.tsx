@@ -657,7 +657,7 @@ export function BehaviourTreeDebugger({
         showSidebar={showSidebar}
         showTimeline={showTimeline}
         showToolbar={showToolbar}
-        onToggleSidebar={handleToggleSidebar}
+        onToggleSidebar={(panels.nodeDetails !== false) ? handleToggleSidebar : undefined}
         toolbar={
           showToolbar ? (
             <ToolbarPanel
