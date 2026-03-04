@@ -40,6 +40,17 @@ function computeGroups(sorted: HistoryEntry[]): HistoryGroup[] {
   return groups;
 }
 
+function findGroupIndexForTick(groups: HistoryGroup[], tickId: number): number {
+  for (let gi = 0; gi < groups.length; gi++) {
+    if (groups[gi].entries.some((e) => e.tickId === tickId)) return gi;
+  }
+  return -1;
+}
+
+function isGroupCollapsed(group: HistoryGroup, groupIndex: number, expandedGroups: Set<number>): boolean {
+  return group.entries.length >= 3 && !expandedGroups.has(groupIndex);
+}
+
 function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProps) {
   const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE_SIZE);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(() => new Set());
@@ -86,7 +97,7 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
         // Collapsed group header — counts as 1 toward pagination
         if (entryCount >= visibleCount) break;
         items.push({ type: 'group', group, groupIndex: gi });
-        entryCount += group.entries.length;
+        entryCount += 1;
       }
 
       if (entryCount >= visibleCount) break;
@@ -120,6 +131,15 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
     }
   }, [viewedTickId, sortedHistory, visibleCount]);
 
+  // Auto-expand collapsed group when viewedTickId lands inside it (e.g. time-travel slider)
+  useEffect(() => {
+    if (viewedTickId === null) return;
+    const gi = findGroupIndexForTick(groups, viewedTickId);
+    if (gi >= 0 && isGroupCollapsed(groups[gi], gi, expandedGroups)) {
+      setExpandedGroups((prev) => new Set(prev).add(gi));
+    }
+  }, [viewedTickId, groups, expandedGroups]);
+
   useEffect(() => {
     if (viewedTickId === null) return;
     const list = listRef.current;
@@ -128,7 +148,7 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
     if (active) {
       active.scrollIntoView({ block: 'nearest' });
     }
-  }, [viewedTickId, visibleCount]);
+  }, [viewedTickId, visibleCount, expandedGroups]);
 
   const loadMore = useCallback(() => {
     setVisibleCount((prev) => {
@@ -164,9 +184,13 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
       if (nextIndex >= visibleCount - 2) {
         loadMore();
       }
+      const gi = findGroupIndexForTick(groups, nextEntry.tickId);
+      if (gi >= 0 && isGroupCollapsed(groups[gi], gi, expandedGroups)) {
+        setExpandedGroups((prev) => new Set(prev).add(gi));
+      }
       onGoToTick(nextEntry.tickId);
     }
-  }, [sortedHistory, viewedTickId, onGoToTick, visibleCount, loadMore]);
+  }, [sortedHistory, viewedTickId, onGoToTick, visibleCount, loadMore, groups, expandedGroups]);
 
   if (history.length === 0) return null;
 
