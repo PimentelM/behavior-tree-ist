@@ -4,7 +4,7 @@ import { UiWebSocketServerInterface } from '../infra/websocket/ui-websocket-serv
 import type { RawTcpServerInterface } from '../infra/tcp/interfaces';
 import { MessageRouterInterface } from './interfaces';
 import { ClientRepositoryInterface, SessionRepositoryInterface, TreeRepositoryInterface, TickRepositoryInterface, SettingsRepositoryInterface } from '../domain/interfaces';
-import type { AgentConnectionRegistryInterface, CommandBrokerInterface, DomainEventDispatcherInterface } from '../app/interfaces';
+import type { AgentConnectionRegistryInterface, UiConnectionRegistryInterface, CommandBrokerInterface, DomainEventDispatcherInterface } from '../app/interfaces';
 import { StudioServerConfig } from '../configuration';
 
 export interface InfrastructureClients {
@@ -21,6 +21,7 @@ export interface InfrastructureServices {
 
 export interface AppServices {
     agentConnectionRegistry: AgentConnectionRegistryInterface;
+    uiConnectionRegistry: UiConnectionRegistryInterface;
     commandBroker: CommandBrokerInterface;
 }
 

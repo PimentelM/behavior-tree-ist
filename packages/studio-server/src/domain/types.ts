@@ -7,4 +7,9 @@ export interface AgentConnection {
     connectedAt: number;
 }
 
+export interface UiConnection {
+    connectionId: string;
+    connectedAt: number;
+}
+
 export { ServerSettings };

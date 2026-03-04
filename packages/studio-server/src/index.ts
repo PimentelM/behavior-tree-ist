@@ -7,6 +7,7 @@ import { MessageRouter } from './infra/message-router';
 import { EventDispatcher } from './infra/events/event-dispatcher';
 import { createLogger } from './infra/logging';
 import { AgentConnectionRegistry } from './app/services/agent-connection-registry';
+import { UiConnectionRegistry } from './app/services/ui-connection-registry';
 import { CommandBroker } from './app/services/command-broker';
 import { ClientRepository } from './infra/knex/client-repository';
 import { SessionRepository } from './infra/knex/session-repository';
@@ -205,6 +206,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
 
         // App services
         const agentConnectionRegistry = new AgentConnectionRegistry();
+        const uiConnectionRegistry = new UiConnectionRegistry();
         commandBroker = new CommandBroker(
             {
                 sendToClient: (clientId, message) => {
@@ -239,6 +241,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             messageRouter,
             eventDispatcher,
             agentConnectionRegistry,
+            uiConnectionRegistry,
             commandBroker,
             clientRepository,
             sessionRepository,
@@ -304,6 +307,9 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         });
 
         uiWsServer.onConnection((client) => {
+            uiConnectionRegistry.register(client.id);
+            setupLogger.debug('UI client connected', { clientId: client.id });
+
             client.onMessage((message) => {
                 if (message.t === 'ping') {
                     setupLogger.debug('Received ping from UI client', { clientId: client.id });
@@ -312,6 +318,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         });
 
         uiWsServer.onDisconnection((clientId) => {
+            uiConnectionRegistry.unregister(clientId);
             setupLogger.debug('UI client disconnected', { clientId });
         });
 
