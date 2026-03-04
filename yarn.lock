@@ -325,9 +325,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@behavior-tree-ist/studio@workspace:packages/studio":
+"@behavior-tree-ist/studio-ui@workspace:packages/studio-ui":
   version: 0.0.0-use.local
-  resolution: "@behavior-tree-ist/studio@workspace:packages/studio"
+  resolution: "@behavior-tree-ist/studio-ui@workspace:packages/studio-ui"
   dependencies:
     "@behavior-tree-ist/core": "workspace:*"
     "@behavior-tree-ist/react": "workspace:*"

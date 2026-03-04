@@ -6,9 +6,9 @@ TypeScript behaviour tree monorepo.
 
 - **core** — code-first behavior tree library focused on UX
 - **react** — react implementation of studio-ui component
-- **studio** — facade package published to npm (bundles cli + server + ui + demos)
+- **studio** — facade package published to npm (bundles cli + server + ui + demos) (TBD)
 - **studio-cli** — CLI to launch studio server + ui (TBD)
-- **studio-ui** — React UI for real-time execution traces, time travel, cpu profiling. Binds the react component to the server (TBD)
+- **studio-ui** — React UI for real-time execution traces, time travel, cpu profiling. Binds the react component to the server
 - **studio-server** — WebSocket/HTTP/TCP server bridging agents ↔ UI
 - **studio-transport** — library of TCP/WebSocket transports for Node + browser
 - **studio-common** — shared Zod schemas and protocol definitions across studio packages
