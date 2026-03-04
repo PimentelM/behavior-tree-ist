@@ -21,7 +21,7 @@ import {
     createTickQueryInputStub,
     createTreeInputStub,
     createTreeScopeStub,
-} from '../../stubs';
+} from '../stubs';
 
 export interface StudioServerE2ETransportConfig {
     name: string;

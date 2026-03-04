@@ -4,7 +4,7 @@ import {
     StudioCommandType,
     TickRecord,
 } from '@behavior-tree-ist/core';
-import type { TreeRecord } from '../domain/records';
+import type { TreeRecord } from '../../domain/records';
 
 export interface TreeScopeStub {
     clientId: string;
