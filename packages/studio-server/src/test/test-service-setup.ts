@@ -21,11 +21,11 @@ export interface TestServiceInstance {
     shutdown: () => Promise<void>;
 }
 
-export async function findAvailablePort(): Promise<number> {
+export async function findAvailablePort(host = '127.0.0.1'): Promise<number> {
     return new Promise((resolve, reject) => {
         const server = net.createServer();
         server.once('error', reject);
-        server.listen(0, () => {
+        server.listen(0, host, () => {
             const address = server.address();
             const port = typeof address === 'object' && address ? address.port : 0;
             server.close((error) => {
@@ -41,8 +41,8 @@ export async function findAvailablePort(): Promise<number> {
 
 export async function setupTestService(options: TestServiceOptions = {}): Promise<TestServiceInstance> {
     const host = options.host ?? '127.0.0.1';
-    const port = options.port ?? await findAvailablePort();
-    const tcpPort = options.tcpPort ?? await findAvailablePort();
+    const port = options.port ?? await findAvailablePort(host);
+    const tcpPort = options.tcpPort ?? await findAvailablePort(host);
 
     const server: StudioServerHandle = createStudioServer({
         httpHost: host,

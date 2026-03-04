@@ -17,7 +17,7 @@ describe('Knex repositories', () => {
     beforeEach(async () => {
         knex = createSqliteMemoryKnexInstance({
             directory: path.join(__dirname, '../../../migrations'),
-            extension: 'ts',
+            extension: 'js',
         });
         await knex.migrate.latest();
 

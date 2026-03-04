@@ -29,7 +29,7 @@ export function createSqliteMemoryKnexInstance(migrationsConfig?: {
 export function createKnexFromConfig(config: StudioServerConfig): Knex {
     const migrations = {
         directory: path.resolve(__dirname, '../../../migrations'),
-        extension: 'ts' as const,
+        extension: 'js' as const,
     };
 
     return createKnexInstance({

@@ -306,7 +306,7 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
         setupLogger.info('Studio server initialized');
         return { httpServer, deps };
     } catch (error) {
-        setupLogger.error('Studio server initialization failed', { error: String(error) });
+        setupLogger.error('Studio server initialization failed', { error: String(error), stack: error instanceof Error && error?.stack });
         await cleanupInitializedResources({
             logger: setupLogger,
             commandBroker,
