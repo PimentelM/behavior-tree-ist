@@ -1521,10 +1521,15 @@
   cursor: pointer;
   font-size: 11px;
   border: 1px solid transparent;
+  border-left: 3px solid transparent;
   transition: background-color 0.1s ease, border-color 0.1s ease;
   background: transparent;
   width: 100%;
   text-align: left;
+}
+
+.bt-history__entry--changed {
+  border-left-color: var(--bt-accent-color);
 }
 
 .bt-history__entry:hover {
@@ -1535,6 +1540,36 @@
 .bt-history__entry--active {
   border-color: color-mix(in srgb, var(--bt-accent-color) 45%, var(--bt-border-color));
   background: color-mix(in srgb, var(--bt-bg-tertiary) 85%, transparent);
+}
+
+.bt-history__group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--bt-text-secondary);
+  border: none;
+  border-left: 4px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.bt-history__group-header:hover {
+  background: color-mix(in srgb, var(--bt-bg-tertiary) 50%, transparent);
+}
+
+.bt-history__group-header--contains-active {
+  background: color-mix(in srgb, var(--bt-bg-tertiary) 60%, transparent);
+}
+
+.bt-history__group-count {
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  margin-left: auto;
 }
 
 .bt-history__tick-id {

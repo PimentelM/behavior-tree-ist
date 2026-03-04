@@ -12,24 +12,104 @@ interface HistoryEntry {
   state?: SerializableState;
 }
 
+interface HistoryGroup {
+  result: NodeResult;
+  entries: HistoryEntry[];
+}
+
 interface NodeHistoryProps {
   history: HistoryEntry[];
   viewedTickId: number | null;
   onGoToTick: (tickId: number) => void;
 }
 
+function computeGroups(sorted: HistoryEntry[]): HistoryGroup[] {
+  if (sorted.length === 0) return [];
+  const groups: HistoryGroup[] = [];
+  let current: HistoryGroup = { result: sorted[0].result, entries: [sorted[0]] };
+
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].result === current.result) {
+      current.entries.push(sorted[i]);
+    } else {
+      groups.push(current);
+      current = { result: sorted[i].result, entries: [sorted[i]] };
+    }
+  }
+  groups.push(current);
+  return groups;
+}
+
 function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProps) {
   const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE_SIZE);
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(() => new Set());
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const sortedHistory = useMemo(() => history.slice().reverse(), [history]);
-  const visibleHistory = useMemo(
-    () => sortedHistory.slice(0, visibleCount),
-    [sortedHistory, visibleCount],
-  );
+
+  const groups = useMemo(() => computeGroups(sortedHistory), [sortedHistory]);
+
+  const changedIndices = useMemo(() => {
+    const set = new Set<number>();
+    for (let i = 0; i < sortedHistory.length - 1; i++) {
+      if (sortedHistory[i].result !== sortedHistory[i + 1].result) {
+        set.add(sortedHistory[i].tickId);
+      }
+    }
+    return set;
+  }, [sortedHistory]);
+
+  // Build visible items from groups respecting visibleCount (based on total entry count)
+  const { visibleItems, totalEntryCount } = useMemo(() => {
+    const items: Array<
+      | { type: 'entry'; entry: HistoryEntry; changed: boolean }
+      | { type: 'group'; group: HistoryGroup; groupIndex: number }
+    > = [];
+    let entryCount = 0;
+
+    for (let gi = 0; gi < groups.length; gi++) {
+      const group = groups[gi];
+      const isCollapsible = group.entries.length >= 3;
+      const isExpanded = expandedGroups.has(gi);
+
+      if (!isCollapsible || isExpanded) {
+        for (const entry of group.entries) {
+          if (entryCount >= visibleCount) break;
+          items.push({
+            type: 'entry',
+            entry,
+            changed: changedIndices.has(entry.tickId),
+          });
+          entryCount++;
+        }
+      } else {
+        // Collapsed group header — counts as 1 toward pagination
+        if (entryCount >= visibleCount) break;
+        items.push({ type: 'group', group, groupIndex: gi });
+        entryCount += group.entries.length;
+      }
+
+      if (entryCount >= visibleCount) break;
+    }
+
+    return { visibleItems: items, totalEntryCount: sortedHistory.length };
+  }, [groups, visibleCount, expandedGroups, changedIndices, sortedHistory.length]);
+
+  const toggleGroup = useCallback((groupIndex: number) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupIndex)) {
+        next.delete(groupIndex);
+      } else {
+        next.add(groupIndex);
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     setVisibleCount(HISTORY_PAGE_SIZE);
+    setExpandedGroups(new Set());
   }, [history.length]);
 
   useEffect(() => {
@@ -90,6 +170,8 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
 
   if (history.length === 0) return null;
 
+  const hasMore = visibleCount < totalEntryCount;
+
   return (
     <div className="bt-history">
       <div className="bt-history__title">
@@ -102,15 +184,29 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
-        {visibleHistory.map((entry) => (
-          <HistoryEntryRow
-            key={entry.tickId}
-            entry={entry}
-            isActive={entry.tickId === viewedTickId}
-            onGoToTick={onGoToTick}
-          />
-        ))}
-        {visibleHistory.length < sortedHistory.length && (
+        {visibleItems.map((item) => {
+          if (item.type === 'entry') {
+            return (
+              <HistoryEntryRow
+                key={item.entry.tickId}
+                entry={item.entry}
+                isActive={item.entry.tickId === viewedTickId}
+                changed={item.changed}
+                onGoToTick={onGoToTick}
+              />
+            );
+          }
+          return (
+            <GroupHeaderRow
+              key={`g-${item.groupIndex}`}
+              group={item.group}
+              groupIndex={item.groupIndex}
+              viewedTickId={viewedTickId}
+              onToggle={toggleGroup}
+            />
+          );
+        })}
+        {hasMore && (
           <button type="button" className="bt-history__load-more" onClick={loadMore}>
             Load older entries
           </button>
@@ -123,20 +219,30 @@ function NodeHistoryInner({ history, viewedTickId, onGoToTick }: NodeHistoryProp
 interface HistoryEntryRowProps {
   entry: HistoryEntry;
   isActive: boolean;
+  changed: boolean;
   onGoToTick: (tickId: number) => void;
 }
 
-function HistoryEntryRowInner({ entry, isActive, onGoToTick }: HistoryEntryRowProps) {
+function HistoryEntryRowInner({ entry, isActive, changed, onGoToTick }: HistoryEntryRowProps) {
   const handleClick = useCallback(() => {
     onGoToTick(entry.tickId);
   }, [entry.tickId, onGoToTick]);
 
+  const className = [
+    'bt-history__entry',
+    isActive && 'bt-history__entry--active',
+    changed && 'bt-history__entry--changed',
+  ].filter(Boolean).join(' ');
+
+  const borderLeftColor = changed ? undefined : getResultColor(entry.result);
+
   return (
     <button
-      className={`bt-history__entry ${isActive ? 'bt-history__entry--active' : ''}`}
+      className={className}
       onClick={handleClick}
       type="button"
       data-tick-id={entry.tickId}
+      style={borderLeftColor ? { borderLeftColor } : undefined}
     >
       <span className="bt-history__tick-id">#{entry.tickId}</span>
       <span
@@ -148,6 +254,41 @@ function HistoryEntryRowInner({ entry, isActive, onGoToTick }: HistoryEntryRowPr
   );
 }
 
+interface GroupHeaderRowProps {
+  group: HistoryGroup;
+  groupIndex: number;
+  viewedTickId: number | null;
+  onToggle: (groupIndex: number) => void;
+}
+
+function GroupHeaderRowInner({ group, groupIndex, viewedTickId, onToggle }: GroupHeaderRowProps) {
+  const handleClick = useCallback(() => {
+    onToggle(groupIndex);
+  }, [groupIndex, onToggle]);
+
+  const firstTick = group.entries[0].tickId;
+  const lastTick = group.entries[group.entries.length - 1].tickId;
+  const containsActive = viewedTickId !== null && group.entries.some((e) => e.tickId === viewedTickId);
+
+  return (
+    <button
+      type="button"
+      className={`bt-history__group-header${containsActive ? ' bt-history__group-header--contains-active' : ''}`}
+      onClick={handleClick}
+      style={{ borderLeftColor: getResultColor(group.result) }}
+    >
+      <span className="bt-history__tick-id">#{firstTick}\u2013#{lastTick}</span>
+      <span
+        className="bt-history__result-dot"
+        style={{ backgroundColor: getResultColor(group.result) }}
+      />
+      <span className="bt-history__result-label">{group.result}</span>
+      <span className="bt-history__group-count">\u00d7{group.entries.length}</span>
+    </button>
+  );
+}
+
 const HistoryEntryRow = memo(HistoryEntryRowInner);
+const GroupHeaderRow = memo(GroupHeaderRowInner);
 
 export const NodeHistory = memo(NodeHistoryInner);
