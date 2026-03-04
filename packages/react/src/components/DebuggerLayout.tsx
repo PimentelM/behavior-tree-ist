@@ -9,6 +9,7 @@ interface DebuggerLayoutProps {
   canvas: ReactNode;
   sidebar: ReactNode | null;
   timeline: ReactNode | null;
+  onToggleSidebar?: () => void;
 }
 
 function DebuggerLayoutInner({
@@ -19,6 +20,7 @@ function DebuggerLayoutInner({
   canvas,
   sidebar,
   timeline,
+  onToggleSidebar,
 }: DebuggerLayoutProps) {
   return (
     <div
@@ -35,6 +37,11 @@ function DebuggerLayoutInner({
       )}
       <div className="bt-debugger-layout__canvas">
         {canvas}
+        {onToggleSidebar && (
+          <button className="bt-debugger-layout__sidebar-toggle" onClick={onToggleSidebar} type="button">
+            {showSidebar ? '›' : '‹'}
+          </button>
+        )}
       </div>
       {showSidebar && sidebar && (
         <div className="bt-debugger-layout__sidebar">

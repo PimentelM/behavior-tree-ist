@@ -110,6 +110,14 @@ export function BehaviourTreeDebugger({
     }
   }, [inspector, inspectorRef]);
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('bt-studio-sidebar-collapsed');
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true;
+    }
+  });
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
   const [openDetailsSignal, setOpenDetailsSignal] = useState(0);
   const [centerTreeSignal, setCenterTreeSignal] = useState(0);
@@ -128,6 +136,10 @@ export function BehaviourTreeDebugger({
   const canvasSurfaceRef = useRef<HTMLDivElement | null>(null);
   const activityWindowRef = useRef<HTMLDivElement | null>(null);
   const activityDragRef = useRef<ActivityDragState | null>(null);
+
+  useEffect(() => {
+    try { localStorage.setItem('bt-studio-sidebar-collapsed', String(sidebarCollapsed)); } catch { /* noop */ }
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     setPausedInspector(null);
@@ -318,6 +330,7 @@ export function BehaviourTreeDebugger({
     (nodeId: number) => {
       handleSelectNode(nodeId);
       setOpenDetailsSignal((value) => value + 1);
+      setSidebarCollapsed(false);
     },
     [handleSelectNode],
   );
@@ -375,17 +388,45 @@ export function BehaviourTreeDebugger({
         return;
       }
 
-      if (event.key !== 'Escape') return;
-      if (timeTravelControls.mode !== 'paused') return;
-      timeTravelControls.jumpToLive();
-      if (timeTravelControls.newestTickId !== undefined) {
-        onTickChange?.(timeTravelControls.newestTickId);
+      if (event.key === 'Escape') {
+        if (timeTravelControls.mode !== 'paused') return;
+        timeTravelControls.jumpToLive();
+        if (timeTravelControls.newestTickId !== undefined) {
+          onTickChange?.(timeTravelControls.newestTickId);
+        }
+        return;
+      }
+
+      if (event.key === 'n' || event.key === 'p') {
+        if (isEditableTarget(event.target)) return;
+        event.preventDefault();
+        if (!baseNodes || baseNodes.length === 0) return;
+        const currentIndex = selectedNodeId !== null
+          ? baseNodes.findIndex((n) => n.id === String(selectedNodeId))
+          : -1;
+        const nextIndex = event.key === 'n'
+          ? (currentIndex + 1) % baseNodes.length
+          : (currentIndex - 1 + baseNodes.length) % baseNodes.length;
+        const nextNode = baseNodes[nextIndex];
+        if (nextNode) handleNodeClick(nextNode.data.nodeId);
+        return;
+      }
+
+      if (event.key === '[') {
+        if (isEditableTarget(event.target)) return;
+        event.preventDefault();
+        setSidebarCollapsed((prev) => !prev);
+        return;
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [timeTravelControls, inspector, onTickChange]);
+  }, [timeTravelControls, inspector, onTickChange, baseNodes, selectedNodeId, handleNodeClick]);
+
+  const handleToggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => !prev);
+  }, []);
 
   const handleToggleTheme = useCallback(() => {
     const nextMode: ThemeMode = themeMode === 'dark' ? 'light' : 'dark';
@@ -581,7 +622,7 @@ export function BehaviourTreeDebugger({
     [collapsedActivityBranch],
   );
 
-  const showSidebar = panels.nodeDetails !== false || panels.refTraces !== false;
+  const showSidebar = !sidebarCollapsed && (panels.nodeDetails !== false || panels.refTraces !== false);
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
   const showPerformance = panels.performance !== false;
@@ -616,6 +657,7 @@ export function BehaviourTreeDebugger({
         showSidebar={showSidebar}
         showTimeline={showTimeline}
         showToolbar={showToolbar}
+        onToggleSidebar={handleToggleSidebar}
         toolbar={
           showToolbar ? (
             <ToolbarPanel
