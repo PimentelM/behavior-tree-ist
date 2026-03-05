@@ -31,6 +31,7 @@ const SHADOW_BASE_CSS = [
   ':host *,:host *::before,:host *::after{box-sizing:border-box;}',
 ].join('');
 const ACTIVITY_WINDOW_PADDING = 8;
+const ACTIVITY_COLLAPSED_STORAGE_KEY = 'bt-activity-window-collapsed';
 type ActivityLabelMode = 'activity' | 'node';
 
 type ActivityWindowPosition = {
@@ -125,7 +126,14 @@ export function BehaviourTreeDebugger({
   const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
   const [timeFormatOverride, setTimeFormatOverride] = useState<boolean | null>(null);
   const [activityWindowVisible, setActivityWindowVisible] = useState(activityWindowEnabled);
-  const [activityWindowCollapsed, setActivityWindowCollapsed] = useState(false);
+  const [activityWindowCollapsed, setActivityWindowCollapsed] = useState(() => {
+    try {
+      const stored = localStorage.getItem(ACTIVITY_COLLAPSED_STORAGE_KEY);
+      return stored !== null ? stored === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
   const [activityOptionsCollapsed, setActivityOptionsCollapsed] = useState(true);
   const [selectedActivityTailNodeId, setSelectedActivityTailNodeId] = useState<number | null>(null);
   const [activityModeState, setActivityModeState] = useState(activityDisplayMode);
@@ -459,7 +467,11 @@ export function BehaviourTreeDebugger({
   }, []);
 
   const handleToggleActivityWindowCollapsed = useCallback(() => {
-    setActivityWindowCollapsed((collapsed) => !collapsed);
+    setActivityWindowCollapsed((collapsed) => {
+      const next = !collapsed;
+      try { localStorage.setItem(ACTIVITY_COLLAPSED_STORAGE_KEY, String(next)); } catch { /* ignore */ }
+      return next;
+    });
   }, []);
 
   const handleToggleActivityOptionsCollapsed = useCallback(() => {
