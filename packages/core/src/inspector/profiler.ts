@@ -123,7 +123,6 @@ export class Profiler {
         this.invalidateExactPercentiles();
         if (tickId <= this.lastProcessedTickId) return;
         this.lastProcessedTickId = tickId;
-        this._tickCount++;
         const tickContribByNode = new Map<number, TickNodeContribution>();
         const timedEvents: TimedEvent[] = [];
         const currentTickNodes = new Set<number>();
@@ -166,6 +165,10 @@ export class Profiler {
             }
         }
 
+        const hasTimedEvents = timedEvents.length > 0;
+        if (hasTimedEvents) {
+            this._tickCount++;
+        }
         this.tickContribByTick.set(tickId, tickContribByNode);
         for (const [nodeId, contribution] of tickContribByNode) {
             this.applyContribution(nodeId, contribution);
@@ -191,12 +194,14 @@ export class Profiler {
     removeTick(tickId: number, events: TickTraceEvent[]): void {
         if (events.length === 0) return;
         this.invalidateExactPercentiles();
-        if (this._tickCount > 0) {
-            this._tickCount--;
-        }
 
         const tickContribByNode = this.tickContribByTick.get(tickId);
         if (!tickContribByNode) return;
+
+        const hadTimedEvents = Array.from(tickContribByNode.values()).some((c) => c.cpuCount > 0);
+        if (hadTimedEvents && this._tickCount > 0) {
+            this._tickCount--;
+        }
 
         for (const [nodeId, contribution] of tickContribByNode) {
             this.removeContribution(nodeId, contribution);

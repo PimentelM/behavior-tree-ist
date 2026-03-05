@@ -1,0 +1,63 @@
+{
+  "name": "@behavior-tree-ist/studio-server",
+  "version": "0.1.0",
+  "description": "Behavior Tree Studio server",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx src/dev.ts"
+  },
+  "dependencies": {
+    "@behavior-tree-ist/core": "workspace:*",
+    "@behavior-tree-ist/studio-common": "workspace:^",
+    "@behavior-tree-ist/studio-transport": "workspace:^",
+    "@trpc/server": "^11.0.0",
+    "better-sqlite3": "^12.4.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "helmet": "^8.0.0",
+    "knex": "^3.1.0",
+    "uuid": "^11.1.0",
+    "ws": "^8.19.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@trpc/client": "^11.11.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.15.30",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
+    "eslint": "^9.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

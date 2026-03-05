@@ -19,8 +19,7 @@ npm install @behavior-tree-ist/core
 ```
 
 ```typescript
-import { BehaviourTree, NodeResult } from '@behavior-tree-ist/core';
-import { fallback, sequence, condition, action } from '@behavior-tree-ist/core/builder';
+import { BehaviourTree, NodeResult, fallback, sequence, condition, action } from '@behavior-tree-ist/core';
 
 const entity = { health: 100, inDanger: false };
 
@@ -63,7 +62,7 @@ const root = Fallback.from([flee, patrol]);
 **Builder functions:**
 
 ```typescript
-import { fallback, sequence, condition, action } from '@behavior-tree-ist/core/builder';
+import { fallback, sequence, condition, action } from '@behavior-tree-ist/core';
 
 const root = fallback({}, [
   sequence({ name: 'Flee' }, [
@@ -94,11 +93,9 @@ const root = (
 
 | Entry point | Description |
 |---|---|
-| `@behavior-tree-ist/core` | Core library: all node classes, `BehaviourTree`, types |
-| `@behavior-tree-ist/core/builder` | Builder functions with `NodeProps`-based decorator application |
+| `@behavior-tree-ist/core` | Core library: all node classes, builder functions, `BehaviourTree`, and activity projection |
 | `@behavior-tree-ist/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
 | `@behavior-tree-ist/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
-| `@behavior-tree-ist/core/activity` | Standalone activity projection from `SerializableNode` + `TickRecord` |
 
 ## Documentation
 

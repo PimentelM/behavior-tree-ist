@@ -14,14 +14,14 @@ export function useInspector(
   options?: TreeInspectorOptions,
 ): UseInspectorResult {
   const inspectorRef = useRef<TreeInspector | null>(null);
-  const ingestedCountRef = useRef(0);
+  const lastIngestedTickIdRef = useRef(0);
   const [tickGeneration, setTickGeneration] = useState(0);
   const prevTreeRef = useRef<SerializableNode | null>(null);
 
   const inspector = useMemo(() => {
     const inst = new TreeInspector(options);
     inspectorRef.current = inst;
-    ingestedCountRef.current = 0;
+    lastIngestedTickIdRef.current = 0;
     prevTreeRef.current = tree;
     inst.indexTree(tree);
     return inst;
@@ -33,23 +33,25 @@ export function useInspector(
     if (prevTreeRef.current !== tree) {
       inspector.reset();
       inspector.indexTree(tree);
-      ingestedCountRef.current = 0;
+      lastIngestedTickIdRef.current = 0;
       prevTreeRef.current = tree;
       setTickGeneration((g) => g + 1);
     }
   }, [tree, inspector]);
 
-  // Diff-ingest new ticks
+  // Diff-ingest new ticks (track by tickId to handle sliding-window arrays)
   useEffect(() => {
-    const alreadyIngested = ingestedCountRef.current;
-    if (ticks.length > alreadyIngested) {
-      for (let i = alreadyIngested; i < ticks.length; i++) {
+    const lastId = lastIngestedTickIdRef.current;
+    let i = 0;
+    while (i < ticks.length && ticks[i].tickId <= lastId) i++;
+    if (i < ticks.length) {
+      for (; i < ticks.length; i++) {
         inspector.ingestTick(ticks[i]);
       }
-      ingestedCountRef.current = ticks.length;
+      lastIngestedTickIdRef.current = ticks[ticks.length - 1].tickId;
       setTickGeneration((g) => g + 1);
     }
-  }, [ticks, ticks.length, inspector]);
+  }, [ticks, inspector]);
 
   return { inspector, tickGeneration };
 }

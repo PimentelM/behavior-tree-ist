@@ -93,6 +93,8 @@ export interface BehaviourTreeDebuggerProps {
   onNodeSelect?: (nodeId: number | null) => void;
   onTickChange?: (tickId: number) => void;
   className?: string;
+  studioControls?: StudioControls;
+  emptyState?: ReactNode;
 }
 
 export interface BTNodeData extends Record<string, unknown> {
@@ -164,3 +166,82 @@ export interface NodeDetailsData {
 }
 
 export type ActivityBranchData = ActivityBranch;
+
+// --- Studio Controls ---
+
+export type StudioClientStatus = 'online' | 'offline';
+
+export interface StudioClientInfo {
+  clientId: string;
+  firstSeenAt: number;
+  lastSeenAt: number;
+  status: StudioClientStatus;
+}
+
+export interface StudioSessionInfo {
+  sessionId: string;
+  clientId: string;
+  startedAt: number;
+  lastSeenAt: number;
+  online: boolean;
+}
+
+export interface StudioTreeInfo {
+  treeId: string;
+  clientId: string;
+  sessionId: string;
+  updatedAt: number;
+  removedAt?: number;
+}
+
+export interface StudioSelection {
+  clientId: string;
+  sessionId: string;
+  treeId: string;
+}
+
+export interface StudioTreeStatuses {
+  streaming: boolean;
+  stateTrace: boolean;
+  profiling: boolean;
+}
+
+export interface StudioServerSettings {
+  maxTicksPerTree: number;
+}
+
+export interface StudioUiSettings {
+  ringBufferSize: number;
+  pollRateMs: number;
+  showTreeSelectorInToolbar: boolean;
+}
+
+export interface StudioControls {
+  clients: StudioClientInfo[];
+  sessions: StudioSessionInfo[];
+  trees: StudioTreeInfo[];
+
+  selection: StudioSelection | null;
+  onSelectionChange: (selection: StudioSelection | null) => void;
+
+  expandedClientId: string | null;
+  onExpandClient: (clientId: string | null) => void;
+  expandedSessionId: string | null;
+  onExpandSession: (sessionId: string | null) => void;
+
+  treeStatuses: StudioTreeStatuses | null;
+  onToggleStreaming: () => void;
+  onToggleProfiling: () => void;
+  onToggleStateTrace: () => void;
+
+  isSelectedOnline: boolean;
+
+  serverSettings: StudioServerSettings | null;
+  uiSettings: StudioUiSettings;
+  onServerSettingsChange: (patch: Partial<StudioServerSettings>) => void;
+  onUiSettingsChange: (patch: Partial<StudioUiSettings>) => void;
+
+  loadingClients?: boolean;
+  loadingSessions?: boolean;
+  loadingTrees?: boolean;
+}

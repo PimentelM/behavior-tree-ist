@@ -1,0 +1,3 @@
+[submodule "references/Frostmod"]
+	path = references/Frostmod
+	url = https://github.com/PimentelM/Frostmod

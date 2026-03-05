@@ -183,8 +183,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
         )}
         {hasState && (
           <div className={`bt-node__display-state ${displayStateIsStale ? 'bt-node__display-state--stale' : ''}`}>
-            {/* {displayStateIsStale && <div className="bt-node__state-meta" title="Showing last known state" />} */}
-            {stateEntries.map(([key, value]) => (
+            {stateEntries.slice(0, MAX_CANVAS_STATE_ENTRIES).map(([key, value]) => (
               <div key={key} className="bt-node__state-entry">
                 <span className="bt-node__state-key">{key}</span>
                 <span className="bt-node__state-value">
@@ -192,6 +191,9 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
                 </span>
               </div>
             ))}
+            {stateEntries.length > MAX_CANVAS_STATE_ENTRIES && (
+              <div className="bt-node__state-overflow">+{stateEntries.length - MAX_CANVAS_STATE_ENTRIES} more</div>
+            )}
           </div>
         )}
         {hasRefEvents && (
@@ -291,11 +293,14 @@ function ConditionGlyphIcon({ className }: { className: string }) {
   );
 }
 
+const MAX_VALUE_LENGTH = 48;
+const MAX_CANVAS_STATE_ENTRIES = 3;
+
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return 'null';
-  if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  return JSON.stringify(value);
+  const raw = typeof value === 'string' ? value : JSON.stringify(value);
+  return raw.length > MAX_VALUE_LENGTH ? raw.slice(0, MAX_VALUE_LENGTH) + '\u2026' : raw;
 }
 
 function areNodePropsEqual(prev: NodeProps<BTFlowNode>, next: NodeProps<BTFlowNode>): boolean {
