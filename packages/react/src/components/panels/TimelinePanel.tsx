@@ -123,8 +123,6 @@ function TimelinePanelInner({
         <CpuSparkline
           entries={cpuTimeline}
           viewedTickId={viewedTickId}
-          oldestTickId={oldestTickId}
-          newestTickId={newestTickId}
         />
         {hasTicks ? (
           <input
