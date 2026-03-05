@@ -358,8 +358,14 @@ export function BehaviourTreeDebugger({
         || tagName === 'TEXTAREA'
         || tagName === 'SELECT';
     };
-    const isEditableTarget = (target: EventTarget | null): boolean =>
-      isEditableElement(target) || isEditableElement(document.activeElement);
+    const isEditableTarget = (target: EventTarget | null): boolean => {
+      if (isEditableElement(target)) return true;
+      let active: Element | null = document.activeElement;
+      while (active?.shadowRoot?.activeElement) {
+        active = active.shadowRoot.activeElement;
+      }
+      return isEditableElement(active);
+    };
 
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.code === 'Space' || event.key === ' ') && !event.repeat) {
