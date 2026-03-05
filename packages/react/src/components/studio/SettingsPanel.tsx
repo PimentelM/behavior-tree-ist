@@ -14,9 +14,10 @@ interface NumberFieldProps {
   value: number;
   onChange: (value: number) => void;
   min?: number;
+  helpText?: string;
 }
 
-function NumberField({ label, value, onChange, min = 1 }: NumberFieldProps) {
+function NumberField({ label, value, onChange, min = 1, helpText }: NumberFieldProps) {
   const [draft, setDraft] = useState(String(value));
 
   const commit = useCallback(() => {
@@ -33,18 +34,21 @@ function NumberField({ label, value, onChange, min = 1 }: NumberFieldProps) {
   }, [commit]);
 
   return (
-    <label className="bt-studio-settings__field">
-      <span className="bt-studio-settings__field-label">{label}</span>
-      <input
-        type="number"
-        className="bt-studio-settings__number-input"
-        value={draft}
-        min={min}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={handleKeyDown}
-      />
-    </label>
+    <div className="bt-studio-settings__field-group">
+      <label className="bt-studio-settings__field">
+        <span className="bt-studio-settings__field-label">{label}</span>
+        <input
+          type="number"
+          className="bt-studio-settings__number-input"
+          value={draft}
+          min={min}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={handleKeyDown}
+        />
+      </label>
+      {helpText && <span className="bt-studio-settings__field-help">{helpText}</span>}
+    </div>
   );
 }
 
@@ -69,21 +73,26 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
             label="Ring Buffer Size"
             value={uiSettings.ringBufferSize}
             onChange={(v) => onUiSettingsChange({ ringBufferSize: v })}
+            helpText="Number of ticks kept in memory for time travel"
           />
           <NumberField
             label="Poll Rate (ms)"
             value={uiSettings.pollRateMs}
             onChange={(v) => onUiSettingsChange({ pollRateMs: v })}
             min={50}
+            helpText="How often the UI polls the server for new ticks"
           />
-          <label className="bt-studio-settings__checkbox-field">
-            <input
-              type="checkbox"
-              checked={uiSettings.showTreeSelectorInToolbar}
-              onChange={(e) => onUiSettingsChange({ showTreeSelectorInToolbar: e.target.checked })}
-            />
-            <span>Show Tree Selector in Toolbar</span>
-          </label>
+          <div className="bt-studio-settings__field-group">
+            <label className="bt-studio-settings__checkbox-field">
+              <input
+                type="checkbox"
+                checked={uiSettings.showTreeSelectorInToolbar}
+                onChange={(e) => onUiSettingsChange({ showTreeSelectorInToolbar: e.target.checked })}
+              />
+              <span>Show Tree Selector in Toolbar</span>
+            </label>
+            <span className="bt-studio-settings__field-help">Display tree picker inline in the toolbar</span>
+          </div>
         </div>
 
         {serverSettings && (
@@ -93,6 +102,7 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
               label="Max Ticks / Tree"
               value={serverSettings.maxTicksPerTree}
               onChange={(v) => onServerSettingsChange({ maxTicksPerTree: v })}
+              helpText="Maximum ticks the server stores per tree"
             />
           </div>
         )}

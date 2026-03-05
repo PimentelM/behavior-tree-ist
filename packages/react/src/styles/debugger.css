@@ -2098,13 +2098,13 @@
 }
 
 .bt-flamegraph__bar--hovered rect:first-child {
-  stroke: color-mix(in srgb, var(--bt-accent-color) 80%, #fff);
+  stroke: color-mix(in srgb, var(--bt-accent-color) 80%, var(--bt-flamegraph-text));
   stroke-width: 1;
 }
 
 .bt-flamegraph__label {
   font-size: 10px;
-  fill: #fff;
+  fill: var(--bt-flamegraph-text);
   pointer-events: none;
   font-family: var(--bt-font-mono);
 }
@@ -2112,6 +2112,10 @@
 .bt-flamegraph__label-time {
   opacity: 0.7;
   font-size: 9px;
+}
+
+.bt-debugger--light .bt-flamegraph__label-time {
+  opacity: 0.85;
 }
 
 .bt-flamegraph__tooltip {
@@ -2945,4 +2949,15 @@
   height: 14px;
   accent-color: var(--bt-accent-color);
   cursor: pointer;
+}
+
+.bt-studio-settings__field-group {
+  margin-bottom: 2px;
+}
+
+.bt-studio-settings__field-help {
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  margin-top: 2px;
+  line-height: 1.3;
 }

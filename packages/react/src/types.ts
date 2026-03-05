@@ -39,6 +39,7 @@ export interface ThemeOverrides {
   textMuted?: string;
   borderColor?: string;
   accentColor?: string;
+  flamegraphText?: string;
   fontFamily?: string;
   fontMono?: string;
 }
