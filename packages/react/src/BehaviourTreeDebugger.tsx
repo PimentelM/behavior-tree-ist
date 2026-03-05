@@ -349,6 +349,8 @@ export function BehaviourTreeDebugger({
     [timeTravelControls, onTickChange],
   );
 
+  const rapidRightRef = useRef<{ count: number; lastTime: number }>({ count: 0, lastTime: 0 });
+
   useEffect(() => {
     const isEditableElement = (el: unknown): boolean => {
       if (!(el instanceof HTMLElement)) return false;
@@ -366,6 +368,9 @@ export function BehaviourTreeDebugger({
       }
       return isEditableElement(active);
     };
+
+    const RAPID_EXIT_THRESHOLD = 2;  // presses at the boundary needed to exit
+    const RAPID_EXIT_WINDOW_MS = 400;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.code === 'Space' || event.key === ' ') && !event.repeat) {
@@ -393,10 +398,36 @@ export function BehaviourTreeDebugger({
         if (isEditableTarget(event.target)) return;
         if (event.key === 'ArrowLeft') {
           event.preventDefault();
+          rapidRightRef.current.count = 0;
           timeTravelControls.stepBack();
         } else {
           if (timeTravelControls.mode !== 'paused') return;
           event.preventDefault();
+
+          const atNewest = timeTravelControls.viewedTickId !== null
+            && timeTravelControls.viewedTickId === timeTravelControls.newestTickId;
+
+          if (atNewest) {
+            const now = Date.now();
+            if (now - rapidRightRef.current.lastTime <= RAPID_EXIT_WINDOW_MS) {
+              rapidRightRef.current.count++;
+            } else {
+              rapidRightRef.current.count = 1;
+            }
+            rapidRightRef.current.lastTime = now;
+
+            if (rapidRightRef.current.count >= RAPID_EXIT_THRESHOLD) {
+              rapidRightRef.current.count = 0;
+              timeTravelControls.jumpToLive();
+              if (timeTravelControls.newestTickId !== undefined) {
+                onTickChange?.(timeTravelControls.newestTickId);
+              }
+              return;
+            }
+          } else {
+            rapidRightRef.current.count = 0;
+          }
+
           timeTravelControls.stepForward();
         }
         return;
