@@ -350,14 +350,16 @@ export function BehaviourTreeDebugger({
   );
 
   useEffect(() => {
-    const isEditableTarget = (target: EventTarget | null): boolean => {
-      if (!(target instanceof HTMLElement)) return false;
-      const tagName = target.tagName;
-      return target.isContentEditable
+    const isEditableElement = (el: unknown): boolean => {
+      if (!(el instanceof HTMLElement)) return false;
+      const tagName = el.tagName;
+      return el.isContentEditable
         || tagName === 'INPUT'
         || tagName === 'TEXTAREA'
         || tagName === 'SELECT';
     };
+    const isEditableTarget = (target: EventTarget | null): boolean =>
+      isEditableElement(target) || isEditableElement(document.activeElement);
 
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.code === 'Space' || event.key === ' ') && !event.repeat) {
