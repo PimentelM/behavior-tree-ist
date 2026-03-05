@@ -9,6 +9,7 @@ import {
     FlameGraphFrame,
     TreeStats,
     NodeProfilingData,
+    CpuTimelineEntry,
     ActivityDisplayMode,
     ActivitySnapshot,
 } from "./types";
@@ -121,6 +122,18 @@ export class TreeInspector {
 
     getPercentileMode(): "sampled" | "exact" {
         return this.profiler.getPercentileMode();
+    }
+
+    getCpuTimeline(): CpuTimelineEntry[] {
+        const tickIds = this.store.getStoredTickIds();
+        const entries: CpuTimelineEntry[] = [];
+        for (const tickId of tickIds) {
+            entries.push({
+                tickId,
+                cpuTime: this.rootCpuByTick.get(tickId) ?? 0,
+            });
+        }
+        return entries;
     }
 
     getFlameGraphFrames(tickId: number): FlameGraphFrame[] {

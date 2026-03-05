@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, type PointerEvent as ReactPointerEvent } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { createPortal } from 'react-dom';
 import type { RefChangeEvent } from '@behavior-tree-ist/core';
@@ -10,14 +10,17 @@ import { useSnapshotOverlay } from './hooks/useSnapshotOverlay';
 import { useTimeTravelControls } from './hooks/useTimeTravelControls';
 import { useNodeDetails } from './hooks/useNodeDetails';
 import { usePerformanceData } from './hooks/usePerformanceData';
+import { useTimelineCpuData } from './hooks/useTimelineCpuData';
 import { DebuggerLayout } from './components/DebuggerLayout';
 import { TreeCanvas } from './components/TreeCanvas';
 import { ToolbarPanel } from './components/panels/ToolbarPanel';
 import { TimelinePanel } from './components/panels/TimelinePanel';
-import type { TickCpuEntry } from './components/panels/TimelinePanel';
 import { NodeDetailPanel } from './components/panels/NodeDetailPanel';
 import { ActivityNowPanel } from './components/panels/ActivityNowPanel';
 import { PerformanceView } from './components/panels/PerformanceView';
+import { buildStudioToolbarFragments } from './components/studio/StudioToolbarControls';
+import { AttachDrawer } from './components/studio/AttachDrawer';
+import { SettingsPanel } from './components/studio/SettingsPanel';
 import { getResultColor } from './constants';
 import { buildTheme, themeToCSSVars } from './styles/theme';
 import type { ActivityBranchData } from './types';
@@ -27,25 +30,21 @@ const SHADOW_BASE_CSS = [
   ':host{display:block;box-sizing:border-box;}',
   ':host *,:host *::before,:host *::after{box-sizing:border-box;}',
 ].join('');
+const ACTIVITY_WINDOW_PADDING = 8;
 type ActivityLabelMode = 'activity' | 'node';
 
-const ACTIVITY_COLLAPSED_KEY = 'bt-studio-activity-collapsed';
+type ActivityWindowPosition = {
+  x: number;
+  y: number;
+};
 
-function readActivityCollapsed(): boolean {
-  try {
-    return localStorage.getItem(ACTIVITY_COLLAPSED_KEY) === 'true';
-  } catch {
-    return false;
-  }
-}
-
-function writeActivityCollapsed(collapsed: boolean): void {
-  try {
-    localStorage.setItem(ACTIVITY_COLLAPSED_KEY, collapsed ? 'true' : 'false');
-  } catch {
-    // ignore
-  }
-}
+type ActivityDragState = {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startX: number;
+  startY: number;
+};
 
 function collectDebuggerStyles(): string {
   if (typeof document === 'undefined') return '';
@@ -95,6 +94,8 @@ export function BehaviourTreeDebugger({
   onNodeSelect,
   onTickChange,
   className,
+  studioControls,
+  emptyState,
 }: BehaviourTreeDebuggerProps) {
   const activityWindowEnabled = panels.activityNow !== false;
   const [internalThemeMode, setInternalThemeMode] = useState<ThemeMode>(defaultThemeMode);
@@ -124,11 +125,17 @@ export function BehaviourTreeDebugger({
   const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
   const [timeFormatOverride, setTimeFormatOverride] = useState<boolean | null>(null);
   const [activityWindowVisible, setActivityWindowVisible] = useState(activityWindowEnabled);
-  const [activityWindowCollapsed, setActivityWindowCollapsed] = useState(readActivityCollapsed);
+  const [activityWindowCollapsed, setActivityWindowCollapsed] = useState(false);
   const [activityOptionsCollapsed, setActivityOptionsCollapsed] = useState(true);
   const [selectedActivityTailNodeId, setSelectedActivityTailNodeId] = useState<number | null>(null);
   const [activityModeState, setActivityModeState] = useState(activityDisplayMode);
   const [activityLabelMode, setActivityLabelMode] = useState<ActivityLabelMode>('activity');
+  const [activityWindowPosition, setActivityWindowPosition] = useState<ActivityWindowPosition | null>(null);
+  const [studioDrawerOpen, setStudioDrawerOpen] = useState(false);
+  const [studioSettingsOpen, setStudioSettingsOpen] = useState(false);
+  const canvasSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const activityWindowRef = useRef<HTMLDivElement | null>(null);
+  const activityDragRef = useRef<ActivityDragState | null>(null);
 
   useEffect(() => {
     setPausedInspector(null);
@@ -229,6 +236,9 @@ export function BehaviourTreeDebugger({
   // Performance data for flamegraph/hot nodes
   const performanceData = usePerformanceData(activeInspector, viewedTickId, tickGeneration, performanceMode);
 
+  // CPU timeline data for sparkline in timeline panel
+  const cpuTimeline = useTimelineCpuData(activeInspector, tickGeneration);
+
   // Collect ref events across all stored ticks for the ref details panel
   const refEvents = useMemo(() => {
     const tickIds = activeInspector.getStoredTickIds();
@@ -246,31 +256,6 @@ export function BehaviourTreeDebugger({
       }
     }
     return events;
-  }, [activeInspector, tickGeneration]);
-
-  // Compute CPU time per tick for sparkline
-  const tickCpuTimes = useMemo((): TickCpuEntry[] => {
-    const tickIds = activeInspector.getStoredTickIds();
-    if (tickIds.length === 0) return [];
-
-    const oldestTickId = tickIds[0];
-    const newestTickId = tickIds[tickIds.length - 1];
-    if (oldestTickId === undefined || newestTickId === undefined) return [];
-
-    const records = activeInspector.getTickRange(oldestTickId, newestTickId);
-    const entries: TickCpuEntry[] = [];
-
-    for (const record of records) {
-      let cpuTime = 0;
-      for (const event of record.events) {
-        if (event.startedAt === undefined || event.finishedAt === undefined) continue;
-        cpuTime += event.finishedAt - event.startedAt;
-      }
-
-      entries.push({ tickId: record.tickId, cpuTimeMs: cpuTime });
-    }
-
-    return entries;
   }, [activeInspector, tickGeneration]);
 
   const activityBranches = useMemo(() => {
@@ -455,12 +440,26 @@ export function BehaviourTreeDebugger({
     setActivityWindowVisible((visible) => !visible);
   }, []);
 
+  const handleOpenStudioDrawer = useCallback(() => {
+    setStudioDrawerOpen((v) => !v);
+    setStudioSettingsOpen(false);
+  }, []);
+
+  const handleCloseStudioDrawer = useCallback(() => {
+    setStudioDrawerOpen(false);
+  }, []);
+
+  const handleOpenStudioSettings = useCallback(() => {
+    setStudioSettingsOpen((v) => !v);
+    setStudioDrawerOpen(false);
+  }, []);
+
+  const handleCloseStudioSettings = useCallback(() => {
+    setStudioSettingsOpen(false);
+  }, []);
+
   const handleToggleActivityWindowCollapsed = useCallback(() => {
-    setActivityWindowCollapsed((collapsed) => {
-      const next = !collapsed;
-      writeActivityCollapsed(next);
-      return next;
-    });
+    setActivityWindowCollapsed((collapsed) => !collapsed);
   }, []);
 
   const handleToggleActivityOptionsCollapsed = useCallback(() => {
@@ -487,6 +486,109 @@ export function BehaviourTreeDebugger({
     setActivityLabelMode('node');
   }, []);
 
+  const clampActivityWindowPosition = useCallback((x: number, y: number): ActivityWindowPosition => {
+    const surface = canvasSurfaceRef.current;
+    const panel = activityWindowRef.current;
+    if (!surface || !panel) {
+      return {
+        x: Math.max(ACTIVITY_WINDOW_PADDING, x),
+        y: Math.max(ACTIVITY_WINDOW_PADDING, y),
+      };
+    }
+
+    const maxX = Math.max(
+      ACTIVITY_WINDOW_PADDING,
+      surface.clientWidth - panel.offsetWidth - ACTIVITY_WINDOW_PADDING,
+    );
+    const maxY = Math.max(
+      ACTIVITY_WINDOW_PADDING,
+      surface.clientHeight - panel.offsetHeight - ACTIVITY_WINDOW_PADDING,
+    );
+
+    return {
+      x: Math.min(Math.max(ACTIVITY_WINDOW_PADDING, x), maxX),
+      y: Math.min(Math.max(ACTIVITY_WINDOW_PADDING, y), maxY),
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!activityWindowEnabled || !activityWindowVisible || performanceMode) return;
+    if (activityWindowPosition !== null) return;
+
+    const frame = requestAnimationFrame(() => {
+      const surface = canvasSurfaceRef.current;
+      const panel = activityWindowRef.current;
+      if (!surface || !panel) {
+        setActivityWindowPosition({ x: ACTIVITY_WINDOW_PADDING, y: ACTIVITY_WINDOW_PADDING });
+        return;
+      }
+
+      setActivityWindowPosition({ x: ACTIVITY_WINDOW_PADDING, y: ACTIVITY_WINDOW_PADDING });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [activityWindowEnabled, activityWindowVisible, performanceMode, activityWindowPosition]);
+
+  useEffect(() => {
+    if (activityWindowPosition === null) return;
+    if (!activityWindowVisible || performanceMode) return;
+
+    setActivityWindowPosition((current) => {
+      if (!current) return current;
+      const clamped = clampActivityWindowPosition(current.x, current.y);
+      if (clamped.x === current.x && clamped.y === current.y) {
+        return current;
+      }
+      return clamped;
+    });
+  }, [layoutVersion, showToolbar, clampActivityWindowPosition, activityWindowPosition, activityWindowVisible, performanceMode]);
+
+  useEffect(() => {
+    const onPointerMove = (event: PointerEvent) => {
+      const drag = activityDragRef.current;
+      if (!drag || event.pointerId !== drag.pointerId) return;
+
+      const nextX = drag.startX + (event.clientX - drag.startClientX);
+      const nextY = drag.startY + (event.clientY - drag.startClientY);
+      setActivityWindowPosition(clampActivityWindowPosition(nextX, nextY));
+    };
+
+    const onPointerEnd = (event: PointerEvent) => {
+      const drag = activityDragRef.current;
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      activityDragRef.current = null;
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerEnd);
+    window.addEventListener('pointercancel', onPointerEnd);
+
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerEnd);
+      window.removeEventListener('pointercancel', onPointerEnd);
+    };
+  }, [clampActivityWindowPosition]);
+
+  const handleActivityWindowDragStart = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+
+    const start = activityWindowPosition ?? { x: ACTIVITY_WINDOW_PADDING, y: ACTIVITY_WINDOW_PADDING };
+    activityDragRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: start.x,
+      startY: start.y,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, [activityWindowPosition]);
+
+  const handleActivityWindowControlPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+  }, []);
+
   const collapsedActivityBranch = useMemo(() => {
     const branch = activityBranches[activityBranches.length - 1];
     return branch;
@@ -508,7 +610,6 @@ export function BehaviourTreeDebugger({
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
   const showPerformance = panels.performance !== false;
-  const showActivityPanel = activityWindowEnabled && activityWindowVisible && !performanceMode;
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
   const [shadowStyles, setShadowStyles] = useState('');
@@ -534,120 +635,12 @@ export function BehaviourTreeDebugger({
     return () => observer.disconnect();
   }, [isolateStyles]);
 
-  const activityPanelElement = showActivityPanel ? (
-    <div className="bt-activity-inline">
-      <div className="bt-activity-inline__header">
-        {activityWindowCollapsed ? (
-          <span className="bt-activity-inline__title">
-            <span>Current Activity:</span>
-            <span className="bt-activity-inline__summary">
-              <span
-                className="bt-activity-inline__summary-dot"
-                style={{ backgroundColor: collapsedActivityResultColor }}
-                aria-hidden="true"
-              />
-              <span className="bt-activity-inline__summary-text">{collapsedActivityEntry}</span>
-            </span>
-          </span>
-        ) : (
-          <span className="bt-activity-inline__title">Current Activity</span>
-        )}
-        <div className="bt-activity-inline__controls">
-          <button
-            type="button"
-            className="bt-activity-inline__control"
-            onClick={handleToggleActivityOptionsCollapsed}
-            aria-label={activityOptionsCollapsed ? 'Show activity options menu' : 'Hide activity options menu'}
-            title={activityOptionsCollapsed ? 'Show activity options menu' : 'Hide activity options menu'}
-          >
-            {activityOptionsCollapsed ? '\u2699' : '\u22EF'}
-          </button>
-          <button
-            type="button"
-            className="bt-activity-inline__control"
-            onClick={handleToggleActivityWindowCollapsed}
-            aria-label={activityWindowCollapsed ? 'Expand current activity panel' : 'Collapse current activity panel'}
-            title={activityWindowCollapsed ? 'Expand current activity panel' : 'Collapse current activity panel'}
-          >
-            {activityWindowCollapsed ? '\u25BE' : '-'}
-          </button>
-        </div>
-      </div>
-      {!activityWindowCollapsed && !activityOptionsCollapsed && (
-        <div className="bt-activity-inline__settings">
-          <div
-            className="bt-activity-inline__segmented"
-            role="group"
-            aria-label="Activity result filter mode"
-          >
-            <button
-              type="button"
-              className={`bt-activity-inline__segment ${activityModeState === 'running' ? 'bt-activity-inline__segment--active' : ''}`}
-              onClick={handleSetRunningMode}
-              title="Show only Running activity entries"
-              aria-label="Show only running activities"
-            >
-              R
-            </button>
-            <button
-              type="button"
-              className={`bt-activity-inline__segment ${activityModeState === 'running_or_success' ? 'bt-activity-inline__segment--active' : ''}`}
-              onClick={handleSetRunningOrSuccessMode}
-              title="Show Running and Succeeded activity entries"
-              aria-label="Show running and success activities"
-            >
-              R+S
-            </button>
-            <button
-              type="button"
-              className={`bt-activity-inline__segment ${activityModeState === 'all' ? 'bt-activity-inline__segment--active' : ''}`}
-              onClick={handleSetAllMode}
-              title="Show all activity entries"
-              aria-label="Show all activities"
-            >
-              All
-            </button>
-          </div>
-          <div
-            className="bt-activity-inline__segmented"
-            role="group"
-            aria-label="Activity text source"
-          >
-            <button
-              type="button"
-              className={`bt-activity-inline__segment ${activityLabelMode === 'activity' ? 'bt-activity-inline__segment--active' : ''}`}
-              onClick={handleSetActivityLabelMode}
-              title="Show activity labels"
-              aria-label="Show activity labels"
-            >
-              Activity
-            </button>
-            <button
-              type="button"
-              className={`bt-activity-inline__segment ${activityLabelMode === 'node' ? 'bt-activity-inline__segment--active' : ''}`}
-              onClick={handleSetNodeLabelMode}
-              title="Show node names"
-              aria-label="Show node names"
-            >
-              Node
-            </button>
-          </div>
-        </div>
-      )}
-      {!activityWindowCollapsed && (
-        <div className="bt-activity-inline__body">
-          <ActivityNowPanel
-            branches={activityBranches}
-            onSelectBranch={handleSelectActivityBranch}
-            selectedTailNodeId={selectedActivityTailNodeId}
-            getBranchText={getActivityBranchText}
-            variant="inline"
-            showTitle={false}
-          />
-        </div>
-      )}
-    </div>
-  ) : null;
+  const isEmptyTree = emptyState !== undefined
+    && (!tree.children || tree.children.length === 0);
+
+  const studioToolbar = studioControls
+    ? buildStudioToolbarFragments(studioControls, handleOpenStudioDrawer, handleOpenStudioSettings)
+    : null;
 
   const content = (
     <ReactFlowProvider>
@@ -655,12 +648,14 @@ export function BehaviourTreeDebugger({
         showSidebar={showSidebar}
         showTimeline={showTimeline}
         showToolbar={showToolbar}
-        showActivityPanel={showActivityPanel}
         toolbar={
           showToolbar ? (
             <ToolbarPanel
               showSidebar={showSidebar}
               actions={toolbarActions}
+              studioSection={studioToolbar?.leading}
+              settingsButton={studioToolbar?.trailing}
+              connectionBadge={studioToolbar?.connectionBadge}
               showThemeToggle={showThemeToggle}
               themeMode={themeMode}
               onToggleTheme={handleToggleTheme}
@@ -679,10 +674,11 @@ export function BehaviourTreeDebugger({
             />
           ) : null
         }
-        activityPanel={activityPanelElement}
         canvas={
-          <div className="bt-canvas-surface">
-            {performanceMode ? (
+          <div className="bt-canvas-surface" ref={canvasSurfaceRef}>
+            {isEmptyTree ? (
+              <div className="bt-canvas-surface__empty-state">{emptyState}</div>
+            ) : performanceMode ? (
               <PerformanceView
                 frames={performanceData.frames}
                 hotNodes={performanceData.hotNodes}
@@ -704,6 +700,150 @@ export function BehaviourTreeDebugger({
                 onNodeClick={handleNodeClick}
               />
             )}
+
+            {studioControls && studioDrawerOpen && (
+              <AttachDrawer controls={studioControls} onClose={handleCloseStudioDrawer} />
+            )}
+
+            {studioControls && studioSettingsOpen && (
+              <SettingsPanel
+                serverSettings={studioControls.serverSettings}
+                uiSettings={studioControls.uiSettings}
+                onServerSettingsChange={studioControls.onServerSettingsChange}
+                onUiSettingsChange={studioControls.onUiSettingsChange}
+                onClose={handleCloseStudioSettings}
+              />
+            )}
+
+            {!performanceMode && activityWindowEnabled && activityWindowVisible && (
+              <div
+                className={`bt-canvas-surface__activity ${activityWindowCollapsed ? 'bt-canvas-surface__activity--collapsed' : ''}`}
+                ref={activityWindowRef}
+                style={{
+                  transform: `translate(${activityWindowPosition?.x ?? ACTIVITY_WINDOW_PADDING}px, ${activityWindowPosition?.y ?? ACTIVITY_WINDOW_PADDING}px)`,
+                }}
+              >
+                <div
+                  className="bt-canvas-surface__activity-header"
+                  onPointerDown={handleActivityWindowDragStart}
+                  title="Drag current activity window"
+                >
+                  {activityWindowCollapsed ? (
+                    <span className="bt-canvas-surface__activity-title">
+                      <span>Current Activity:</span>
+                      <span className="bt-canvas-surface__activity-summary">
+                        <span
+                          className="bt-canvas-surface__activity-summary-dot"
+                          style={{ backgroundColor: collapsedActivityResultColor }}
+                          aria-hidden="true"
+                        />
+                        <span className="bt-canvas-surface__activity-summary-text">{collapsedActivityEntry}</span>
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="bt-canvas-surface__activity-title">Current Activity</span>
+                  )}
+                  <div className="bt-canvas-surface__activity-controls">
+                    <button
+                      type="button"
+                      className="bt-canvas-surface__activity-control"
+                      onPointerDown={handleActivityWindowControlPointerDown}
+                      onClick={handleToggleActivityOptionsCollapsed}
+                      aria-label={activityOptionsCollapsed ? 'Show activity options menu' : 'Hide activity options menu'}
+                      title={activityOptionsCollapsed ? 'Show activity options menu' : 'Hide activity options menu'}
+                    >
+                      {activityOptionsCollapsed ? '⚙' : '⋯'}
+                    </button>
+                    <button
+                      type="button"
+                      className="bt-canvas-surface__activity-control"
+                      onPointerDown={handleActivityWindowControlPointerDown}
+                      onClick={handleToggleActivityWindowCollapsed}
+                      aria-label={activityWindowCollapsed ? 'Expand current activity window' : 'Collapse current activity window'}
+                      title={activityWindowCollapsed ? 'Expand current activity window' : 'Collapse current activity window'}
+                    >
+                      {activityWindowCollapsed ? '▾' : '-'}
+                    </button>
+                  </div>
+                </div>
+                {!activityWindowCollapsed && !activityOptionsCollapsed && (
+                  <div className="bt-canvas-surface__activity-settings">
+                    <div
+                      className="bt-canvas-surface__activity-segmented"
+                      role="group"
+                      aria-label="Activity result filter mode"
+                    >
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityModeState === 'running' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetRunningMode}
+                        title="Show only Running activity entries"
+                        aria-label="Show only running activities"
+                      >
+                        R
+                      </button>
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityModeState === 'running_or_success' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetRunningOrSuccessMode}
+                        title="Show Running and Succeeded activity entries"
+                        aria-label="Show running and success activities"
+                      >
+                        R+S
+                      </button>
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityModeState === 'all' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetAllMode}
+                        title="Show all activity entries"
+                        aria-label="Show all activities"
+                      >
+                        All
+                      </button>
+                    </div>
+                    <div
+                      className="bt-canvas-surface__activity-segmented"
+                      role="group"
+                      aria-label="Activity text source"
+                    >
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityLabelMode === 'activity' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetActivityLabelMode}
+                        title="Show activity labels"
+                        aria-label="Show activity labels"
+                      >
+                        Activity
+                      </button>
+                      <button
+                        type="button"
+                        className={`bt-canvas-surface__activity-segment ${activityLabelMode === 'node' ? 'bt-canvas-surface__activity-segment--active' : ''}`}
+                        onPointerDown={handleActivityWindowControlPointerDown}
+                        onClick={handleSetNodeLabelMode}
+                        title="Show node names"
+                        aria-label="Show node names"
+                      >
+                        Node
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {!activityWindowCollapsed && (
+                  <ActivityNowPanel
+                    branches={activityBranches}
+                    onSelectBranch={handleSelectActivityBranch}
+                    selectedTailNodeId={selectedActivityTailNodeId}
+                    getBranchText={getActivityBranchText}
+                    variant="floating"
+                    showTitle={false}
+                  />
+                )}
+              </div>
+            )}
           </div>
         }
         sidebar={
@@ -724,9 +864,9 @@ export function BehaviourTreeDebugger({
           showTimeline ? (
             <TimelinePanel
               controls={timeTravelControls}
+              cpuTimeline={cpuTimeline}
               displayTimeAsTimestamp={displayTimeAsTimestamp}
               onTickChange={onTickChange}
-              tickCpuTimes={tickCpuTimes}
             />
           ) : null
         }

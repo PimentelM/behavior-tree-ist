@@ -1,10 +1,26 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { NodeFlags, NodeResult } from '@behavior-tree-ist/core';
 import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
 import { BehaviourTreeDebugger } from '../BehaviourTreeDebugger';
 import type { BTNodeData, BTEdgeData } from '../types';
 import type { Node, Edge } from '@xyflow/react';
+
+// jsdom lacks PointerEvent — polyfill so pointerId propagates correctly
+beforeAll(() => {
+  if (typeof globalThis.PointerEvent === 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
+      readonly pointerId: number;
+      readonly pointerType: string;
+      constructor(type: string, init: PointerEventInit & MouseEventInit = {}) {
+        super(type, init);
+        this.pointerId = init.pointerId ?? 0;
+        this.pointerType = init.pointerType ?? '';
+      }
+    };
+  }
+});
 
 vi.mock('../components/TreeCanvas', () => ({
   TreeCanvas: ({
@@ -171,7 +187,7 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Switch to performance view' }));
     expect(screen.getByText('Approx')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Pause and enter time travel' }));
+    fireEvent.click(screen.getByRole('button', { name: '◀' }));
 
     await waitFor(() => {
       expect(screen.queryByText('Approx')).toBeNull();

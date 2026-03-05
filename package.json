@@ -5,14 +5,20 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn typecheck && yarn workspace @behavior-tree-ist/core run build && yarn workspace @behavior-tree-ist/react run build",
+    "build": "yarn workspaces foreach -Atv run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint packages/*/src",
-    "typecheck": "yarn workspace @behavior-tree-ist/core run typecheck && yarn workspace @behavior-tree-ist/react run typecheck"
+    "typecheck": "yarn workspaces foreach -Atv run typecheck",
+    "check": "yarn typecheck && yarn lint && yarn build && yarn test",
+    "demo": "node packages/studio-cli/dist/index.js demo",
+    "dev:server": "yarn workspace @behavior-tree-ist/studio-server dev",
+    "dev:ui": "yarn workspace @behavior-tree-ist/studio-ui dev",
+    "dev": "concurrently -n server,ui,demo \"yarn dev:server\" \"yarn dev:ui\" \"sleep 3 && yarn demo\""
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.7.0",

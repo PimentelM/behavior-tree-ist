@@ -43,9 +43,12 @@
     "@testing-library/react": "^16",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^9.0.0",
     "jsdom": "^25",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
   },
   "keywords": [
     "behaviour-tree",

@@ -1,5 +1,7 @@
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback } from 'react';
+import type { CpuTimelineEntry } from '@behavior-tree-ist/core/inspector';
 import type { TimeTravelControls } from '../../types';
+import { CpuSparkline } from './CpuSparkline';
 
 function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
   if (now === null) return null;
@@ -13,64 +15,18 @@ function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): str
   return `${hh}:${mm}:${ss}`;
 }
 
-export interface TickCpuEntry {
-  tickId: number;
-  cpuTimeMs: number;
-}
-
 interface TimelinePanelProps {
   controls: TimeTravelControls;
+  cpuTimeline: CpuTimelineEntry[];
   displayTimeAsTimestamp: boolean;
   onTickChange?: (tickId: number) => void;
-  tickCpuTimes?: TickCpuEntry[];
-}
-
-function CpuSparkline({ entries, viewedTickId }: { entries: TickCpuEntry[]; viewedTickId: number | null }) {
-  const svgContent = useMemo(() => {
-    if (entries.length === 0) return null;
-
-    const maxCpu = Math.max(...entries.map((e) => e.cpuTimeMs));
-    if (maxCpu === 0) return null;
-
-    const barWidth = 100 / entries.length;
-    const bars = entries.map((entry, i) => {
-      const heightPct = (entry.cpuTimeMs / maxCpu) * 100;
-      const isCurrent = entry.tickId === viewedTickId;
-      return (
-        <rect
-          key={entry.tickId}
-          x={`${i * barWidth}%`}
-          y={`${100 - heightPct}%`}
-          width={`${Math.max(barWidth, 0.5)}%`}
-          height={`${heightPct}%`}
-          fill={isCurrent ? 'var(--bt-accent-color)' : 'var(--bt-text-muted)'}
-          opacity={isCurrent ? 0.5 : 0.15}
-        />
-      );
-    });
-
-    return bars;
-  }, [entries, viewedTickId]);
-
-  if (!svgContent) return null;
-
-  return (
-    <svg
-      className="bt-timeline__sparkline"
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      {svgContent}
-    </svg>
-  );
 }
 
 function TimelinePanelInner({
   controls,
+  cpuTimeline,
   displayTimeAsTimestamp,
   onTickChange,
-  tickCpuTimes,
 }: TimelinePanelProps) {
   const {
     mode,
@@ -111,8 +67,6 @@ function TimelinePanelInner({
       onTickChange?.(newestTickId);
     }
   }, [jumpToLive, newestTickId, onTickChange]);
-
-  const hasCpuData = tickCpuTimes && tickCpuTimes.length > 0;
 
   return (
     <div className="bt-timeline">
@@ -166,11 +120,10 @@ function TimelinePanelInner({
       </div>
 
       <div className="bt-timeline__scrubber">
-        {hasCpuData ? (
-          <CpuSparkline entries={tickCpuTimes} viewedTickId={viewedTickId} />
-        ) : (
-          <span className="bt-timeline__sparkline-hint">Enable profiling for CPU timeline</span>
-        )}
+        <CpuSparkline
+          entries={cpuTimeline}
+          viewedTickId={viewedTickId}
+        />
         {hasTicks ? (
           <input
             type="range"

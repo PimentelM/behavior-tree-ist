@@ -16,16 +16,6 @@
         "default": "./dist/index.js"
       }
     },
-    "./builder": {
-      "import": {
-        "types": "./dist/builder.d.mts",
-        "default": "./dist/builder.mjs"
-      },
-      "require": {
-        "types": "./dist/builder.d.ts",
-        "default": "./dist/builder.js"
-      }
-    },
     "./tsx": {
       "import": {
         "types": "./dist/tsx.d.mts",
@@ -46,14 +36,14 @@
         "default": "./dist/inspector.js"
       }
     },
-    "./activity": {
+    "./demos": {
       "import": {
-        "types": "./dist/activity.d.mts",
-        "default": "./dist/activity.mjs"
+        "types": "./dist/demos.d.mts",
+        "default": "./dist/demos.mjs"
       },
       "require": {
-        "types": "./dist/activity.d.ts",
-        "default": "./dist/activity.js"
+        "types": "./dist/demos.d.ts",
+        "default": "./dist/demos.js"
       }
     }
   },
@@ -81,5 +71,11 @@
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
   }
 }

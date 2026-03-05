@@ -89,6 +89,12 @@ export interface FlameGraphFrame {
     children: FlameGraphFrame[];
 }
 
+/** Per-tick CPU time entry for timeline sparkline */
+export interface CpuTimelineEntry {
+    tickId: number;
+    cpuTime: number;
+}
+
 /** Aggregate statistics for the inspector */
 export interface TreeStats {
     nodeCount: number;

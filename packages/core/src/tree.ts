@@ -1,6 +1,7 @@
 import { BTNode, TickContext, TickTraceEvent, SerializableNode, TickRecord, TickRuntime } from "./base";
 import { RefChangeEvent } from "./base/types";
 import { serializeTree } from "./serialization/serializer";
+import { OffFunction } from "./types";
 
 type PublicTickContext = {
     now?: number;
@@ -11,8 +12,9 @@ export class BehaviourTree {
 
     public readonly treeId: number = BehaviourTree.NEXT_TREE_ID++;
     private currentTickId: number = 1;
-    private root: BTNode;
+    private readonly root: BTNode;
     private stateTraceEnabled: boolean = false;
+    private profilingEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
 
     private runtime: TickRuntime = {
@@ -26,6 +28,14 @@ export class BehaviourTree {
         this.root = root;
     }
 
+    public get isStateTraceEnabled(): boolean {
+        return this.stateTraceEnabled;
+    }
+
+    public get isProfilingEnabled(): boolean {
+        return this.profilingEnabled;
+    }
+
     public enableStateTrace(): BehaviourTree {
         this.stateTraceEnabled = true;
         return this;
@@ -36,13 +46,18 @@ export class BehaviourTree {
         return this;
     }
 
-    public enableProfiling(getTime: () => number): BehaviourTree {
-        this.profilingTimeProvider = getTime;
+    public enableProfiling(): BehaviourTree {
+        this.profilingEnabled = true;
         return this;
     }
 
     public disableProfiling(): BehaviourTree {
-        this.profilingTimeProvider = undefined;
+        this.profilingEnabled = false;
+        return this;
+    }
+
+    public setProfilingTimeProvider(provider: () => number): BehaviourTree {
+        this.profilingTimeProvider = provider;
         return this;
     }
 
@@ -59,6 +74,7 @@ export class BehaviourTree {
         const refEvents: RefChangeEvent[] = [];
         const now = pCtx.now ?? Date.now();
         const tickId = this.currentTickId;
+
         const ctx: TickContext = {
             tickId,
             now,
@@ -86,7 +102,7 @@ export class BehaviourTree {
 
                 events.push(event);
             },
-            getTime: this.profilingTimeProvider,
+            getTime: this.profilingEnabled ? this.profilingTimeProvider : undefined,
         }
 
         // Pick up pending ref events from between ticks
@@ -113,7 +129,21 @@ export class BehaviourTree {
         }
 
         this.currentTickId++;
-        return { tickId, timestamp: now, events, refEvents };
+        const tickRecord = { tickId, timestamp: now, events, refEvents };
+        this.emitTickRecord(tickRecord);
+        return tickRecord;
     }
 
+
+    // Events
+    private tickRecordListeners = new Set<(record: TickRecord) => void>();
+    private emitTickRecord(record: TickRecord): void {
+        for (const listener of this.tickRecordListeners) {
+            listener(record);
+        }
+    }
+    public onTickRecord(handler: (record: TickRecord) => void): OffFunction {
+        this.tickRecordListeners.add(handler);
+        return () => this.tickRecordListeners.delete(handler);
+    }
 }
