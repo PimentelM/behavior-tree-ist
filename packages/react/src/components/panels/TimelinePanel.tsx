@@ -1,5 +1,7 @@
 import { memo, useCallback } from 'react';
+import type { CpuTimelineEntry } from '@behavior-tree-ist/core/inspector';
 import type { TimeTravelControls } from '../../types';
+import { CpuSparkline } from './CpuSparkline';
 
 function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
   if (now === null) return null;
@@ -15,12 +17,14 @@ function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): str
 
 interface TimelinePanelProps {
   controls: TimeTravelControls;
+  cpuTimeline: CpuTimelineEntry[];
   displayTimeAsTimestamp: boolean;
   onTickChange?: (tickId: number) => void;
 }
 
 function TimelinePanelInner({
   controls,
+  cpuTimeline,
   displayTimeAsTimestamp,
   onTickChange,
 }: TimelinePanelProps) {
@@ -116,6 +120,12 @@ function TimelinePanelInner({
       </div>
 
       <div className="bt-timeline__scrubber">
+        <CpuSparkline
+          entries={cpuTimeline}
+          viewedTickId={viewedTickId}
+          oldestTickId={oldestTickId}
+          newestTickId={newestTickId}
+        />
         {hasTicks ? (
           <input
             type="range"
