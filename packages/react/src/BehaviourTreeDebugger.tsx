@@ -10,6 +10,7 @@ import { useSnapshotOverlay } from './hooks/useSnapshotOverlay';
 import { useTimeTravelControls } from './hooks/useTimeTravelControls';
 import { useNodeDetails } from './hooks/useNodeDetails';
 import { usePerformanceData } from './hooks/usePerformanceData';
+import { useTimelineCpuData } from './hooks/useTimelineCpuData';
 import { DebuggerLayout } from './components/DebuggerLayout';
 import { TreeCanvas } from './components/TreeCanvas';
 import { ToolbarPanel } from './components/panels/ToolbarPanel';
@@ -234,6 +235,9 @@ export function BehaviourTreeDebugger({
 
   // Performance data for flamegraph/hot nodes
   const performanceData = usePerformanceData(activeInspector, viewedTickId, tickGeneration, performanceMode);
+
+  // CPU timeline data for sparkline in timeline panel
+  const cpuTimeline = useTimelineCpuData(activeInspector, tickGeneration);
 
   // Collect ref events across all stored ticks for the ref details panel
   const refEvents = useMemo(() => {
@@ -860,6 +864,7 @@ export function BehaviourTreeDebugger({
           showTimeline ? (
             <TimelinePanel
               controls={timeTravelControls}
+              cpuTimeline={cpuTimeline}
               displayTimeAsTimestamp={displayTimeAsTimestamp}
               onTickChange={onTickChange}
             />

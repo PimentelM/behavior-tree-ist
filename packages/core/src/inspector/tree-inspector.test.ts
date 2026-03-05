@@ -409,6 +409,37 @@ describe("TreeInspector", () => {
         expect(frozenData.selfCpuP95).toBe(2);
     });
 
+    it("getCpuTimeline returns per-tick root CPU times in order", () => {
+        const inspector = new TreeInspector({ maxTicks: 5 });
+        inspector.indexTree(makeTree());
+
+        inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 25 }]));
+        inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 5 }]));
+
+        const timeline = inspector.getCpuTimeline();
+        expect(timeline).toEqual([
+            { tickId: 1, cpuTime: 10 },
+            { tickId: 2, cpuTime: 25 },
+            { tickId: 3, cpuTime: 5 },
+        ]);
+    });
+
+    it("getCpuTimeline reflects eviction", () => {
+        const inspector = new TreeInspector({ maxTicks: 2 });
+        inspector.indexTree(makeTree());
+
+        inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]));
+        inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]));
+        inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 30 }]));
+
+        const timeline = inspector.getCpuTimeline();
+        expect(timeline).toEqual([
+            { tickId: 2, cpuTime: 20 },
+            { tickId: 3, cpuTime: 30 },
+        ]);
+    });
+
     it("cloneForTimeTravel can preserve sampled percentiles when exact recompute is disabled", () => {
         const inspector = new TreeInspector({ maxTicks: 2 });
         inspector.indexTree(makeTree());

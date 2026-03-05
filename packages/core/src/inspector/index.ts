@@ -10,6 +10,7 @@ export type {
     TreeInspectorOptions,
     FlameGraphFrame,
     TreeStats,
+    CpuTimelineEntry,
     ActivityDisplayMode,
     ActivityBranch,
     ActivitySnapshot,
