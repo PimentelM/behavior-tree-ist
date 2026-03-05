@@ -97,7 +97,7 @@ function TreeCanvasInner({
     if (!flowInstance || renderNodes.length === 0) return;
 
     const frame = requestAnimationFrame(() => {
-      flowInstance.fitView({ padding: 0.2 });
+      flowInstance.fitView({ padding: 0.2, maxZoom: 1.2 });
     });
 
     return () => cancelAnimationFrame(frame);
@@ -109,7 +109,7 @@ function TreeCanvasInner({
     if (lastCenterSignalRef.current === centerTreeSignal) return;
 
     lastCenterSignalRef.current = centerTreeSignal;
-    flowInstance.fitView({ padding: 0.2, duration: 220 });
+    flowInstance.fitView({ padding: 0.2, duration: 220, maxZoom: 1.2 });
   }, [flowInstance, renderNodes.length, centerTreeSignal]);
 
   useEffect(() => {
