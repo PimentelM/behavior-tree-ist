@@ -5,7 +5,9 @@
       "args": [
         "@playwright/mcp",
         "--browser",
-        "chromium"
+        "chromium",
+        "--viewport-size",
+        "1920x1080"
       ]
     }
   }
