@@ -3,9 +3,9 @@ import {
   TreeRegistry,
   StudioLink,
   StudioAgent,
-} from '@behavior-tree-ist/core'
-import { createCpuHeavyTree } from '@behavior-tree-ist/core/demos'
-import { WsNodeStringTransport } from '@behavior-tree-ist/studio-transport/node'
+} from '@bt-studio/core'
+import { createCpuHeavyTree } from '@bt-studio/core/demos'
+import { WsNodeStringTransport } from '@bt-studio/studio-transport/node'
 
 export const demoCommand = defineCommand({
   meta: {

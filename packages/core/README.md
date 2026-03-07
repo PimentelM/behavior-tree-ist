@@ -1,6 +1,6 @@
-# behavior-tree-ist
+# Behavior Tree Studio
 
-A code-first TypeScript behaviour tree library focused on developer experience.
+Code-first, dependency-free Behavior Tree library for TypeScript focused on user experience, with a graphical interface for tracing, profiling and debugging.
 
 ## Features
 
@@ -15,11 +15,11 @@ A code-first TypeScript behaviour tree library focused on developer experience.
 ## Quick Start
 
 ```bash
-npm install @behavior-tree-ist/core
+npm install @bt-studio/core
 ```
 
 ```typescript
-import { BehaviourTree, NodeResult, fallback, sequence, condition, action } from '@behavior-tree-ist/core';
+import { BehaviourTree, NodeResult, fallback, sequence, condition, action } from '@bt-studio/core';
 
 const entity = { health: 100, inDanger: false };
 
@@ -49,7 +49,7 @@ The same tree can be expressed in three equivalent styles:
 **Direct instantiation:**
 
 ```typescript
-import { Fallback, Sequence, ConditionNode, Action, NodeResult } from '@behavior-tree-ist/core';
+import { Fallback, Sequence, ConditionNode, Action, NodeResult } from '@bt-studio/core';
 
 const flee = Sequence.from('Flee', [
   ConditionNode.from('In danger?', () => entity.inDanger),
@@ -62,7 +62,7 @@ const root = Fallback.from([flee, patrol]);
 **Builder functions:**
 
 ```typescript
-import { fallback, sequence, condition, action } from '@behavior-tree-ist/core';
+import { fallback, sequence, condition, action } from '@bt-studio/core';
 
 const root = fallback({}, [
   sequence({ name: 'Flee' }, [
@@ -76,7 +76,7 @@ const root = fallback({}, [
 **TSX:**
 
 ```tsx
-import { BT } from '@behavior-tree-ist/core/tsx';
+import { BT } from '@bt-studio/core/tsx';
 
 const root = (
   <fallback>
@@ -93,9 +93,9 @@ const root = (
 
 | Entry point | Description |
 |---|---|
-| `@behavior-tree-ist/core` | Core library: all node classes, builder functions, `BehaviourTree`, and activity projection |
-| `@behavior-tree-ist/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
-| `@behavior-tree-ist/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
+| `@bt-studio/core` | Core library: all node classes, builder functions, `BehaviourTree`, and activity projection |
+| `@bt-studio/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
+| `@bt-studio/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
 
 ## Documentation
 
@@ -114,8 +114,8 @@ const root = (
 
 ## Roadmap
 
-- **React Visualization** (`@behavior-tree-ist/react`) - Real-time tree visualization and time-travel debugging
-- **Studio App** (`@behavior-tree-ist/studio`) - Standalone debugging UI with recording and playback
+- **React Visualization** (`@bt-studio/react`) - Real-time tree visualization and time-travel debugging
+- **Studio App** (`@bt-studio/studio`) - Standalone debugging UI with recording and playback
 
 See [docs/roadmap.md](docs/roadmap.md) for details.
 

@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useMemo, type UIEvent } from 'react';
-import type { NodeProfilingData, TreeIndex } from '@behavior-tree-ist/core/inspector';
+import type { NodeProfilingData, TreeIndex } from '@bt-studio/core/inspector';
 import { formatMs } from '../../utils/format';
 
 const DEFAULT_VISIBLE = 20;

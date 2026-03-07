@@ -1,4 +1,4 @@
-import { InboundMessage, OutboundMessage, TransportData } from '@behavior-tree-ist/core';
+import { InboundMessage, OutboundMessage, TransportData } from '@bt-studio/core';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

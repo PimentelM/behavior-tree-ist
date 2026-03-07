@@ -1,5 +1,5 @@
-import { OutboundMessage } from '@behavior-tree-ist/core';
-import { MessageType } from '@behavior-tree-ist/core';
+import { OutboundMessage } from '@bt-studio/core';
+import { MessageType } from '@bt-studio/core';
 import { Connection, Server } from '../_lib/connection';
 import { MessageHandler as GenericMessageHandler, MessageRouterInterface as GenericMessageRouterInterface } from '../_lib/router';
 

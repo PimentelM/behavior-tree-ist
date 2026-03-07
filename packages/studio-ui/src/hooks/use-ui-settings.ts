@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { StudioUiSettings } from '@behavior-tree-ist/react';
+import type { StudioUiSettings } from '@bt-studio/react';
 
 const STORAGE_KEY = 'bt-studio-ui-settings';
 

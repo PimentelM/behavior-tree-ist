@@ -1,5 +1,5 @@
 import { memo, useState, useCallback, useMemo } from 'react';
-import type { FlameGraphFrame } from '@behavior-tree-ist/core/inspector';
+import type { FlameGraphFrame } from '@bt-studio/core/inspector';
 import { formatMs } from '../../utils/format';
 
 const BAR_HEIGHT = 20;

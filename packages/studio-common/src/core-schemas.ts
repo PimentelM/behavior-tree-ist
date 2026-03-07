@@ -14,7 +14,7 @@ import {
     TickRecord,
     TickTraceEvent,
     TreeStatuses,
-} from '@behavior-tree-ist/core';
+} from '@bt-studio/core';
 import { z } from 'zod';
 
 export const MessageTypeSchema = z.union([

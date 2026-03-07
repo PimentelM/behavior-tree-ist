@@ -12,7 +12,7 @@ Planned features and their current status.
 
 ## React Visualization Component
 
-`@behavior-tree-ist/react` - A React component for real-time tree execution visualization. See [React Debugger docs](react-debugger.md).
+`@bt-studio/react` - A React component for real-time tree execution visualization. See [React Debugger docs](react-debugger.md).
 
 - Live tree rendering with node status coloring
 - Time-travel debugging: navigate previous ticks and inspect full tree state at any point
@@ -23,7 +23,7 @@ Planned features and their current status.
 
 ## Studio Application
 
-`@behavior-tree-ist/studio` - A standalone debugging app built on the React visualization component.
+`@bt-studio/studio` - A standalone debugging app built on the React visualization component.
 
 - Connect to running behavior trees via WebSocket or other transports
 - Tick recording and playback
@@ -32,7 +32,7 @@ Planned features and their current status.
 
 ## AI-Ready Integrations ( Draft )
 
-Make `behavior-tree-ist` first-class for AI agents implementing and debugging behavior trees.
+Make `bt-studio` first-class for AI agents implementing and debugging behavior trees.
 
 ### Phase 1 - MCP foundation
 

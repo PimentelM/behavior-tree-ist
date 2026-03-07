@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { UiInboundMessageSchema } from '@behavior-tree-ist/studio-common';
-import type { UiInboundMessage } from '@behavior-tree-ist/studio-common';
+import { UiInboundMessageSchema } from '@bt-studio/studio-common';
+import type { UiInboundMessage } from '@bt-studio/studio-common';
 
 export type WsEvent = UiInboundMessage | { t: 'reconnect' };
 export type WsListener = (event: WsEvent) => void;

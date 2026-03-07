@@ -3,4 +3,4 @@ export {
     SessionRecord,
     TreeRecord,
     SettingsRecord
-} from '@behavior-tree-ist/studio-common';
+} from '@bt-studio/studio-common';

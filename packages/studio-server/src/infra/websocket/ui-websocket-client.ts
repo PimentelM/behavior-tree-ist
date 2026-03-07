@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { UiInboundMessage, UiOutboundMessage, UiOutboundMessageSchema } from '@behavior-tree-ist/studio-common';
+import { UiInboundMessage, UiOutboundMessage, UiOutboundMessageSchema } from '@bt-studio/studio-common';
 import { createLogger } from '../logging';
 import { GenericWebSocketClient } from '../../_lib/server/generic-ws-client';
 import type { ConnectionSerializer } from '../../_lib/connection';

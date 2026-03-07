@@ -139,7 +139,7 @@ The library provides a `Ref<T>` primitive for type-safe, auto-traced state shari
 A mutable container with automatic tracing. When a named ref is written during a tick and state trace is enabled, a `RefChangeEvent` is pushed to the ambient `TickContext.refEvents`.
 
 ```typescript
-import { ref } from '@behavior-tree-ist/core';
+import { ref } from '@bt-studio/core';
 
 const health = ref(100, 'health');  // Named ref (traced)
 const scratch = ref(0);             // Unnamed ref (untraced, lightweight)
@@ -154,7 +154,7 @@ health.set(50, ctx); // Explicit ctx — for async actions where ambient ctx isn
 A read-only view of a `Ref`. Use `.asReadonly()` or the `readonlyRef()` factory:
 
 ```typescript
-import { ref, readonlyRef } from '@behavior-tree-ist/core';
+import { ref, readonlyRef } from '@bt-studio/core';
 
 const source = ref(42, 'answer');
 const ro = readonlyRef(source);  // ReadonlyRef<number>
@@ -166,7 +166,7 @@ const ro = readonlyRef(source);  // ReadonlyRef<number>
 A lazily computed read-only ref. Recomputes on each `.value` access. Produces no trace events.
 
 ```typescript
-import { ref, derivedRef } from '@behavior-tree-ist/core';
+import { ref, derivedRef } from '@bt-studio/core';
 
 const a = ref(2, 'a');
 const b = ref(3, 'b');
@@ -189,7 +189,7 @@ const sum = derivedRef(() => a.value + b.value, 'sum');
 Any `BTNode` can be wrapped with decorators using `.decorate()`:
 
 ```typescript
-import { Action, Repeat, Timeout, NodeResult } from '@behavior-tree-ist/core';
+import { Action, Repeat, Timeout, NodeResult } from '@bt-studio/core';
 
 const node = Action.from('My Action', () => NodeResult.Succeeded);
 

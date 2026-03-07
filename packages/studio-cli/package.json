@@ -1,5 +1,5 @@
 {
-  "name": "@behavior-tree-ist/studio-cli",
+  "name": "@bt-studio/studio-cli",
   "version": "0.1.0",
   "description": "CLI for Behavior Tree Studio",
   "type": "module",
@@ -18,8 +18,8 @@
     "demo": "node dist/index.js demo"
   },
   "dependencies": {
-    "@behavior-tree-ist/core": "workspace:*",
-    "@behavior-tree-ist/studio-transport": "workspace:^",
+    "@bt-studio/core": "workspace:*",
+    "@bt-studio/studio-transport": "workspace:^",
     "citty": "^0.1.6",
     "ws": "^8.19.0"
   },

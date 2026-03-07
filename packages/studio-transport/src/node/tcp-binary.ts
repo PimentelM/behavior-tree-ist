@@ -3,7 +3,7 @@ import type {
     TransportInterface,
     TransportData,
     TransportFactory,
-} from "@behavior-tree-ist/core";
+} from "@bt-studio/core";
 import { encodeFrame, FrameDecoder } from "../shared/length-framing";
 
 /**

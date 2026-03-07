@@ -12,7 +12,7 @@ import {
     TransportData,
     TransportFactory,
     TreeRegistry,
-} from '@behavior-tree-ist/core';
+} from '@bt-studio/core';
 import { withTestService, type TestServiceInstance } from '../test-service-setup';
 import {
     createClientInputStub,

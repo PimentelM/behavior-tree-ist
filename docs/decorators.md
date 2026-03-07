@@ -17,7 +17,7 @@ Remap the child's result without altering its execution.
 **Flags**: `ResultTransformer`
 
 ```typescript
-import { Inverter, ForceSuccess, Action, NodeResult } from '@behavior-tree-ist/core';
+import { Inverter, ForceSuccess, Action, NodeResult } from '@bt-studio/core';
 
 // Invert: treat failure as success
 const notDead = new Inverter(
@@ -43,7 +43,7 @@ Conditionally gate child execution based on a boolean check.
 **Aliases**: `SucceedIf` is also exported as `SkipIf`
 
 ```typescript
-import { Precondition, SucceedIf, Action, NodeResult } from '@behavior-tree-ist/core';
+import { Precondition, SucceedIf, Action, NodeResult } from '@bt-studio/core';
 
 // Only tick child if entity has mana
 const guarded = new Precondition(
@@ -77,7 +77,7 @@ Time-based decorators that use `ctx.now` to track elapsed time. Duration values 
 All timing decorators expose `getDisplayState()` with their remaining time.
 
 ```typescript
-import { Timeout, Delay, Cooldown, RequireSustainedSuccess } from '@behavior-tree-ist/core';
+import { Timeout, Delay, Cooldown, RequireSustainedSuccess } from '@bt-studio/core';
 
 // Fail if child runs longer than 5000 time units
 const timed = new Timeout(longRunningAction, 5000);
@@ -124,7 +124,7 @@ Decorators that alter execution flow (looping, caching).
 **Flags**: `Repeat`/`Retry`/`KeepRunningUntilFailure` have `Repeating`. `Repeat`/`Retry`/`RunOnce` also have `Stateful`. `Repeat` and `Retry` additionally have `CountBased`.
 
 ```typescript
-import { Repeat, Retry, RunOnce } from '@behavior-tree-ist/core';
+import { Repeat, Retry, RunOnce } from '@bt-studio/core';
 
 // Run patrol action 5 times
 const patrolRoute = new Repeat(patrolAction, 5);
@@ -167,7 +167,7 @@ Decorator wrappers that call a callback on specific lifecycle events. These are 
 | `OnAbort` | `(child, cb)` | Node is aborted (not during normal ticking) |
 
 ```typescript
-import { OnEnter, OnSuccess, OnAbort, Action, NodeResult } from '@behavior-tree-ist/core';
+import { OnEnter, OnSuccess, OnAbort, Action, NodeResult } from '@bt-studio/core';
 
 const tracked = new OnEnter(
   new OnSuccess(
@@ -212,7 +212,7 @@ Control how abort requests are forwarded to a child.
 | `NonAbortable` | `(child)` | Swallows `onAbort` forwarding. The decorator itself can be aborted, but it does not call `BTNode.Abort` on its child. |
 
 ```typescript
-import { NonAbortable, Action, NodeResult } from '@behavior-tree-ist/core';
+import { NonAbortable, Action, NodeResult } from '@bt-studio/core';
 
 const shielded = new NonAbortable(
   Action.from('Background Work', () => NodeResult.Running),
@@ -228,7 +228,7 @@ When using builder/TSX convenience props, remember decorators are applied in a f
 Wraps a child with a scoring function for use in [UtilityFallback / UtilitySequence](composite-nodes.md#utilityfallback-utilityselector).
 
 ```typescript
-import { Utility, Action, NodeResult, TickContext } from '@behavior-tree-ist/core';
+import { Utility, Action, NodeResult, TickContext } from '@bt-studio/core';
 
 type UtilityScorer = (ctx: TickContext) => number;
 
@@ -248,7 +248,7 @@ scoredAction.getScore(ctx);
 Adds string classification tags to a node for filtering and inspection. Unlike other decorators, `Tag` returns the child node itself (with tags added), not a wrapper.
 
 ```typescript
-import { Tag, Action, NodeResult } from '@behavior-tree-ist/core';
+import { Tag, Action, NodeResult } from '@bt-studio/core';
 
 const tagged = new Tag(
   Action.from('Attack', () => NodeResult.Succeeded),
@@ -266,7 +266,7 @@ Tags can also be added directly: `node.addTags(['combat', 'offensive'])`.
 Sets a single runtime activity label on a node for compact current-activity displays. `Activity` is metadata-only and returns the child node itself (no wrapper).
 
 ```typescript
-import { Activity, Action, NodeResult } from '@behavior-tree-ist/core';
+import { Activity, Action, NodeResult } from '@bt-studio/core';
 
 const activityNode = new Activity(
   Action.from('Attack', () => NodeResult.Succeeded),
@@ -285,7 +285,7 @@ Metadata-only boundary decorator for subtree roots. `SubTree` is behaviorally tr
 Use it when you want a stable runtime boundary marker for inspector/UI features (collapse, filtering, breadcrumbs) or future logical scoping.
 
 ```typescript
-import { SubTree, Sequence, Action, NodeResult } from '@behavior-tree-ist/core';
+import { SubTree, Sequence, Action, NodeResult } from '@bt-studio/core';
 
 const combatBoundary = new SubTree(
   Sequence.from('Combat Logic', [

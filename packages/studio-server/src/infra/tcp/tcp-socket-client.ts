@@ -1,5 +1,5 @@
 import type { Socket } from 'net';
-import type { OutboundMessage } from '@behavior-tree-ist/core';
+import type { OutboundMessage } from '@bt-studio/core';
 import { OutboundMessageSchema } from '../../domain/core-schemas';
 import { createLogger } from '../logging';
 import type { MessageConnectionInterface } from '../../types/interfaces';

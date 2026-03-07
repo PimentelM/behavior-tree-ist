@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import type { StudioClientInfo } from '@behavior-tree-ist/react';
+import type { StudioClientInfo } from '@bt-studio/react';
 import { trpc } from '../trpc';
 import type { WsSubscribe } from '../use-ui-websocket';
 

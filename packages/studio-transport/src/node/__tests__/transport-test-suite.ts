@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import type { TransportInterface, TransportData, TransportFactory } from "@behavior-tree-ist/core";
+import type { TransportInterface, TransportData, TransportFactory } from "@bt-studio/core";
 
 /**
  * Configuration for a test server that echoes messages back.

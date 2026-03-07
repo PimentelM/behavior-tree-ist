@@ -9,7 +9,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   target: 'es2020',
-  external: ['react', 'react-dom', '@behavior-tree-ist/core'],
+  external: ['react', 'react-dom', '@bt-studio/core'],
   jsx: 'automatic',
   treeshake: true,
 })

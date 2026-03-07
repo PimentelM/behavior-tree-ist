@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { NodeResult } from '@behavior-tree-ist/core';
+import { NodeResult } from '@bt-studio/core';
 import { getResultColor } from '../../constants';
 
 interface NodeResultSummaryProps {

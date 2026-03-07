@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import { NodeFlags, NodeResult } from '@behavior-tree-ist/core';
-import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
+import { NodeFlags, NodeResult } from '@bt-studio/core';
+import type { SerializableNode, TickRecord } from '@bt-studio/core';
 import { BehaviourTreeDebugger } from '../BehaviourTreeDebugger';
 import type { BTNodeData, BTEdgeData } from '../types';
 import type { Node, Edge } from '@xyflow/react';

@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useMemo, useRef, type PointerEvent as ReactPointerEvent } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { createPortal } from 'react-dom';
-import type { RefChangeEvent } from '@behavior-tree-ist/core';
-import { TreeInspector } from '@behavior-tree-ist/core/inspector';
+import type { RefChangeEvent } from '@bt-studio/core';
+import { TreeInspector } from '@bt-studio/core/inspector';
 import type { BehaviourTreeDebuggerProps, ThemeMode } from './types';
 import { useInspector } from './hooks/useInspector';
 import { useTreeLayout } from './hooks/useTreeLayout';

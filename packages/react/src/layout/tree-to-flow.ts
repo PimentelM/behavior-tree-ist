@@ -1,7 +1,7 @@
 import type { Node, Edge } from '@xyflow/react';
-import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
-import type { SerializableValue } from '@behavior-tree-ist/core';
-import type { TreeIndex } from '@behavior-tree-ist/core/inspector';
+import { NodeFlags, hasFlag } from '@bt-studio/core';
+import type { SerializableValue } from '@bt-studio/core';
+import type { TreeIndex } from '@bt-studio/core/inspector';
 import type { BTNodeData, BTEdgeData } from '../types';
 import { getCapabilityBadges, getNodeVisualKind } from '../constants';
 

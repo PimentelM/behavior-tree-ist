@@ -1,4 +1,4 @@
-import { TcpBinaryTransport } from '@behavior-tree-ist/studio-transport/node';
+import { TcpBinaryTransport } from '@bt-studio/studio-transport/node';
 import { defineStudioServerE2ETests } from './transport-test-suite';
 import { deserializeJsonTransportMessage, serializeMessageAsBinaryJson } from './json-codec';
 

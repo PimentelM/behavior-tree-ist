@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "behavior-tree-ist-monorepo",
+  "name": "bt-studio-monorepo",
   "workspaces": [
     "packages/*"
   ],
@@ -12,8 +12,8 @@
     "typecheck": "yarn workspaces foreach -Atv run typecheck",
     "check": "yarn typecheck && yarn lint && yarn build && yarn test",
     "demo": "node packages/studio-cli/dist/index.js demo",
-    "dev:server": "yarn workspace @behavior-tree-ist/studio-server dev",
-    "dev:ui": "yarn workspace @behavior-tree-ist/studio-ui dev",
+    "dev:server": "yarn workspace @bt-studio/studio-server dev",
+    "dev:ui": "yarn workspace @bt-studio/studio-ui dev",
     "dev": "concurrently -n server,ui,demo \"yarn dev:server\" \"yarn dev:ui\" \"sleep 3 && yarn demo\""
   },
   "devDependencies": {

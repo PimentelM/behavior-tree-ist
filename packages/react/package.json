@@ -1,7 +1,7 @@
 {
-  "name": "@behavior-tree-ist/react",
+  "name": "@bt-studio/react",
   "version": "0.1.0",
-  "description": "React debugger component for behavior-tree-ist",
+  "description": "React debugger component for bt-studio",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -29,7 +29,7 @@
     "lint": "eslint src"
   },
   "peerDependencies": {
-    "@behavior-tree-ist/core": "workspace:*",
+    "@bt-studio/core": "workspace:*",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
@@ -38,7 +38,7 @@
     "@xyflow/react": "^12"
   },
   "devDependencies": {
-    "@behavior-tree-ist/core": "workspace:*",
+    "@bt-studio/core": "workspace:*",
     "@testing-library/dom": "^10",
     "@testing-library/react": "^16",
     "@types/react": "^18",

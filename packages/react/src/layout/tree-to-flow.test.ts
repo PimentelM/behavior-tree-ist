@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { NodeFlags, type SerializableNode } from '@behavior-tree-ist/core';
-import { TreeIndex } from '@behavior-tree-ist/core/inspector';
+import { NodeFlags, type SerializableNode } from '@bt-studio/core';
+import { TreeIndex } from '@bt-studio/core/inspector';
 import { getCapabilityBadges, getNodeVisualKind } from '../constants';
 import { treeIndexToFlowElements } from './tree-to-flow';
 

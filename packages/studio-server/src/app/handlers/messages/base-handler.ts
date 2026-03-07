@@ -1,4 +1,4 @@
-import { OutboundMessage } from '@behavior-tree-ist/core';
+import { OutboundMessage } from '@bt-studio/core';
 import { MessageConnectionInterface, MessageHandler } from '../../../types/interfaces';
 import { Logger, createLogger } from '../../../infra/logging';
 

@@ -1,6 +1,6 @@
 import dagre from '@dagrejs/dagre';
 import type { Node, Edge } from '@xyflow/react';
-import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
+import { NodeFlags, hasFlag } from '@bt-studio/core';
 import type { BTNodeData, BTEdgeData, LayoutDirection } from '../types';
 import { NODE_WIDTH, NODE_HEIGHT_BASE, NODE_HEIGHT_WITH_STATE } from '../constants';
 

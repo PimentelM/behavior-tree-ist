@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import type { TickRecord } from '@behavior-tree-ist/core';
-import type { StudioSelection } from '@behavior-tree-ist/react';
+import type { TickRecord } from '@bt-studio/core';
+import type { StudioSelection } from '@bt-studio/react';
 import { trpc } from '../trpc';
 
 export function useTickPoller(

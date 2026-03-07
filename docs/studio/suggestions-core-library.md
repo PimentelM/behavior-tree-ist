@@ -1,6 +1,6 @@
 # Core Library Improvement Suggestions
 
-Actionable improvements for `@behavior-tree-ist/core` based on deep codebase analysis and competitive comparison with BehaviorTree.CPP, py_trees, and Unreal Engine BTs.
+Actionable improvements for `@bt-studio/core` based on deep codebase analysis and competitive comparison with BehaviorTree.CPP, py_trees, and Unreal Engine BTs.
 
 ---
 

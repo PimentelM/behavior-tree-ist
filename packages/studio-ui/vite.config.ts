@@ -9,27 +9,27 @@ export default defineConfig({
     resolve: {
         alias: [
             {
-                find: '@behavior-tree-ist/react/dist/index.css',
+                find: '@bt-studio/react/dist/index.css',
                 replacement: fromRoot('../react/src/styles/debugger.css'),
             },
             {
-                find: '@behavior-tree-ist/core/inspector',
+                find: '@bt-studio/core/inspector',
                 replacement: fromRoot('../core/src/inspector/index.ts'),
             },
             {
-                find: '@behavior-tree-ist/core/demos',
+                find: '@bt-studio/core/demos',
                 replacement: fromRoot('../core/src/demos/index.ts'),
             },
             {
-                find: '@behavior-tree-ist/react',
+                find: '@bt-studio/react',
                 replacement: fromRoot('../react/src/index.ts'),
             },
             {
-                find: '@behavior-tree-ist/core',
+                find: '@bt-studio/core',
                 replacement: fromRoot('../core/src/index.ts'),
             },
             {
-                find: '@behavior-tree-ist/studio-common',
+                find: '@bt-studio/studio-common',
                 replacement: fromRoot('../studio-common/src/index.ts'),
             },
         ],

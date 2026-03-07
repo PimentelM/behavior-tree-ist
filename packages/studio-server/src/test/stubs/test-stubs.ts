@@ -3,7 +3,7 @@ import {
     SerializableNode,
     StudioCommandType,
     TickRecord,
-} from '@behavior-tree-ist/core';
+} from '@bt-studio/core';
 import type { TreeRecord } from '../../domain/records';
 
 export interface TreeScopeStub {

@@ -1,6 +1,6 @@
 # Construction APIs
 
-@behavior-tree-ist/core provides three equivalent APIs for building trees. All produce the same `BTNode` objects.
+@bt-studio/core provides three equivalent APIs for building trees. All produce the same `BTNode` objects.
 
 ## Direct Instantiation
 
@@ -10,7 +10,7 @@ The most explicit API. Create node instances directly and compose them with `.ad
 import {
   Sequence, Fallback, ConditionNode, Action,
   Timeout, Repeat, NodeResult,
-} from '@behavior-tree-ist/core';
+} from '@bt-studio/core';
 
 const root = Fallback.from('AI', [
   Sequence.from('Attack', [
@@ -45,13 +45,13 @@ seq.addNode(child2);
 
 ## Builder Functions
 
-Function-based API with automatic decorator application via the `NodeProps` interface. Import from `@behavior-tree-ist/core/builder`.
+Function-based API with automatic decorator application via the `NodeProps` interface. Import from `@bt-studio/core/builder`.
 
 ```typescript
 import {
   fallback, sequence, condition, action,
   parallel, ifThenElse, sleep,
-} from '@behavior-tree-ist/core/builder';
+} from '@bt-studio/core/builder';
 
 const root = fallback({ name: 'AI' }, [
   sequence({ name: 'Attack', timeout: 5000 }, [
@@ -227,7 +227,7 @@ These prop pairs are mutually exclusive (throws if both set):
 JSX syntax for tree construction. See [tsx.md](tsx.md) for the full reference.
 
 ```tsx
-import { BT } from '@behavior-tree-ist/core/tsx';
+import { BT } from '@bt-studio/core/tsx';
 
 const root = (
   <fallback name="AI">

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import type { SerializableNode } from '@behavior-tree-ist/core';
-import type { StudioSelection } from '@behavior-tree-ist/react';
+import type { SerializableNode } from '@bt-studio/core';
+import type { StudioSelection } from '@bt-studio/react';
 import { trpc } from '../trpc';
 
 export function useSelectedTree(selection: StudioSelection | null) {

@@ -1,4 +1,4 @@
-import { TcpStringTransport } from '@behavior-tree-ist/studio-transport/node';
+import { TcpStringTransport } from '@bt-studio/studio-transport/node';
 import { defineStudioServerE2ETests } from './transport-test-suite';
 
 defineStudioServerE2ETests({

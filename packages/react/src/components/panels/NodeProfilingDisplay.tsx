@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { NodeProfilingData } from '@behavior-tree-ist/core/inspector';
+import type { NodeProfilingData } from '@bt-studio/core/inspector';
 import { formatMs } from '../../utils/format';
 
 interface NodeProfilingDisplayProps {

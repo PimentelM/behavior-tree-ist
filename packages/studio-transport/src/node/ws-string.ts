@@ -3,7 +3,7 @@ import type {
     TransportInterface,
     TransportData,
     TransportFactory,
-} from "@behavior-tree-ist/core";
+} from "@bt-studio/core";
 
 /**
  * WebSocket transport for Node.js that sends and receives string-only

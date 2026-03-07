@@ -1,6 +1,6 @@
 import { memo, useEffect, useState } from 'react';
 import type { NodeDetailsData } from '../../types';
-import type { RefChangeEvent } from '@behavior-tree-ist/core';
+import type { RefChangeEvent } from '@bt-studio/core';
 import { NodeHeader } from './NodeHeader';
 import { NodeResultSummary } from './NodeResultSummary';
 import { NodeStateDisplay } from './NodeStateDisplay';

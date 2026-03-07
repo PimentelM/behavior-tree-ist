@@ -1,4 +1,4 @@
-import { UiMessageType } from '@behavior-tree-ist/studio-common';
+import { UiMessageType } from '@bt-studio/studio-common';
 import type { AppDependencies } from '../../../types';
 
 export function registerLocalDomainEventHandlers({

@@ -1,5 +1,5 @@
 import type { Socket } from 'net';
-import { FrameDecoder, encodeFrame } from '@behavior-tree-ist/studio-transport';
+import { FrameDecoder, encodeFrame } from '@bt-studio/studio-transport';
 import { Logger } from '../logger';
 import { Connection, ConnectionSerializer } from '../connection';
 

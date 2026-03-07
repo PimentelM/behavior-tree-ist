@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-TypeScript behaviour tree monorepo.
+Behavior Tree Studio — code-first, dependency-free Behavior Tree library for TypeScript focused on user experience, with a graphical interface for tracing, profiling and debugging.
 
 ## Packages
 
