@@ -3,7 +3,7 @@ import {
     MessageType,
     StudioCommand,
     StudioCommandType,
-} from '@behavior-tree-ist/core';
+} from '@bt-studio/core';
 import { describe, expect, it } from 'vitest';
 import { CommandBroker } from './command-broker';
 import type { CommandSenderInterface } from '../interfaces';

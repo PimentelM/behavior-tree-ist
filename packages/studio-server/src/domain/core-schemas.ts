@@ -13,4 +13,4 @@ export {
     StudioCommandSchema,
     OutboundMessageSchema,
     InboundMessageSchema
-} from '@behavior-tree-ist/studio-common';
+} from '@bt-studio/studio-common';

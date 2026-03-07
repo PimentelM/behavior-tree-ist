@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
-import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
-import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
+import { NodeFlags, hasFlag } from '@bt-studio/core';
+import type { SerializableState, SerializableValue } from '@bt-studio/core';
+import type { TreeInspector } from '@bt-studio/core/inspector';
 import type { NodeDetailsData } from '../types';
 
 export function useNodeDetails(

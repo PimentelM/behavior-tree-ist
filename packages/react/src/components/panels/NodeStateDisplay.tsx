@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { SerializableState } from '@behavior-tree-ist/core';
+import type { SerializableState } from '@bt-studio/core';
 import { getVisibleDisplayStateEntries } from '../../constants';
 
 interface NodeStateDisplayProps {

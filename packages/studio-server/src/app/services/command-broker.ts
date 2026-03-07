@@ -1,4 +1,4 @@
-import { CommandResponse, StudioCommand, MessageType, InboundMessage } from '@behavior-tree-ist/core';
+import { CommandResponse, StudioCommand, MessageType, InboundMessage } from '@bt-studio/core';
 import { CommandBrokerInterface, CommandSenderInterface } from '../interfaces';
 import { createLogger } from '../../infra/logging';
 import { AbstractCommandBroker } from '../../_lib/command-broker';

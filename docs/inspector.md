@@ -1,14 +1,14 @@
 # Inspector
 
-The inspector system provides runtime tree inspection, tick recording, state reconstruction, and performance profiling. Import from `@behavior-tree-ist/core/inspector`.
+The inspector system provides runtime tree inspection, tick recording, state reconstruction, and performance profiling. Import from `@bt-studio/core/inspector`.
 
-For a visual debugger that wraps the inspector APIs, see the [`@behavior-tree-ist/react` debugger component](react-debugger.md).
+For a visual debugger that wraps the inspector APIs, see the [`@bt-studio/react` debugger component](react-debugger.md).
 
 ## Overview
 
 ```typescript
-import { BehaviourTree } from '@behavior-tree-ist/core';
-import { TreeInspector } from '@behavior-tree-ist/core/inspector';
+import { BehaviourTree } from '@bt-studio/core';
+import { TreeInspector } from '@bt-studio/core/inspector';
 
 // 1. Create tree with state tracing enabled (optional for display/ref state)
 const tree = new BehaviourTree(root).enableStateTrace();
@@ -280,7 +280,7 @@ interface FlameGraphFrame {
 The underlying ring-buffer storage for tick records. Used internally by `TreeInspector` but also available standalone:
 
 ```typescript
-import { TickStore } from '@behavior-tree-ist/core/inspector';
+import { TickStore } from '@bt-studio/core/inspector';
 
 const store = new TickStore(1000); // Sliding window of 1000 ticks
 store.push(record);                // Returns evicted record if at capacity
@@ -313,9 +313,9 @@ const stats = inspector.getStats();
 ## End-to-End Example
 
 ```typescript
-import { BehaviourTree, NodeResult, NodeFlags } from '@behavior-tree-ist/core';
-import { sequence, action, condition } from '@behavior-tree-ist/core/builder';
-import { TreeInspector } from '@behavior-tree-ist/core/inspector';
+import { BehaviourTree, NodeResult, NodeFlags } from '@bt-studio/core';
+import { sequence, action, condition } from '@bt-studio/core/builder';
+import { TreeInspector } from '@bt-studio/core/inspector';
 
 // Build tree
 const root = sequence({ name: 'Main' }, [

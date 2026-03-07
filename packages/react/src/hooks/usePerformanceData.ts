@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { TreeInspector, FlameGraphFrame, NodeProfilingData, TreeStats } from '@behavior-tree-ist/core/inspector';
+import type { TreeInspector, FlameGraphFrame, NodeProfilingData, TreeStats } from '@bt-studio/core/inspector';
 
 export interface PerformanceData {
   frames: FlameGraphFrame[];

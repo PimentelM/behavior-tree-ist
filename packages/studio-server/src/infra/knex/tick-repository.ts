@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import type { TickRecord } from '@behavior-tree-ist/core';
+import type { TickRecord } from '@bt-studio/core';
 import { BaseKnexRepository } from './base-repository';
 import { TickRepositoryInterface } from '../../domain/interfaces';
 import type { DbTick } from './schemas';

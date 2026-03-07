@@ -1,7 +1,7 @@
 import { useRef, useMemo, useState, useEffect } from 'react';
-import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
-import { TreeInspector } from '@behavior-tree-ist/core/inspector';
-import type { TreeInspectorOptions } from '@behavior-tree-ist/core/inspector';
+import type { SerializableNode, TickRecord } from '@bt-studio/core';
+import { TreeInspector } from '@bt-studio/core/inspector';
+import type { TreeInspectorOptions } from '@bt-studio/core/inspector';
 
 export interface UseInspectorResult {
   inspector: TreeInspector;

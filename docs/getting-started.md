@@ -3,11 +3,11 @@
 ## Installation
 
 ```bash
-npm install @behavior-tree-ist/core
+npm install @bt-studio/core
 # or
-yarn add @behavior-tree-ist/core
+yarn add @bt-studio/core
 # or
-pnpm add @behavior-tree-ist/core
+pnpm add @bt-studio/core
 ```
 
 ## Your First Tree
@@ -24,7 +24,7 @@ import {
   ConditionNode,
   Action,
   NodeResult,
-} from '@behavior-tree-ist/core';
+} from '@bt-studio/core';
 
 const entity = { enemyInRange: false, position: 0 };
 
@@ -56,8 +56,8 @@ const tree = new BehaviourTree(root);
 The same tree using the builder API, which supports inline decorator props:
 
 ```typescript
-import { BehaviourTree, NodeResult } from '@behavior-tree-ist/core';
-import { fallback, sequence, condition, action } from '@behavior-tree-ist/core/builder';
+import { BehaviourTree, NodeResult } from '@bt-studio/core';
+import { fallback, sequence, condition, action } from '@bt-studio/core/builder';
 
 const entity = { enemyInRange: false, position: 0 };
 
@@ -83,8 +83,8 @@ const tree = new BehaviourTree(root);
 The same tree in TSX (see [tsx.md](tsx.md) for setup):
 
 ```tsx
-import { BehaviourTree, NodeResult } from '@behavior-tree-ist/core';
-import { BT } from '@behavior-tree-ist/core/tsx';
+import { BehaviourTree, NodeResult } from '@bt-studio/core';
+import { BT } from '@bt-studio/core/tsx';
 
 const entity = { enemyInRange: false, position: 0 };
 

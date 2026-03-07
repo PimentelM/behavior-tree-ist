@@ -17,8 +17,8 @@ import {
   type Node,
   type Edge,
 } from '@xyflow/react';
-import { NodeResult } from '@behavior-tree-ist/core';
-import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
+import { NodeResult } from '@bt-studio/core';
+import type { SerializableState, SerializableValue } from '@bt-studio/core';
 import '@xyflow/react/dist/style.css';
 import { BTNodeComponent } from './nodes/BTNodeComponent';
 import { BTEdgeComponent } from './edges/BTEdgeComponent';

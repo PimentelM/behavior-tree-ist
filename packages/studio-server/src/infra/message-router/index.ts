@@ -1,4 +1,4 @@
-import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
+import { MessageType, OutboundMessage } from '@bt-studio/core';
 import { MessageConnectionInterface, MessageRouterInterface } from '../../types/interfaces';
 import { MessageRouter as GenericMessageRouter } from '../../_lib/router';
 import { createLogger } from '../logging';

@@ -37,7 +37,7 @@ Every concrete node calls `addFlags()` in its constructor to register its catego
 Use the `hasFlag()` utility:
 
 ```typescript
-import { hasFlag, NodeFlags } from '@behavior-tree-ist/core';
+import { hasFlag, NodeFlags } from '@bt-studio/core';
 
 if (hasFlag(node.nodeFlags, NodeFlags.Stateful)) {
   const state = node.getDisplayState?.();
@@ -52,7 +52,7 @@ const isStatefulGuard = hasFlag(node.nodeFlags, NodeFlags.Stateful | NodeFlags.G
 The [inspector](inspector.md)'s `TreeIndex` provides convenience methods that use flags:
 
 ```typescript
-import { TreeInspector } from '@behavior-tree-ist/core/inspector';
+import { TreeInspector } from '@bt-studio/core/inspector';
 
 const inspector = new TreeInspector();
 inspector.indexTree(tree.serialize());
@@ -71,7 +71,7 @@ const statefulNodes = inspector.tree!.getByFlag(NodeFlags.Stateful);
 When creating custom nodes, call `addFlags()` in the constructor:
 
 ```typescript
-import { Action, NodeFlags } from '@behavior-tree-ist/core';
+import { Action, NodeFlags } from '@bt-studio/core';
 
 class MyCustomAction extends Action {
   readonly defaultName = 'MyCustomAction';

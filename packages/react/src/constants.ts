@@ -1,5 +1,5 @@
-import { NodeResult, NodeFlags, hasFlag } from '@behavior-tree-ist/core';
-import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
+import { NodeResult, NodeFlags, hasFlag } from '@bt-studio/core';
+import type { SerializableState, SerializableValue } from '@bt-studio/core';
 import type { ThemeOverrides, NodeVisualKind } from './types';
 
 export const DARK_THEME: Required<ThemeOverrides> = {

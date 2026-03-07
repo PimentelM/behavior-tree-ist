@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import type { StudioServerSettings } from '@behavior-tree-ist/react';
+import type { StudioServerSettings } from '@bt-studio/react';
 import { trpc } from '../trpc';
 
 export function useServerSettings() {

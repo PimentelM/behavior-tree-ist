@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
+import type { TreeInspector } from '@bt-studio/core/inspector';
 import type { TimeTravelControls } from '../types';
 
 function isUnixTimestampLike(now: number): boolean {

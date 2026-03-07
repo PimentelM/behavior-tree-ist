@@ -1,4 +1,4 @@
-import { CommandResponse, StudioCommand } from '@behavior-tree-ist/core';
+import { CommandResponse, StudioCommand } from '@bt-studio/core';
 import type { AgentConnection, UiConnection } from '../domain/types';
 import type { BaseEventDispatcher } from '../_lib/events/base-event-dispatcher';
 import { AgentEvent, DispatchedEvent, ServerEvent } from '../domain/events';

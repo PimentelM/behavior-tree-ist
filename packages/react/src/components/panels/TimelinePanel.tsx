@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react';
-import type { CpuTimelineEntry } from '@behavior-tree-ist/core/inspector';
+import type { CpuTimelineEntry } from '@bt-studio/core/inspector';
 import type { TimeTravelControls } from '../../types';
 import { CpuSparkline } from './CpuSparkline';
 

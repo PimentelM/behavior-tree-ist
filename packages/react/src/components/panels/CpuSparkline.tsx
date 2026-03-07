@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import type { CpuTimelineEntry } from '@behavior-tree-ist/core/inspector';
+import type { CpuTimelineEntry } from '@bt-studio/core/inspector';
 
 interface CpuSparklineProps {
   entries: CpuTimelineEntry[];

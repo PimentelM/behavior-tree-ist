@@ -4,7 +4,7 @@ import type {
     TreeRecord,
     SettingsRecord,
 } from '../../domain/records';
-import type { TickRecord } from '@behavior-tree-ist/core';
+import type { TickRecord } from '@bt-studio/core';
 import type {
     DbClient,
     DbSession,

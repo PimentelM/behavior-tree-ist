@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { StudioCommandType } from '@behavior-tree-ist/core';
+import { StudioCommandType } from '@bt-studio/core';
 import { v4 as uuidv4 } from 'uuid';
 import { router, procedure } from '../../../infra/trpc/trpc-setup';
 import { AppDependencies } from '../../../types/app-dependencies';

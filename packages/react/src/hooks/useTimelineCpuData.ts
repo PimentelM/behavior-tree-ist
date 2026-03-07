@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { TreeInspector, CpuTimelineEntry } from '@behavior-tree-ist/core/inspector';
+import type { TreeInspector, CpuTimelineEntry } from '@bt-studio/core/inspector';
 
 export function useTimelineCpuData(
   inspector: TreeInspector,

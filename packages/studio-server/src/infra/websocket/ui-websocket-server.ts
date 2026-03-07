@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import { Duplex } from 'stream';
 import type { Server as MessageServer } from '../../_lib/connection';
-import { UiInboundMessage, UiOutboundMessage } from '@behavior-tree-ist/studio-common';
+import { UiInboundMessage, UiOutboundMessage } from '@bt-studio/studio-common';
 import { UiWebSocketClient } from './ui-websocket-client';
 import { Logger } from '../logging';
 import { GenericWebSocketServer } from '../../_lib/server/generic-ws-server';

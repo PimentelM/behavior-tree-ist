@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { NodeResult, NodeFlags } from '@behavior-tree-ist/core';
-import type { RefChangeEvent } from '@behavior-tree-ist/core';
+import { NodeResult, NodeFlags } from '@bt-studio/core';
+import type { RefChangeEvent } from '@bt-studio/core';
 import type { NodeDetailsData } from '../types';
-import type { FlameGraphFrame, NodeProfilingData, TreeStats } from '@behavior-tree-ist/core/inspector';
+import type { FlameGraphFrame, NodeProfilingData, TreeStats } from '@bt-studio/core/inspector';
 import { NodeDetailPanel } from '../components/panels/NodeDetailPanel';
 import { RefTracesPanel } from '../components/panels/RefTracesPanel';
 import { PerformanceView } from '../components/panels/PerformanceView';

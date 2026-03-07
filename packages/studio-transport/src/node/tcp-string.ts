@@ -3,7 +3,7 @@ import type {
     TransportInterface,
     TransportData,
     TransportFactory,
-} from "@behavior-tree-ist/core";
+} from "@bt-studio/core";
 import { encodeStringFrame, FrameDecoder } from "../shared/length-framing";
 
 const textDecoder = new TextDecoder();

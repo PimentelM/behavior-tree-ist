@@ -1,22 +1,22 @@
 # React Debugger
 
-`@behavior-tree-ist/react` provides `<BehaviourTreeDebugger>`, a React component for visualizing and debugging behaviour trees. It uses [React Flow](https://reactflow.dev/) for the tree graph, wraps `TreeInspector` from `@behavior-tree-ist/core/inspector` internally, and provides real-time plus time-travel debugging.
+`@bt-studio/react` provides `<BehaviourTreeDebugger>`, a React component for visualizing and debugging behaviour trees. It uses [React Flow](https://reactflow.dev/) for the tree graph, wraps `TreeInspector` from `@bt-studio/core/inspector` internally, and provides real-time plus time-travel debugging.
 
 ## Installation
 
 ```bash
-npm install @behavior-tree-ist/react @behavior-tree-ist/core react react-dom
+npm install @bt-studio/react @bt-studio/core react react-dom
 ```
 
-Peer dependencies: `react >= 18`, `react-dom >= 18`, `@behavior-tree-ist/core`.
+Peer dependencies: `react >= 18`, `react-dom >= 18`, `@bt-studio/core`.
 
 ## Quick Start
 
 ```tsx
-import { BehaviourTree, NodeResult } from '@behavior-tree-ist/core';
-import { sequence, action, condition } from '@behavior-tree-ist/core/builder';
-import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
-import type { TickRecord } from '@behavior-tree-ist/core';
+import { BehaviourTree, NodeResult } from '@bt-studio/core';
+import { sequence, action, condition } from '@bt-studio/core/builder';
+import { BehaviourTreeDebugger } from '@bt-studio/react';
+import type { TickRecord } from '@bt-studio/core';
 
 // Build and configure tree
 const root = sequence({ name: 'Main' }, [
@@ -295,7 +295,7 @@ All CSS variables are prefixed with `--bt-` and can be overridden via CSS as wel
 
 ```typescript
 // Component
-export { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
+export { BehaviourTreeDebugger } from '@bt-studio/react';
 
 // Types
 export type {
@@ -309,7 +309,7 @@ export type {
   TimeTravelState,
   TimeTravelControls,
   NodeDetailsData,
-} from '@behavior-tree-ist/react';
+} from '@bt-studio/react';
 
 // Utilities
 export {
@@ -319,5 +319,5 @@ export {
   RESULT_COLORS,
   getResultColor,
   getFlagLabels,
-} from '@behavior-tree-ist/react';
+} from '@bt-studio/react';
 ```

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { StudioCommandType } from '@behavior-tree-ist/core';
-import type { StudioSelection, StudioTreeStatuses } from '@behavior-tree-ist/react';
+import { StudioCommandType } from '@bt-studio/core';
+import type { StudioSelection, StudioTreeStatuses } from '@bt-studio/react';
 import { trpc } from '../trpc';
 
 export function useTreeStatuses(selection: StudioSelection | null, isOnline: boolean) {

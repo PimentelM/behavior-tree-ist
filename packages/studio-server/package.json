@@ -1,5 +1,5 @@
 {
-  "name": "@behavior-tree-ist/studio-server",
+  "name": "@bt-studio/studio-server",
   "version": "0.1.0",
   "description": "Behavior Tree Studio server",
   "main": "./dist/index.js",
@@ -30,9 +30,9 @@
     "dev": "tsx src/dev.ts"
   },
   "dependencies": {
-    "@behavior-tree-ist/core": "workspace:*",
-    "@behavior-tree-ist/studio-common": "workspace:^",
-    "@behavior-tree-ist/studio-transport": "workspace:^",
+    "@bt-studio/core": "workspace:*",
+    "@bt-studio/studio-common": "workspace:^",
+    "@bt-studio/studio-transport": "workspace:^",
     "@trpc/server": "^11.0.0",
     "better-sqlite3": "^12.4.1",
     "cors": "^2.8.5",

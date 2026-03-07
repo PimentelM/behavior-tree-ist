@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from 'react';
-import type { FlameGraphFrame, NodeProfilingData, TreeIndex, TreeStats } from '@behavior-tree-ist/core/inspector';
+import type { FlameGraphFrame, NodeProfilingData, TreeIndex, TreeStats } from '@bt-studio/core/inspector';
 import { FlameGraph, countFrames } from './FlameGraph';
 import { HotNodesTable } from './HotNodesTable';
 import { formatMs } from '../../utils/format';

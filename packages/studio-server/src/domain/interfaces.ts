@@ -1,4 +1,4 @@
-import { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
+import { SerializableNode, TickRecord } from '@bt-studio/core';
 import type { ClientRecord, SessionRecord, TreeRecord, SettingsRecord } from './records';
 
 // ── Repository interfaces ──

@@ -7,14 +7,14 @@ import type {
   NodeResult,
   NodeFlags,
   ActivityMetadata,
-} from '@behavior-tree-ist/core';
+} from '@bt-studio/core';
 import type {
   TreeInspector,
   TreeInspectorOptions,
   NodeProfilingData,
   ActivityBranch,
   ActivityDisplayMode,
-} from '@behavior-tree-ist/core/inspector';
+} from '@bt-studio/core/inspector';
 
 type NodeMetadata = Readonly<Record<string, SerializableValue>>;
 

@@ -1,4 +1,4 @@
-import { MessageType, OutboundMessage } from '@behavior-tree-ist/core';
+import { MessageType, OutboundMessage } from '@bt-studio/core';
 import { BaseHandler } from './base-handler';
 import { MessageConnectionInterface } from '../../../types/interfaces';
 import { TickRepositoryInterface, SettingsRepositoryInterface } from '../../../domain/interfaces';

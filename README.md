@@ -1,6 +1,6 @@
-# behavior-tree-ist
+# Behavior Tree Studio
 
-A code-first TypeScript behaviour tree library focused on developer experience.
+Code-first, dependency-free Behavior Tree library for TypeScript focused on user experience, with a graphical interface for tracing, profiling and debugging.
 
 ## Features
 
@@ -15,12 +15,12 @@ A code-first TypeScript behaviour tree library focused on developer experience.
 ## Quick Start
 
 ```bash
-npm install @behavior-tree-ist/core
+npm install @bt-studio/core
 ```
 
 ```typescript
-import { BehaviourTree, NodeResult } from '@behavior-tree-ist/core';
-import { fallback, sequence, condition, action } from '@behavior-tree-ist/core/builder';
+import { BehaviourTree, NodeResult } from '@bt-studio/core';
+import { fallback, sequence, condition, action } from '@bt-studio/core/builder';
 
 const entity = { health: 100, inDanger: false };
 
@@ -50,7 +50,7 @@ The same tree can be expressed in three equivalent styles:
 **Direct instantiation:**
 
 ```typescript
-import { Fallback, Sequence, ConditionNode, Action, NodeResult } from '@behavior-tree-ist/core';
+import { Fallback, Sequence, ConditionNode, Action, NodeResult } from '@bt-studio/core';
 
 const flee = Sequence.from('Flee', [
   ConditionNode.from('In danger?', () => entity.inDanger),
@@ -63,7 +63,7 @@ const root = Fallback.from([flee, patrol]);
 **Builder functions:**
 
 ```typescript
-import { fallback, sequence, condition, action } from '@behavior-tree-ist/core/builder';
+import { fallback, sequence, condition, action } from '@bt-studio/core/builder';
 
 const root = fallback({}, [
   sequence({ name: 'Flee' }, [
@@ -77,7 +77,7 @@ const root = fallback({}, [
 **TSX:**
 
 ```tsx
-import { BT } from '@behavior-tree-ist/core/tsx';
+import { BT } from '@bt-studio/core/tsx';
 
 const root = (
   <fallback>
@@ -94,12 +94,12 @@ const root = (
 
 | Entry point | Description |
 |---|---|
-| `@behavior-tree-ist/core` | Core library: all node classes, `BehaviourTree`, types |
-| `@behavior-tree-ist/core/builder` | Builder functions with `NodeProps`-based decorator application |
-| `@behavior-tree-ist/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
-| `@behavior-tree-ist/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
-| `@behavior-tree-ist/core/activity` | Standalone activity projection from `SerializableNode` + `TickRecord` |
-| `@behavior-tree-ist/react` | React debugger component with tree visualization and time-travel |
+| `@bt-studio/core` | Core library: all node classes, `BehaviourTree`, types |
+| `@bt-studio/core/builder` | Builder functions with `NodeProps`-based decorator application |
+| `@bt-studio/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
+| `@bt-studio/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
+| `@bt-studio/core/activity` | Standalone activity projection from `SerializableNode` + `TickRecord` |
+| `@bt-studio/react` | React debugger component with tree visualization and time-travel |
 
 ## Documentation
 
@@ -119,16 +119,16 @@ const root = (
 
 ## React Debugger
 
-The `@behavior-tree-ist/react` package provides a drop-in React component for debugging behaviour trees with real-time visualization and time-travel.
+The `@bt-studio/react` package provides a drop-in React component for debugging behaviour trees with real-time visualization and time-travel.
 
 The debugger supports frozen paused mode (live ingestion continues in background), strict per-tick results, compact decorator visualization, node-local ref mutation traces, and a ref details explorer with latest-state plus full timeline filtering. Timeline and toolbar indicators also surface each tick's `time` value, auto-format Unix timestamps as `hh:mm:ss`, and provide a toolbar toggle to switch between timestamp and numeric display.
 
 ```bash
-npm install @behavior-tree-ist/react
+npm install @bt-studio/react
 ```
 
 ```tsx
-import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
+import { BehaviourTreeDebugger } from '@bt-studio/react';
 
 // In your app — you handle transport (WebSocket, polling, etc.)
 <BehaviourTreeDebugger
@@ -154,7 +154,7 @@ See [docs/react-debugger.md](docs/react-debugger.md) for the full API reference.
 
 ## Roadmap
 
-- **Studio App** (`@behavior-tree-ist/studio`) - Standalone debugging UI with recording and playback
+- **Studio App** (`@bt-studio/studio`) - Standalone debugging UI with recording and playback
 
 See [docs/roadmap.md](docs/roadmap.md) for details.
 

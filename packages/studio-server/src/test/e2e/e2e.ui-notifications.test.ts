@@ -1,9 +1,9 @@
 import { randomUUID } from 'crypto';
 import { afterAll, beforeAll, describe, it } from 'vitest';
 import WebSocket, { RawData } from 'ws';
-import { UiInboundMessage, UiInboundMessageSchema, UiMessageType } from '@behavior-tree-ist/studio-common';
-import { WsNodeStringTransport } from '@behavior-tree-ist/studio-transport/node';
-import { Action, BehaviourTree, NodeResult, StudioAgent, StudioLink, TreeRegistry } from '@behavior-tree-ist/core';
+import { UiInboundMessage, UiInboundMessageSchema, UiMessageType } from '@bt-studio/studio-common';
+import { WsNodeStringTransport } from '@bt-studio/studio-transport/node';
+import { Action, BehaviourTree, NodeResult, StudioAgent, StudioLink, TreeRegistry } from '@bt-studio/core';
 import { withTestService, type TestServiceInstance } from '../test-service-setup';
 
 async function waitFor(

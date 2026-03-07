@@ -1,4 +1,4 @@
-import { ServerSettings } from "@behavior-tree-ist/studio-common";
+import { ServerSettings } from "@bt-studio/studio-common";
 
 export interface AgentConnection {
     connectionId: string;

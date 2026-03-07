@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps, Node } from '@xyflow/react';
-import { NodeFlags, hasFlag } from '@behavior-tree-ist/core';
-import type { SerializableState, SerializableValue } from '@behavior-tree-ist/core';
+import { NodeFlags, hasFlag } from '@bt-studio/core';
+import type { SerializableState, SerializableValue } from '@bt-studio/core';
 import type { BTNodeData, NodeVisualKind } from '../../types';
 import {
   getDebuggerDisplayName,

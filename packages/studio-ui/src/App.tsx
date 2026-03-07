@@ -1,5 +1,5 @@
-import { BehaviourTreeDebugger } from '@behavior-tree-ist/react';
-import type { SerializableNode } from '@behavior-tree-ist/core';
+import { BehaviourTreeDebugger } from '@bt-studio/react';
+import type { SerializableNode } from '@bt-studio/core';
 import { useStudioControls } from './use-studio-controls';
 
 const PLACEHOLDER_TREE: SerializableNode = {

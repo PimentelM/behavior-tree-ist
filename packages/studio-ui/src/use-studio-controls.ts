@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { SerializableNode, TickRecord } from '@behavior-tree-ist/core';
-import type { StudioControls, StudioSelection } from '@behavior-tree-ist/react';
+import type { SerializableNode, TickRecord } from '@bt-studio/core';
+import type { StudioControls, StudioSelection } from '@bt-studio/react';
 import { useUiWebSocket } from './use-ui-websocket';
 import { useClients } from './hooks/use-clients';
 import { useSessions } from './hooks/use-sessions';

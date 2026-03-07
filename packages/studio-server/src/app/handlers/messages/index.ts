@@ -1,4 +1,4 @@
-import { MessageType } from '@behavior-tree-ist/core';
+import { MessageType } from '@bt-studio/core';
 import { AppDependencies } from '../../../types/app-dependencies';
 import { HelloHandler } from './hello-handler';
 import { TreeRegisteredHandler } from './tree-registered-handler';

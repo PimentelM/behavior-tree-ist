@@ -1,5 +1,5 @@
 {
-    "name": "@behavior-tree-ist/studio-ui",
+    "name": "@bt-studio/studio-ui",
     "version": "0.1.0",
     "private": true,
     "type": "module",
@@ -10,15 +10,15 @@
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
-        "@behavior-tree-ist/core": "workspace:*",
-        "@behavior-tree-ist/react": "workspace:*",
-        "@behavior-tree-ist/studio-common": "workspace:*",
+        "@bt-studio/core": "workspace:*",
+        "@bt-studio/react": "workspace:*",
+        "@bt-studio/studio-common": "workspace:*",
         "@trpc/client": "^11.11.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1"
     },
     "devDependencies": {
-        "@behavior-tree-ist/studio-server": "workspace:*",
+        "@bt-studio/studio-server": "workspace:*",
         "@dogtiti/vite-plugin-react-mcp": "latest",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",

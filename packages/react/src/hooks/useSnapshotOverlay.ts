@@ -1,8 +1,8 @@
 import { useMemo, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
-import { NodeResult, NodeFlags, hasFlag } from '@behavior-tree-ist/core';
-import type { RefChangeEvent, SerializableState, SerializableValue } from '@behavior-tree-ist/core';
-import type { TreeInspector } from '@behavior-tree-ist/core/inspector';
+import { NodeResult, NodeFlags, hasFlag } from '@bt-studio/core';
+import type { RefChangeEvent, SerializableState, SerializableValue } from '@bt-studio/core';
+import type { TreeInspector } from '@bt-studio/core/inspector';
 import type { BTNodeData, BTEdgeData } from '../types';
 
 export function useSnapshotOverlay(

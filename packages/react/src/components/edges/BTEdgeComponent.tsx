@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { BaseEdge, getSmoothStepPath } from '@xyflow/react';
 import type { EdgeProps, Edge } from '@xyflow/react';
 import type { BTEdgeData } from '../../types';
-import { NodeResult } from '@behavior-tree-ist/core';
+import { NodeResult } from '@bt-studio/core';
 
 type BTFlowEdge = Edge<BTEdgeData, 'btEdge'>;
 

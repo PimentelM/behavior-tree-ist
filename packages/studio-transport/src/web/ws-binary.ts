@@ -2,7 +2,7 @@ import type {
     TransportInterface,
     TransportData,
     TransportFactory,
-} from "@behavior-tree-ist/core";
+} from "@bt-studio/core";
 
 /**
  * Browser WebSocket transport that sends and receives binary
