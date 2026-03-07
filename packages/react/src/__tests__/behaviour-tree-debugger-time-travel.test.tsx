@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { NodeFlags, NodeResult } from '@bt-studio/core';
 import type { SerializableNode, TickRecord } from '@bt-studio/core';
@@ -168,6 +168,10 @@ function makeModeSwitchTick(): TickRecord {
 }
 
 describe('BehaviourTreeDebugger time-travel percentile mode', () => {
+  beforeEach(() => {
+    localStorage.removeItem('bt-activity-window-collapsed');
+  });
+
   it('switches performance percentiles from sampled to exact when pausing', async () => {
     const ticks: TickRecord[] = [
       makeTick(1, 100),
@@ -204,10 +208,10 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     );
 
     const local = within(container);
-    expect(local.getAllByText('Current Activity').length).toBeGreaterThan(0);
+    expect(local.getAllByText(/Current Activity/).length).toBeGreaterThan(0);
 
     fireEvent.click(local.getByRole('button', { name: 'Hide current activity window' }));
-    expect(local.queryByText('No activity for this tick')).toBeNull();
+    expect(local.queryByText(/Current Activity/)).toBeNull();
     expect(local.getByRole('button', { name: 'Show current activity window' })).toBeTruthy();
   });
 
@@ -250,9 +254,6 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     );
 
     const local = within(container);
-    expect(local.getByText('No activity for this tick')).toBeTruthy();
-
-    fireEvent.click(local.getByRole('button', { name: 'Collapse current activity window' }));
     expect(local.queryByText('No activity for this tick')).toBeNull();
     const collapsedTitle = container.querySelector('.bt-canvas-surface__activity-title');
     expect(collapsedTitle?.textContent ?? '').toContain('Current Activity:');
@@ -260,6 +261,9 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
 
     fireEvent.click(local.getByRole('button', { name: 'Expand current activity window' }));
     expect(local.getByText('No activity for this tick')).toBeTruthy();
+
+    fireEvent.click(local.getByRole('button', { name: 'Collapse current activity window' }));
+    expect(local.queryByText('No activity for this tick')).toBeNull();
   });
 
   it('dedupes duplicate terminal entries and anchors selection to tail activity node', () => {
@@ -275,6 +279,8 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     );
 
     const local = within(container);
+    fireEvent.click(local.getByRole('button', { name: 'Expand current activity window' }));
+
     const label = 'Guarding > Diagnostics > Diagnostics Loop';
     const entries = local.getAllByRole('button', { name: new RegExp(label, 'i') });
     expect(entries).toHaveLength(1);
@@ -305,6 +311,8 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     );
 
     const local = within(container);
+    fireEvent.click(local.getByRole('button', { name: 'Expand current activity window' }));
+
     expect(local.getByTitle('Guarding > Patrolling')).toBeTruthy();
     expect(local.queryByTitle('Guarding > Attacking')).toBeNull();
 
@@ -327,6 +335,8 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     );
 
     const local = within(container);
+    fireEvent.click(local.getByRole('button', { name: 'Expand current activity window' }));
+
     expect(local.queryByRole('button', { name: 'Show only running activities' })).toBeNull();
     expect(local.queryByRole('button', { name: 'Show activity labels' })).toBeNull();
 
