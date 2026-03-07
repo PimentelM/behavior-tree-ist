@@ -345,6 +345,58 @@ describe("TreeInspector", () => {
         expect(inspector.getStoredTickIds()).toEqual([]);
     });
 
+    describe("ingestTicks", () => {
+        it("batch ingest ordered records equals sequential ingestTick", () => {
+            const inspector1 = new TreeInspector();
+            inspector1.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]));
+            inspector1.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]));
+            inspector1.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 30 }]));
+
+            const inspector2 = new TreeInspector();
+            inspector2.ingestTicks([
+                makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]),
+                makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]),
+                makeTickRecord(3, [{ nodeId: 1, start: 0, end: 30 }]),
+            ]);
+
+            expect(inspector2.getStoredTickIds()).toEqual([1, 2, 3]);
+            expect(inspector2.getStats().totalTickCount).toBe(3);
+            expect(inspector2.getNodeProfilingData(1)!.totalCpuTime).toBe(inspector1.getNodeProfilingData(1)!.totalCpuTime);
+        });
+
+        it("batch ingest unordered records ingests all valid records", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTicks([
+                makeTickRecord(3, [{ nodeId: 1, start: 0, end: 30 }]),
+                makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]),
+                makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]),
+            ]);
+
+            expect(inspector.getStoredTickIds()).toEqual([1, 2, 3]);
+            expect(inspector.getStats().totalTickCount).toBe(3);
+        });
+
+        it("batch ingest with duplicates ignores them, valid records ingested", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTicks([
+                makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]),
+                makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]),
+                makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]),
+            ]);
+
+            expect(inspector.getStoredTickIds()).toEqual([1, 2]);
+            expect(inspector.getStats().totalTickCount).toBe(2);
+        });
+
+        it("empty batch is no-op", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTicks([]);
+
+            expect(inspector.getStats().totalTickCount).toBe(0);
+            expect(inspector.getStoredTickIds()).toEqual([]);
+        });
+    });
+
     it("ignores empty event arrays", () => {
         const inspector = new TreeInspector();
         inspector.ingestTick({ tickId: 0, timestamp: 0, events: [], refEvents: [] });

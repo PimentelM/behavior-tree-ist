@@ -66,6 +66,13 @@ export class TreeInspector {
         this.profiler.ingestTick(record.tickId, record.events);
     }
 
+    ingestTicks(records: TickRecord[]): void {
+        const sorted = [...records].sort((a, b) => a.tickId - b.tickId);
+        for (const record of sorted) {
+            this.ingestTick(record);
+        }
+    }
+
     // --- State reconstruction ---
 
     getSnapshotAtTick(tickId: number): TreeTickSnapshot | undefined {
