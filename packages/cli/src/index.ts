@@ -2,14 +2,18 @@ import { defineCommand, runMain } from 'citty'
 import { createStudioServer } from '@bt-studio/studio-server'
 import { createRequire } from 'node:module'
 import { dirname, join, resolve } from 'node:path'
-import { mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { startDemoAgent } from './demo-agent.js'
 
 function resolveUiDistPath(): string {
   const require = createRequire(import.meta.url)
   const uiPkgJson = require.resolve('@bt-studio/studio-ui/package.json')
-  return join(dirname(uiPkgJson), 'dist')
+  const distPath = join(dirname(uiPkgJson), 'dist')
+  if (!existsSync(distPath)) {
+    throw new Error(`UI dist not found at ${distPath}. Run 'yarn build' first.`)
+  }
+  return distPath
 }
 
 const main = defineCommand({
@@ -54,11 +58,12 @@ const main = defineCommand({
     })
 
     await server.start()
-    console.log(`BT Studio running at http://localhost:${port}`)
+    const displayHost = args.host === '0.0.0.0' ? 'localhost' : args.host
+    console.log(`BT Studio running at http://${displayHost}:${port}`)
 
     let demoHandle: { shutdown(): void } | undefined
     if (args.demo) {
-      demoHandle = startDemoAgent(`ws://localhost:${port}/ws`)
+      demoHandle = startDemoAgent(`ws://${displayHost}:${port}/ws`)
       console.log('Demo agent started')
     }
 

@@ -1,7 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { ReactMcp } from '@dogtiti/vite-plugin-react-mcp';
-
 const fromRoot = (relativePath: string) => new URL(relativePath, import.meta.url).pathname;
 
 // https://vitejs.dev/config/
@@ -36,7 +34,6 @@ export default defineConfig({
     },
     plugins: [
         react(),
-        ReactMcp(),
     ],
     server: {
         port: 3000,

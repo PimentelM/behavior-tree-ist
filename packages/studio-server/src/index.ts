@@ -277,7 +277,8 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             const resolvedDir = resolve(staticDir);
             app.use(express.static(resolvedDir));
             app.get('*', (req, res, next) => {
-                if (req.path.startsWith('/trpc') || req.path === '/healthz') {
+                if (req.path.startsWith('/trpc') || req.path === '/healthz'
+                    || req.path === config.ws.path || req.path === config.uiWs.path) {
                     return next();
                 }
                 res.sendFile(join(resolvedDir, 'index.html'));
