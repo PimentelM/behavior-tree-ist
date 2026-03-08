@@ -32,6 +32,7 @@ const SHADOW_BASE_CSS = [
 ].join('');
 const ACTIVITY_WINDOW_PADDING = 8;
 const ACTIVITY_COLLAPSED_STORAGE_KEY = 'bt-activity-window-collapsed';
+const SUBTREE_COLLAPSED_STORAGE_PREFIX = 'bt-collapsed-subtrees-';
 type ActivityLabelMode = 'activity' | 'node';
 
 type ActivityWindowPosition = {
@@ -145,6 +146,49 @@ export function BehaviourTreeDebugger({
   const activityWindowRef = useRef<HTMLDivElement | null>(null);
   const activityDragRef = useRef<ActivityDragState | null>(null);
 
+  const treeId = tree?.id;
+  const subtreeStorageKey = treeId !== undefined ? `${SUBTREE_COLLAPSED_STORAGE_PREFIX}${treeId}` : null;
+
+  const [collapsedSubTrees, setCollapsedSubTrees] = useState<Set<number>>(() => {
+    if (!subtreeStorageKey) return new Set();
+    try {
+      const stored = localStorage.getItem(subtreeStorageKey);
+      if (stored) return new Set(JSON.parse(stored) as number[]);
+    } catch { /* ignore */ }
+    return new Set();
+  });
+
+  // Reset collapsed subtrees on tree change, load from localStorage
+  useEffect(() => {
+    if (!subtreeStorageKey) {
+      setCollapsedSubTrees(new Set());
+      return;
+    }
+    try {
+      const stored = localStorage.getItem(subtreeStorageKey);
+      if (stored) {
+        setCollapsedSubTrees(new Set(JSON.parse(stored) as number[]));
+        return;
+      }
+    } catch { /* ignore */ }
+    setCollapsedSubTrees(new Set());
+  }, [subtreeStorageKey]);
+
+  const toggleSubTreeCollapse = useCallback((nodeId: number) => {
+    setCollapsedSubTrees((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      if (subtreeStorageKey) {
+        try { localStorage.setItem(subtreeStorageKey, JSON.stringify([...next])); } catch { /* ignore */ }
+      }
+      return next;
+    });
+  }, [subtreeStorageKey]);
+
   useEffect(() => {
     setPausedInspector(null);
   }, [tree]);
@@ -184,10 +228,11 @@ export function BehaviourTreeDebugger({
   const activeInspector = pausedInspector ?? inspector;
   const percentilesApproximate = timeTravelControls.mode === 'live';
 
-  // Layout: only recomputes when tree changes
+  // Layout: only recomputes when tree changes or collapse state changes
   const { nodes: baseNodes, edges: baseEdges } = useTreeLayout(
     activeInspector.tree,
     layoutDirection,
+    collapsedSubTrees,
   );
 
   useEffect(() => {
@@ -305,6 +350,7 @@ export function BehaviourTreeDebugger({
     refEventsByNode,
     handleSelectNode,
     tickGeneration,
+    toggleSubTreeCollapse,
   );
 
   const handleSelectActivityBranch = useCallback((branch: ActivityBranchData) => {
