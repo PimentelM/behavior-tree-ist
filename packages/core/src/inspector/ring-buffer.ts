@@ -17,6 +17,42 @@ export class RingBuffer<T> {
         }
     }
 
+    pushMany(items: T[]): T[] {
+        if (items.length === 0) return [];
+
+        // If items exceed capacity, only the last `capacity` items matter
+        if (items.length >= this.capacity) {
+            const evicted: T[] = [];
+            this.forEach(item => evicted.push(item));
+            const start = items.length - this.capacity;
+            for (let i = 0; i < this.capacity; i++) {
+                this.buffer[i] = items[start + i];
+            }
+            this.head = 0;
+            this.count = this.capacity;
+            return evicted;
+        }
+
+        const evicted: T[] = [];
+        const totalAfter = this.count + items.length;
+        const evictCount = Math.max(0, totalAfter - this.capacity);
+
+        for (let i = 0; i < evictCount; i++) {
+            evicted.push(this.buffer[(this.head + i) % this.capacity] as T);
+        }
+
+        for (const item of items) {
+            this.buffer[(this.head + this.count) % this.capacity] = item;
+            if (this.count < this.capacity) {
+                this.count++;
+            } else {
+                this.head = (this.head + 1) % this.capacity;
+            }
+        }
+
+        return evicted;
+    }
+
     peekFirst(): T | undefined {
         if (this.count === 0) return undefined;
         return this.buffer[this.head];

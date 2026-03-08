@@ -483,6 +483,66 @@ describe("Profiler", () => {
     });
 });
 
+describe("Profiler batch methods", () => {
+    it("ingestTicks produces same results as sequential ingestTick", () => {
+        const sequential = new Profiler();
+        sequential.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }, { nodeId: 2, start: 2, end: 5 }]));
+        sequential.ingestTick(2, makeEvents(2, [{ nodeId: 1, start: 0, end: 20 }, { nodeId: 2, start: 5, end: 12 }]));
+        sequential.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 15 }]));
+
+        const batch = new Profiler();
+        batch.ingestTicks([
+            { tickId: 1, events: makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }, { nodeId: 2, start: 2, end: 5 }]) },
+            { tickId: 2, events: makeEvents(2, [{ nodeId: 1, start: 0, end: 20 }, { nodeId: 2, start: 5, end: 12 }]) },
+            { tickId: 3, events: makeEvents(3, [{ nodeId: 1, start: 0, end: 15 }]) },
+        ]);
+
+        expect(batch.tickCount).toBe(sequential.tickCount);
+        expect(batch.totalCpuTime).toBe(sequential.totalCpuTime);
+        expect(batch.getNodeData(1)!.totalCpuTime).toBe(sequential.getNodeData(1)!.totalCpuTime);
+        expect(batch.getNodeData(2)!.totalCpuTime).toBe(sequential.getNodeData(2)!.totalCpuTime);
+    });
+
+    it("ingestTicks skips duplicate and out-of-order tick ids", () => {
+        const profiler = new Profiler();
+        profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 10 }]));
+
+        profiler.ingestTicks([
+            { tickId: 2, events: makeEvents(2, [{ nodeId: 1, start: 0, end: 5 }]) },
+            { tickId: 3, events: makeEvents(3, [{ nodeId: 1, start: 0, end: 5 }]) },
+            { tickId: 4, events: makeEvents(4, [{ nodeId: 1, start: 0, end: 20 }]) },
+        ]);
+
+        expect(profiler.tickCount).toBe(2);
+        expect(profiler.totalCpuTime).toBe(30);
+    });
+
+    it("removeTicks batch subtracts contributions", () => {
+        const profiler = new Profiler();
+        const tick1 = makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]);
+        const tick2 = makeEvents(2, [{ nodeId: 1, start: 0, end: 20 }]);
+        const tick3 = makeEvents(3, [{ nodeId: 1, start: 0, end: 30 }]);
+        profiler.ingestTick(1, tick1);
+        profiler.ingestTick(2, tick2);
+        profiler.ingestTick(3, tick3);
+
+        profiler.removeTicks([
+            { tickId: 1, events: tick1 },
+            { tickId: 2, events: tick2 },
+        ]);
+
+        expect(profiler.tickCount).toBe(1);
+        expect(profiler.totalCpuTime).toBe(30);
+        expect(profiler.getNodeData(1)!.totalCpuTime).toBe(30);
+    });
+
+    it("ingestTicks handles empty input", () => {
+        const profiler = new Profiler();
+        profiler.ingestTicks([]);
+        expect(profiler.tickCount).toBe(0);
+    });
+});
+
 describe("Profiler.buildFlameGraphFrames", () => {
     function makeTree(): SerializableNode {
         return {
