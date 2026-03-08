@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { multiRef } from "./multi-ref";
+import { multiRef, patchRef } from "./multi-ref";
 import { BTNode } from "./node";
 import { NodeResult } from "./types";
 import { Action } from "./action";
@@ -35,6 +35,16 @@ describe("MultiRef", () => {
         it("fields are enumerable", () => {
             const bb = multiRef("bb", { a: 1, b: "two", c: true });
             expect(Object.keys(bb)).toEqual(["a", "b", "c"]);
+        });
+
+        it("defaults with name key preserves user name, no hidden name property", () => {
+            const bb = multiRef("group", { name: "alice", score: 10 });
+
+            expect(bb.name).toBe("alice");
+            expect(Object.keys(bb)).toEqual(["name", "score"]);
+
+            bb.name = "bob";
+            expect(bb.name).toBe("bob");
         });
     });
 
@@ -193,6 +203,130 @@ describe("MultiRef", () => {
             expect(ctx2.refEvents).toHaveLength(1);
             expect(ctx2.refEvents[0].newValue).toBe(42);
             expect(AmbientContext.getTickContext()).toBeUndefined();
+        });
+    });
+});
+
+class AgentState {
+    health = 100;
+    target: string | null = null;
+
+    get isAlive() {
+        return this.health > 0;
+    }
+
+    reset() {
+        this.health = 100;
+        this.target = null;
+    }
+}
+
+describe("patchRef", () => {
+    describe("basics", () => {
+        it("returns same instance", () => {
+            const original = new AgentState();
+            const patched = patchRef("agent", original);
+
+            expect(patched).toBe(original);
+            expect(patched instanceof AgentState).toBe(true);
+        });
+
+        it("preserves field values", () => {
+            const state = patchRef("agent", new AgentState());
+
+            expect(state.health).toBe(100);
+            expect(state.target).toBeNull();
+        });
+
+        it("fields are writable", () => {
+            const state = patchRef("agent", new AgentState());
+
+            state.health = 50;
+            state.target = "enemy";
+
+            expect(state.health).toBe(50);
+            expect(state.target).toBe("enemy");
+        });
+
+        it("prototype getters still work", () => {
+            const state = patchRef("agent", new AgentState());
+
+            expect(state.isAlive).toBe(true);
+
+            state.health = 0;
+            expect(state.isAlive).toBe(false);
+        });
+
+        it("methods that mutate fields work and emit events", () => {
+            const state = patchRef("agent", new AgentState());
+            state.health = 50;
+            state.target = "enemy";
+
+            const node = Action.from("reset", () => {
+                state.reset();
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(state.health).toBe(100);
+            expect(state.target).toBeNull();
+            expect(ctx.refEvents).toHaveLength(2);
+            expect(ctx.refEvents[0].refName).toBe("agent.health");
+            expect(ctx.refEvents[1].refName).toBe("agent.target");
+        });
+
+        it("only patches own enumerable data properties", () => {
+            const state = patchRef("agent", new AgentState());
+
+            const ownKeys = Object.keys(state);
+            expect(ownKeys).toEqual(["health", "target"]);
+            expect(Object.getOwnPropertyDescriptor(state, "isAlive")).toBeUndefined();
+        });
+    });
+
+    describe("tracing", () => {
+        it("field write inside tick emits RefChangeEvent", () => {
+            const state = patchRef("agent", new AgentState());
+            const node = Action.from("hit", () => {
+                state.health = 75;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 3, now: 200 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            expect(ctx.refEvents[0]).toEqual({
+                tickId: 3,
+                timestamp: 200,
+                refName: "agent.health",
+                nodeId: node.id,
+                newValue: 75,
+                isAsync: false,
+            });
+        });
+
+        it("no-op write does not emit event", () => {
+            const state = patchRef("agent", new AgentState());
+            const node = Action.from("noop", () => {
+                state.health = 100;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(0);
+        });
+
+        it("write outside tick produces no event and no error", () => {
+            const state = patchRef("agent", new AgentState());
+
+            state.health = 42;
+
+            expect(state.health).toBe(42);
         });
     });
 });

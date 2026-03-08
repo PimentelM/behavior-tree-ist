@@ -1,6 +1,6 @@
 import { AmbientContext } from "./ambient-context";
-import type { TickContext } from "./node";
 import type { RefChangeEvent } from "./types";
+import { pushRefEvent } from "./ref-event";
 
 /**
  * A multi-field observable ref. Looks like a plain typed object,
@@ -8,19 +8,14 @@ import type { RefChangeEvent } from "./types";
  *
  * Event refName format: `"${name}.${field}"` (e.g. `"myBB.targetId"`).
  */
-export type MultiRef<T extends Record<string, unknown>> = T & {
-    /** The ref group name. Non-enumerable to keep the object "plain". */
-    readonly name: string;
-};
+export type MultiRef<T extends Record<string, unknown>> = T &
+    ("name" extends keyof T ? unknown : { readonly name: string });
 
-function emitRefChange(
-    refName: string,
-    newValue: unknown,
-    ctx: TickContext | undefined,
-    nodeId: number | undefined,
-): void {
+function emitRefChange(refName: string, newValue: unknown): void {
+    const ctx = AmbientContext.getTickContext();
     if (!ctx || !ctx.isStateTraceEnabled) return;
 
+    const nodeId = AmbientContext.getCurrentMutationNodeId();
     const event: RefChangeEvent = {
         tickId: ctx.tickId,
         timestamp: ctx.now,
@@ -30,16 +25,7 @@ function emitRefChange(
         isAsync: false,
     };
 
-    const runtime = ctx.runtime;
-    if (runtime) {
-        if (runtime.isTickRunning) {
-            runtime.latest!.refEvents.push(event);
-        } else {
-            runtime.pendingRefEvents.push(event);
-        }
-    } else {
-        ctx.refEvents.push(event);
-    }
+    pushRefEvent(ctx, event);
 }
 
 /**
@@ -67,18 +53,14 @@ export function multiRef<T extends Record<string, unknown>>(
 
         Object.defineProperty(obj, key, {
             enumerable: true,
-            configurable: false,
+            configurable: true,
             get() {
                 return storage[key];
             },
             set(value: unknown) {
                 if (storage[key] === value) return;
                 storage[key] = value;
-
-                const qualifiedName = `${name}.${key}`;
-                const ctx = AmbientContext.getTickContext();
-                const nodeId = AmbientContext.getCurrentMutationNodeId();
-                emitRefChange(qualifiedName, value, ctx, nodeId);
+                emitRefChange(`${name}.${key}`, value);
             },
         });
     }
@@ -88,9 +70,54 @@ export function multiRef<T extends Record<string, unknown>>(
             value: name,
             enumerable: false,
             writable: false,
-            configurable: false,
+            configurable: true,
         });
     }
 
     return obj;
+}
+
+/**
+ * Patches an existing object (typically a class instance) to emit RefChangeEvents
+ * on field mutations. Only own enumerable writable data properties are intercepted;
+ * prototype methods, getters, and non-writable fields are left untouched.
+ *
+ * Returns the same instance (mutated in-place).
+ *
+ * @example
+ * ```ts
+ * class AgentState {
+ *     health = 100;
+ *     target: string | null = null;
+ *     get isAlive() { return this.health > 0; }
+ *     reset() { this.health = 100; this.target = null; }
+ * }
+ * const state = patchRef("agent", new AgentState());
+ * state.health = 50;  // emits RefChangeEvent "agent.health"
+ * state.isAlive;      // true (getter works)
+ * state.reset();      // emits events for health + target
+ * ```
+ */
+export function patchRef<T extends object>(name: string, instance: T): T {
+    for (const key of Object.keys(instance)) {
+        const desc = Object.getOwnPropertyDescriptor(instance, key);
+        if (!desc || !("value" in desc) || !desc.writable) continue;
+
+        let stored: unknown = desc.value;
+
+        Object.defineProperty(instance, key, {
+            enumerable: desc.enumerable,
+            configurable: true,
+            get() {
+                return stored;
+            },
+            set(value: unknown) {
+                if (stored === value) return;
+                stored = value;
+                emitRefChange(`${name}.${key}`, value);
+            },
+        });
+    }
+
+    return instance;
 }
