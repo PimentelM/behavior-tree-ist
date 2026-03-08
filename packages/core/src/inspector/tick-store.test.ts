@@ -259,4 +259,67 @@ describe("TickStore", () => {
         expect(store.getByTickId(1)).toBeUndefined();
         expect(store.getByTickId(3)).toBeDefined();
     });
+
+    describe("pushMany", () => {
+        it("batch push matches sequential push", () => {
+            const sequential = new TickStore(5);
+            for (let i = 1; i <= 5; i++) sequential.push(makeRecord(i));
+
+            const batch = new TickStore(5);
+            batch.pushMany([1, 2, 3, 4, 5].map(i => makeRecord(i)));
+
+            expect(batch.getStoredTickIds()).toEqual(sequential.getStoredTickIds());
+            expect(batch.size).toBe(sequential.size);
+        });
+
+        it("returns evicted records on overflow", () => {
+            const store = new TickStore(3);
+            store.push(makeRecord(1));
+            store.push(makeRecord(2));
+
+            const evicted = store.pushMany([3, 4, 5].map(i => makeRecord(i)));
+
+            expect(evicted.map(e => e.tickId)).toEqual([1, 2]);
+            expect(store.getStoredTickIds()).toEqual([3, 4, 5]);
+            expect(store.hasTick(1)).toBe(false);
+            expect(store.hasTick(5)).toBe(true);
+        });
+
+        it("filters empty events and duplicates", () => {
+            const store = new TickStore(10);
+            store.push(makeRecord(5));
+
+            const evicted = store.pushMany([
+                { tickId: 3, timestamp: 3000, events: [], refEvents: [] },
+                makeRecord(4), // older than 5
+                makeRecord(5), // duplicate
+                makeRecord(6), // valid
+                makeRecord(7), // valid
+            ]);
+
+            expect(evicted).toEqual([]);
+            expect(store.getStoredTickIds()).toEqual([5, 6, 7]);
+        });
+
+        it("handles batch exceeding capacity", () => {
+            const store = new TickStore(2);
+
+            const evicted = store.pushMany([1, 2, 3, 4].map(i => makeRecord(i)));
+
+            expect(evicted.map(e => e.tickId)).toEqual([1, 2]);
+            expect(store.getStoredTickIds()).toEqual([3, 4]);
+            expect(store.hasTick(1)).toBe(false);
+            expect(store.hasTick(2)).toBe(false);
+        });
+
+        it("returns empty for empty input", () => {
+            const store = new TickStore(5);
+            store.push(makeRecord(1));
+
+            const evicted = store.pushMany([]);
+
+            expect(evicted).toEqual([]);
+            expect(store.size).toBe(1);
+        });
+    });
 });

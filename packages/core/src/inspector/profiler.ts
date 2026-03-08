@@ -189,6 +189,104 @@ export class Profiler {
     }
 
     /**
+     * Batch-accumulate timing data from multiple ticks.
+     * Single percentile invalidation at start, single repair pass at end.
+     */
+    ingestTicks(ticks: Array<{ tickId: number; events: TickTraceEvent[] }>): void {
+        if (ticks.length === 0) return;
+        this.invalidateExactPercentiles();
+
+        for (const { tickId, events } of ticks) {
+            if (events.length === 0) continue;
+            if (tickId <= this.lastProcessedTickId) continue;
+            this.lastProcessedTickId = tickId;
+            const tickContribByNode = new Map<number, TickNodeContribution>();
+            const timedEvents: TimedEvent[] = [];
+            const currentTickNodes = new Set<number>();
+
+            for (const event of events) {
+                currentTickNodes.add(event.nodeId);
+                if (event.startedAt === undefined || event.finishedAt === undefined) continue;
+                const cpuTime = event.finishedAt - event.startedAt;
+                const contribution = this.getOrCreateContribution(tickContribByNode, event.nodeId);
+                this.addCpuSampleToContribution(contribution, cpuTime);
+                timedEvents.push({
+                    nodeId: event.nodeId,
+                    startedAt: event.startedAt,
+                    finishedAt: event.finishedAt,
+                    inclusiveTime: cpuTime,
+                    childInclusiveTime: 0,
+                });
+                this.pushPercentileCpuSample(event.nodeId, cpuTime);
+
+                if (event.result === NodeResult.Running) {
+                    if (!this.runningStartTimes.has(event.nodeId)) {
+                        this.runningStartTimes.set(event.nodeId, event.startedAt);
+                    }
+                } else if (event.result === NodeResult.Succeeded || event.result === NodeResult.Failed) {
+                    const initialStartedAt = this.runningStartTimes.get(event.nodeId) ?? event.startedAt;
+                    const runningTime = event.finishedAt - initialStartedAt;
+                    this.addRunningSampleToContribution(contribution, runningTime);
+                    this.runningStartTimes.delete(event.nodeId);
+                }
+            }
+
+            const tickSelfTimes = this.groupSelfCpuSamplesFromTimedEvents(timedEvents);
+            for (const [nodeId, samples] of tickSelfTimes) {
+                const contribution = this.getOrCreateContribution(tickContribByNode, nodeId);
+                for (const sample of samples) {
+                    this.addSelfCpuSampleToContribution(contribution, sample);
+                    this.pushPercentileSelfSample(nodeId, sample);
+                }
+            }
+
+            if (timedEvents.length > 0) {
+                this._tickCount++;
+            }
+            this.tickContribByTick.set(tickId, tickContribByNode);
+            for (const [nodeId, contribution] of tickContribByNode) {
+                this.applyContribution(nodeId, contribution);
+            }
+
+            for (const nodeId of Array.from(this.runningStartTimes.keys())) {
+                if (!currentTickNodes.has(nodeId)) {
+                    this.runningStartTimes.delete(nodeId);
+                }
+            }
+        }
+
+        // Single repair pass at end of batch
+        this.repairDirtyNodes(this.maxDirtyNodesPerRepairPass);
+        this.ticksSinceRepair = 0;
+    }
+
+    /**
+     * Batch-subtract evicted ticks' contributions.
+     * Single percentile invalidation.
+     */
+    removeTicks(ticks: Array<{ tickId: number; events: TickTraceEvent[] }>): void {
+        if (ticks.length === 0) return;
+        this.invalidateExactPercentiles();
+
+        for (const { tickId, events } of ticks) {
+            if (events.length === 0) continue;
+            const tickContribByNode = this.tickContribByTick.get(tickId);
+            if (!tickContribByNode) continue;
+
+            const hadTimedEvents = Array.from(tickContribByNode.values()).some((c) => c.cpuCount > 0);
+            if (hadTimedEvents && this._tickCount > 0) {
+                this._tickCount--;
+            }
+
+            for (const [nodeId, contribution] of tickContribByNode) {
+                this.removeContribution(nodeId, contribution);
+            }
+
+            this.tickContribByTick.delete(tickId);
+        }
+    }
+
+    /**
      * Subtract an evicted tick's contribution.
      */
     removeTick(tickId: number, events: TickTraceEvent[]): void {

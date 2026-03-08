@@ -45,9 +45,8 @@ export function useInspector(
     let i = 0;
     while (i < ticks.length && ticks[i].tickId <= lastId) i++;
     if (i < ticks.length) {
-      for (; i < ticks.length; i++) {
-        inspector.ingestTick(ticks[i]);
-      }
+      const newTicks = ticks.slice(i);
+      inspector.ingestTicks(newTicks);
       lastIngestedTickIdRef.current = ticks[ticks.length - 1].tickId;
       setTickGeneration((g) => g + 1);
     }
