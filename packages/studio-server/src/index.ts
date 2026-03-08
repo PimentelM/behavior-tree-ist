@@ -1,3 +1,4 @@
+import express from 'express';
 import { createExpressApp } from './infra/express/express-setup';
 import { createWebSocketServer } from './infra/websocket/websocket-server';
 import { createUiWebSocketServer } from './infra/websocket/ui-websocket-server';
@@ -22,6 +23,7 @@ import { AppDependencies } from './types/app-dependencies';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import type { Server } from 'http';
 import type { NextFunction, Request, Response } from 'express';
+import { resolve, join } from 'node:path';
 import type { Knex } from 'knex';
 import type { WebSocketServerInterface } from './infra/websocket/interfaces';
 import type { UiWebSocketServerInterface } from './infra/websocket/ui-websocket-server';
@@ -40,6 +42,8 @@ export interface StudioServerOptions {
     commandTimeoutMs?: number;
     maxTicksPerTree?: number;
     runMigrationsOnStartup?: boolean;
+    /** Directory containing static files (e.g. built UI) to serve via Express */
+    staticDir?: string;
 }
 
 export interface StudioServerHandle {
@@ -137,6 +141,7 @@ async function cleanupInitializedResources(params: {
 
 export function createStudioServer(options?: StudioServerOptions): StudioServerHandle {
     const config = optionsToConfig(options);
+    const staticDir = options?.staticDir;
     let httpServer: Server | undefined;
     let deps: AppDependencies | undefined;
 
@@ -145,7 +150,7 @@ export function createStudioServer(options?: StudioServerOptions): StudioServerH
             if (httpServer || deps) {
                 throw new Error('Studio server is already running');
             }
-            const result = await initializeService({ config });
+            const result = await initializeService({ config, staticDir });
             httpServer = result.httpServer;
             deps = result.deps;
         },
@@ -176,7 +181,7 @@ interface InitResult {
     deps: AppDependencies;
 }
 
-async function initializeService({ config }: { config: StudioServerConfig }): Promise<InitResult> {
+async function initializeService({ config, staticDir }: { config: StudioServerConfig; staticDir?: string }): Promise<InitResult> {
     const setupLogger = createLogger('setup');
     setupLogger.info('Starting studio server');
 
@@ -266,8 +271,20 @@ async function initializeService({ config }: { config: StudioServerConfig }): Pr
             })
         );
 
-        app.get('/', (_req, res) => res.status(200).send('ok'));
         app.get('/healthz', (_req, res) => res.status(200).json({ status: 'ok' }));
+
+        if (staticDir) {
+            const resolvedDir = resolve(staticDir);
+            app.use(express.static(resolvedDir));
+            app.get('*', (req, res, next) => {
+                if (req.path.startsWith('/trpc') || req.path === '/healthz') {
+                    return next();
+                }
+                res.sendFile(join(resolvedDir, 'index.html'));
+            });
+        } else {
+            app.get('/', (_req, res) => res.status(200).send('ok'));
+        }
 
         registerMessageHandlers(deps);
 
