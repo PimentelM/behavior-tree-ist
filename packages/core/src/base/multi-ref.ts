@@ -2,12 +2,6 @@ import { AmbientContext } from "./ambient-context";
 import type { RefChangeEvent } from "./types";
 import { pushRefEvent } from "./ref-event";
 
-/**
- * A multi-field observable ref. Looks like a plain typed object,
- * but emits RefChangeEvents on each field mutation.
- *
- * Event refName format: `"${name}.${field}"` (e.g. `"myBB.targetId"`).
- */
 export type MultiRef<T extends Record<string, unknown>> = T &
     ("name" extends keyof T ? unknown : { readonly name: string });
 
@@ -28,19 +22,6 @@ function emitRefChange(refName: string, newValue: unknown): void {
     pushRefEvent(ctx, event);
 }
 
-/**
- * Creates a multi-field observable ref that looks like a plain typed object.
- *
- * Each field mutation emits a `RefChangeEvent` with `refName = "${name}.${field}"`.
- * Uses `===` equality check to skip no-op writes (matching `Ref<T>` semantics).
- *
- * @example
- * ```ts
- * const bb = multiRef("myBB", { targetId: 0, health: 100 });
- * bb.targetId = 5;  // emits event with refName "myBB.targetId"
- * bb.health;        // 100
- * ```
- */
 export function multiRef<T extends Record<string, unknown>>(
     name: string,
     defaults: T,
@@ -77,27 +58,6 @@ export function multiRef<T extends Record<string, unknown>>(
     return obj;
 }
 
-/**
- * Patches an existing object (typically a class instance) to emit RefChangeEvents
- * on field mutations. Only own enumerable writable data properties are intercepted;
- * prototype methods, getters, and non-writable fields are left untouched.
- *
- * Returns the same instance (mutated in-place).
- *
- * @example
- * ```ts
- * class AgentState {
- *     health = 100;
- *     target: string | null = null;
- *     get isAlive() { return this.health > 0; }
- *     reset() { this.health = 100; this.target = null; }
- * }
- * const state = patchRef("agent", new AgentState());
- * state.health = 50;  // emits RefChangeEvent "agent.health"
- * state.isAlive;      // true (getter works)
- * state.reset();      // emits events for health + target
- * ```
- */
 export function patchRef<T extends object>(name: string, instance: T): T {
     for (const key of Object.keys(instance)) {
         const desc = Object.getOwnPropertyDescriptor(instance, key);

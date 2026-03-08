@@ -8,7 +8,7 @@ Code-first, dependency-free Behavior Tree library for TypeScript focused on user
 - **Lifecycle hooks**: 12 hooks covering every phase of node execution and abort
 - **Three construction APIs**: Direct instantiation, builder functions, and TSX/JSX
 - **Rich node library**: 8 composite types, 30+ decorators, and built-in leaf nodes
-- **Ref system**: `Ref<T>`, `ReadonlyRef<T>`, and `DerivedRef<T>` for type-safe, auto-traced state sharing between nodes
+- **Ref system**: `Ref<T>`, `ReadonlyRef<T>`, `DerivedRef<T>`, `multiRef()`, and `patchRef()` for type-safe, auto-traced state sharing between nodes
 - **Runtime inspector**: Tick recording, time-travel snapshots, profiling, and flame graphs
 - **Zero dependencies**: No runtime deps; ESM and CJS bundles via tsup
 
