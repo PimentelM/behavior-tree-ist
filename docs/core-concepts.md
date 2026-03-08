@@ -174,6 +174,39 @@ const sum = derivedRef(() => a.value + b.value, 'sum');
 // sum.value → 5 (recomputes each access)
 ```
 
+### MultiRef
+
+`multiRef()` creates a multi-field observable ref that looks like a plain typed object. Each field mutation emits a `RefChangeEvent` with `refName = "${name}.${field}"`. Uses `===` equality to skip no-op writes.
+
+```typescript
+import { multiRef } from '@bt-studio/core';
+
+const bb = multiRef("myBB", { targetId: 0, health: 100 });
+bb.targetId = 5;  // emits event with refName "myBB.targetId"
+bb.health;        // 100
+```
+
+The `name` property is non-enumerable, so the object still looks and behaves like a plain typed object for iteration and serialization.
+
+### patchRef
+
+`patchRef()` patches an existing object (typically a class instance) to emit `RefChangeEvent`s on field mutations. Only own enumerable writable data properties are intercepted; prototype methods, getters, and non-writable fields are left untouched. Returns the same instance (mutated in-place).
+
+```typescript
+import { patchRef } from '@bt-studio/core';
+
+class AgentState {
+    health = 100;
+    target: string | null = null;
+    get isAlive() { return this.health > 0; }
+    reset() { this.health = 100; this.target = null; }
+}
+const state = patchRef("agent", new AgentState());
+state.health = 50;  // emits RefChangeEvent "agent.health"
+state.isAlive;      // true (getter works)
+state.reset();      // emits events for health + target
+```
+
 ### Ambient Tracing
 
 `BTNode.Tick` and `BTNode.Abort` push the active `TickContext` and node id onto an internal ambient stack before invoking hooks, and pop both in a `finally` block. This means any `ref.value = x` inside `onTick`, `onEnter`, `onAbort`, etc. automatically traces to the correct context and records which node performed the mutation.

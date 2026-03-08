@@ -7,4 +7,5 @@ export * from './decorator';
 export * from './types';
 export * from './utility';
 export * from './ref';
+export * from './multi-ref';
 export * from './condition';

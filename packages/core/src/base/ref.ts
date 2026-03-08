@@ -1,6 +1,7 @@
 import { TickContext } from "./node";
 import { AmbientContext } from "./ambient-context";
 import { RefChangeEvent } from "./types";
+import { pushRefEvent } from "./ref-event";
 
 export interface ReadonlyRef<T> {
     readonly value: T;
@@ -41,16 +42,7 @@ export class Ref<T> implements ReadonlyRef<T> {
             isAsync: false,
         };
 
-        const runtime = effectiveCtx.runtime;
-        if (runtime) {
-            if (runtime.isTickRunning) {
-                runtime.latest!.refEvents.push(event);
-            } else {
-                runtime.pendingRefEvents.push(event);
-            }
-        } else {
-            effectiveCtx.refEvents.push(event);
-        }
+        pushRefEvent(effectiveCtx, event);
     }
 
     asReadonly(): ReadonlyRef<T> {
