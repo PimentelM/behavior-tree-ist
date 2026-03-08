@@ -229,6 +229,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bt-studio/cli@workspace:packages/cli":
+  version: 0.0.0-use.local
+  resolution: "@bt-studio/cli@workspace:packages/cli"
+  dependencies:
+    "@bt-studio/core": "workspace:*"
+    "@bt-studio/studio-server": "workspace:^"
+    "@bt-studio/studio-transport": "workspace:^"
+    "@bt-studio/studio-ui": "workspace:^"
+    "@types/node": "npm:^22.15.30"
+    "@types/ws": "npm:^8.18.1"
+    citty: "npm:^0.1.6"
+    eslint: "npm:^9.0.0"
+    tsup: "npm:^8.0.0"
+    typescript: "npm:^5.7.0"
+    vitest: "npm:^3.0.0"
+    ws: "npm:^8.19.0"
+  bin:
+    bt-studio: ./dist/index.js
+  languageName: unknown
+  linkType: soft
+
 "@bt-studio/core@workspace:*, @bt-studio/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@bt-studio/core@workspace:packages/core"
@@ -264,25 +285,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-cli@workspace:packages/studio-cli":
-  version: 0.0.0-use.local
-  resolution: "@bt-studio/studio-cli@workspace:packages/studio-cli"
-  dependencies:
-    "@bt-studio/core": "workspace:*"
-    "@bt-studio/studio-transport": "workspace:^"
-    "@types/node": "npm:^22.15.30"
-    "@types/ws": "npm:^8.18.1"
-    citty: "npm:^0.1.6"
-    eslint: "npm:^9.0.0"
-    tsup: "npm:^8.0.0"
-    typescript: "npm:^5.7.0"
-    vitest: "npm:^3.0.0"
-    ws: "npm:^8.19.0"
-  bin:
-    bt-studio: ./dist/index.js
-  languageName: unknown
-  linkType: soft
-
 "@bt-studio/studio-common@workspace:*, @bt-studio/studio-common@workspace:^, @bt-studio/studio-common@workspace:packages/studio-common":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-common@workspace:packages/studio-common"
@@ -296,7 +298,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-server@workspace:*, @bt-studio/studio-server@workspace:packages/studio-server":
+"@bt-studio/studio-server@workspace:*, @bt-studio/studio-server@workspace:^, @bt-studio/studio-server@workspace:packages/studio-server":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-server@workspace:packages/studio-server"
   dependencies:
@@ -345,7 +347,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-ui@workspace:packages/studio-ui":
+"@bt-studio/studio-ui@workspace:^, @bt-studio/studio-ui@workspace:packages/studio-ui":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-ui@workspace:packages/studio-ui"
   dependencies:
@@ -353,7 +355,6 @@ __metadata:
     "@bt-studio/react": "workspace:*"
     "@bt-studio/studio-common": "workspace:*"
     "@bt-studio/studio-server": "workspace:*"
-    "@dogtiti/vite-plugin-react-mcp": "npm:latest"
     "@trpc/client": "npm:^11.11.0"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
@@ -424,23 +425,6 @@ __metadata:
   version: 2.2.4
   resolution: "@dagrejs/graphlib@npm:2.2.4"
   checksum: 10c0/14597ea9294c46b2571aee78bcaad3a24e3e5e0ebcdf198b6eae5b3805f99af727ac54a477dd9152e8b0a576efea0528fb7d4919c74801e9f669c90e5e6f5bd9
-  languageName: node
-  linkType: hard
-
-"@dogtiti/vite-plugin-react-mcp@npm:latest":
-  version: 0.1.0
-  resolution: "@dogtiti/vite-plugin-react-mcp@npm:0.1.0"
-  dependencies:
-    ansis: "npm:^1.5.5"
-    birpc: "npm:^0.2.17"
-    express: "npm:^4.18.3"
-    hookable: "npm:^5.5.3"
-    pathe: "npm:^1.1.1"
-    vite-dev-rpc: "npm:^0.1.0"
-  peerDependencies:
-    react: ">=16.8.0"
-    vite: ^3.1.0 || ^4.0.0 || ^5.0.0
-  checksum: 10c0/feb0f95e83c0f5dbeabdfdadb7eeb63eef99ef9283828050af0819d66d80477a9d52d7d3da2fff5c5cd6ff9f9706ce23606ad704f0905bc833e56a0aa508e51e
   languageName: node
   linkType: hard
 
@@ -1859,13 +1843,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansis@npm:^1.5.5":
-  version: 1.5.6
-  resolution: "ansis@npm:1.5.6"
-  checksum: 10c0/662ac5bba53975aa5d2e12e4670c14db0d89b69f332c887885287b9a021e7fc0ec309ac6d50ac02b8add4a7c15f032ca1ffe44461059f79456ad1f8fac84de85
-  languageName: node
-  linkType: hard
-
 "any-promise@npm:^1.0.0":
   version: 1.3.0
   resolution: "any-promise@npm:1.3.0"
@@ -1971,13 +1948,6 @@ __metadata:
   dependencies:
     file-uri-to-path: "npm:1.0.0"
   checksum: 10c0/3dab2491b4bb24124252a91e656803eac24292473e56554e35bbfe3cc1875332cfa77600c3bac7564049dc95075bf6fcc63a4609920ff2d64d0fe405fcf0d4ba
-  languageName: node
-  linkType: hard
-
-"birpc@npm:^0.2.17, birpc@npm:^0.2.19":
-  version: 0.2.19
-  resolution: "birpc@npm:0.2.19"
-  checksum: 10c0/be3c6a4044e3041a5d8eb4c4d50b57b46158dc8149ada718ead20544e50b68b72b34c9d8bf0457d23d5f18e5a66d206b8bef5ff22c1018e1e39d373187eed455
   languageName: node
   linkType: hard
 
@@ -3052,7 +3022,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express@npm:^4.18.3, express@npm:^4.21.0":
+"express@npm:^4.21.0":
   version: 4.22.1
   resolution: "express@npm:4.22.1"
   dependencies:
@@ -3421,13 +3391,6 @@ __metadata:
   version: 8.1.0
   resolution: "helmet@npm:8.1.0"
   checksum: 10c0/94d3a7ebc88dbda1421635bdf33f00724adb5252269e93c5ab296ec0db11336d01265659ad3739ab1a1e881fb23a686ff7e788aac6a5fb929285134f157df763
-  languageName: node
-  linkType: hard
-
-"hookable@npm:^5.5.3":
-  version: 5.5.3
-  resolution: "hookable@npm:5.5.3"
-  checksum: 10c0/275f4cc84d27f8d48c5a5cd5685b6c0fea9291be9deea5bff0cfa72856ed566abde1dcd8cb1da0f9a70b4da3d7ec0d60dc3554c4edbba647058cc38816eced3d
   languageName: node
   linkType: hard
 
@@ -4352,13 +4315,6 @@ __metadata:
   version: 0.1.12
   resolution: "path-to-regexp@npm:0.1.12"
   checksum: 10c0/1c6ff10ca169b773f3bba943bbc6a07182e332464704572962d277b900aeee81ac6aa5d060ff9e01149636c30b1f63af6e69dd7786ba6e0ddb39d4dee1f0645b
-  languageName: node
-  linkType: hard
-
-"pathe@npm:^1.1.1":
-  version: 1.1.2
-  resolution: "pathe@npm:1.1.2"
-  checksum: 10c0/64ee0a4e587fb0f208d9777a6c56e4f9050039268faaaaecd50e959ef01bf847b7872785c36483fa5cdcdbdfdb31fef2ff222684d4fc21c330ab60395c681897
   languageName: node
   linkType: hard
 
@@ -5577,27 +5533,6 @@ __metadata:
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: 10c0/f15d588d79f3675135ba783c91a4083dcd290a2a5be9fcb6514220a1634e23df116847b1cc51f66bfb0644cf9353b2abb7815ae499bab06e46dd33c1a6bf1f4f
-  languageName: node
-  linkType: hard
-
-"vite-dev-rpc@npm:^0.1.0":
-  version: 0.1.7
-  resolution: "vite-dev-rpc@npm:0.1.7"
-  dependencies:
-    birpc: "npm:^0.2.19"
-    vite-hot-client: "npm:^0.2.4"
-  peerDependencies:
-    vite: ^2.9.0 || ^3.0.0-0 || ^4.0.0-0 || ^5.0.0-0 || ^6.0.1
-  checksum: 10c0/0dda1c9ac5391d8a5aae84bb49aebf1002330e272e283fa26ad573036697450128b32ae1a1079d3a30edb011746f14dc29c7585b8d969b8fe7863b30a5a2e68a
-  languageName: node
-  linkType: hard
-
-"vite-hot-client@npm:^0.2.4":
-  version: 0.2.4
-  resolution: "vite-hot-client@npm:0.2.4"
-  peerDependencies:
-    vite: ^2.6.0 || ^3.0.0 || ^4.0.0 || ^5.0.0-0 || ^6.0.0-0
-  checksum: 10c0/e08397caaae9148e501e42f6e091efd9f6d97e21841a3c494d54dafc0ae5b9ba77e7abb137c9a28224add2eeda511574dccc3a61cf8299e2c086a58b94ad04a4
   languageName: node
   linkType: hard
 
