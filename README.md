@@ -119,36 +119,11 @@ const root = (
 
 ## React Debugger
 
-The `@bt-studio/react` package provides a drop-in React component for debugging behaviour trees with real-time visualization and time-travel.
-
-The debugger supports frozen paused mode (live ingestion continues in background), strict per-tick results, compact decorator visualization, node-local ref mutation traces, and a ref details explorer with latest-state plus full timeline filtering. Timeline and toolbar indicators also surface each tick's `time` value, auto-format Unix timestamps as `hh:mm:ss`, and provide a toolbar toggle to switch between timestamp and numeric display.
+The `@bt-studio/react` package provides a `<BehaviourTreeDebugger>` component with real-time tree visualization, time-travel, profiling, ref tracing, and activity displays. Uses Shadow DOM style isolation by default.
 
 ```bash
 npm install @bt-studio/react
 ```
-
-```tsx
-import { BehaviourTreeDebugger } from '@bt-studio/react';
-
-// In your app — you handle transport (WebSocket, polling, etc.)
-<BehaviourTreeDebugger
-  tree={tree.serialize()}
-  ticks={collectedTickRecords}
-  panels={{ nodeDetails: true, timeline: true, refTraces: true, activityNow: true }}
-  activityDisplayMode="running_or_success"
-  defaultThemeMode="dark"
-  showToolbar={true}
-  showThemeToggle={true}
-  layoutDirection="TB"
-  width="100%"
-  height="600px"
-  isolateStyles={true}
-  onNodeSelect={(nodeId) => console.log('Selected:', nodeId)}
-  onTickChange={(tickId) => console.log('Viewing tick:', tickId)}
-/>
-```
-
-`BehaviourTreeDebugger` uses Shadow DOM style isolation by default, so host-page CSS does not leak into the debugger internals.
 
 See [docs/react-debugger.md](docs/react-debugger.md) for the full API reference.
 
