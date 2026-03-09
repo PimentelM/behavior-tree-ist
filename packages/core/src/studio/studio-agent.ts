@@ -27,6 +27,13 @@ export class StudioAgent {
     private destroyed = false;
     private started = false;
 
+    private defaultStreamingState = false;
+
+    public enableStreamingOnRegisteredTrees() {
+        this.defaultStreamingState = true;
+        return this;
+    }
+
     constructor(options: StudioAgentOptions) {
         assertValidId(options.clientId, 'clientId');
         assertValidId(options.sessionId, 'sessionId');
@@ -65,7 +72,7 @@ export class StudioAgent {
 
         // Initialize state for trees already in the registry
         for (const [treeId] of this.registry.getAll()) {
-            this.agentManagedStates.set(treeId, { streaming: false });
+            this.agentManagedStates.set(treeId, { streaming: this.defaultStreamingState });
         }
 
         this.link.open();
@@ -104,7 +111,7 @@ export class StudioAgent {
     }
 
     private handleTreeRegistered(entry: RegisteredTree): void {
-        this.agentManagedStates.set(entry.treeId, { streaming: false });
+        this.agentManagedStates.set(entry.treeId, { streaming: this.defaultStreamingState });
         if (this.link.isConnected) {
             this.link.sendTreeRegistered(entry.treeId, entry.serializedTree);
         }
