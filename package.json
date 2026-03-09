@@ -2,7 +2,8 @@
   "private": true,
   "name": "bt-studio-monorepo",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "skills/*"
   ],
   "scripts": {
     "build": "yarn workspaces foreach -Atv run build",

@@ -285,6 +285,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@bt-studio/skill-auto-implement@workspace:skills/auto-implement":
+  version: 0.0.0-use.local
+  resolution: "@bt-studio/skill-auto-implement@workspace:skills/auto-implement"
+  dependencies:
+    "@bt-studio/core": "workspace:*"
+    "@bt-studio/studio-transport": "workspace:*"
+    tsup: "npm:^8.0.0"
+    tsx: "npm:^4.0.0"
+    typescript: "npm:^5.7.0"
+  languageName: unknown
+  linkType: soft
+
 "@bt-studio/studio-common@workspace:*, @bt-studio/studio-common@workspace:^, @bt-studio/studio-common@workspace:packages/studio-common":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-common@workspace:packages/studio-common"
@@ -329,7 +341,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-transport@workspace:^, @bt-studio/studio-transport@workspace:packages/studio-transport":
+"@bt-studio/studio-transport@workspace:*, @bt-studio/studio-transport@workspace:^, @bt-studio/studio-transport@workspace:packages/studio-transport":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-transport@workspace:packages/studio-transport"
   dependencies:
@@ -5350,7 +5362,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.21.0":
+"tsx@npm:^4.0.0, tsx@npm:^4.21.0":
   version: 4.21.0
   resolution: "tsx@npm:4.21.0"
   dependencies:
