@@ -356,6 +356,7 @@ __metadata:
     "@bt-studio/studio-common": "workspace:*"
     "@bt-studio/studio-server": "workspace:*"
     "@trpc/client": "npm:^11.11.0"
+    "@trpc/server": "npm:11.11.0"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
     "@vitejs/plugin-react": "npm:^4.3.1"
@@ -1202,7 +1203,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/server@npm:^11.0.0":
+"@trpc/server@npm:11.11.0, @trpc/server@npm:^11.0.0":
   version: 11.11.0
   resolution: "@trpc/server@npm:11.11.0"
   peerDependencies:
