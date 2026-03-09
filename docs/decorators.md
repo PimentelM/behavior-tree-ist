@@ -62,7 +62,7 @@ const skipIfDone = new SucceedIf(
 
 ## Timing
 
-Time-based decorators that use `ctx.now` to track elapsed time. Duration values use the same unit as `ctx.now` (defaults to milliseconds via `Date.now()` but can be any time unit — see [TickContext](core-concepts.md#tickcontext)).
+Time-based decorators that use `ctx.now` to track elapsed time. Duration values must use the same unit as `ctx.now` (see [Getting Started — Running the Tree](getting-started.md#running-the-tree)).
 
 | Decorator | Constructor | Behavior |
 |---|---|---|
@@ -277,6 +277,8 @@ activityNode.activity; // 'Attacking'
 ```
 
 You can also set it directly via `node.setActivity('Attacking')` or `node.setActivity(true)` (`true` means use `name || defaultName` in activity displays).
+
+Activity labels are used by the inspector's activity projection system to extract the current "active branch" of a tree as a compact summary. See [Inspector — Activity Projection](inspector.md#activity-projection) for details.
 
 ## SubTree
 

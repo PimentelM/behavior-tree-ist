@@ -163,21 +163,7 @@ Only one of `activity` or `displayActivity` can be provided at a time.
 | `throttle` | `number` | Wrap with `Throttle` |
 | `requireSustainedSuccess` | `number` | Wrap with `RequireSustainedSuccess` |
 
-**Lifecycle Hooks:**
-
-| Prop | Type |
-|---|---|
-| `onEnter` | `(ctx) => void` |
-| `onResume` | `(ctx) => void` |
-| `onReset` | `(ctx) => void` |
-| `onTicked` | `(result, ctx) => void` |
-| `onSuccess` | `(ctx) => void` |
-| `onFailure` | `(ctx) => void` |
-| `onRunning` | `(ctx) => void` |
-| `onFinished` | `(result, ctx) => void` |
-| `onSuccessOrRunning` | `(ctx) => void` |
-| `onFailedOrRunning` | `(ctx) => void` |
-| `onAbort` | `(ctx) => void` |
+**Lifecycle Hooks:** `onEnter`, `onResume`, `onReset`, `onTicked`, `onSuccess`, `onFailure`, `onRunning`, `onFinished`, `onSuccessOrRunning`, `onFailedOrRunning`, `onAbort` — see [Hook Reference](core-concepts.md#hook-reference) for signatures and semantics.
 
 **Ref Metadata** (declarative, no runtime effect — for UI tooling):
 

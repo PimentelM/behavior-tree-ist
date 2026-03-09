@@ -78,6 +78,24 @@ const waitAndSucceed = AsyncAction.from('Wait a bit', async (ctx, signal) => {
 });
 ```
 
+### Error Handling
+
+If `execute()` throws or the returned Promise rejects, the node returns `Failed`. The error is accessible via `lastError`:
+
+```typescript
+const node = new FetchData();
+// ... after a failed tick:
+node.lastError; // the thrown/rejected error
+```
+
+### Cancellation
+
+When an `AsyncAction` is aborted (e.g., a parent Sequence preempts it), `signal.onAbort()` callbacks fire and the current run is invalidated. A generation-based guard ensures that late-resolving promises from a cancelled run are silently ignored — no stale results leak into future executions.
+
+### Display State
+
+`getDisplayState()` returns `{ status, error? }` where status is `'idle' | 'pending' | 'resolved' | 'rejected'`. The `error` field (stringified) is present only when status is `'rejected'`.
+
 ## ConditionNode
 
 `ConditionNode` evaluates a boolean check. Returns `Succeeded` if the check is true, `Failed` if false. Conditions **never return Running** -- they are pure, synchronous checks.

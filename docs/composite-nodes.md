@@ -131,15 +131,17 @@ const combat = Parallel.from('Combat', [moveToEnemy, playAnimation, dealDamage])
 
 ### Parallel Policies
 
-| Policy | Succeeds when | Fails when |
-|---|---|---|
-| `RequireAllSuccess` (default) | All children succeed | Any child fails |
-| `RequireOneSuccess` | At least 1 child succeeds | All children fail |
-| `SuccessThreshold(n)` | `n` or more children succeed | Any child fails or it becomes impossible to reach `n` successes |
-| `FailThreshold(n)` | It becomes impossible to reach `n` failures | `n` or more children fail |
-| `AlwaysRunningPolicy` | Never | Never (always returns `Running`) |
-| `AlwaysSucceedPolicy` | Always returns `Succeeded` | Never |
-| `AlwaysFailPolicy` | Never | Always returns `Failed` |
+Policies are either singleton constants or factory functions:
+
+| Policy | Type | Succeeds when | Fails when |
+|---|---|---|---|
+| `RequireAllSuccess` (default) | const | All children succeed | Any child fails |
+| `RequireOneSuccess` | const | At least 1 child succeeds | All children fail |
+| `SuccessThreshold(n)` | factory | `n` or more children succeed | Any child fails or it becomes impossible to reach `n` successes |
+| `FailThreshold(n)` | factory | It becomes impossible to reach `n` failures | `n` or more children fail |
+| `AlwaysRunningPolicy` | const | Never | Never (always returns `Running`) |
+| `AlwaysSucceedPolicy` | const | Always returns `Succeeded` | Never |
+| `AlwaysFailPolicy` | const | Never | Always returns `Failed` |
 
 ```typescript
 import { Parallel, SuccessThreshold } from '@bt-studio/core';

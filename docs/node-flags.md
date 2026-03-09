@@ -29,9 +29,6 @@ Every concrete node calls `addFlags()` in its constructor to register its catego
 | `Display` | `0x40000` | Node whose purpose is merely display related |
 | `SubTree` | `0x80000` | Explicit subtree boundary marker for tooling |
 
-> [!IMPORTANT]
-> `NodeFlags` have **no impact on core library behavior**. Bitfields like `Stateful`, `Async`, or `Display` exist strictly for classification and external tooling (UI, inspectors, filtering). The library itself treats all nodes equally regardless of their flags.
-
 ## Checking Flags
 
 Use the `hasFlag()` utility:
