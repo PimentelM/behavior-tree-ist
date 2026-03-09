@@ -49,9 +49,14 @@ export function runClaude(options: RunClaudeOptions): Promise<ClaudeResult> {
         args.push('--no-session-persistence');
         args.push(options.prompt);
 
+        // Strip CLAUDECODE env var to avoid nested session detection issues
+        const env = { ...process.env };
+        delete env.CLAUDECODE;
+
         const proc = spawn('claude', args, {
             cwd: options.cwd || process.cwd(),
             stdio: ['pipe', 'pipe', 'pipe'],
+            env,
         });
 
         let stdout = '';
