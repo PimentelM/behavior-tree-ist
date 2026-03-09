@@ -469,6 +469,9 @@ async function tryConnectStudio(): Promise<StudioAgent | null> {
             link,
         });
 
+        // Ensure we stream as soon as we connect
+        agent.enableStreamingOnRegisteredTrees();
+
         agent.start();
         log(`Studio connected: ${studioUrl}`);
         return agent;
