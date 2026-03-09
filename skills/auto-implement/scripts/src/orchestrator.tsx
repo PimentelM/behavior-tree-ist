@@ -1,3 +1,5 @@
+/** @jsx BT.createElement */
+/** @jsxFrag BT.Fragment */
 import { BT } from '@bt-studio/core/tsx';
 import {
     BehaviourTree,
