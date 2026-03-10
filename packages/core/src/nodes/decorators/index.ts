@@ -5,6 +5,7 @@ export * from './throttle';
 export * from './force-success';
 export * from './force-failure';
 export * from './cooldown';
+export * from './cache-result';
 export * from './require-sustained-success';
 export * from './retry';
 export * from './repeat';

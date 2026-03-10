@@ -45,6 +45,7 @@ export interface NodeProps {
     // Timing decorators
     requireSustainedSuccess?: number;
     cooldown?: number;
+    cacheResult?: number;
     throttle?: number;
     timeout?: number;
     delay?: number;
@@ -107,6 +108,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     // 4. Timing
     if (props.requireSustainedSuccess !== undefined) current = current.decorate([Decorators.RequireSustainedSuccess, props.requireSustainedSuccess]);
     if (props.cooldown !== undefined) current = current.decorate([Decorators.Cooldown, props.cooldown]);
+    if (props.cacheResult !== undefined) current = current.decorate([Decorators.CacheResult, props.cacheResult]);
     if (props.throttle !== undefined) current = current.decorate([Decorators.Throttle, props.throttle]);
     if (props.timeout !== undefined) current = current.decorate([Decorators.Timeout, props.timeout]);
     if (props.delay !== undefined) current = current.decorate([Decorators.Delay, props.delay]);
