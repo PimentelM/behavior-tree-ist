@@ -17,6 +17,7 @@ type BTFlowNode = Node<BTNodeData, 'btNode'>;
 
 function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
   const {
+    nodeId,
     name,
     defaultName,
     nodeFlags,
@@ -33,6 +34,9 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
     refEvents,
     selectedNodeId,
     onSelectNode,
+    isCollapsed,
+    collapsedChildCount,
+    onToggleCollapse,
   } = data;
   const displayName = getDebuggerDisplayName({
     name,
@@ -44,6 +48,7 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
   const isAsyncAction = hasFlag(nodeFlags, NodeFlags.Async) && hasFlag(nodeFlags, NodeFlags.Action);
   const identityBadges = getIdentityBadges(nodeFlags);
   const accentColor = getResultColor(result);
+  const isSubTree = visualKind === 'subTree';
   const lifecycleDecoratorIds = lifecycleDecorators.map((entry) => entry.nodeId);
   const lifecycleDecoratorNames = lifecycleDecorators.map((entry) => getDebuggerDisplayName({
     name: entry.name,
@@ -171,6 +176,25 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
               >
                 {'\u26A1'}{lifecycleDecoratorIds.length}
               </button>
+            </span>
+          )}
+          {isSubTree && (
+            <button
+              className={`bt-node__collapse-toggle ${isCollapsed ? 'bt-node__collapse-toggle--collapsed' : ''}`}
+              type="button"
+              title={isCollapsed ? 'Expand subtree' : 'Collapse subtree'}
+              aria-label={isCollapsed ? 'Expand subtree' : 'Collapse subtree'}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleCollapse?.(nodeId);
+              }}
+            >
+              {isCollapsed ? '\u25B6' : '\u25BC'}
+            </button>
+          )}
+          {isSubTree && isCollapsed && collapsedChildCount !== undefined && collapsedChildCount > 0 && (
+            <span className="bt-node__collapsed-badge" title={`${collapsedChildCount} hidden children`}>
+              {collapsedChildCount}
             </span>
           )}
         </div>
@@ -318,7 +342,9 @@ function areNodePropsEqual(prev: NodeProps<BTFlowNode>, next: NodeProps<BTFlowNo
     && shallowEqualStringArray(prev.data.capabilityBadges, next.data.capabilityBadges)
     && prev.data.lifecycleDecorators.length === next.data.lifecycleDecorators.length
     && shallowEqualDecorators(prev.data.stackedDecorators, next.data.stackedDecorators)
-    && shallowEqualRefEvents(prev.data.refEvents, next.data.refEvents);
+    && shallowEqualRefEvents(prev.data.refEvents, next.data.refEvents)
+    && prev.data.isCollapsed === next.data.isCollapsed
+    && prev.data.collapsedChildCount === next.data.collapsedChildCount;
 }
 
 function shallowEqualStringArray(left: string[], right: string[]): boolean {

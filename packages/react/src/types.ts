@@ -119,6 +119,9 @@ export interface BTNodeData extends Record<string, unknown> {
   refEvents: NodeDecoratorData['refEvents'];
   selectedNodeId: number | null;
   onSelectNode?: (nodeId: number) => void;
+  isCollapsed?: boolean;
+  collapsedChildCount?: number;
+  onToggleCollapse?: (nodeId: number) => void;
 }
 
 export interface BTEdgeData extends Record<string, unknown> {
