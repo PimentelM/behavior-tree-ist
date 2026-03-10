@@ -67,6 +67,22 @@ describe("CacheResult", () => {
         expect(child.tickCount).toBe(3);
     });
 
+    it("caches result after child transitions from Running", () => {
+        const child = new StubAction([NodeResult.Running, NodeResult.Running, NodeResult.Succeeded, NodeResult.Failed]);
+        const node = new CacheResult(child, 100);
+        const { tick } = createNodeTicker();
+
+        expect(tick(node, { now: 0 })).toBe(NodeResult.Running);
+        expect(tick(node, { now: 10 })).toBe(NodeResult.Running);
+        expect(tick(node, { now: 20 })).toBe(NodeResult.Succeeded);
+
+        expect(tick(node, { now: 50 })).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(3);
+
+        expect(tick(node, { now: 120 })).toBe(NodeResult.Failed);
+        expect(child.tickCount).toBe(4);
+    });
+
     it("handles t=0 edge case correctly (sentinel check)", () => {
         const child = new StubAction(NodeResult.Failed);
         const node = new CacheResult(child, 100);

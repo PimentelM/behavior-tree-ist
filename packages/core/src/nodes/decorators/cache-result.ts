@@ -59,9 +59,4 @@ export class CacheResult extends Decorator {
 
         return result;
     }
-
-    protected override onReset(_ctx: TickContext): void {
-        this.cachedResult = undefined;
-        this.lastFinishedAt = undefined;
-    }
 }
