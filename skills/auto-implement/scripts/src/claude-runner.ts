@@ -11,6 +11,7 @@ export interface RunClaudeOptions {
     maxTurns?: number;
     signal?: CancellationSignal;
     cwd?: string;
+    onOutput?: (line: string) => void;
 }
 
 export interface ClaudeResult {
@@ -49,21 +50,52 @@ export function runClaude(options: RunClaudeOptions): Promise<ClaudeResult> {
         args.push('--no-session-persistence');
         args.push(options.prompt);
 
-        // Strip CLAUDECODE env var to avoid nested session detection issues
+        // Strip all Claude Code env vars to avoid nested session interference
         const env = { ...process.env };
-        delete env.CLAUDECODE;
+        for (const key of Object.keys(env)) {
+            if (key === 'CLAUDECODE' || key.startsWith('CLAUDE_CODE_')) {
+                delete env[key];
+            }
+        }
+
+        // Debug: log spawn details
+        const cwd = options.cwd || process.cwd();
+        console.log('[runClaude] args:', JSON.stringify(args));
+        console.log('[runClaude] cwd:', cwd);
+        console.log('[runClaude] env keys:', Object.keys(env).sort().join(', '));
+        console.log('[runClaude] PATH:', env.PATH);
 
         const proc = spawn('claude', args, {
-            cwd: options.cwd || process.cwd(),
+            cwd,
             stdio: ['pipe', 'pipe', 'pipe'],
             env,
         });
 
+        console.log('[runClaude] spawned pid:', proc.pid);
+
         let stdout = '';
         let stderr = '';
 
-        proc.stdout.on('data', (data: Buffer) => { stdout += data.toString(); });
-        proc.stderr.on('data', (data: Buffer) => { stderr += data.toString(); });
+        proc.stdout.on('data', (data: Buffer) => {
+            const chunk = data.toString();
+            stdout += chunk;
+            if (options.onOutput) {
+                for (const line of chunk.split('\n')) {
+                    const trimmed = line.trim();
+                    if (trimmed) options.onOutput(trimmed);
+                }
+            }
+        });
+        proc.stderr.on('data', (data: Buffer) => {
+            const chunk = data.toString();
+            stderr += chunk;
+            if (options.onOutput) {
+                for (const line of chunk.split('\n')) {
+                    const trimmed = line.trim();
+                    if (trimmed) options.onOutput(`[stderr] ${trimmed}`);
+                }
+            }
+        });
 
         if (options.signal) {
             options.signal.onAbort(() => {
@@ -71,11 +103,13 @@ export function runClaude(options: RunClaudeOptions): Promise<ClaudeResult> {
             });
         }
 
-        proc.on('close', (code: number | null) => {
+        proc.on('close', (code: number | null, signal: string | null) => {
+            console.log(`[runClaude] closed code=${code} signal=${signal} stdout=${stdout.length}B stderr=${stderr.length}B`);
             resolve({ exitCode: code ?? 1, stdout, stderr });
         });
 
         proc.on('error', (err: Error) => {
+            console.log(`[runClaude] error: ${err.message}`);
             resolve({ exitCode: 1, stdout, stderr: stderr + '\nProcess error: ' + err.message });
         });
     });

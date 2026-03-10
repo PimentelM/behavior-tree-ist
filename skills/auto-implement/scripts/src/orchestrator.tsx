@@ -39,6 +39,7 @@ const totalTasks = ref<number>(0, 'totalTasks');
 const currentTaskName = ref<string>('', 'currentTaskName');
 const attemptNum = ref<number>(0, 'attempt');
 const lastError = ref<string>('', 'lastError');
+const claudeOutput = ref<string>('', 'claudeOutput');
 
 interface Task {
     id: number;
@@ -55,10 +56,13 @@ let baseCommitHash = '';
 
 // ── Logging ──────────────────────────────────────────────────────────────────
 
-function log(msg: string) {
+const lastLogRef = ref<string>('', "log.lastLog");
+function log(msg: string, ctx?: TickContext) {
     const ts = new Date().toISOString().slice(11, 19);
-    const line = `[${ts}] ${msg}`;
+    const truncated = msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
+    const line = `[${ts}] ${truncated}`;
     console.log(line);
+    lastLogRef.set(line, ctx);
     try {
         fs.appendFileSync(path.join(workspacePath, 'logs', 'orchestrator.log'), line + '\n');
     } catch { /* workspace may not exist yet */ }
@@ -125,7 +129,7 @@ function setup(ctx: TickContext): NodeResult {
 
 async function explore(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult> {
     phase.set('explore', ctx);
-    log('Phase: Explore');
+    log('Phase: Explore', ctx);
     writeStatus();
 
     const request = fs.readFileSync(requestFile, 'utf-8');
@@ -141,9 +145,13 @@ async function explore(ctx: TickContext, signal: CancellationSignal): Promise<No
         maxTurns: 30,
         signal,
         cwd: projectDir,
+        onOutput: (line) => {
+            claudeOutput.set(line);
+            log(`[explore] ${line}`, ctx);
+        },
     });
 
-    log(`Explore done (exit ${result.exitCode})`);
+    log(`Explore done (exit ${result.exitCode})`, ctx);
     fs.writeFileSync(path.join(workspacePath, 'logs', 'explore.log'), result.stdout + '\n' + result.stderr);
 
     return result.exitCode === 0 ? NodeResult.Succeeded : NodeResult.Failed;
@@ -151,7 +159,7 @@ async function explore(ctx: TickContext, signal: CancellationSignal): Promise<No
 
 async function plan(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult> {
     phase.set('plan', ctx);
-    log('Phase: Plan');
+    log('Phase: Plan', ctx);
     writeStatus();
 
     const request = fs.readFileSync(requestFile, 'utf-8');
@@ -170,9 +178,13 @@ async function plan(ctx: TickContext, signal: CancellationSignal): Promise<NodeR
         maxTurns: 40,
         signal,
         cwd: projectDir,
+        onOutput: (line) => {
+            claudeOutput.set(line);
+            log(`[plan] ${line}`, ctx);
+        },
     });
 
-    log(`Plan done (exit ${result.exitCode})`);
+    log(`Plan done (exit ${result.exitCode})`, ctx);
     fs.writeFileSync(path.join(workspacePath, 'logs', 'plan.log'), result.stdout + '\n' + result.stderr);
 
     return result.exitCode === 0 ? NodeResult.Succeeded : NodeResult.Failed;
@@ -254,6 +266,10 @@ async function implement(ctx: TickContext, signal: CancellationSignal): Promise<
         maxTurns: 50,
         signal,
         cwd: projectDir,
+        onOutput: (line) => {
+            claudeOutput.set(line);
+            log(`[impl:${task.name}] ${line}`);
+        },
     });
 
     log(`Implement done (exit ${result.exitCode})`);
@@ -343,6 +359,10 @@ async function review(ctx: TickContext, signal: CancellationSignal): Promise<Nod
         maxTurns: 20,
         signal,
         cwd: projectDir,
+        onOutput: (line) => {
+            claudeOutput.set(line);
+            log(`[review:${task.name}] ${line}`);
+        },
     });
 
     log(`Review done (exit ${result.exitCode})`);
@@ -416,22 +436,26 @@ function finalize(ctx: TickContext): NodeResult {
 
 const root = (
     <sequence-with-memory name="AutoImplement">
+        <display-state name="Status" display={() => ({
+            phase: phase.value,
+            task: currentTaskIdx.value < tasks.value.length
+                ? `${currentTaskIdx.value + 1}/${totalTasks.value}: ${currentTaskName.value}`
+                : 'none',
+            attempt: attemptNum.value,
+            lastError: lastError.value || 'none',
+            claudeOutput: claudeOutput.value,
+        })} />
+
         <action name="Setup" execute={setup} />
 
         <async-action name="Explore" execute={explore} timeout={300_000} />
         <async-action name="Plan" execute={plan} timeout={600_000} />
         <action name="LoadTasks" execute={loadTasks} />
 
-        {/* KeepRunningUntilFailure: loops while child Succeeds, returns Succeeded when child Fails.
-            When HasTasks fails (no more tasks), the inner sequence fails,
-            KeepRunningUntilFailure converts that to Succeeded, and the parent continues to Finalize.
-            No forceSuccess needed — it would create an infinite loop (decorator order: ForceSuccess inner, KRUUF outer). */}
         <sequence-with-memory name="TaskLoop" keepRunningUntilFailure>
             <condition name="HasTasks" eval={() => currentTaskIdx.value < tasks.value.length} />
             <action name="PrepareTask" execute={prepareTask} />
 
-            {/* SequenceWithMemory: after Implement succeeds, resumes from Validate (not re-entering Implement).
-                Retry resets the memory on failure, so retries start from Implement again — correct. */}
             <sequence-with-memory name="ImplementAndValidate" retry={5}>
                 <async-action name="Implement" execute={implement} timeout={600_000} />
                 <async-action name="Validate" execute={validate} timeout={300_000} />
@@ -502,15 +526,20 @@ async function main() {
         const rootEvent = record.events[record.events.length - 1];
         if (rootEvent && rootEvent.result !== NodeResult.Running) {
             clearInterval(tickLoop);
-            studioAgent?.destroy();
+
+            writeStatus();
 
             if (rootEvent.result === NodeResult.Succeeded) {
                 log('=== SUCCESS ===');
-                process.exit(0);
             } else {
                 log('=== FAILED ===');
-                process.exit(1);
             }
+
+            // Give pending async operations (log writes, process cleanup) time to finish
+            setTimeout(() => {
+                studioAgent?.destroy();
+                process.exit(rootEvent.result === NodeResult.Succeeded ? 0 : 1);
+            }, 2000);
         }
     }, TICK_MS);
 }
