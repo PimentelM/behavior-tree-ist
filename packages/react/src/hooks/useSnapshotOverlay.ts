@@ -16,6 +16,7 @@ export function useSnapshotOverlay(
   refEventsByNodeId: Map<number, RefChangeEvent[]>,
   onSelectNode: (nodeId: number) => void,
   tickGeneration: number,
+  onToggleCollapse?: (nodeId: number) => void,
 ): { nodes: Node<BTNodeData>[]; edges: Edge<BTEdgeData>[] } {
   const previousRef = useRef<{
     nodesById: Map<string, Node<BTNodeData>>;
@@ -239,6 +240,7 @@ export function useSnapshotOverlay(
           stackedDecorators: nextStackedDecorators,
           selectedNodeId,
           onSelectNode,
+          onToggleCollapse,
         },
         selected: nextIsSelected,
       };
@@ -293,6 +295,7 @@ export function useSnapshotOverlay(
     refEventsByNodeId,
     onSelectNode,
     tickGeneration,
+    onToggleCollapse,
   ]);
 }
 
@@ -364,7 +367,9 @@ function hasSameBaseNodeShape(
     && previousNode.data.depth === baseNode.data.depth
     && previousNode.data.stackedDecorators.length === baseNode.data.stackedDecorators.length
     && previousNode.data.lifecycleDecorators.length === baseNode.data.lifecycleDecorators.length
-    && previousNode.data.representedNodeIds.length === baseNode.data.representedNodeIds.length;
+    && previousNode.data.representedNodeIds.length === baseNode.data.representedNodeIds.length
+    && previousNode.data.isCollapsed === baseNode.data.isCollapsed
+    && previousNode.data.collapsedChildCount === baseNode.data.collapsedChildCount;
 }
 
 function hasSameBaseEdgeShape(
