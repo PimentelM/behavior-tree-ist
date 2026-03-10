@@ -1,0 +1,1 @@
+{"type":"pattern","name":"pure-state-updater","description":"State updater functions must be pure — no side effects (localStorage, fetch, etc.) inside setState(prev => ...). Move side effects to useEffect that depends on the state value.","classification":"tactical","recorded_at":"2026-03-10T06:02:43.378Z","evidence":{"commit":"dd3c51b"},"id":"mx-7ecdb8"}
