@@ -189,7 +189,8 @@ Enable profiling on the tree for per-node timing data:
 
 ```typescript
 const tree = new BehaviourTree(root)
-  .enableProfiling(performance.now.bind(performance));
+  .enableProfiling()
+  .setProfilingTimeProvider(performance.now.bind(performance));
 
 const inspector = new TreeInspector();
 inspector.indexTree(tree.serialize());

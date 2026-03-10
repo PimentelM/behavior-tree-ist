@@ -128,7 +128,7 @@ interface TickContext {
 }
 ```
 
-`now` is the time value that timing decorators use to compute elapsed durations. It is a generic numeric value — not necessarily milliseconds. Common choices include `Date.now()` (real-time milliseconds), a game engine's frame time, or a logical tick counter (e.g. Screeps game ticks). Timing decorator parameters (`timeout`, `cooldown`, `delay`, etc.) must use the same scale as `now`. When omitted, `BehaviourTree.tick()` defaults to `Date.now()`.
+`now` is a generic numeric value used by timing decorators to compute elapsed durations. It is not necessarily milliseconds — see [Getting Started — Running the Tree](getting-started.md#running-the-tree) for details on time units.
 
 ## Ref System
 

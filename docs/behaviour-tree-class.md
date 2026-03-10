@@ -25,7 +25,7 @@ const result = tree.tick({ now: Date.now() });
 ```
 
 **Parameters:**
-- `now` (optional): Numeric time value for this tick. Defaults to `Date.now()` (milliseconds) if omitted. Timing decorators compute durations as differences between `now` values, so the unit must match the values passed to timing decorator constructors.
+- `now` (optional): Numeric time value for this tick. Defaults to `Date.now()` if omitted. Must use the same unit as timing decorator parameters (see [Getting Started — Running the Tree](getting-started.md#running-the-tree)).
 
 **Returns** a `TickRecord`:
 
@@ -90,10 +90,11 @@ type TickTraceEvent = {
 
 ## Profiling
 
-Profiling adds high-resolution timing to trace events. It requires a time provider function (e.g., `performance.now`):
+Profiling adds high-resolution timing to trace events:
 
 ```typescript
-tree.enableProfiling(performance.now.bind(performance));
+tree.enableProfiling();
+tree.setProfilingTimeProvider(performance.now.bind(performance));
 tree.disableProfiling();
 ```
 
@@ -131,7 +132,8 @@ All configuration methods return `this`:
 ```typescript
 const tree = new BehaviourTree(root)
   .enableStateTrace()
-  .enableProfiling(performance.now.bind(performance));
+  .enableProfiling()
+  .setProfilingTimeProvider(performance.now.bind(performance));
 ```
 
 ## Integration with Inspector
