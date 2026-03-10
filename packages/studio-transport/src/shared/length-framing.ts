@@ -28,43 +28,62 @@ export function encodeStringFrame(data: string): Uint8Array {
     return encodeFrame(encoded);
 }
 
+const INITIAL_CAPACITY = 4096;
+
 /**
  * Stateful frame decoder that buffers incoming data and emits
  * complete frames via callback.
+ *
+ * Uses a growable linear buffer with read-offset tracking to
+ * avoid allocating a new Uint8Array on every chunk.
  */
 export class FrameDecoder {
-    private buffer: Uint8Array = new Uint8Array(0);
+    private buffer: Uint8Array = new Uint8Array(INITIAL_CAPACITY);
+    private readOffset = 0;
+    private writeOffset = 0;
 
     constructor(private readonly onFrame: (payload: Uint8Array) => void) { }
+
+    /** Number of unconsumed bytes in the buffer. */
+    private get available(): number {
+        return this.writeOffset - this.readOffset;
+    }
 
     /**
      * Feed raw bytes from the transport into the decoder.
      * Will emit zero or more complete frames via the onFrame callback.
      */
     feed(chunk: Uint8Array): void {
-        // Append chunk to buffer
-        const newBuffer = new Uint8Array(this.buffer.byteLength + chunk.byteLength);
-        newBuffer.set(this.buffer, 0);
-        newBuffer.set(chunk, this.buffer.byteLength);
-        this.buffer = newBuffer;
+        this.ensureCapacity(chunk.byteLength);
+        this.buffer.set(chunk, this.writeOffset);
+        this.writeOffset += chunk.byteLength;
 
         // Extract complete frames
-        while (this.buffer.byteLength >= HEADER_SIZE) {
+        while (this.available >= HEADER_SIZE) {
             const view = new DataView(
                 this.buffer.buffer,
-                this.buffer.byteOffset,
-                this.buffer.byteLength
+                this.buffer.byteOffset + this.readOffset,
+                this.available
             );
             const payloadLength = view.getUint32(0, false); // big-endian
             const frameSize = HEADER_SIZE + payloadLength;
 
-            if (this.buffer.byteLength < frameSize) {
+            if (this.available < frameSize) {
                 break; // Not enough data yet
             }
 
-            const payload = this.buffer.slice(HEADER_SIZE, frameSize);
-            this.buffer = this.buffer.slice(frameSize);
+            // slice() — caller owns the payload copy
+            const payload = this.buffer.slice(
+                this.readOffset + HEADER_SIZE,
+                this.readOffset + frameSize
+            );
+            this.readOffset += frameSize;
             this.onFrame(payload);
+        }
+
+        // Compact when read offset exceeds 50% of buffer length
+        if (this.readOffset > this.buffer.byteLength * 0.5) {
+            this.compact();
         }
     }
 
@@ -72,6 +91,36 @@ export class FrameDecoder {
      * Reset internal buffer state.
      */
     reset(): void {
-        this.buffer = new Uint8Array(0);
+        this.readOffset = 0;
+        this.writeOffset = 0;
+    }
+
+    /** Ensure the buffer has room for `extra` more bytes after writeOffset. */
+    private ensureCapacity(extra: number): void {
+        if (this.writeOffset + extra <= this.buffer.byteLength) return;
+
+        // Try compacting first — may avoid allocation
+        if (this.readOffset > 0) {
+            this.compact();
+            if (this.writeOffset + extra <= this.buffer.byteLength) return;
+        }
+
+        // Must grow
+        let newSize = this.buffer.byteLength * 2;
+        if (newSize < this.writeOffset + extra) newSize = this.writeOffset + extra;
+
+        const grown = new Uint8Array(newSize);
+        grown.set(this.buffer.subarray(0, this.writeOffset), 0);
+        this.buffer = grown;
+    }
+
+    /** Shift unconsumed data to the start of the buffer. */
+    private compact(): void {
+        const remaining = this.available;
+        if (remaining > 0) {
+            this.buffer.copyWithin(0, this.readOffset, this.writeOffset);
+        }
+        this.readOffset = 0;
+        this.writeOffset = remaining;
     }
 }
