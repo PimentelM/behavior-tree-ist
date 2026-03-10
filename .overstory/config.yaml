@@ -7,13 +7,13 @@ project:
   canonicalBranch: main
   qualityGates:
     - name: Tests
-      command: bun test
+      command: yarn test
       description: all tests must pass
     - name: Lint
-      command: bun run lint
+      command: yarn lint
       description: zero errors
     - name: Typecheck
-      command: bun run typecheck
+      command: yarn typecheck
       description: no TypeScript errors
 agents:
   manifestPath: .overstory/agent-manifest.json
