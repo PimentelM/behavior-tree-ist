@@ -160,26 +160,6 @@ describe("TickStore", () => {
         expect(store.getSnapshotAtTick(999)).toBeUndefined();
     });
 
-    it("getSnapshotAtTick carries forward last known state when current tick omits it", () => {
-        const store = new TickStore(100);
-
-        store.push({
-            tickId: 1,
-            timestamp: 1000,
-            refEvents: [],
-            events: [{ nodeId: 5, result: NodeResult.Running, state: 400 }],
-        });
-        store.push({
-            tickId: 2,
-            timestamp: 2000,
-            refEvents: [],
-            events: [{ nodeId: 5, result: NodeResult.Running }],
-        });
-
-        const snapshot = store.getSnapshotAtTick(2);
-        expect(snapshot!.nodes.get(5)!.state).toBe(400);
-    });
-
     it("getNodeHistory returns events for a node across ticks", () => {
         const store = new TickStore(100);
         store.push({

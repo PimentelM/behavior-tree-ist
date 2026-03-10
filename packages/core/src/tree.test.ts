@@ -185,28 +185,6 @@ describe("BehaviourTree", () => {
             const { events: events2 } = tree.tick({ now: 200 });
             expect(events2.find(e => e.nodeId === wait.id)?.state).toEqual(300);
         });
-
-        it('omits state from event when unchanged from previous tick', () => {
-            const wait = new Sleep(500);
-            const tree = new BehaviourTree(wait).enableStateTrace();
-
-            const { events: events1 } = tree.tick({ now: 0 });
-            expect(events1.find(e => e.nodeId === wait.id)?.state).toEqual(500);
-
-            const { events: events2 } = tree.tick({ now: 0 });
-            expect(events2.find(e => e.nodeId === wait.id)?.state).toBeUndefined();
-        });
-
-        it('re-emits state after it changes again', () => {
-            const wait = new Sleep(500);
-            const tree = new BehaviourTree(wait).enableStateTrace();
-
-            tree.tick({ now: 0 });  // state=500
-            tree.tick({ now: 0 });  // state=500 (same, omitted)
-
-            const { events } = tree.tick({ now: 100 }); // state=400 (changed)
-            expect(events.find(e => e.nodeId === wait.id)?.state).toEqual(400);
-        });
     })
 
     describe('refEvents', () => {

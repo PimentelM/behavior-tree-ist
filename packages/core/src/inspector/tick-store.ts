@@ -105,7 +105,7 @@ export class TickStore {
             nodes.set(event.nodeId, {
                 nodeId: event.nodeId,
                 result: event.result,
-                state: event.state !== undefined ? event.state : this.getLastNodeState(event.nodeId, tickId),
+                state: event.state,
                 startedAt: event.startedAt,
                 finishedAt: event.finishedAt,
             });
