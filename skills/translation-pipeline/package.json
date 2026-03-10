@@ -1,0 +1,12 @@
+{
+  "name": "@bt-studio/translation-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx src/pipeline.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0"
+  }
+}

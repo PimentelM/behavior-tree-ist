@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "scripts/dist",
-    "rootDir": "scripts/src",
-    "types": ["node"]
-  },
-  "include": ["scripts/src"]
-}

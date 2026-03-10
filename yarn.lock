@@ -285,18 +285,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/skill-auto-implement@workspace:skills/auto-implement":
-  version: 0.0.0-use.local
-  resolution: "@bt-studio/skill-auto-implement@workspace:skills/auto-implement"
-  dependencies:
-    "@bt-studio/core": "workspace:*"
-    "@bt-studio/studio-transport": "workspace:*"
-    tsup: "npm:^8.0.0"
-    tsx: "npm:^4.0.0"
-    typescript: "npm:^5.7.0"
-  languageName: unknown
-  linkType: soft
-
 "@bt-studio/studio-common@workspace:*, @bt-studio/studio-common@workspace:^, @bt-studio/studio-common@workspace:packages/studio-common":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-common@workspace:packages/studio-common"
@@ -341,7 +329,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-transport@workspace:*, @bt-studio/studio-transport@workspace:^, @bt-studio/studio-transport@workspace:packages/studio-transport":
+"@bt-studio/studio-transport@workspace:^, @bt-studio/studio-transport@workspace:packages/studio-transport":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-transport@workspace:packages/studio-transport"
   dependencies:
@@ -376,6 +364,14 @@ __metadata:
     react-dom: "npm:^18.3.1"
     typescript: "npm:^5.5.3"
     vite: "npm:^5.3.4"
+  languageName: unknown
+  linkType: soft
+
+"@bt-studio/translation-pipeline@workspace:skills/translation-pipeline":
+  version: 0.0.0-use.local
+  resolution: "@bt-studio/translation-pipeline@workspace:skills/translation-pipeline"
+  dependencies:
+    tsx: "npm:^4.0.0"
   languageName: unknown
   linkType: soft
 
