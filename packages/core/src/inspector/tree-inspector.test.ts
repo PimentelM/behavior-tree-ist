@@ -440,6 +440,93 @@ describe("TreeInspector", () => {
         ]);
     });
 
+    describe("ingestTicks (batch)", () => {
+        it("produces same results as sequential ingestTick", () => {
+            const sequential = new TreeInspector({ maxTicks: 10 });
+            sequential.indexTree(makeTree());
+            for (let i = 1; i <= 5; i++) {
+                sequential.ingestTick(makeTickRecord(i, [
+                    { nodeId: 1, start: 0, end: 10 * i },
+                    { nodeId: 2, start: 5, end: 5 + 3 * i },
+                ]));
+            }
+
+            const batch = new TreeInspector({ maxTicks: 10 });
+            batch.indexTree(makeTree());
+            const records = [];
+            for (let i = 1; i <= 5; i++) {
+                records.push(makeTickRecord(i, [
+                    { nodeId: 1, start: 0, end: 10 * i },
+                    { nodeId: 2, start: 5, end: 5 + 3 * i },
+                ]));
+            }
+            batch.ingestTicks(records);
+
+            expect(batch.getStoredTickIds()).toEqual(sequential.getStoredTickIds());
+            expect(batch.getStats().totalTickCount).toBe(sequential.getStats().totalTickCount);
+            expect(batch.getStats().totalRootCpuTime).toBe(sequential.getStats().totalRootCpuTime);
+            expect(batch.getNodeProfilingData(1)!.totalCpuTime).toBe(sequential.getNodeProfilingData(1)!.totalCpuTime);
+            expect(batch.getNodeProfilingData(2)!.totalCpuTime).toBe(sequential.getNodeProfilingData(2)!.totalCpuTime);
+        });
+
+        it("handles eviction correctly when batch overflows buffer", () => {
+            const inspector = new TreeInspector({ maxTicks: 3 });
+            inspector.indexTree(makeTree());
+            inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            inspector.ingestTicks([
+                makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]),
+                makeTickRecord(3, [{ nodeId: 1, start: 0, end: 30 }]),
+                makeTickRecord(4, [{ nodeId: 1, start: 0, end: 40 }]),
+                makeTickRecord(5, [{ nodeId: 1, start: 0, end: 50 }]),
+            ]);
+
+            expect(inspector.getStoredTickIds()).toEqual([3, 4, 5]);
+            expect(inspector.getStats().totalTickCount).toBe(5);
+
+            const data = inspector.getNodeProfilingData(1)!;
+            expect(data.totalCpuTime).toBe(120); // 30+40+50
+        });
+
+        it("filters empty/duplicate/older records", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTick(makeTickRecord(5, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            inspector.ingestTicks([
+                { tickId: 3, timestamp: 3000, events: [], refEvents: [] },
+                makeTickRecord(4, [{ nodeId: 1, start: 0, end: 10 }]),
+                makeTickRecord(5, [{ nodeId: 1, start: 0, end: 10 }]),
+                makeTickRecord(6, [{ nodeId: 1, start: 0, end: 20 }]),
+            ]);
+
+            expect(inspector.getStoredTickIds()).toEqual([5, 6]);
+            expect(inspector.getStats().totalTickCount).toBe(2);
+        });
+
+        it("handles empty batch", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTick(makeTickRecord(1, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            inspector.ingestTicks([]);
+
+            expect(inspector.getStats().totalTickCount).toBe(1);
+        });
+
+        it("tracks root cpu times correctly with batch eviction", () => {
+            const inspector = new TreeInspector({ maxTicks: 2 });
+            inspector.indexTree(makeTree());
+
+            inspector.ingestTicks([
+                makeTickRecord(1, [{ nodeId: 1, start: 0, end: 50 }]),
+                makeTickRecord(2, [{ nodeId: 1, start: 0, end: 80 }]),
+                makeTickRecord(3, [{ nodeId: 1, start: 0, end: 20 }]),
+            ]);
+
+            // Only ticks 2 and 3 should remain
+            expect(inspector.getStats().totalRootCpuTime).toBe(100);
+        });
+    });
+
     it("cloneForTimeTravel can preserve sampled percentiles when exact recompute is disabled", () => {
         const inspector = new TreeInspector({ maxTicks: 2 });
         inspector.indexTree(makeTree());

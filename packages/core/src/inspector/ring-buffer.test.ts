@@ -70,4 +70,77 @@ describe("RingBuffer", () => {
         expect(rb.peekFirst()).toBeUndefined();
         expect(rb.peekLast()).toBeUndefined();
     });
+
+    describe("pushMany", () => {
+        it("pushes multiple items without overflow", () => {
+            const rb = new RingBuffer<number>(5);
+
+            const evicted = rb.pushMany([1, 2, 3]);
+
+            expect(evicted).toEqual([]);
+            expect(rb.size).toBe(3);
+            expect(rb.peekFirst()).toBe(1);
+            expect(rb.peekLast()).toBe(3);
+        });
+
+        it("returns evicted items on overflow", () => {
+            const rb = new RingBuffer<number>(3);
+            rb.push(1);
+            rb.push(2);
+
+            const evicted = rb.pushMany([3, 4, 5]);
+
+            expect(evicted).toEqual([1, 2]);
+            expect(rb.size).toBe(3);
+            expect(rb.peekFirst()).toBe(3);
+            expect(rb.peekLast()).toBe(5);
+        });
+
+        it("handles batch larger than capacity", () => {
+            const rb = new RingBuffer<number>(3);
+            rb.push(0);
+
+            const evicted = rb.pushMany([1, 2, 3, 4, 5]);
+
+            expect(evicted).toEqual([0]);
+            expect(rb.size).toBe(3);
+            expect(rb.peekFirst()).toBe(3);
+            expect(rb.peekLast()).toBe(5);
+        });
+
+        it("handles empty array", () => {
+            const rb = new RingBuffer<number>(3);
+            rb.push(1);
+
+            const evicted = rb.pushMany([]);
+
+            expect(evicted).toEqual([]);
+            expect(rb.size).toBe(1);
+            expect(rb.peekFirst()).toBe(1);
+        });
+
+        it("produces same result as sequential push", () => {
+            const sequential = new RingBuffer<number>(3);
+            for (const n of [1, 2, 3, 4, 5]) sequential.push(n);
+
+            const batch = new RingBuffer<number>(3);
+            batch.pushMany([1, 2, 3, 4, 5]);
+
+            const seqItems: number[] = [];
+            sequential.forEach(i => seqItems.push(i));
+            const batchItems: number[] = [];
+            batch.forEach(i => batchItems.push(i));
+            expect(batchItems).toEqual(seqItems);
+        });
+
+        it("handles capacity 1 with batch", () => {
+            const rb = new RingBuffer<number>(1);
+
+            const evicted = rb.pushMany([10, 20, 30]);
+
+            expect(evicted).toEqual([]);
+            expect(rb.size).toBe(1);
+            expect(rb.peekFirst()).toBe(30);
+        });
+    });
 });

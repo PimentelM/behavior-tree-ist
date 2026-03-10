@@ -66,6 +66,57 @@ export class TreeInspector {
         this.profiler.ingestTick(record.tickId, record.events);
     }
 
+    ingestTicks(records: TickRecord[]): void {
+        // Filter empty/duplicate/older records, enforce monotonic increase
+        const newest = this.store.newestTickId;
+        const deduped: TickRecord[] = [];
+        let lastId = newest ?? -Infinity;
+        for (const r of records) {
+            if (r.events.length === 0) continue;
+            if (r.tickId <= lastId) continue;
+            lastId = r.tickId;
+            deduped.push(r);
+        }
+        if (deduped.length === 0) return;
+
+        this.totalTickCount += deduped.length;
+
+        // Batch push to store, collect all evictions (pre-existing + overflow within batch)
+        const evicted = this.store.pushMany(deduped);
+
+        // Separate evictions: pre-existing (in profiler) vs overflow-within-batch (never ingested)
+        const dedupedSet = new Set(deduped.map(r => r.tickId));
+        const preExistingEvictions: TickRecord[] = [];
+        for (const e of evicted) {
+            if (dedupedSet.has(e.tickId)) continue; // overflow within batch, never in profiler
+            preExistingEvictions.push(e);
+        }
+
+        // Remove pre-existing evictions from profiler
+        if (preExistingEvictions.length > 0) {
+            this.profiler.removeTicks(preExistingEvictions.map(e => ({ tickId: e.tickId, events: e.events })));
+        }
+        for (const e of evicted) {
+            const evictedRootCpu = this.rootCpuByTick.get(e.tickId) ?? 0;
+            this.totalRootCpuTime -= evictedRootCpu;
+            this.rootCpuByTick.delete(e.tickId);
+        }
+
+        // Only ingest records that survived in the store
+        const evictedSet = new Set(evicted.map(e => e.tickId));
+        const survivors = deduped.filter(r => !evictedSet.has(r.tickId));
+
+        // Track root CPU times for survivors only
+        for (const record of survivors) {
+            const rootCpuTime = this.getRootCpuTime(record);
+            this.rootCpuByTick.set(record.tickId, rootCpuTime);
+            this.totalRootCpuTime += rootCpuTime;
+        }
+
+        // Batch ingest survivors to profiler
+        this.profiler.ingestTicks(survivors.map(r => ({ tickId: r.tickId, events: r.events })));
+    }
+
     // --- State reconstruction ---
 
     getSnapshotAtTick(tickId: number): TreeTickSnapshot | undefined {

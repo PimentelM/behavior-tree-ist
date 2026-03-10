@@ -41,6 +41,50 @@ export class TickStore {
         return evicted;
     }
 
+    /**
+     * Push multiple tick records at once.
+     * Filters empty events and out-of-order/duplicate ticks.
+     * Returns all evicted TickRecords (including valid records that overflowed within the batch).
+     */
+    pushMany(records: TickRecord[]): TickRecord[] {
+        // Filter: non-empty, monotonically increasing relative to current newest
+        const valid: TickRecord[] = [];
+        let lastId = this.buffer.size > 0 ? this.buffer.peekLast()!.tickId : -Infinity;
+        for (const record of records) {
+            if (record.events.length === 0) continue;
+            if (record.tickId <= lastId) continue;
+            lastId = record.tickId;
+            valid.push(record);
+        }
+
+        if (valid.length === 0) return [];
+
+        const allEvicted: TickRecord[] = [];
+
+        // Pre-existing items evicted from ring buffer
+        const evictedFromBuffer = this.buffer.pushMany(valid);
+        for (const evicted of evictedFromBuffer) {
+            this.byTickId.delete(evicted.tickId);
+            allEvicted.push(evicted);
+        }
+
+        // Valid items that didn't survive (batch exceeded capacity)
+        if (valid.length > this.capacity) {
+            const droppedCount = valid.length - this.capacity;
+            for (let i = 0; i < droppedCount; i++) {
+                allEvicted.push(valid[i]);
+            }
+        }
+
+        // Only add surviving records to byTickId
+        const survivorStart = Math.max(0, valid.length - this.capacity);
+        for (let i = survivorStart; i < valid.length; i++) {
+            this.byTickId.set(valid[i].tickId, valid[i]);
+        }
+
+        return allEvicted;
+    }
+
     getByTickId(tickId: number): TickRecord | undefined {
         return this.byTickId.get(tickId);
     }
