@@ -16,6 +16,7 @@ export class BehaviourTree {
     private stateTraceEnabled: boolean = false;
     private profilingEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
+    private readonly _lastDisplayStates = new Map<number, string>();
 
     private runtime: TickRuntime = {
         treeId: this.treeId,
@@ -91,7 +92,11 @@ export class BehaviourTree {
                 if (this.stateTraceEnabled && node.getDisplayState) {
                     const state = node.getDisplayState();
                     if (state !== undefined) {
-                        event.state = state;
+                        const serialized = JSON.stringify(state);
+                        if (serialized !== this._lastDisplayStates.get(node.id)) {
+                            event.state = state;
+                            this._lastDisplayStates.set(node.id, serialized);
+                        }
                     }
                 }
 
