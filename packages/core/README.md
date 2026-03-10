@@ -19,8 +19,7 @@ npm install @bt-studio/core
 ```
 
 ```typescript
-import { BehaviourTree, NodeResult } from '@bt-studio/core';
-import { fallback, sequence, condition, action } from '@bt-studio/core/builder';
+import { BehaviourTree, NodeResult, fallback, sequence, condition, action } from '@bt-studio/core';
 
 const entity = { health: 100, inDanger: false };
 
@@ -44,11 +43,9 @@ setInterval(() => tree.tick({ now: Date.now() }), 100);
 
 | Entry point | Description |
 |---|---|
-| `@bt-studio/core` | Core library: all node classes, `BehaviourTree`, types |
-| `@bt-studio/core/builder` | Builder functions with `NodeProps`-based decorator application |
+| `@bt-studio/core` | Core library: all node classes, builder functions, `BehaviourTree`, activity projection, and types |
 | `@bt-studio/core/tsx` | JSX factory (`BT.createElement`, `BT.Fragment`) and type declarations |
 | `@bt-studio/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
-| `@bt-studio/core/activity` | Standalone activity projection from `SerializableNode` + `TickRecord` |
 
 ## Documentation
 
