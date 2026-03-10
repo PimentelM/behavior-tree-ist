@@ -97,18 +97,20 @@ export class FrameDecoder {
 
     /** Ensure the buffer has room for `extra` more bytes after writeOffset. */
     private ensureCapacity(extra: number): void {
-        const needed = this.writeOffset + extra;
-        if (needed <= this.buffer.byteLength) return;
+        if (this.writeOffset + extra <= this.buffer.byteLength) return;
 
-        // Grow to at least double current size or needed, whichever is larger
+        // Try compacting first — may avoid allocation
+        if (this.readOffset > 0) {
+            this.compact();
+            if (this.writeOffset + extra <= this.buffer.byteLength) return;
+        }
+
+        // Must grow
         let newSize = this.buffer.byteLength * 2;
-        if (newSize < needed) newSize = needed;
+        if (newSize < this.writeOffset + extra) newSize = this.writeOffset + extra;
 
         const grown = new Uint8Array(newSize);
-        // Only copy unconsumed data
-        grown.set(this.buffer.subarray(this.readOffset, this.writeOffset), 0);
-        this.writeOffset = this.available;
-        this.readOffset = 0;
+        grown.set(this.buffer.subarray(0, this.writeOffset), 0);
         this.buffer = grown;
     }
 

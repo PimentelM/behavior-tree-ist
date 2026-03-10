@@ -207,4 +207,54 @@ describe("FrameDecoder", () => {
 
         expect(received).toEqual(messages);
     });
+
+    it("should decode a single frame exceeding initial buffer capacity", () => {
+        const received: Uint8Array[] = [];
+        const decoder = new FrameDecoder((payload) => received.push(payload));
+
+        const payload = new Uint8Array(5000);
+        payload.fill(0xcd);
+        decoder.feed(encodeFrame(payload));
+
+        expect(received).toHaveLength(1);
+        expect(received[0].byteLength).toBe(5000);
+        expect(received[0].every((b) => b === 0xcd)).toBe(true);
+    });
+
+    it("should handle many sequential frames (stress: compaction + growth)", () => {
+        const received: Uint8Array[] = [];
+        const decoder = new FrameDecoder((payload) => received.push(payload));
+
+        const count = 150;
+        for (let i = 0; i < count; i++) {
+            const payload = new Uint8Array([i % 256]);
+            decoder.feed(encodeFrame(payload));
+        }
+
+        expect(received).toHaveLength(count);
+        for (let i = 0; i < count; i++) {
+            expect(received[i][0]).toBe(i % 256);
+        }
+    });
+
+    it("should decode a large frame split across multiple chunks", () => {
+        const received: Uint8Array[] = [];
+        const decoder = new FrameDecoder((payload) => received.push(payload));
+
+        const payload = new Uint8Array(8000);
+        for (let i = 0; i < 8000; i++) payload[i] = i % 256;
+        const frame = encodeFrame(payload);
+
+        // Split into 4 unequal chunks
+        const splits = [1000, 3500, 7000, frame.byteLength];
+        let prev = 0;
+        for (const end of splits) {
+            decoder.feed(frame.slice(prev, end));
+            prev = end;
+        }
+
+        expect(received).toHaveLength(1);
+        expect(received[0].byteLength).toBe(8000);
+        expect(Array.from(received[0])).toEqual(Array.from(payload));
+    });
 });
