@@ -7,6 +7,8 @@ const DEFAULTS: StudioUiSettings = {
     ringBufferSize: 500,
     pollRateMs: 200,
     showTreeSelectorInToolbar: false,
+    windowSize: 1000,
+    fetchBatchSize: 1000,
 };
 
 function loadSettings(): StudioUiSettings {

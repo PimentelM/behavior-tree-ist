@@ -18,6 +18,7 @@ export type {
   StudioTreeStatuses,
   StudioServerSettings,
   StudioUiSettings,
+  StudioTickBounds,
   StudioControls,
 } from './types';
 export {
