@@ -211,7 +211,15 @@ export function BehaviourTreeDebugger({
     setActivityModeState(activityDisplayMode);
   }, [activityDisplayMode]);
 
-  const timeTravelControls = useTimeTravelControls(pausedInspector ?? inspector, tickGeneration);
+  const handleNeedTick = useCallback((tickId: number) => {
+    studioControls?.onFetchTicksAround?.(tickId);
+  }, [studioControls]);
+
+  const timeTravelControls = useTimeTravelControls(pausedInspector ?? inspector, tickGeneration, {
+    onNeedTick: studioControls ? handleNeedTick : undefined,
+    serverBounds: studioControls?.tickBounds ?? null,
+    isLoading: studioControls?.isLoadingWindow ?? false,
+  });
   const { viewedTickId } = timeTravelControls;
   const displayTimeAsTimestamp = timeFormatOverride ?? (timeTravelControls.nowIsTimestamp ?? false);
 
