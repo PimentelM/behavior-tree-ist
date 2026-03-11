@@ -55,11 +55,11 @@ export function useInspector(
       inspector.ingestTicks(forwardTicks);
     }
 
-    // Backward ticks: use insertTicks if available (added by data-layer builder)
+    // Backward ticks: use insertTicksBefore if available (added by data-layer builder)
     const backwardTicks = newTicks.filter((t) => t.tickId <= cutoff);
     if (backwardTicks.length > 0) {
-      const insertTicks = (inspector as unknown as { insertTicks?: (r: TickRecord[]) => void }).insertTicks;
-      insertTicks?.call(inspector, backwardTicks);
+      const insertTicksBefore = (inspector as unknown as { insertTicksBefore?: (r: TickRecord[]) => void }).insertTicksBefore;
+      insertTicksBefore?.call(inspector, backwardTicks);
     }
 
     for (const t of newTicks) ingested.add(t.tickId);

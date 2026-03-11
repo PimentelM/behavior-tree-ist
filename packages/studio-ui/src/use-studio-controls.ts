@@ -8,6 +8,7 @@ import { useTrees } from './hooks/use-trees';
 import { useSelectedTree } from './hooks/use-selected-tree';
 import { useTreeStatuses } from './hooks/use-tree-statuses';
 import { useTickPoller } from './hooks/use-tick-poller';
+import type { TickPollerMode } from './hooks/use-tick-poller';
 import { useServerSettings } from './hooks/use-server-settings';
 import { useUiSettings } from './hooks/use-ui-settings';
 import { trpc } from './trpc';
@@ -65,7 +66,8 @@ export function useStudioControls(): UseStudioControlsResult {
     const { treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace } = useTreeStatuses(selection, isSelectedOnline);
 
     const streaming = treeStatuses?.streaming ?? false;
-    const pollerTicks = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.ringBufferSize, streaming);
+    const pollerMode: TickPollerMode = streaming ? 'streaming' : 'windowed';
+    const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.windowSize, pollerMode);
 
     // --- Tick bounds (server-side total history) ---
     const [tickBounds, setTickBounds] = useState<StudioTickBounds | null>(null);
@@ -99,61 +101,13 @@ export function useStudioControls(): UseStudioControlsResult {
         };
     }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
 
-    // --- Windowed fetch ---
-    const [extraTicks, setExtraTicks] = useState<TickRecord[]>([]);
-    const [isLoadingWindow, setIsLoadingWindow] = useState(false);
-    const windowFetchingRef = useRef(false);
-
-    useEffect(() => {
-        setExtraTicks([]);
-    }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
+    const ticks = pollerResult.ticks;
+    const isLoadingWindow = pollerResult.isLoading;
 
     const onFetchTicksAround = useCallback((tickId: number) => {
-        const sel = selectionRef.current;
-        if (!sel || windowFetchingRef.current) return;
-
-        windowFetchingRef.current = true;
-        setIsLoadingWindow(true);
-
-        const batchSize = uiSettings.fetchBatchSize;
-        const half = Math.floor(batchSize / 2);
-        const fromTickId = Math.max(0, tickId - half);
-        const toTickId = tickId + half;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (trpc.ticks.range.query as any)({
-            clientId: sel.clientId,
-            sessionId: sel.sessionId,
-            treeId: sel.treeId,
-            fromTickId,
-            toTickId,
-            limit: batchSize,
-        }).then((fetched: TickRecord[]) => {
-            windowFetchingRef.current = false;
-            setIsLoadingWindow(false);
-            if (selectionRef.current !== sel) return;
-            if (fetched.length === 0) return;
-            setExtraTicks((prev) => {
-                const ids = new Set(prev.map((t) => t.tickId));
-                const added = fetched.filter((t) => !ids.has(t.tickId));
-                if (added.length === 0) return prev;
-                const combined = [...prev, ...added].sort((a, b) => a.tickId - b.tickId);
-                return combined.slice(-uiSettings.ringBufferSize);
-            });
-        }).catch(() => {
-            windowFetchingRef.current = false;
-            setIsLoadingWindow(false);
-        });
-    }, [uiSettings.fetchBatchSize, uiSettings.ringBufferSize]);
-
-    // Merge poller ticks + windowed extra ticks
-    const ticks = useMemo(() => {
-        if (extraTicks.length === 0) return pollerTicks;
-        const ids = new Set(pollerTicks.map((t) => t.tickId));
-        const extras = extraTicks.filter((t) => !ids.has(t.tickId));
-        if (extras.length === 0) return pollerTicks;
-        return [...pollerTicks, ...extras].sort((a, b) => a.tickId - b.tickId).slice(-uiSettings.ringBufferSize);
-    }, [pollerTicks, extraTicks, uiSettings.ringBufferSize]);
+        const half = Math.floor(uiSettings.fetchBatchSize / 2);
+        pollerResult.seekToRange(Math.max(0, tickId - half), tickId + half);
+    }, [pollerResult.seekToRange, uiSettings.fetchBatchSize]);
 
     // Selection persistence
     const onSelectionChange = useCallback((sel: StudioSelection | null) => {

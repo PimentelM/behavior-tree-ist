@@ -151,7 +151,7 @@ export class TreeInspector {
             this.rootCpuByTick.set(record.tickId, rootCpuTime);
             this.totalRootCpuTime += rootCpuTime;
         }
-        this.profiler.ingestTicks(survivors.map(r => ({ tickId: r.tickId, events: r.events })));
+        this.profiler.ingestTicksBefore(survivors.map(r => ({ tickId: r.tickId, events: r.events })));
     }
 
     // --- State reconstruction ---
