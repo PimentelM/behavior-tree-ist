@@ -51,8 +51,19 @@
 			"behavior-tree-ist-f8f9",
 			"behavior-tree-ist-6e72"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-10T16:51:02.901Z",
+		"completedAt": "2026-03-11T04:30:35.752Z"
+	},
+	{
+		"id": "group-ed29e69d",
+		"name": "whi-14-implementation",
+		"memberIssueIds": [
+			"behavior-tree-ist-560a",
+			"behavior-tree-ist-7cb9"
+		],
+		"status": "active",
+		"createdAt": "2026-03-11T04:33:53.965Z",
 		"completedAt": null
 	}
 ]

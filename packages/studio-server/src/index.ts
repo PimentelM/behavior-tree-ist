@@ -17,7 +17,7 @@ import { TickRepository } from './infra/knex/tick-repository';
 import { SettingsRepository } from './infra/knex/settings-repository';
 import { registerMessageHandlers, createDisconnectHandler } from './app/handlers/messages';
 import { createAppRouter } from './app/handlers/trpc';
-import { makeConfig, StudioServerConfig } from './configuration';
+import { StudioServerConfig } from './configuration';
 import { parseStudioServerConfig } from './configuration-schema';
 import { AppDependencies } from './types/app-dependencies';
 import * as trpcExpress from '@trpc/server/adapters/express';
@@ -394,20 +394,6 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         });
         throw error;
     }
-}
-
-async function main() {
-    const config = makeConfig();
-    await initializeService({ config });
-}
-
-// Allow running directly
-const isMainModule = typeof require !== 'undefined' && require.main === module;
-if (isMainModule) {
-    main().catch((err) => {
-        console.error('Fatal error:', err);
-        process.exit(1);
-    });
 }
 
 export type { AppRouter } from './app/handlers/trpc';

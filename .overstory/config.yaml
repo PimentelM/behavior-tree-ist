@@ -18,11 +18,11 @@ project:
 agents:
   manifestPath: .overstory/agent-manifest.json
   baseDir: .overstory/agent-defs
-  maxConcurrent: 15
+  maxConcurrent: 5
   staggerDelayMs: 2000
-  maxDepth: 3
+  maxDepth: 2
   maxSessionsPerRun: 0
-  maxAgentsPerLead: 5
+  maxAgentsPerLead: 3
 worktrees:
   baseDir: .overstory/worktrees
 taskTracker:
