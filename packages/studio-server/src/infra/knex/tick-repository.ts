@@ -70,15 +70,16 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         sessionId: string,
         treeId: string,
         fromTickId: number,
-        toTickId: number
+        toTickId: number,
+        limit?: number
     ): Promise<TickRecord[]> {
-        const rows = await this.withTransaction(
-            this.knex<DbTick>('ticks')
-                .where({ clientId, sessionId, treeId })
-                .andWhere('tickId', '>=', fromTickId)
-                .andWhere('tickId', '<=', toTickId)
-                .orderBy('tickId', 'asc')
-        );
+        let query = this.knex<DbTick>('ticks')
+            .where({ clientId, sessionId, treeId })
+            .andWhere('tickId', '>=', fromTickId)
+            .andWhere('tickId', '<=', toTickId)
+            .orderBy('tickId', 'asc');
+        if (limit !== undefined) query = query.limit(limit);
+        const rows = await this.withTransaction(query);
         return rows.map(mapDbTickToDomain);
     }
 
@@ -101,7 +102,7 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         return {
             minTickId: Number(result.minTickId),
             maxTickId: Number(result.maxTickId),
-            count: Number(result.count),
+            totalCount: Number(result.count),
         };
     }
 

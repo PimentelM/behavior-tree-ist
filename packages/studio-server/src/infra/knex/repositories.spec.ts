@@ -149,13 +149,22 @@ describe('TickRepository', () => {
 
         const bounds = await tickRepository.getTickBounds(C, S, T);
 
-        expect(bounds).toEqual({ minTickId: 5, maxTickId: 15, count: 3 });
+        expect(bounds).toEqual({ minTickId: 5, maxTickId: 15, totalCount: 3 });
     });
 
     it('getTickBounds returns null for empty tree', async () => {
         const bounds = await tickRepository.getTickBounds(C, S, T);
 
         expect(bounds).toBeNull();
+    });
+
+    it('findRange respects limit', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2), makeTick(3), makeTick(4), makeTick(5)]);
+
+        const result = await tickRepository.findRange(C, S, T, 1, 5, 3);
+
+        expect(result).toHaveLength(3);
+        expect(result.map(t => t.tickId)).toEqual([1, 2, 3]);
     });
 
     it('findBefore returns ticks before given id in ascending order', async () => {

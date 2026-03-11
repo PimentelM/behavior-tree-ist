@@ -50,6 +50,7 @@ export function createTicksRouter({ tickRepository }: AppDependencies) {
                 treeId: z.string(),
                 fromTickId: z.number().int(),
                 toTickId: z.number().int(),
+                limit: z.number().int().min(1).max(10000).optional(),
             }))
             .output(z.array(TickRecordSchema))
             .query(async ({ input }) => {
@@ -58,7 +59,8 @@ export function createTicksRouter({ tickRepository }: AppDependencies) {
                     input.sessionId,
                     input.treeId,
                     input.fromTickId,
-                    input.toTickId
+                    input.toTickId,
+                    input.limit
                 );
             }),
 
