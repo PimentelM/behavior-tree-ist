@@ -1,0 +1,58 @@
+[
+	{
+		"id": "group-55638637",
+		"name": "batch-1-pr-reviews",
+		"memberIssueIds": [
+			"behavior-tree-ist-5aac",
+			"behavior-tree-ist-334b",
+			"behavior-tree-ist-f4d6",
+			"behavior-tree-ist-ff45",
+			"behavior-tree-ist-9b60"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-10T04:59:24.009Z",
+		"completedAt": "2026-03-10T13:36:12.416Z"
+	},
+	{
+		"id": "group-8d26f822",
+		"name": "displaystate-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-b99b"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-10T13:46:59.755Z",
+		"completedAt": "2026-03-10T16:49:15.505Z"
+	},
+	{
+		"id": "group-2c1c5446",
+		"name": "screeps-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-a5ca"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-10T14:00:26.256Z",
+		"completedAt": "2026-03-10T16:54:03.059Z"
+	},
+	{
+		"id": "group-3528dd09",
+		"name": "deep-research-batch",
+		"memberIssueIds": [
+			"behavior-tree-ist-a5ca",
+			"behavior-tree-ist-c26d"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-10T14:50:59.111Z",
+		"completedAt": "2026-03-10T16:54:03.350Z"
+	},
+	{
+		"id": "group-d5b8b575",
+		"name": "sequential-research-batch",
+		"memberIssueIds": [
+			"behavior-tree-ist-f8f9",
+			"behavior-tree-ist-6e72"
+		],
+		"status": "active",
+		"createdAt": "2026-03-10T16:51:02.901Z",
+		"completedAt": null
+	}
+]
