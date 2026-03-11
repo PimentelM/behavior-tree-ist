@@ -5,6 +5,7 @@ domains:
   - docs
   - transport
   - screeps-transport
+  - server-retention
 governance:
   max_entries: 100
   warn_entries: 150
