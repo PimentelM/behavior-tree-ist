@@ -527,6 +527,125 @@ describe("TreeInspector", () => {
         });
     });
 
+    describe("insertTicksBefore", () => {
+        it("prepends historical ticks before current window", () => {
+            const inspector = new TreeInspector({ maxTicks: 5 });
+            inspector.indexTree(makeTree());
+            inspector.ingestTick(makeTickRecord(10, [{ nodeId: 1, start: 0, end: 10 }]));
+            inspector.ingestTick(makeTickRecord(11, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            inspector.insertTicksBefore([
+                makeTickRecord(7, [{ nodeId: 1, start: 0, end: 5 }]),
+                makeTickRecord(8, [{ nodeId: 1, start: 0, end: 8 }]),
+                makeTickRecord(9, [{ nodeId: 1, start: 0, end: 12 }]),
+            ]);
+
+            expect(inspector.getStoredTickIds()).toEqual([7, 8, 9, 10, 11]);
+            expect(inspector.hasTickLoaded(7)).toBe(true);
+            expect(inspector.hasTickLoaded(11)).toBe(true);
+        });
+
+        it("does not increment totalTickCount for historical inserts", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTick(makeTickRecord(10, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            inspector.insertTicksBefore([
+                makeTickRecord(5, [{ nodeId: 1, start: 0, end: 5 }]),
+                makeTickRecord(8, [{ nodeId: 1, start: 0, end: 8 }]),
+            ]);
+
+            expect(inspector.getStats().totalTickCount).toBe(1);
+            expect(inspector.getStats().storedTickCount).toBe(3);
+        });
+
+        it("updates profiler with inserted ticks", () => {
+            const inspector = new TreeInspector({ maxTicks: 5 });
+            inspector.indexTree(makeTree());
+            inspector.ingestTick(makeTickRecord(10, [{ nodeId: 1, start: 0, end: 20 }]));
+
+            inspector.insertTicksBefore([
+                makeTickRecord(5, [{ nodeId: 1, start: 0, end: 10 }]),
+            ]);
+
+            const data = inspector.getNodeProfilingData(1)!;
+            expect(data.tickCount).toBe(2);
+            expect(data.totalCpuTime).toBe(30);
+        });
+
+        it("removes evicted ticks from profiler when buffer overflows", () => {
+            const inspector = new TreeInspector({ maxTicks: 3 });
+            inspector.indexTree(makeTree());
+            inspector.ingestTick(makeTickRecord(10, [{ nodeId: 1, start: 0, end: 10 }]));
+            inspector.ingestTick(makeTickRecord(11, [{ nodeId: 1, start: 0, end: 20 }]));
+            inspector.ingestTick(makeTickRecord(12, [{ nodeId: 1, start: 0, end: 30 }]));
+
+            inspector.insertTicksBefore([
+                makeTickRecord(7, [{ nodeId: 1, start: 0, end: 5 }]),
+                makeTickRecord(8, [{ nodeId: 1, start: 0, end: 5 }]),
+                makeTickRecord(9, [{ nodeId: 1, start: 0, end: 5 }]),
+            ]);
+
+            // Ticks 10, 11, 12 evicted from newest end
+            expect(inspector.getStoredTickIds()).toEqual([7, 8, 9]);
+            const data = inspector.getNodeProfilingData(1)!;
+            expect(data.tickCount).toBe(3);
+            expect(data.totalCpuTime).toBe(15); // 5+5+5 (evicted 10+20+30)
+        });
+
+        it("updates totalRootCpuTime correctly on eviction", () => {
+            const inspector = new TreeInspector({ maxTicks: 2 });
+            inspector.indexTree(makeTree());
+            inspector.ingestTick(makeTickRecord(10, [{ nodeId: 1, start: 0, end: 50 }]));
+            inspector.ingestTick(makeTickRecord(11, [{ nodeId: 1, start: 0, end: 80 }]));
+            expect(inspector.getStats().totalRootCpuTime).toBe(130);
+
+            inspector.insertTicksBefore([
+                makeTickRecord(7, [{ nodeId: 1, start: 0, end: 5 }]),
+                makeTickRecord(8, [{ nodeId: 1, start: 0, end: 6 }]),
+                makeTickRecord(9, [{ nodeId: 1, start: 0, end: 7 }]),
+            ]);
+
+            // Ticks 10 and 11 evicted (130 cpu), new ticks add 5+6+7=18, but only 2 survive
+            // With maxTicks=2, unshiftMany([7,8,9]) with capacity 2 keeps [8,9]
+            expect(inspector.getStoredTickIds()).toEqual([8, 9]);
+            expect(inspector.getStats().totalRootCpuTime).toBe(13); // 6+7
+        });
+
+        it("ignores records >= current oldest (non-historical)", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTick(makeTickRecord(10, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            inspector.insertTicksBefore([
+                makeTickRecord(10, [{ nodeId: 1, start: 0, end: 99 }]), // duplicate
+                makeTickRecord(11, [{ nodeId: 1, start: 0, end: 99 }]), // newer
+            ]);
+
+            expect(inspector.getStoredTickIds()).toEqual([10]);
+            expect(inspector.getStats().totalRootCpuTime).toBe(0); // no tree indexed
+        });
+    });
+
+    describe("hasTickLoaded", () => {
+        it("returns true for loaded ticks, false otherwise", () => {
+            const inspector = new TreeInspector();
+            inspector.ingestTick(makeTickRecord(5, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            expect(inspector.hasTickLoaded(5)).toBe(true);
+            expect(inspector.hasTickLoaded(4)).toBe(false);
+            expect(inspector.hasTickLoaded(6)).toBe(false);
+        });
+
+        it("reflects insertTicksBefore", () => {
+            const inspector = new TreeInspector({ maxTicks: 5 });
+            inspector.ingestTick(makeTickRecord(10, [{ nodeId: 1, start: 0, end: 10 }]));
+
+            inspector.insertTicksBefore([makeTickRecord(5, [{ nodeId: 1, start: 0, end: 5 }])]);
+
+            expect(inspector.hasTickLoaded(5)).toBe(true);
+            expect(inspector.hasTickLoaded(10)).toBe(true);
+        });
+    });
+
     it("cloneForTimeTravel can preserve sampled percentiles when exact recompute is disabled", () => {
         const inspector = new TreeInspector({ maxTicks: 2 });
         inspector.indexTree(makeTree());

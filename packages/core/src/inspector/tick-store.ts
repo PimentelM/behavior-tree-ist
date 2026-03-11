@@ -85,6 +85,47 @@ export class TickStore {
         return allEvicted;
     }
 
+    /**
+     * Insert records that are older than the current oldest stored tick.
+     * Records are sorted, filtered (empty events, duplicates, non-older ticks removed),
+     * then prepended to the ring buffer. If the buffer overflows, the newest ticks
+     * are evicted from the tail (newest end).
+     * Returns all previously-stored ticks that were displaced from the newest end.
+     */
+    insertBefore(records: TickRecord[]): TickRecord[] {
+        const oldest = this.buffer.peekFirst();
+        const cutoff = oldest ? oldest.tickId : Infinity;
+
+        const sorted = [...records].sort((a, b) => a.tickId - b.tickId);
+        const valid: TickRecord[] = [];
+        let lastId = -Infinity;
+        for (const record of sorted) {
+            if (record.events.length === 0) continue;
+            if (record.tickId >= cutoff) continue;
+            if (this.byTickId.has(record.tickId)) continue;
+            if (record.tickId <= lastId) continue;
+            lastId = record.tickId;
+            valid.push(record);
+        }
+
+        if (valid.length === 0) return [];
+
+        const evicted = this.buffer.unshiftMany(valid);
+
+        for (const e of evicted) {
+            this.byTickId.delete(e.tickId);
+        }
+
+        // Only surviving valid records enter byTickId
+        // When valid.length > capacity, the last `capacity` items survive (same as pushMany)
+        const survivorStart = Math.max(0, valid.length - this.capacity);
+        for (let i = survivorStart; i < valid.length; i++) {
+            this.byTickId.set(valid[i].tickId, valid[i]);
+        }
+
+        return evicted;
+    }
+
     getByTickId(tickId: number): TickRecord | undefined {
         return this.byTickId.get(tickId);
     }

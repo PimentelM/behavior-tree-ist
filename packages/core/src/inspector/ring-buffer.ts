@@ -73,6 +73,63 @@ export class RingBuffer<T> {
         }
     }
 
+    /**
+     * Prepend a single item to the front (oldest end).
+     * If the buffer is full, evicts and returns the item from the tail (newest end).
+     */
+    unshift(item: T): T | undefined {
+        let evicted: T | undefined;
+        if (this.count === this.capacity) {
+            evicted = this.buffer[(this.head + this.count - 1) % this.capacity] as T;
+            this.count--;
+        }
+        this.head = (this.head - 1 + this.capacity) % this.capacity;
+        this.buffer[this.head] = item;
+        this.count++;
+        return evicted;
+    }
+
+    /**
+     * Prepend multiple items to the front (oldest end), items[0] being the oldest.
+     * Evicts from the tail (newest end) when buffer overflows.
+     * If items.length >= capacity, all existing items are evicted and only the
+     * newest `capacity` items from the input are kept.
+     * Returns all evicted items (previously stored items displaced from the tail).
+     */
+    unshiftMany(items: T[]): T[] {
+        if (items.length === 0) return [];
+
+        if (items.length >= this.capacity) {
+            const evicted: T[] = [];
+            this.forEach(item => evicted.push(item));
+            const start = items.length - this.capacity;
+            for (let i = 0; i < this.capacity; i++) {
+                this.buffer[i] = items[start + i];
+            }
+            this.head = 0;
+            this.count = this.capacity;
+            return evicted;
+        }
+
+        const evictCount = Math.max(0, this.count + items.length - this.capacity);
+        const evicted: T[] = [];
+
+        for (let i = 0; i < evictCount; i++) {
+            const tailIdx = (this.head + this.count - 1 - i) % this.capacity;
+            evicted.push(this.buffer[tailIdx] as T);
+        }
+        this.count -= evictCount;
+
+        // Prepend items in oldest-first order: unshift from newest to oldest
+        for (let i = items.length - 1; i >= 0; i--) {
+            this.head = (this.head - 1 + this.capacity) % this.capacity;
+            this.buffer[this.head] = items[i];
+            this.count++;
+        }
+
+        return evicted;
+    }
+
     clear(): void {
         this.head = 0;
         this.count = 0;
