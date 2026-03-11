@@ -16,7 +16,7 @@ export class SettingsRepository extends BaseKnexRepository implements SettingsRe
             this.knex('serverSettings')
                 .insert({
                     id: 1,
-                    maxTicksPerTree: 1000,
+                    maxTicksPerTree: 100_000,
                     commandTimeoutMs: 5000,
                     updatedAt: now,
                 })

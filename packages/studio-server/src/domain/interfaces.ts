@@ -1,4 +1,5 @@
 import { SerializableNode, TickRecord } from '@bt-studio/core';
+import type { TickBounds } from '@bt-studio/studio-common';
 import type { ClientRecord, SessionRecord, TreeRecord, SettingsRecord } from './records';
 
 // ── Repository interfaces ──
@@ -27,6 +28,9 @@ export interface TreeRepositoryInterface {
 export interface TickRepositoryInterface {
     insertBatch(clientId: string, sessionId: string, treeId: string, ticks: TickRecord[]): Promise<void>;
     findAfter(clientId: string, sessionId: string, treeId: string, afterTickId: number, limit: number): Promise<TickRecord[]>;
+    findBefore(clientId: string, sessionId: string, treeId: string, beforeTickId: number, limit: number): Promise<TickRecord[]>;
+    findRange(clientId: string, sessionId: string, treeId: string, fromTickId: number, toTickId: number, limit?: number): Promise<TickRecord[]>;
+    getTickBounds(clientId: string, sessionId: string, treeId: string): Promise<TickBounds | null>;
     pruneToLimit(clientId: string, sessionId: string, treeId: string, maxTicks: number): Promise<void>;
 }
 
