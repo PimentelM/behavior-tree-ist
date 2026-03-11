@@ -52,7 +52,7 @@ export function makeConfig(): StudioServerConfig {
             path: process.env.SQLITE_PATH || ':memory:',
         },
         commandTimeoutMs: readIntegerEnv('COMMAND_TIMEOUT_MS', 5000),
-        maxTicksPerTree: readIntegerEnv('MAX_TICKS_PER_TREE', 1000),
+        maxTicksPerTree: readIntegerEnv('MAX_TICKS_PER_TREE', 100_000),
         logLevel: process.env.LOG_LEVEL || 'info',
         migrations: {
             runOnStartup: readBooleanEnv('RUN_MIGRATIONS_ON_STARTUP', true),

@@ -5,3 +5,10 @@ export const ServerSettings = z.object({
     commandTimeoutMs: z.number().int(),
 });
 export type ServerSettings = z.infer<typeof ServerSettings>;
+
+export const TickBounds = z.object({
+    minTickId: z.number().int(),
+    maxTickId: z.number().int(),
+    count: z.number().int(),
+});
+export type TickBounds = z.infer<typeof TickBounds>;

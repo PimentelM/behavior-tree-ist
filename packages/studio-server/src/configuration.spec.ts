@@ -25,7 +25,7 @@ describe('Configuration', () => {
         expect(config.http.port).toBe(4100);
         expect(config.tcp.port).toBe(4101);
         expect(config.commandTimeoutMs).toBe(5000);
-        expect(config.maxTicksPerTree).toBe(1000);
+        expect(config.maxTicksPerTree).toBe(100_000);
         expect(config.migrations.runOnStartup).toBe(true);
     });
 
