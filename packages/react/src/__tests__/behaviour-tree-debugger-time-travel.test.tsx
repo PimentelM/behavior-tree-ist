@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { NodeFlags, NodeResult } from '@bt-studio/core';
 import type { SerializableNode, TickRecord } from '@bt-studio/core';
 import { BehaviourTreeDebugger } from '../BehaviourTreeDebugger';
-import type { BTNodeData, BTEdgeData } from '../types';
+import type { BTNodeData, BTEdgeData, StudioControls, StudioTickBounds } from '../types';
 import type { Node, Edge } from '@xyflow/react';
 
 // jsdom lacks PointerEvent — polyfill so pointerId propagates correctly
@@ -352,5 +352,102 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     fireEvent.click(local.getByRole('button', { name: 'Show activity options menu' }));
     expect(local.getByRole('button', { name: 'Show only running activities' })).toBeTruthy();
     expect(local.getByRole('button', { name: 'Show activity labels' })).toBeTruthy();
+  });
+});
+
+function makeMinimalStudioControls(overrides: Partial<StudioControls> = {}): StudioControls {
+  return {
+    clients: [],
+    sessions: [],
+    trees: [],
+    selection: null,
+    onSelectionChange: vi.fn(),
+    expandedClientId: null,
+    onExpandClient: vi.fn(),
+    expandedSessionId: null,
+    onExpandSession: vi.fn(),
+    treeStatuses: null,
+    onToggleStreaming: vi.fn(),
+    onToggleProfiling: vi.fn(),
+    onToggleStateTrace: vi.fn(),
+    isSelectedOnline: false,
+    serverSettings: null,
+    uiSettings: {
+      ringBufferSize: 500,
+      pollRateMs: 200,
+      showTreeSelectorInToolbar: false,
+      windowSize: 1000,
+      fetchBatchSize: 1000,
+    },
+    onServerSettingsChange: vi.fn(),
+    onUiSettingsChange: vi.fn(),
+    tickBounds: null,
+    onFetchTicksAround: vi.fn(),
+    isLoadingWindow: false,
+    ...overrides,
+  };
+}
+
+describe('BehaviourTreeDebugger windowed time travel', () => {
+  beforeEach(() => {
+    localStorage.removeItem('bt-activity-window-collapsed');
+  });
+
+  it('shows loading indicator on timeline when isLoadingWindow is true', () => {
+    const studioControls = makeMinimalStudioControls({ isLoadingWindow: true });
+
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(1, 10), makeTick(2, 10)]}
+        isolateStyles={false}
+        studioControls={studioControls}
+      />,
+    );
+
+    expect(container.querySelector('.bt-timeline__loading')).toBeTruthy();
+  });
+
+  it('shows loaded/total ticks when server bounds provided', () => {
+    const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
+    const studioControls = makeMinimalStudioControls({ tickBounds });
+
+    render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(1, 10), makeTick(2, 10)]}
+        isolateStyles={false}
+        studioControls={studioControls}
+      />,
+    );
+
+    expect(screen.getByText(/Loaded:.*\/.*ticks/)).toBeTruthy();
+  });
+
+  it('calls onFetchTicksAround when navigating to a tick outside loaded window', async () => {
+    const onFetchTicksAround = vi.fn();
+    const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 100, totalCount: 100 };
+    const studioControls = makeMinimalStudioControls({ tickBounds, onFetchTicksAround });
+
+    render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(50, 10), makeTick(51, 10)]}
+        isolateStyles={false}
+        studioControls={studioControls}
+      />,
+    );
+
+    // Use keyboard: ArrowLeft once to enter paused mode at tick 50 (oldest stored)
+    // ArrowLeft again to step back beyond loaded window → triggers fetch
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+
+    await waitFor(() => {
+      fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    });
+
+    await waitFor(() => {
+      expect(onFetchTicksAround).toHaveBeenCalled();
+    });
   });
 });

@@ -73,7 +73,21 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
             label="Ring Buffer Size"
             value={uiSettings.ringBufferSize}
             onChange={(v) => onUiSettingsChange({ ringBufferSize: v })}
-            helpText="Number of ticks kept in memory for time travel"
+            helpText="Number of ticks kept in memory for live streaming"
+          />
+          <NumberField
+            label="Window Size"
+            value={uiSettings.windowSize}
+            onChange={(v) => onUiSettingsChange({ windowSize: v })}
+            min={100}
+            helpText="Target ticks to keep loaded for time travel (1000–10000)"
+          />
+          <NumberField
+            label="Fetch Batch Size"
+            value={uiSettings.fetchBatchSize}
+            onChange={(v) => onUiSettingsChange({ fetchBatchSize: v })}
+            min={100}
+            helpText="How many ticks to fetch per windowed request"
           />
           <NumberField
             label="Poll Rate (ms)"

@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { SerializableNode, TickRecord } from '@bt-studio/core';
-import type { StudioControls, StudioSelection } from '@bt-studio/react';
+import type { StudioControls, StudioSelection, StudioTickBounds } from '@bt-studio/react';
 import { useUiWebSocket } from './use-ui-websocket';
 import { useClients } from './hooks/use-clients';
 import { useSessions } from './hooks/use-sessions';
@@ -8,10 +8,13 @@ import { useTrees } from './hooks/use-trees';
 import { useSelectedTree } from './hooks/use-selected-tree';
 import { useTreeStatuses } from './hooks/use-tree-statuses';
 import { useTickPoller } from './hooks/use-tick-poller';
+import type { TickPollerMode } from './hooks/use-tick-poller';
 import { useServerSettings } from './hooks/use-server-settings';
 import { useUiSettings } from './hooks/use-ui-settings';
+import { trpc } from './trpc';
 
 const SELECTION_KEY = 'bt-studio-selection';
+const BOUNDS_POLL_MS = 5000;
 
 function loadSelection(): { selection: StudioSelection | null; expandedClientId: string | null; expandedSessionId: string | null } {
     try {
@@ -63,7 +66,48 @@ export function useStudioControls(): UseStudioControlsResult {
     const { treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace } = useTreeStatuses(selection, isSelectedOnline);
 
     const streaming = treeStatuses?.streaming ?? false;
-    const ticks = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.ringBufferSize, streaming);
+    const pollerMode: TickPollerMode = streaming ? 'streaming' : 'windowed';
+    const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.windowSize, pollerMode);
+
+    // --- Tick bounds (server-side total history) ---
+    const [tickBounds, setTickBounds] = useState<StudioTickBounds | null>(null);
+    const selectionRef = useRef(selection);
+    selectionRef.current = selection;
+
+    useEffect(() => {
+        setTickBounds(null);
+        if (!selection) return;
+
+        let active = true;
+        const fetchBounds = async () => {
+            const sel = selectionRef.current;
+            if (!sel) return;
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const bounds = await (trpc.ticks.bounds.query as any)({
+                    clientId: sel.clientId,
+                    sessionId: sel.sessionId,
+                    treeId: sel.treeId,
+                });
+                if (active && bounds) setTickBounds(bounds as StudioTickBounds);
+            } catch { /* ignore */ }
+        };
+
+        fetchBounds();
+        const id = setInterval(fetchBounds, BOUNDS_POLL_MS);
+        return () => {
+            active = false;
+            clearInterval(id);
+        };
+    }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
+
+    const ticks = pollerResult.ticks;
+    const isLoadingWindow = pollerResult.isLoading;
+
+    const onFetchTicksAround = useCallback((tickId: number) => {
+        const half = Math.floor(uiSettings.fetchBatchSize / 2);
+        pollerResult.seekToRange(Math.max(0, tickId - half), tickId + half);
+    }, [pollerResult.seekToRange, uiSettings.fetchBatchSize]);
 
     // Selection persistence
     const onSelectionChange = useCallback((sel: StudioSelection | null) => {
@@ -106,6 +150,9 @@ export function useStudioControls(): UseStudioControlsResult {
         uiSettings,
         onServerSettingsChange,
         onUiSettingsChange,
+        tickBounds,
+        onFetchTicksAround,
+        isLoadingWindow,
         loadingClients,
         loadingSessions,
         loadingTrees,
@@ -114,6 +161,7 @@ export function useStudioControls(): UseStudioControlsResult {
         expandedClientId, expandedSessionId,
         treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace,
         isSelectedOnline, serverSettings, uiSettings, onServerSettingsChange, onUiSettingsChange,
+        tickBounds, onFetchTicksAround, isLoadingWindow,
         loadingClients, loadingSessions, loadingTrees,
     ]);
 

@@ -137,6 +137,8 @@ export interface TimeTravelState {
   totalTicks: number;
   oldestTickId: number | undefined;
   newestTickId: number | undefined;
+  serverBounds: StudioTickBounds | null;
+  isLoading: boolean;
 }
 
 export interface TimeTravelControls extends TimeTravelState {
@@ -218,6 +220,14 @@ export interface StudioUiSettings {
   ringBufferSize: number;
   pollRateMs: number;
   showTreeSelectorInToolbar: boolean;
+  windowSize: number;
+  fetchBatchSize: number;
+}
+
+export interface StudioTickBounds {
+  minTickId: number;
+  maxTickId: number;
+  totalCount: number;
 }
 
 export interface StudioControls {
@@ -244,6 +254,10 @@ export interface StudioControls {
   uiSettings: StudioUiSettings;
   onServerSettingsChange: (patch: Partial<StudioServerSettings>) => void;
   onUiSettingsChange: (patch: Partial<StudioUiSettings>) => void;
+
+  tickBounds: StudioTickBounds | null;
+  onFetchTicksAround?: (tickId: number) => void;
+  isLoadingWindow: boolean;
 
   loadingClients?: boolean;
   loadingSessions?: boolean;

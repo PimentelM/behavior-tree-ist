@@ -35,6 +35,8 @@ function TimelinePanelInner({
     totalTicks,
     oldestTickId,
     newestTickId,
+    serverBounds,
+    isLoading,
     goToTick,
     stepBack,
     stepForward,
@@ -42,6 +44,16 @@ function TimelinePanelInner({
   } = controls;
 
   const hasTicks = oldestTickId !== undefined && newestTickId !== undefined;
+
+  // Use server bounds for scrubber range when they extend beyond loaded window
+  const scrubberMin = serverBounds
+    ? Math.min(serverBounds.minTickId, oldestTickId ?? serverBounds.minTickId)
+    : oldestTickId;
+  const scrubberMax = serverBounds
+    ? Math.max(serverBounds.maxTickId, newestTickId ?? serverBounds.maxTickId)
+    : newestTickId;
+  const hasScrubberRange = scrubberMin !== undefined && scrubberMax !== undefined;
+
   const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
 
   const handleScrub = useCallback(
@@ -68,6 +80,9 @@ function TimelinePanelInner({
     }
   }, [jumpToLive, newestTickId, onTickChange]);
 
+  const serverTotal = serverBounds?.totalCount;
+  const showWindowInfo = serverBounds !== null && serverTotal !== undefined;
+
   return (
     <div className="bt-timeline">
       <span
@@ -91,7 +106,7 @@ function TimelinePanelInner({
         <button
           className="bt-timeline__btn"
           onClick={handleStepBack}
-          disabled={!hasTicks || viewedTickId === oldestTickId}
+          disabled={isLoading || !hasTicks || (viewedTickId === oldestTickId && (!serverBounds || oldestTickId <= serverBounds.minTickId))}
           title="Step back (Left Arrow)"
           type="button"
         >
@@ -100,7 +115,7 @@ function TimelinePanelInner({
         <button
           className="bt-timeline__btn"
           onClick={handleStepForward}
-          disabled={!hasTicks || viewedTickId === newestTickId}
+          disabled={isLoading || !hasTicks || (viewedTickId === newestTickId && (!serverBounds || newestTickId >= serverBounds.maxTickId))}
           title="Step forward (Right Arrow)"
           type="button"
         >
@@ -117,6 +132,11 @@ function TimelinePanelInner({
         >
           LIVE
         </button>
+        {isLoading && (
+          <span className="bt-timeline__loading" title="Loading ticks…">
+            ⌛
+          </span>
+        )}
       </div>
 
       <div className="bt-timeline__scrubber">
@@ -124,13 +144,14 @@ function TimelinePanelInner({
           entries={cpuTimeline}
           viewedTickId={viewedTickId}
         />
-        {hasTicks ? (
+        {hasScrubberRange ? (
           <input
             type="range"
-            min={oldestTickId}
-            max={newestTickId}
-            value={viewedTickId ?? newestTickId}
+            min={scrubberMin}
+            max={scrubberMax}
+            value={viewedTickId ?? scrubberMax}
             onChange={handleScrub}
+            disabled={isLoading}
             step={1}
           />
         ) : (
@@ -141,7 +162,9 @@ function TimelinePanelInner({
       <span className="bt-timeline__info">
         {viewedTickId !== null ? `Tick #${viewedTickId}` : 'No ticks'}
         {formattedNow !== null ? ` · time ${formattedNow}` : ''}{' '}
-        / {totalTicks} total
+        {showWindowInfo
+          ? `· Loaded: ${totalTicks.toLocaleString()}/${serverTotal!.toLocaleString()} ticks`
+          : `/ ${totalTicks} total`}
       </span>
 
     </div>
