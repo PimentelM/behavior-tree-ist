@@ -70,7 +70,6 @@ export function useTickPoller(
         if (!sel || fetchingRef.current) return;
 
         fetchingRef.current = true;
-        setIsLoading(true);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (trpc.ticks.query.query as any)({
@@ -81,7 +80,6 @@ export function useTickPoller(
             limit: 100,
         }).then((newTicks: TickRecord[]) => {
             fetchingRef.current = false;
-            setIsLoading(false);
             if (selectionRef.current !== sel) return;
             if (newTicks.length === 0) return;
 
@@ -96,7 +94,6 @@ export function useTickPoller(
             });
         }).catch((err: unknown) => {
             fetchingRef.current = false;
-            setIsLoading(false);
             setError(err);
             console.error('[use-tick-poller] forward fetch error', err);
         });
