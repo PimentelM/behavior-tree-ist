@@ -424,7 +424,7 @@ describe('BehaviourTreeDebugger windowed time travel', () => {
     expect(screen.getByText(/Loaded:.*\/.*ticks/)).toBeTruthy();
   });
 
-  it('calls onFetchTicksAround when navigating to a tick outside loaded window', async () => {
+  it('does not auto-fetch when stepping to boundary of loaded window', async () => {
     const onFetchTicksAround = vi.fn();
     const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 100, totalCount: 100 };
     const studioControls = makeMinimalStudioControls({ tickBounds, onFetchTicksAround });
@@ -438,16 +438,38 @@ describe('BehaviourTreeDebugger windowed time travel', () => {
       />,
     );
 
-    // Use keyboard: ArrowLeft once to enter paused mode at tick 50 (oldest stored)
-    // ArrowLeft again to step back beyond loaded window → triggers fetch
+    // Step back into paused mode (lands on oldest stored tick)
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    // Step back again — at loaded window boundary, should stop without fetching
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
 
-    await waitFor(() => {
-      fireEvent.keyDown(window, { key: 'ArrowLeft' });
-    });
+    // Wait a tick to ensure no async fetch is triggered
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onFetchTicksAround).not.toHaveBeenCalled();
+  });
+
+  it('calls onFetchTicksAround when user moves window selector slider', async () => {
+    const onFetchTicksAround = vi.fn();
+    const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
+    const studioControls = makeMinimalStudioControls({ tickBounds, onFetchTicksAround });
+
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(500, 10), makeTick(501, 10)]}
+        isolateStyles={false}
+        studioControls={studioControls}
+      />,
+    );
+
+    const windowRange = container.querySelector('.bt-timeline__window-range') as HTMLInputElement;
+    expect(windowRange).toBeTruthy();
+
+    fireEvent.change(windowRange, { target: { value: '200' } });
+    fireEvent.pointerUp(windowRange);
 
     await waitFor(() => {
-      expect(onFetchTicksAround).toHaveBeenCalled();
+      expect(onFetchTicksAround).toHaveBeenCalledWith(200);
     });
   });
 });
