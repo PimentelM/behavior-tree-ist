@@ -82,6 +82,30 @@ export function WindowRangeTrimmer({
     [getFracFromPointer, fromFrac],
   );
 
+  const handleSelectionPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      const startFrac = getFracFromPointer(e.clientX);
+      const startFrom = fromFrac;
+      const startTo = toFrac;
+      const width = startTo - startFrom;
+      const move = (ev: PointerEvent) => {
+        const delta = getFracFromPointer(ev.clientX) - startFrac;
+        const newFrom = Math.max(0, Math.min(1 - width, startFrom + delta));
+        setFromFrac(newFrom);
+        setToFrac(newFrom + width);
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    },
+    [getFracFromPointer, fromFrac, toFrac],
+  );
+
   const fromTick = fracToTick(fromFrac, minTickId, maxTickId);
   const toTick = fracToTick(toFrac, minTickId, maxTickId);
   const rangeCount = toTick - fromTick;
@@ -115,6 +139,7 @@ export function WindowRangeTrimmer({
           <div
             className="bt-range-trimmer__selection"
             style={{ left: `${fromFrac * 100}%`, width: `${(toFrac - fromFrac) * 100}%` }}
+            onPointerDown={handleSelectionPointerDown}
           />
           <div
             className="bt-range-trimmer__handle bt-range-trimmer__handle--left"

@@ -41,7 +41,7 @@ export interface TickPollerReturn {
 export function useTickPoller(
     selection: StudioSelection | null,
     pollRateMs: number,
-    windowSize: number,
+    ringBufferSize: number,
     mode: TickPollerMode,
 ): TickPollerReturn {
     const [ticks, setTicks] = useState<TickRecord[]>([]);
@@ -52,8 +52,8 @@ export function useTickPoller(
     const afterTickIdRef = useRef(0);
     const selectionRef = useRef(selection);
     const fetchingRef = useRef(false);
-    const windowSizeRef = useRef(windowSize);
-    windowSizeRef.current = windowSize;
+    const ringBufferSizeRef = useRef(ringBufferSize);
+    ringBufferSizeRef.current = ringBufferSize;
 
     // Reset on selection change
     useEffect(() => {
@@ -87,7 +87,7 @@ export function useTickPoller(
             if (newLastId <= afterTickIdRef.current) return;
             afterTickIdRef.current = newLastId;
 
-            const cap = windowSizeRef.current;
+            const cap = ringBufferSizeRef.current;
             setTicks(prev => {
                 const combined = [...prev, ...newTicks];
                 return combined.length > cap ? combined.slice(combined.length - cap) : combined;
@@ -123,7 +123,7 @@ export function useTickPoller(
 
             if (sorted.length === 0) return;
 
-            const cap = windowSizeRef.current;
+            const cap = ringBufferSizeRef.current;
             setTicks(prev => {
                 const prevIds = new Set(prev.map(r => r.tickId));
                 const deduped = sorted.filter(r => !prevIds.has(r.tickId));
@@ -152,7 +152,7 @@ export function useTickPoller(
             treeId: sel.treeId,
             fromTickId,
             toTickId,
-            limit: windowSizeRef.current,
+            limit: Math.min(toTickId - fromTickId + 1, 10000),
         }).then((newTicks: TickRecord[]) => {
             fetchingRef.current = false;
             setIsLoading(false);

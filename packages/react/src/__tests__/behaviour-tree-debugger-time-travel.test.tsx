@@ -376,7 +376,6 @@ function makeMinimalStudioControls(overrides: Partial<StudioControls> = {}): Stu
       ringBufferSize: 500,
       pollRateMs: 200,
       showTreeSelectorInToolbar: false,
-      windowSize: 1000,
       fetchBatchSize: 1000,
     },
     onServerSettingsChange: vi.fn(),
@@ -475,5 +474,64 @@ describe('BehaviourTreeDebugger windowed time travel', () => {
     await waitFor(() => {
       expect(onFetchTickRange).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
     });
+  });
+
+  it('enters paused time travel mode when Apply is clicked in range trimmer', async () => {
+    const onFetchTickRange = vi.fn();
+    const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
+    const studioControls = makeMinimalStudioControls({ tickBounds, onFetchTickRange });
+
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(500, 10), makeTick(501, 10)]}
+        isolateStyles={false}
+        studioControls={studioControls}
+      />,
+    );
+
+    fireEvent.click(container.querySelector('.bt-timeline__window-btn') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('.bt-range-trimmer__btn--apply') as HTMLButtonElement);
+
+    await waitFor(() => {
+      expect(container.querySelector('.bt-timeline__mode-badge--paused')).toBeTruthy();
+    });
+  });
+
+  it('slides trimmer selection region when dragged', () => {
+    const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
+    const studioControls = makeMinimalStudioControls({ tickBounds });
+
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(500, 10), makeTick(501, 10)]}
+        isolateStyles={false}
+        studioControls={studioControls}
+      />,
+    );
+
+    fireEvent.click(container.querySelector('.bt-timeline__window-btn') as HTMLButtonElement);
+
+    const selection = container.querySelector('.bt-range-trimmer__selection') as HTMLDivElement;
+    const track = container.querySelector('.bt-range-trimmer__track') as HTMLDivElement;
+    expect(selection).toBeTruthy();
+    expect(track).toBeTruthy();
+
+    // jsdom lacks setPointerCapture
+    selection.setPointerCapture = vi.fn();
+
+    Object.defineProperty(track, 'getBoundingClientRect', {
+      value: () => ({ left: 0, width: 1000, top: 0, bottom: 0, right: 1000, height: 20 }),
+    });
+
+    const initialLeft = selection.style.left;
+
+    // Drag from center-left to center-right
+    fireEvent.pointerDown(selection, { pointerId: 1, clientX: 100, button: 0 });
+    fireEvent.pointerMove(window, { pointerId: 1, clientX: 300 });
+    fireEvent.pointerUp(window, { pointerId: 1 });
+
+    expect(selection.style.left).not.toBe(initialLeft);
   });
 });

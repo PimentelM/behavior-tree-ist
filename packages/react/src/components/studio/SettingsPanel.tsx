@@ -76,13 +76,6 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
             helpText="Number of ticks kept in memory for live streaming"
           />
           <NumberField
-            label="Window Size"
-            value={uiSettings.windowSize}
-            onChange={(v) => onUiSettingsChange({ windowSize: v })}
-            min={100}
-            helpText="Target ticks to keep loaded for time travel (1000–10000)"
-          />
-          <NumberField
             label="Fetch Batch Size"
             value={uiSettings.fetchBatchSize}
             onChange={(v) => onUiSettingsChange({ fetchBatchSize: v })}

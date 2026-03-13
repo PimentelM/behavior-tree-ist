@@ -220,7 +220,6 @@ export interface StudioUiSettings {
   ringBufferSize: number;
   pollRateMs: number;
   showTreeSelectorInToolbar: boolean;
-  windowSize: number;
   fetchBatchSize: number;
 }
 
@@ -258,6 +257,7 @@ export interface StudioControls {
   tickBounds: StudioTickBounds | null;
   onFetchTicksAround?: (tickId: number) => void;
   onFetchTickRange?: (from: number, to: number) => void;
+  onResumeStreaming?: () => void;
   isLoadingWindow: boolean;
 
   loadingClients?: boolean;
