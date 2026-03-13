@@ -52,6 +52,7 @@ export function useTickPoller(
     const afterTickIdRef = useRef(0);
     const selectionRef = useRef(selection);
     const fetchingRef = useRef(false);
+    const seekGenRef = useRef(0);
     const ringBufferSizeRef = useRef(ringBufferSize);
     ringBufferSizeRef.current = ringBufferSize;
 
@@ -70,6 +71,7 @@ export function useTickPoller(
         if (!sel || fetchingRef.current) return;
 
         fetchingRef.current = true;
+        const seekGen = seekGenRef.current;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (trpc.ticks.query.query as any)({
@@ -81,6 +83,7 @@ export function useTickPoller(
         }).then((newTicks: TickRecord[]) => {
             fetchingRef.current = false;
             if (selectionRef.current !== sel) return;
+            if (seekGenRef.current !== seekGen) return;
             if (newTicks.length === 0) return;
 
             const newLastId = newTicks[newTicks.length - 1].tickId;
@@ -93,6 +96,7 @@ export function useTickPoller(
                 return combined.length > cap ? combined.slice(combined.length - cap) : combined;
             });
         }).catch((err: unknown) => {
+            if (seekGenRef.current !== seekGen) return;
             fetchingRef.current = false;
             setError(err);
             console.error('[use-tick-poller] forward fetch error', err);
@@ -140,7 +144,9 @@ export function useTickPoller(
 
     const seekToRange = useCallback((fromTickId: number, toTickId: number) => {
         const sel = selectionRef.current;
-        if (!sel || fetchingRef.current) return;
+        if (!sel) return;
+
+        seekGenRef.current += 1;
 
         fetchingRef.current = true;
         setIsLoading(true);
