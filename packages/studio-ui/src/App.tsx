@@ -40,7 +40,7 @@ function App() {
                     ticks={ticks}
                     isolateStyles={true}
                     inspectorOptions={{
-                        maxTicks: studioControls.uiSettings.ringBufferSize,
+                        maxTicks: studioControls.windowMaxTicks ?? studioControls.uiSettings.ringBufferSize,
                     }}
                     studioControls={studioControls}
                     panels={isEmpty ? emptyPanels : undefined}
