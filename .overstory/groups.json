@@ -83,8 +83,30 @@
 			"behavior-tree-ist-f09c",
 			"behavior-tree-ist-d658"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-13T04:07:42.300Z",
+		"completedAt": "2026-03-13T04:49:59.385Z"
+	},
+	{
+		"id": "group-1d58035f",
+		"name": "tt-cleanup",
+		"memberIssueIds": [
+			"behavior-tree-ist-41d7"
+		],
+		"status": "active",
+		"createdAt": "2026-03-13T04:53:34.611Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-2b2c0c6b",
+		"name": "studio-fixes-batch",
+		"memberIssueIds": [
+			"behavior-tree-ist-41d7",
+			"behavior-tree-ist-2832",
+			"behavior-tree-ist-13e1"
+		],
+		"status": "active",
+		"createdAt": "2026-03-13T22:42:11.919Z",
 		"completedAt": null
 	}
 ]
