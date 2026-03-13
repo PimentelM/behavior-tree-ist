@@ -46,6 +46,14 @@ export function useInspector(
     const newTicks = ticks.filter((t) => !ingested.has(t.tickId));
     if (newTicks.length === 0) return;
 
+    // Detect window replacement (seek): previously ingested ticks but none appear in the
+    // new ticks array → the window was fully replaced, clear the inspector first.
+    if (ingested.size > 0 && ticks.every((t) => !ingested.has(t.tickId))) {
+      inspector.clearTicks();
+      ingestedTickIdsRef.current = new Set();
+    }
+
+    const currentIngested = ingestedTickIdsRef.current;
     const newestStored = inspector.getStats().newestTickId;
     const cutoff = newestStored ?? -Infinity;
 
@@ -62,7 +70,7 @@ export function useInspector(
       insertTicksBefore?.call(inspector, backwardTicks);
     }
 
-    for (const t of newTicks) ingested.add(t.tickId);
+    for (const t of newTicks) currentIngested.add(t.tickId);
     setTickGeneration((g) => g + 1);
   }, [ticks, inspector]);
 
