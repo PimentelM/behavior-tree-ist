@@ -109,6 +109,10 @@ export function useStudioControls(): UseStudioControlsResult {
         pollerResult.seekToRange(Math.max(0, tickId - half), tickId + half);
     }, [pollerResult.seekToRange, uiSettings.fetchBatchSize]);
 
+    const onFetchTickRange = useCallback((from: number, to: number) => {
+        pollerResult.seekToRange(from, to);
+    }, [pollerResult.seekToRange]);
+
     // Selection persistence
     const onSelectionChange = useCallback((sel: StudioSelection | null) => {
         setSelectionRaw(sel);
@@ -152,6 +156,7 @@ export function useStudioControls(): UseStudioControlsResult {
         onUiSettingsChange,
         tickBounds,
         onFetchTicksAround,
+        onFetchTickRange,
         isLoadingWindow,
         loadingClients,
         loadingSessions,
@@ -161,7 +166,7 @@ export function useStudioControls(): UseStudioControlsResult {
         expandedClientId, expandedSessionId,
         treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace,
         isSelectedOnline, serverSettings, uiSettings, onServerSettingsChange, onUiSettingsChange,
-        tickBounds, onFetchTicksAround, isLoadingWindow,
+        tickBounds, onFetchTicksAround, onFetchTickRange, isLoadingWindow,
         loadingClients, loadingSessions, loadingTrees,
     ]);
 

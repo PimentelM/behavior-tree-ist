@@ -2,6 +2,7 @@ import { memo, useCallback, useState } from 'react';
 import type { CpuTimelineEntry } from '@bt-studio/core/inspector';
 import type { TimeTravelControls } from '../../types';
 import { CpuSparkline } from './CpuSparkline';
+import { WindowRangeTrimmer } from './WindowRangeTrimmer';
 
 function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
   if (now === null) return null;
@@ -20,7 +21,7 @@ interface TimelinePanelProps {
   cpuTimeline: CpuTimelineEntry[];
   displayTimeAsTimestamp: boolean;
   onTickChange?: (tickId: number) => void;
-  onSelectWindow?: (tickId: number) => void;
+  onSelectRange?: (from: number, to: number) => void;
 }
 
 function TimelinePanelInner({
@@ -28,7 +29,7 @@ function TimelinePanelInner({
   cpuTimeline,
   displayTimeAsTimestamp,
   onTickChange,
-  onSelectWindow,
+  onSelectRange,
 }: TimelinePanelProps) {
   const {
     mode,
@@ -52,14 +53,8 @@ function TimelinePanelInner({
   const scrubberMax = newestTickId;
   const hasScrubberRange = scrubberMin !== undefined && scrubberMax !== undefined;
 
-  // Window selector: span full server bounds, default to center of loaded window
-  const [windowSliderValue, setWindowSliderValue] = useState<number | null>(null);
-  const windowSliderDefault =
-    oldestTickId !== undefined && newestTickId !== undefined
-      ? Math.round((oldestTickId + newestTickId) / 2)
-      : serverBounds?.minTickId ?? 0;
-  const effectiveWindowValue = windowSliderValue ?? windowSliderDefault;
-  const showWindowSelector = serverBounds !== null && onSelectWindow !== undefined;
+  const [trimmerOpen, setTrimmerOpen] = useState(false);
+  const showWindowSelector = serverBounds !== null && onSelectRange !== undefined;
 
   const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
 
@@ -87,19 +82,13 @@ function TimelinePanelInner({
     }
   }, [jumpToLive, newestTickId, onTickChange]);
 
-  const handleWindowSliderChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setWindowSliderValue(parseInt(e.target.value, 10));
+  const handleTrimmerApply = useCallback(
+    (from: number, to: number) => {
+      onSelectRange?.(from, to);
+      setTrimmerOpen(false);
     },
-    [],
+    [onSelectRange],
   );
-
-  const handleWindowSliderCommit = useCallback(() => {
-    if (windowSliderValue !== null) {
-      onSelectWindow?.(windowSliderValue);
-      setWindowSliderValue(null);
-    }
-  }, [windowSliderValue, onSelectWindow]);
 
   const serverTotal = serverBounds?.totalCount;
   const showWindowInfo = serverBounds !== null && serverTotal !== undefined;
@@ -180,20 +169,27 @@ function TimelinePanelInner({
         )}
         {showWindowSelector && (
           <div className="bt-timeline__window-selector">
-            <span className="bt-timeline__window-label">Window</span>
-            <input
-              type="range"
-              className="bt-timeline__window-range"
-              min={serverBounds!.minTickId}
-              max={serverBounds!.maxTickId}
-              value={effectiveWindowValue}
-              onChange={handleWindowSliderChange}
-              onPointerUp={handleWindowSliderCommit}
+            <button
+              type="button"
+              className="bt-timeline__window-btn"
+              onClick={() => setTrimmerOpen((v) => !v)}
               disabled={isLoading}
-              step={1}
-              title={`Jump window to tick #${effectiveWindowValue}`}
-              aria-label="Select window position"
-            />
+              title="Select tick window range"
+            >
+              Window
+            </button>
+            {trimmerOpen && (
+              <WindowRangeTrimmer
+                minTickId={serverBounds!.minTickId}
+                maxTickId={serverBounds!.maxTickId}
+                totalCount={serverBounds!.totalCount}
+                defaultFrom={oldestTickId}
+                defaultTo={newestTickId}
+                isLoading={isLoading}
+                onApply={handleTrimmerApply}
+                onClose={() => setTrimmerOpen(false)}
+              />
+            )}
           </div>
         )}
       </div>

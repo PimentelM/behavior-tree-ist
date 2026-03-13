@@ -448,10 +448,10 @@ describe('BehaviourTreeDebugger windowed time travel', () => {
     expect(onFetchTicksAround).not.toHaveBeenCalled();
   });
 
-  it('calls onFetchTicksAround when user moves window selector slider', async () => {
-    const onFetchTicksAround = vi.fn();
+  it('opens range trimmer popup and calls onFetchTickRange when Apply is clicked', async () => {
+    const onFetchTickRange = vi.fn();
     const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
-    const studioControls = makeMinimalStudioControls({ tickBounds, onFetchTicksAround });
+    const studioControls = makeMinimalStudioControls({ tickBounds, onFetchTickRange });
 
     const { container } = render(
       <BehaviourTreeDebugger
@@ -462,14 +462,18 @@ describe('BehaviourTreeDebugger windowed time travel', () => {
       />,
     );
 
-    const windowRange = container.querySelector('.bt-timeline__window-range') as HTMLInputElement;
-    expect(windowRange).toBeTruthy();
+    const windowBtn = container.querySelector('.bt-timeline__window-btn') as HTMLButtonElement;
+    expect(windowBtn).toBeTruthy();
 
-    fireEvent.change(windowRange, { target: { value: '200' } });
-    fireEvent.pointerUp(windowRange);
+    fireEvent.click(windowBtn);
+
+    const applyBtn = container.querySelector('.bt-range-trimmer__btn--apply') as HTMLButtonElement;
+    expect(applyBtn).toBeTruthy();
+
+    fireEvent.click(applyBtn);
 
     await waitFor(() => {
-      expect(onFetchTicksAround).toHaveBeenCalledWith(200);
+      expect(onFetchTickRange).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
     });
   });
 });

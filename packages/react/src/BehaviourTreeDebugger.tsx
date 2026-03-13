@@ -215,6 +215,10 @@ export function BehaviourTreeDebugger({
     studioControls?.onFetchTicksAround?.(tickId);
   }, [studioControls]);
 
+  const handleSelectRange = useCallback((from: number, to: number) => {
+    studioControls?.onFetchTickRange?.(from, to);
+  }, [studioControls]);
+
   const timeTravelControls = useTimeTravelControls(pausedInspector ?? inspector, tickGeneration, {
     onNeedTick: studioControls ? handleNeedTick : undefined,
     serverBounds: studioControls?.tickBounds ?? null,
@@ -943,7 +947,7 @@ export function BehaviourTreeDebugger({
               cpuTimeline={cpuTimeline}
               displayTimeAsTimestamp={displayTimeAsTimestamp}
               onTickChange={onTickChange}
-              onSelectWindow={studioControls ? handleNeedTick : undefined}
+              onSelectRange={studioControls ? handleSelectRange : undefined}
             />
           ) : null
         }

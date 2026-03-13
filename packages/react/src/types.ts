@@ -257,6 +257,7 @@ export interface StudioControls {
 
   tickBounds: StudioTickBounds | null;
   onFetchTicksAround?: (tickId: number) => void;
+  onFetchTickRange?: (from: number, to: number) => void;
   isLoadingWindow: boolean;
 
   loadingClients?: boolean;
