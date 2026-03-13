@@ -67,6 +67,7 @@ export function useStudioControls(): UseStudioControlsResult {
 
     const streaming = treeStatuses?.streaming ?? false;
     const [manualWindowActive, setManualWindowActive] = useState(false);
+    const [windowMaxTicks, setWindowMaxTicks] = useState<number | null>(null);
     const pollerMode: TickPollerMode = (streaming && !manualWindowActive) ? 'streaming' : 'windowed';
     const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.ringBufferSize, pollerMode);
 
@@ -112,11 +113,13 @@ export function useStudioControls(): UseStudioControlsResult {
 
     const onFetchTickRange = useCallback((from: number, to: number) => {
         setManualWindowActive(true);
+        setWindowMaxTicks(to - from + 1);
         pollerResult.seekToRange(from, to);
     }, [pollerResult.seekToRange]);
 
     const onResumeStreaming = useCallback(() => {
         setManualWindowActive(false);
+        setWindowMaxTicks(null);
     }, []);
 
     // Selection persistence
@@ -165,6 +168,7 @@ export function useStudioControls(): UseStudioControlsResult {
         onFetchTickRange,
         onResumeStreaming,
         isLoadingWindow,
+        windowMaxTicks,
         loadingClients,
         loadingSessions,
         loadingTrees,
@@ -174,7 +178,7 @@ export function useStudioControls(): UseStudioControlsResult {
         treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace,
         isSelectedOnline, serverSettings, uiSettings, onServerSettingsChange, onUiSettingsChange,
         tickBounds, onFetchTicksAround, onFetchTickRange, onResumeStreaming, isLoadingWindow,
-        loadingClients, loadingSessions, loadingTrees,
+        windowMaxTicks, loadingClients, loadingSessions, loadingTrees,
     ]);
 
     return { studioControls, tree, ticks };

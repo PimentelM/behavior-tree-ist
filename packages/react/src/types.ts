@@ -259,6 +259,7 @@ export interface StudioControls {
   onFetchTickRange?: (from: number, to: number) => void;
   onResumeStreaming?: () => void;
   isLoadingWindow: boolean;
+  windowMaxTicks: number | null;
 
   loadingClients?: boolean;
   loadingSessions?: boolean;
