@@ -85,7 +85,7 @@ function TimelinePanelInner({
   const handleTrimmerApply = useCallback(
     (from: number, to: number) => {
       onSelectRange?.(from, to);
-      controls.goToTick(from);
+      controls.navigateToTick(from);
       setTrimmerOpen(false);
     },
     [onSelectRange, controls],

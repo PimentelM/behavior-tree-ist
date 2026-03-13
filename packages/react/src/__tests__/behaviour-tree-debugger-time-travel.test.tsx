@@ -498,6 +498,68 @@ describe('BehaviourTreeDebugger windowed time travel', () => {
     });
   });
 
+  it('does not trigger onFetchTicksAround after range selection via trimmer (no double-fetch)', async () => {
+    const onFetchTicksAround = vi.fn();
+    const onFetchTickRange = vi.fn();
+    const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
+    const studioControls = makeMinimalStudioControls({ tickBounds, onFetchTicksAround, onFetchTickRange });
+
+    const { container } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(500, 10), makeTick(501, 10)]}
+        isolateStyles={false}
+        studioControls={studioControls}
+      />,
+    );
+
+    fireEvent.click(container.querySelector('.bt-timeline__window-btn') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('.bt-range-trimmer__btn--apply') as HTMLButtonElement);
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onFetchTicksAround).not.toHaveBeenCalled();
+    expect(onFetchTickRange).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to first tick of new window after loading completes', async () => {
+    const onFetchTickRange = vi.fn();
+    const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
+
+    const { container, rerender } = render(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(500, 10), makeTick(501, 10)]}
+        isolateStyles={false}
+        studioControls={makeMinimalStudioControls({ tickBounds, onFetchTickRange, isLoadingWindow: false })}
+      />,
+    );
+
+    fireEvent.click(container.querySelector('.bt-timeline__window-btn') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('.bt-range-trimmer__btn--apply') as HTMLButtonElement);
+
+    rerender(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(500, 10), makeTick(501, 10)]}
+        isolateStyles={false}
+        studioControls={makeMinimalStudioControls({ tickBounds, onFetchTickRange, isLoadingWindow: true })}
+      />,
+    );
+
+    rerender(
+      <BehaviourTreeDebugger
+        tree={makeTree()}
+        ticks={[makeTick(100, 10), makeTick(200, 10)]}
+        isolateStyles={false}
+        studioControls={makeMinimalStudioControls({ tickBounds, onFetchTickRange, isLoadingWindow: false })}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector('.bt-timeline__info')?.textContent).toMatch(/Tick #100/);
+    });
+  });
+
   it('slides trimmer selection region when dragged', () => {
     const tickBounds: StudioTickBounds = { minTickId: 1, maxTickId: 1000, totalCount: 1000 };
     const studioControls = makeMinimalStudioControls({ tickBounds });

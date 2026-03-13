@@ -143,6 +143,7 @@ export interface TimeTravelState {
 
 export interface TimeTravelControls extends TimeTravelState {
   goToTick: (tickId: number) => void;
+  navigateToTick: (tickId: number) => void;
   stepForward: () => void;
   stepBack: () => void;
   jumpToLive: () => void;
