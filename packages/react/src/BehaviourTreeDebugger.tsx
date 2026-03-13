@@ -247,6 +247,21 @@ export function BehaviourTreeDebugger({
     setPausedInspector(frozen);
   }, [timeTravelControls.mode, pausedInspector, inspector]);
 
+  // When a window fetch (seekToRange) completes while paused, the live inspector has been
+  // cleared and re-ingested with the new range. Refresh pausedInspector so the scrubber
+  // and time-travel controls reflect the new window.
+  // useInspector's effects run before this one (hook called earlier in the component),
+  // so inspector already holds the new ticks by the time this effect runs.
+  useEffect(() => {
+    const isLoading = studioControls?.isLoadingWindow ?? false;
+    const wasLoading = prevIsLoadingWindowRef.current;
+    prevIsLoadingWindowRef.current = isLoading;
+
+    if (!isLoading && wasLoading && timeTravelControls.mode === 'paused') {
+      setPausedInspector(inspector.cloneForTimeTravel({ exactPercentiles: true }));
+    }
+  }, [studioControls?.isLoadingWindow, timeTravelControls.mode, inspector, tickGeneration]);
+
   const activeInspector = pausedInspector ?? inspector;
   const percentilesApproximate = timeTravelControls.mode === 'live';
 
@@ -698,6 +713,7 @@ export function BehaviourTreeDebugger({
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
   const showPerformance = panels.performance !== false;
+  const prevIsLoadingWindowRef = useRef(studioControls?.isLoadingWindow ?? false);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
   const [shadowStyles, setShadowStyles] = useState('');
