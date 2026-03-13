@@ -66,8 +66,9 @@ export function useStudioControls(): UseStudioControlsResult {
     const { treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace } = useTreeStatuses(selection, isSelectedOnline);
 
     const streaming = treeStatuses?.streaming ?? false;
-    const pollerMode: TickPollerMode = streaming ? 'streaming' : 'windowed';
-    const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.windowSize, pollerMode);
+    const [manualWindowActive, setManualWindowActive] = useState(false);
+    const pollerMode: TickPollerMode = (streaming && !manualWindowActive) ? 'streaming' : 'windowed';
+    const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.ringBufferSize, pollerMode);
 
     // --- Tick bounds (server-side total history) ---
     const [tickBounds, setTickBounds] = useState<StudioTickBounds | null>(null);
@@ -110,8 +111,13 @@ export function useStudioControls(): UseStudioControlsResult {
     }, [pollerResult.seekToRange, uiSettings.fetchBatchSize]);
 
     const onFetchTickRange = useCallback((from: number, to: number) => {
+        setManualWindowActive(true);
         pollerResult.seekToRange(from, to);
     }, [pollerResult.seekToRange]);
+
+    const onResumeStreaming = useCallback(() => {
+        setManualWindowActive(false);
+    }, []);
 
     // Selection persistence
     const onSelectionChange = useCallback((sel: StudioSelection | null) => {
@@ -157,6 +163,7 @@ export function useStudioControls(): UseStudioControlsResult {
         tickBounds,
         onFetchTicksAround,
         onFetchTickRange,
+        onResumeStreaming,
         isLoadingWindow,
         loadingClients,
         loadingSessions,
@@ -166,7 +173,7 @@ export function useStudioControls(): UseStudioControlsResult {
         expandedClientId, expandedSessionId,
         treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace,
         isSelectedOnline, serverSettings, uiSettings, onServerSettingsChange, onUiSettingsChange,
-        tickBounds, onFetchTicksAround, onFetchTickRange, isLoadingWindow,
+        tickBounds, onFetchTicksAround, onFetchTickRange, onResumeStreaming, isLoadingWindow,
         loadingClients, loadingSessions, loadingTrees,
     ]);
 

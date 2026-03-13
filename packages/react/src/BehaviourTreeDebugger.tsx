@@ -215,17 +215,25 @@ export function BehaviourTreeDebugger({
     studioControls?.onFetchTicksAround?.(tickId);
   }, [studioControls]);
 
-  const handleSelectRange = useCallback((from: number, to: number) => {
-    studioControls?.onFetchTickRange?.(from, to);
-  }, [studioControls]);
-
   const timeTravelControls = useTimeTravelControls(pausedInspector ?? inspector, tickGeneration, {
     onNeedTick: studioControls ? handleNeedTick : undefined,
     serverBounds: studioControls?.tickBounds ?? null,
     isLoading: studioControls?.isLoadingWindow ?? false,
   });
   const { viewedTickId } = timeTravelControls;
+
+  const handleSelectRange = useCallback((from: number, to: number) => {
+    studioControls?.onFetchTickRange?.(from, to);
+  }, [studioControls]);
   const displayTimeAsTimestamp = timeFormatOverride ?? (timeTravelControls.nowIsTimestamp ?? false);
+
+  const prevModeRef = useRef(timeTravelControls.mode);
+  useEffect(() => {
+    if (prevModeRef.current === 'paused' && timeTravelControls.mode === 'live') {
+      studioControls?.onResumeStreaming?.();
+    }
+    prevModeRef.current = timeTravelControls.mode;
+  }, [timeTravelControls.mode, studioControls]);
 
   useEffect(() => {
     if (timeTravelControls.mode === 'live') {

@@ -1305,7 +1305,11 @@
   background: color-mix(in srgb, var(--bt-accent-color) 28%, transparent);
   border-top: 2px solid var(--bt-accent-color);
   border-bottom: 2px solid var(--bt-accent-color);
-  pointer-events: none;
+  cursor: grab;
+}
+
+.bt-range-trimmer__selection:active {
+  cursor: grabbing;
 }
 
 .bt-range-trimmer__handle {

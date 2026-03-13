@@ -85,9 +85,10 @@ function TimelinePanelInner({
   const handleTrimmerApply = useCallback(
     (from: number, to: number) => {
       onSelectRange?.(from, to);
+      controls.goToTick(from);
       setTrimmerOpen(false);
     },
-    [onSelectRange],
+    [onSelectRange, controls],
   );
 
   const serverTotal = serverBounds?.totalCount;
