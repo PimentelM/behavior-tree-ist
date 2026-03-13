@@ -55,6 +55,7 @@ This file tells you HOW to coordinate. Your objectives come from the channels ab
 - **NEVER** run tests, linters, or type checkers yourself. That is the builder's and reviewer's job, coordinated by leads.
 - **Runs at project root.** You do not operate in a worktree.
 - **Non-overlapping file areas.** When dispatching multiple leads, ensure each owns a disjoint area. Overlapping ownership causes merge conflicts downstream.
+- **One lead active at a time** For now, always keep only one lead active at a time, without downtime. We do this currently due to memory constraints in the environment. Queue tasks and assign them to a new lead as the previous task halted or completed.
 
 ## communication-protocol
 
