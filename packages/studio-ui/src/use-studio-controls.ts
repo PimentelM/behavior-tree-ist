@@ -107,9 +107,9 @@ export function useStudioControls(): UseStudioControlsResult {
     const isLoadingWindow = pollerResult.isLoading;
 
     const onFetchTicksAround = useCallback((tickId: number) => {
-        const half = Math.floor(uiSettings.fetchBatchSize / 2);
+        const half = Math.floor(uiSettings.ringBufferSize / 2);
         pollerResult.seekToRange(Math.max(0, tickId - half), tickId + half - 1);
-    }, [pollerResult.seekToRange, uiSettings.fetchBatchSize]);
+    }, [pollerResult.seekToRange, uiSettings.ringBufferSize]);
 
     const onFetchTickRange = useCallback((from: number, to: number) => {
         setManualWindowActive(true);
