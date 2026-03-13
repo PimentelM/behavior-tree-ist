@@ -220,7 +220,6 @@ export interface StudioUiSettings {
   ringBufferSize: number;
   pollRateMs: number;
   showTreeSelectorInToolbar: boolean;
-  fetchBatchSize: number;
 }
 
 export interface StudioTickBounds {

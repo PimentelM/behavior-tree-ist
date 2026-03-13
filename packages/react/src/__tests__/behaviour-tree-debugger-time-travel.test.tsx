@@ -376,13 +376,13 @@ function makeMinimalStudioControls(overrides: Partial<StudioControls> = {}): Stu
       ringBufferSize: 500,
       pollRateMs: 200,
       showTreeSelectorInToolbar: false,
-      fetchBatchSize: 1000,
     },
     onServerSettingsChange: vi.fn(),
     onUiSettingsChange: vi.fn(),
     tickBounds: null,
     onFetchTicksAround: vi.fn(),
     isLoadingWindow: false,
+    windowMaxTicks: null,
     ...overrides,
   };
 }

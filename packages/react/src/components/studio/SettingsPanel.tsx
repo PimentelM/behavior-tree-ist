@@ -76,13 +76,6 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
             helpText="Number of ticks kept in memory for live streaming"
           />
           <NumberField
-            label="Fetch Batch Size"
-            value={uiSettings.fetchBatchSize}
-            onChange={(v) => onUiSettingsChange({ fetchBatchSize: v })}
-            min={100}
-            helpText="How many ticks to fetch per windowed request"
-          />
-          <NumberField
             label="Poll Rate (ms)"
             value={uiSettings.pollRateMs}
             onChange={(v) => onUiSettingsChange({ pollRateMs: v })}
