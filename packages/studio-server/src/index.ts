@@ -73,7 +73,7 @@ function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
             path: options?.sqlitePath ?? ':memory:',
         },
         commandTimeoutMs: options?.commandTimeoutMs ?? 5000,
-        maxTicksPerTree: options?.maxTicksPerTree ?? 1000,
+        maxTicksPerTree: options?.maxTicksPerTree ?? 100_000,
         logLevel: 'info',
         migrations: {
             runOnStartup: options?.runMigrationsOnStartup ?? true,
