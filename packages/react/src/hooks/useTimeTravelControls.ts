@@ -57,11 +57,17 @@ export function useTimeTravelControls(
   const goToTick = useCallback((tickId: number) => {
     setMode('paused');
     setFrozenTickId(tickId);
-    // If tick not in loaded window, request a fetch from the parent
-    if (!storedIds.includes(tickId)) {
+    // If tick not in loaded window, request a fetch — but not while a window seek is in-flight
+    if (!isLoading && !storedIds.includes(tickId)) {
       onNeedTick?.(tickId);
     }
-  }, [storedIds, onNeedTick]);
+  }, [storedIds, onNeedTick, isLoading]);
+
+  // Navigate to tick without triggering a fetch — use after a window load completes
+  const navigateToTick = useCallback((tickId: number) => {
+    setMode('paused');
+    setFrozenTickId(tickId);
+  }, []);
 
   const stepForward = useCallback(() => {
     if (storedIds.length === 0) return;
@@ -124,6 +130,7 @@ export function useTimeTravelControls(
     serverBounds,
     isLoading,
     goToTick,
+    navigateToTick,
     stepForward,
     stepBack,
     jumpToLive,

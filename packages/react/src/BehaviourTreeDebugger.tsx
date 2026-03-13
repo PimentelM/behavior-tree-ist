@@ -220,7 +220,7 @@ export function BehaviourTreeDebugger({
     serverBounds: studioControls?.tickBounds ?? null,
     isLoading: studioControls?.isLoadingWindow ?? false,
   });
-  const { viewedTickId } = timeTravelControls;
+  const { viewedTickId, navigateToTick } = timeTravelControls;
 
   const handleSelectRange = useCallback((from: number, to: number) => {
     studioControls?.onFetchTickRange?.(from, to);
@@ -259,8 +259,13 @@ export function BehaviourTreeDebugger({
 
     if (!isLoading && wasLoading && timeTravelControls.mode === 'paused') {
       setPausedInspector(inspector.cloneForTimeTravel({ exactPercentiles: true }));
+      // Auto-navigate to first tick of the new window; navigateToTick skips onNeedTick
+      const oldest = inspector.getStats().oldestTickId;
+      if (oldest !== undefined) {
+        navigateToTick(oldest);
+      }
     }
-  }, [studioControls?.isLoadingWindow, timeTravelControls.mode, inspector, tickGeneration]);
+  }, [studioControls?.isLoadingWindow, timeTravelControls.mode, inspector, tickGeneration, navigateToTick]);
 
   const activeInspector = pausedInspector ?? inspector;
   const percentilesApproximate = timeTravelControls.mode === 'live';
