@@ -178,13 +178,71 @@ export function useTickPoller(
         });
     }, []);
 
-    // Streaming: auto-poll forward
+    // Streaming: seed from latest ticks then auto-poll forward
     useEffect(() => {
         if (!selection || mode !== 'streaming') return;
 
-        const id = setInterval(fetchForward, pollRateMs);
-        fetchForward();
-        return () => clearInterval(id);
+        let cancelled = false;
+        let intervalId: ReturnType<typeof setInterval> | null = null;
+        const sel = selectionRef.current;
+        if (!sel) return;
+
+        setIsLoading(true);
+
+        void (async () => {
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const bounds = await (trpc.ticks.bounds.query as any)({
+                    clientId: sel.clientId,
+                    sessionId: sel.sessionId,
+                    treeId: sel.treeId,
+                });
+
+                if (cancelled || selectionRef.current !== sel) return;
+
+                if (bounds?.maxTickId > 0) {
+                    const maxTickId: number = bounds.maxTickId;
+                    const cap = ringBufferSizeRef.current;
+                    const fromTickId = Math.max(0, maxTickId - cap + 1);
+
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const seedTicks: TickRecord[] = await ((trpc.ticks as any).range.query as any)({
+                        clientId: sel.clientId,
+                        sessionId: sel.sessionId,
+                        treeId: sel.treeId,
+                        fromTickId,
+                        toTickId: maxTickId,
+                        limit: cap,
+                    });
+
+                    if (cancelled || selectionRef.current !== sel) return;
+
+                    const sorted = [...seedTicks].sort((a, b) => a.tickId - b.tickId);
+                    afterTickIdRef.current = maxTickId;
+                    setTicks(sorted);
+                }
+            } catch (err) {
+                if (!cancelled && selectionRef.current === sel) {
+                    setError(err);
+                    console.error('[use-tick-poller] seed error', err);
+                }
+            } finally {
+                if (!cancelled && selectionRef.current === sel) {
+                    setIsLoading(false);
+                }
+            }
+
+            if (!cancelled && selectionRef.current === sel) {
+                intervalId = setInterval(fetchForward, pollRateMs);
+                fetchForward();
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+            setIsLoading(false);
+            if (intervalId !== null) clearInterval(intervalId);
+        };
     }, [selection?.clientId, selection?.sessionId, selection?.treeId, mode, pollRateMs, fetchForward]);
 
     return { ticks, latestBackwardTicks, isLoading, error, fetchBefore, seekToRange };
