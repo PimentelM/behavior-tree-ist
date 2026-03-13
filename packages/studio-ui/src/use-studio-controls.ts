@@ -108,7 +108,7 @@ export function useStudioControls(): UseStudioControlsResult {
 
     const onFetchTicksAround = useCallback((tickId: number) => {
         const half = Math.floor(uiSettings.fetchBatchSize / 2);
-        pollerResult.seekToRange(Math.max(0, tickId - half), tickId + half);
+        pollerResult.seekToRange(Math.max(0, tickId - half), tickId + half - 1);
     }, [pollerResult.seekToRange, uiSettings.fetchBatchSize]);
 
     const onFetchTickRange = useCallback((from: number, to: number) => {

@@ -108,7 +108,7 @@ export function WindowRangeTrimmer({
 
   const fromTick = fracToTick(fromFrac, minTickId, maxTickId);
   const toTick = fracToTick(toFrac, minTickId, maxTickId);
-  const rangeCount = toTick - fromTick;
+  const rangeCount = toTick - fromTick + 1;
   const rangePct = totalSpan > 0 ? ((rangeCount / totalSpan) * 100).toFixed(1) : '0.0';
 
   const handleApply = useCallback(() => {
