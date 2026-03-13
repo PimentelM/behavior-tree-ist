@@ -65,5 +65,15 @@
 		"status": "completed",
 		"createdAt": "2026-03-11T04:33:53.965Z",
 		"completedAt": "2026-03-11T06:57:39.222Z"
+	},
+	{
+		"id": "group-fe700797",
+		"name": "fix-seek-race",
+		"memberIssueIds": [
+			"behavior-tree-ist-4ddf"
+		],
+		"status": "active",
+		"createdAt": "2026-03-13T03:42:49.584Z",
+		"completedAt": null
 	}
 ]
