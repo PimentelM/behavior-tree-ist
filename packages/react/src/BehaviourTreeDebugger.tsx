@@ -943,6 +943,7 @@ export function BehaviourTreeDebugger({
               cpuTimeline={cpuTimeline}
               displayTimeAsTimestamp={displayTimeAsTimestamp}
               onTickChange={onTickChange}
+              onSelectWindow={studioControls ? handleNeedTick : undefined}
             />
           ) : null
         }

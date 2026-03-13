@@ -70,11 +70,9 @@ export function useTimeTravelControls(
     if (idx < storedIds.length - 1) {
       setMode('paused');
       setFrozenTickId(storedIds[idx + 1]);
-    } else if (serverBounds && currentId < serverBounds.maxTickId) {
-      // At edge of loaded window but more on server — request fetch
-      onNeedTick?.(currentId + 1);
     }
-  }, [storedIds, viewedTickId, serverBounds, onNeedTick]);
+    // At edge of loaded window — user must use window selector to load more
+  }, [storedIds, viewedTickId]);
 
   const stepBack = useCallback(() => {
     if (storedIds.length === 0) return;
@@ -83,11 +81,9 @@ export function useTimeTravelControls(
     if (idx > 0) {
       setMode('paused');
       setFrozenTickId(storedIds[idx - 1]);
-    } else if (serverBounds && currentId > serverBounds.minTickId) {
-      // At edge of loaded window but more history on server — request fetch
-      onNeedTick?.(currentId - 1);
     }
-  }, [storedIds, viewedTickId, serverBounds, onNeedTick]);
+    // At edge of loaded window — user must use window selector to load more
+  }, [storedIds, viewedTickId]);
 
   const jumpToLive = useCallback(() => {
     setMode('live');

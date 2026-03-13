@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { CpuTimelineEntry } from '@bt-studio/core/inspector';
 import type { TimeTravelControls } from '../../types';
 import { CpuSparkline } from './CpuSparkline';
@@ -20,6 +20,7 @@ interface TimelinePanelProps {
   cpuTimeline: CpuTimelineEntry[];
   displayTimeAsTimestamp: boolean;
   onTickChange?: (tickId: number) => void;
+  onSelectWindow?: (tickId: number) => void;
 }
 
 function TimelinePanelInner({
@@ -27,6 +28,7 @@ function TimelinePanelInner({
   cpuTimeline,
   displayTimeAsTimestamp,
   onTickChange,
+  onSelectWindow,
 }: TimelinePanelProps) {
   const {
     mode,
@@ -45,14 +47,19 @@ function TimelinePanelInner({
 
   const hasTicks = oldestTickId !== undefined && newestTickId !== undefined;
 
-  // Use server bounds for scrubber range when they extend beyond loaded window
-  const scrubberMin = serverBounds
-    ? Math.min(serverBounds.minTickId, oldestTickId ?? serverBounds.minTickId)
-    : oldestTickId;
-  const scrubberMax = serverBounds
-    ? Math.max(serverBounds.maxTickId, newestTickId ?? serverBounds.maxTickId)
-    : newestTickId;
+  // Scrubber spans the loaded window only; window selector spans full server bounds
+  const scrubberMin = oldestTickId;
+  const scrubberMax = newestTickId;
   const hasScrubberRange = scrubberMin !== undefined && scrubberMax !== undefined;
+
+  // Window selector: span full server bounds, default to center of loaded window
+  const [windowSliderValue, setWindowSliderValue] = useState<number | null>(null);
+  const windowSliderDefault =
+    oldestTickId !== undefined && newestTickId !== undefined
+      ? Math.round((oldestTickId + newestTickId) / 2)
+      : serverBounds?.minTickId ?? 0;
+  const effectiveWindowValue = windowSliderValue ?? windowSliderDefault;
+  const showWindowSelector = serverBounds !== null && onSelectWindow !== undefined;
 
   const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
 
@@ -80,6 +87,20 @@ function TimelinePanelInner({
     }
   }, [jumpToLive, newestTickId, onTickChange]);
 
+  const handleWindowSliderChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setWindowSliderValue(parseInt(e.target.value, 10));
+    },
+    [],
+  );
+
+  const handleWindowSliderCommit = useCallback(() => {
+    if (windowSliderValue !== null) {
+      onSelectWindow?.(windowSliderValue);
+      setWindowSliderValue(null);
+    }
+  }, [windowSliderValue, onSelectWindow]);
+
   const serverTotal = serverBounds?.totalCount;
   const showWindowInfo = serverBounds !== null && serverTotal !== undefined;
 
@@ -106,7 +127,7 @@ function TimelinePanelInner({
         <button
           className="bt-timeline__btn"
           onClick={handleStepBack}
-          disabled={isLoading || !hasTicks || (viewedTickId === oldestTickId && (!serverBounds || oldestTickId <= serverBounds.minTickId))}
+          disabled={isLoading || !hasTicks || viewedTickId === oldestTickId}
           title="Step back (Left Arrow)"
           type="button"
         >
@@ -115,7 +136,7 @@ function TimelinePanelInner({
         <button
           className="bt-timeline__btn"
           onClick={handleStepForward}
-          disabled={isLoading || !hasTicks || (viewedTickId === newestTickId && (!serverBounds || newestTickId >= serverBounds.maxTickId))}
+          disabled={isLoading || !hasTicks || viewedTickId === newestTickId}
           title="Step forward (Right Arrow)"
           type="button"
         >
@@ -156,6 +177,24 @@ function TimelinePanelInner({
           />
         ) : (
           <input type="range" min={0} max={0} value={0} disabled />
+        )}
+        {showWindowSelector && (
+          <div className="bt-timeline__window-selector">
+            <span className="bt-timeline__window-label">Window</span>
+            <input
+              type="range"
+              className="bt-timeline__window-range"
+              min={serverBounds!.minTickId}
+              max={serverBounds!.maxTickId}
+              value={effectiveWindowValue}
+              onChange={handleWindowSliderChange}
+              onPointerUp={handleWindowSliderCommit}
+              disabled={isLoading}
+              step={1}
+              title={`Jump window to tick #${effectiveWindowValue}`}
+              aria-label="Select window position"
+            />
+          </div>
         )}
       </div>
 
