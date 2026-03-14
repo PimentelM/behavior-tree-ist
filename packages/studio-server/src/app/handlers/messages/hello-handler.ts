@@ -1,8 +1,8 @@
-import { MessageType, OutboundMessage } from '@bt-studio/core';
+import { MessageType, type OutboundMessage } from '@bt-studio/core';
 import { BaseHandler } from './base-handler';
-import { MessageConnectionInterface } from '../../../types/interfaces';
-import { ClientRepositoryInterface, SessionRepositoryInterface } from '../../../domain/interfaces';
-import { AgentConnectionRegistryInterface, DomainEventDispatcherInterface } from '../../interfaces';
+import { type MessageConnectionInterface } from '../../../types/interfaces';
+import { type ClientRepositoryInterface, type SessionRepositoryInterface } from '../../../domain/interfaces';
+import { type AgentConnectionRegistryInterface, type DomainEventDispatcherInterface } from '../../interfaces';
 
 interface HelloHandlerDeps {
     clientRepository: ClientRepositoryInterface;

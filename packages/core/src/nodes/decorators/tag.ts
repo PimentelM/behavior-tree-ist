@@ -1,4 +1,4 @@
-import { BTNode } from "../../base/node";
+import { type BTNode } from "../../base/node";
 
 export class Tag {
     constructor(child: BTNode, ...tags: string[]) {

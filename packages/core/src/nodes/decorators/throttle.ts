@@ -1,6 +1,6 @@
 import { NodeResult, NodeFlags } from "../../base/types";
 import { Decorator } from "../../base/decorator";
-import { BTNode, TickContext } from "../../base/node";
+import { BTNode, type TickContext } from "../../base/node";
 
 
 export type ThrottleState = number;

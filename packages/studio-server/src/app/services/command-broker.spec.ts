@@ -1,7 +1,7 @@
 import {
-    CommandResponse,
+    type CommandResponse,
     MessageType,
-    StudioCommand,
+    type StudioCommand,
     StudioCommandType,
 } from '@bt-studio/core';
 import { describe, expect, it } from 'vitest';

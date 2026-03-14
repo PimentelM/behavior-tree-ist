@@ -1,7 +1,7 @@
 import type { Socket } from 'net';
 import { FrameDecoder, encodeFrame } from '@bt-studio/studio-transport';
-import { Logger } from '../logger';
-import { Connection, ConnectionSerializer } from '../connection';
+import { type Logger } from '../logger';
+import { type Connection, type ConnectionSerializer } from '../connection';
 
 export interface GenericTcpClientOptions<TReceive, TSend> {
     logger: Logger;

@@ -1,5 +1,5 @@
 import { Action } from "./base/action";
-import { BTNode, TickContext } from "./base/node";
+import { BTNode, type TickContext } from "./base/node";
 import { NodeResult } from "./base/types";
 
 export function createTickContext(overrides: Partial<TickContext> = {}): TickContext {

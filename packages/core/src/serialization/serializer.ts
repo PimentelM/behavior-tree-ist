@@ -1,5 +1,5 @@
-import { BTNode } from "../base/node";
-import { SerializableNode } from "../base/types";
+import { type BTNode } from "../base/node";
+import { type SerializableNode } from "../base/types";
 
 export function serializeTree(root: BTNode, options?: { includeState?: boolean }): SerializableNode {
     const serialized: SerializableNode = {

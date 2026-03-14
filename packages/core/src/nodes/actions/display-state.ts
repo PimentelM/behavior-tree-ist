@@ -1,5 +1,5 @@
 import { Action } from "../../base/action";
-import { NodeResult, NodeFlags, SerializableState } from "../../base/types";
+import { NodeResult, NodeFlags, type SerializableState } from "../../base/types";
 
 export class DisplayState extends Action {
     public readonly defaultName: string = "DisplayState";

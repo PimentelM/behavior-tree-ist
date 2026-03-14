@@ -1,5 +1,5 @@
 import type { MessageServerInterface } from '../../types/interfaces';
-import { IncomingMessage } from 'http';
+import { type IncomingMessage } from 'http';
 import type { Duplex } from 'stream';
 
 export interface WebSocketServerConfigInterface {

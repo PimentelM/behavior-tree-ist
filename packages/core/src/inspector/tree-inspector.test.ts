@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { NodeResult, NodeFlags, SerializableNode, TickTraceEvent, TickRecord } from "../base/types";
+import { NodeResult, NodeFlags, type SerializableNode, type TickTraceEvent, type TickRecord } from "../base/types";
 import { TreeInspector } from "./tree-inspector";
 
 // TODO: Extract shared SerializableNode test stubs into a common test-stubs module.

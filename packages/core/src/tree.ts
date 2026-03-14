@@ -1,7 +1,7 @@
-import { BTNode, TickContext, TickTraceEvent, SerializableNode, TickRecord, TickRuntime } from "./base";
-import { RefChangeEvent } from "./base/types";
+import { BTNode, type TickContext, type TickTraceEvent, type SerializableNode, type TickRecord, type TickRuntime } from "./base";
+import { type RefChangeEvent } from "./base/types";
 import { serializeTree } from "./serialization/serializer";
-import { OffFunction } from "./types";
+import { type OffFunction } from "./types";
 
 type PublicTickContext = {
     now?: number;

@@ -1,6 +1,6 @@
-import { NodeFlags, NodeResult, SerializableNode, TickRecord, TickTraceEvent, hasFlag } from "../base/types";
+import { NodeFlags, NodeResult, type SerializableNode, type TickRecord, type TickTraceEvent, hasFlag } from "../base/types";
 import { TreeIndex } from "../inspector/tree-index";
-import { ActivityBranch, ActivityDisplayMode, ActivitySnapshot } from "../inspector/types";
+import { type ActivityBranch, type ActivityDisplayMode, type ActivitySnapshot } from "../inspector/types";
 
 export interface ActivityProjectionOptions {
     mode?: ActivityDisplayMode;

@@ -3,14 +3,14 @@ import { beforeAll, beforeEach, afterAll, afterEach, describe, expect, it } from
 import {
     Action,
     BehaviourTree,
-    InboundMessage,
+    type InboundMessage,
     NodeResult,
-    OutboundMessage,
+    type OutboundMessage,
     StudioAgent,
     StudioCommandType,
     StudioLink,
-    TransportData,
-    TransportFactory,
+    type TransportData,
+    type TransportFactory,
     TreeRegistry,
 } from '@bt-studio/core';
 import { withTestService, type TestServiceInstance } from '../test-service-setup';

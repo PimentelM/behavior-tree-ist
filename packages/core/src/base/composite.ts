@@ -1,4 +1,4 @@
-import { BTNode, TickContext } from "./node";
+import { BTNode, type TickContext } from "./node";
 import { NodeFlags } from "./types";
 
 export abstract class Composite extends BTNode {

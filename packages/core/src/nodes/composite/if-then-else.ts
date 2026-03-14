@@ -1,6 +1,6 @@
 import { Composite } from "../../base/composite";
 import { NodeResult } from "../../base/types";
-import { BTNode, TickContext } from "../../base/node";
+import { BTNode, type TickContext } from "../../base/node";
 
 export class IfThenElse extends Composite {
     public override readonly defaultName = "IfThenElse";
@@ -41,14 +41,14 @@ export class IfThenElse extends Composite {
             if (thenNode.wasRunning) {
                 BTNode.Abort(thenNode, ctx);
             }
-            if (elseNode && elseNode.wasRunning) {
+            if (elseNode?.wasRunning) {
                 BTNode.Abort(elseNode, ctx);
             }
             return NodeResult.Running;
         }
 
         if (conditionResult === NodeResult.Succeeded) {
-            if (elseNode && elseNode.wasRunning) {
+            if (elseNode?.wasRunning) {
                 BTNode.Abort(elseNode, ctx);
             }
             return BTNode.Tick(thenNode, ctx);

@@ -1,7 +1,7 @@
-import { CommandResponse, StudioCommand } from '@bt-studio/core';
+import { type CommandResponse, type StudioCommand } from '@bt-studio/core';
 import type { AgentConnection, UiConnection } from '../domain/types';
 import type { BaseEventDispatcher } from '../_lib/events/base-event-dispatcher';
-import { AgentEvent, DispatchedEvent, ServerEvent } from '../domain/events';
+import { type AgentEvent, type DispatchedEvent, type ServerEvent } from '../domain/events';
 
 // ── App service interfaces ──
 

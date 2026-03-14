@@ -2,7 +2,7 @@ import knex, { type Knex } from 'knex';
 import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { StudioServerConfig } from '../../configuration';
+import { type StudioServerConfig } from '../../configuration';
 
 function findMigrationsDir(): string {
     let dir = path.dirname(fileURLToPath(import.meta.url));

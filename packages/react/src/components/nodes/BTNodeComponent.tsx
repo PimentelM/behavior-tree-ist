@@ -291,6 +291,7 @@ function NodeGlyph({ kind, isAsyncAction }: { kind: NodeVisualKind; isAsyncActio
       );
     case 'ifThenElse':
       return <span className="bt-node__glyph-letter bt-node__glyph-letter--if">IF</span>;
+    case 'node':
     default:
       return (
         <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">

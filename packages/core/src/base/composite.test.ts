@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Composite } from "./composite";
-import { BTNode, TickContext } from "./node";
+import { BTNode, type TickContext } from "./node";
 import { NodeResult } from "./types";
 import { createNodeTicker, StubAction } from "../test-helpers";
 

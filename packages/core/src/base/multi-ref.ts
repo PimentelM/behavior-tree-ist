@@ -7,7 +7,7 @@ export type MultiRef<T extends Record<string, unknown>> = T &
 
 function emitRefChange(refName: string, newValue: unknown): void {
     const ctx = AmbientContext.getTickContext();
-    if (!ctx || !ctx.isStateTraceEnabled) return;
+    if (!ctx?.isStateTraceEnabled) return;
 
     const nodeId = AmbientContext.getCurrentMutationNodeId();
     const event: RefChangeEvent = {
@@ -27,7 +27,7 @@ export function multiRef<T extends Record<string, unknown>>(
     defaults: T,
 ): MultiRef<T> {
     const storage: Record<string, unknown> = {};
-    const obj = {} as MultiRef<T>;
+    const obj = ({} as unknown) as MultiRef<T>;
 
     for (const key of Object.keys(defaults)) {
         storage[key] = defaults[key];

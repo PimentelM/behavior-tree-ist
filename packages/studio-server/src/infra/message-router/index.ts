@@ -1,5 +1,5 @@
-import { MessageType, OutboundMessage } from '@bt-studio/core';
-import { MessageConnectionInterface, MessageRouterInterface } from '../../types/interfaces';
+import { type MessageType, type OutboundMessage } from '@bt-studio/core';
+import { type MessageConnectionInterface, type MessageRouterInterface } from '../../types/interfaces';
 import { MessageRouter as GenericMessageRouter } from '../../_lib/router';
 import { createLogger } from '../logging';
 

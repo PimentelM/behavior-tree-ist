@@ -1,9 +1,9 @@
-import { SerializableNode, TickRecord } from "../base";
-import { OffFunction } from "../types";
-import { StudioLinkInterface } from "./interfaces";
-import { InboundMessage, MessageType, OutboundMessage, PROTOCOL_VERSION } from "./protocol";
-import { TransportInterface, TransportData, TransportFactory } from "./transport";
-import { CommandResponse, CorrelationId, StudioCommand } from "./types";
+import { type SerializableNode, type TickRecord } from "../base";
+import { type OffFunction } from "../types";
+import { type StudioLinkInterface } from "./interfaces";
+import { type InboundMessage, MessageType, type OutboundMessage, PROTOCOL_VERSION } from "./protocol";
+import { type TransportInterface, type TransportData, type TransportFactory } from "./transport";
+import { type CommandResponse, type CorrelationId, type StudioCommand } from "./types";
 
 export interface StudioLinkOptions {
     createTransport: TransportFactory;

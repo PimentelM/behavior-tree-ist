@@ -1,6 +1,6 @@
-import { SerializableNode, TickRecord } from "../base";
-import { OffFunction } from "../types";
-import { CommandResponse, CorrelationId, StudioCommand } from "./types";
+import { type SerializableNode, type TickRecord } from "../base";
+import { type OffFunction } from "../types";
+import { type CommandResponse, type CorrelationId, type StudioCommand } from "./types";
 
 export interface StudioLinkInterface {
     // Outbound

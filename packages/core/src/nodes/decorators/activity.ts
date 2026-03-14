@@ -1,5 +1,5 @@
-import { BTNode } from "../../base/node";
-import { ActivityMetadata } from "../../base/types";
+import { type BTNode } from "../../base/node";
+import { type ActivityMetadata } from "../../base/types";
 
 export class Activity {
     constructor(child: BTNode, activity: ActivityMetadata) {

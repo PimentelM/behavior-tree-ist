@@ -1,6 +1,6 @@
-import WebSocket from 'ws';
-import { OutboundMessage } from '@bt-studio/core';
-import { MessageConnectionInterface } from '../../types/interfaces';
+import type WebSocket from 'ws';
+import { type OutboundMessage } from '@bt-studio/core';
+import { type MessageConnectionInterface } from '../../types/interfaces';
 import { createLogger } from '../logging';
 import { OutboundMessageSchema } from '../../domain/core-schemas';
 import { GenericWebSocketClient } from '../../_lib/server/generic-ws-client';

@@ -48,7 +48,7 @@ export class WsBrowserStringTransport implements TransportInterface {
     }
 
     send(data: TransportData): void {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        if (this.ws?.readyState !== WebSocket.OPEN) {
             throw new Error("WsBrowserStringTransport: not connected");
         }
         const str =

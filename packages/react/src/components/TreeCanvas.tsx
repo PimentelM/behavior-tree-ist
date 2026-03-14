@@ -264,11 +264,11 @@ function mergeMutableEdgeData(
     changed = true;
     merged.push({
       ...previousEdge,
-      data: {
+      data: ({
         ...(previousEdge.data ?? {}),
         childResult: nextChildResult,
         isOnActivityPathEdge: nextIsOnActivityPathEdge,
-      } as BTEdgeData,
+      } as unknown) as BTEdgeData,
       animated: nextEdge.animated,
     });
   }

@@ -6,7 +6,7 @@ import { createTreesRouter } from './trees';
 import { createTicksRouter } from './ticks';
 import { createCommandsRouter } from './commands';
 import { createSettingsRouter } from './settings';
-import { AppDependencies } from '../../../types/app-dependencies';
+import { type AppDependencies } from '../../../types/app-dependencies';
 
 export function createAppRouter(deps: AppDependencies) {
     return router({

@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
-import { SettingsRepositoryInterface } from '../../domain/interfaces';
+import { type SettingsRepositoryInterface } from '../../domain/interfaces';
 import type { SettingsRecord } from '../../domain/records';
 import type { DbSettings } from './schemas';
 import { mapDbSettingsToDomain } from './mappers';

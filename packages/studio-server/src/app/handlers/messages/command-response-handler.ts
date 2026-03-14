@@ -1,7 +1,7 @@
-import { MessageType, OutboundMessage } from '@bt-studio/core';
+import { MessageType, type OutboundMessage } from '@bt-studio/core';
 import { BaseHandler } from './base-handler';
-import { MessageConnectionInterface } from '../../../types/interfaces';
-import { CommandBrokerInterface } from '../../interfaces';
+import { type MessageConnectionInterface } from '../../../types/interfaces';
+import { type CommandBrokerInterface } from '../../interfaces';
 
 interface CommandResponseHandlerDeps {
     commandBroker: CommandBrokerInterface;

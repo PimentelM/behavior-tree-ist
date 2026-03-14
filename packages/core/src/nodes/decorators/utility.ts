@@ -1,7 +1,7 @@
-import { BTNode, TickContext } from "../../base/node";
+import { BTNode, type TickContext } from "../../base/node";
 import { Decorator } from "../../base/decorator";
-import { UtilityScorer } from "../../base/utility";
-import { NodeFlags, NodeResult } from "../../base";
+import { type UtilityScorer } from "../../base/utility";
+import { NodeFlags, type NodeResult } from "../../base";
 
 export class Utility extends Decorator {
     public override readonly defaultName = "Utility";

@@ -1,5 +1,5 @@
-import { Logger } from '../logger';
-import { BaseDispatchedEvent, EventStoreInterface } from './interfaces';
+import { type Logger } from '../logger';
+import { type BaseDispatchedEvent, type EventStoreInterface } from './interfaces';
 
 export abstract class BaseEventDispatcher<DispatchedEvent extends BaseDispatchedEvent> {
     constructor(

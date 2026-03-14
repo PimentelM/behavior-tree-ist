@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { StudioLink, StudioLinkOptions } from "./studio-link";
-import { TransportInterface, TransportData } from "./transport";
-import { InboundMessage, MessageType, OutboundMessage, PROTOCOL_VERSION } from "./protocol";
-import { OffFunction } from "../types";
+import { StudioLink, type StudioLinkOptions } from "./studio-link";
+import { type TransportInterface, type TransportData } from "./transport";
+import { type InboundMessage, MessageType, type OutboundMessage, PROTOCOL_VERSION } from "./protocol";
+import { type OffFunction } from "../types";
 import { StudioCommandType } from "./types";
-import { SerializableNode, TickRecord } from "../base";
+import { type SerializableNode, type TickRecord } from "../base";
 
 // --- MockTransport ---
 

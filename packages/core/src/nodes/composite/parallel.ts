@@ -1,6 +1,6 @@
 import { Composite } from "../../base/composite";
 import { NodeResult, NodeFlags } from "../../base/types";
-import { BTNode, TickContext } from "../../base/node";
+import { BTNode, type TickContext } from "../../base/node";
 
 export type ParallelPolicy = (successCount: number, failureCount: number, runningCount: number) => NodeResult;
 export type ParallelOptions = {

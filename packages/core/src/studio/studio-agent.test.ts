@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, Mock } from "vitest";
-import { StudioAgent, StudioAgentOptions } from "./studio-agent";
-import { StudioLinkInterface } from "./interfaces";
-import { StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
+import { describe, it, expect, vi, type Mock } from "vitest";
+import { StudioAgent, type StudioAgentOptions } from "./studio-agent";
+import { type StudioLinkInterface } from "./interfaces";
+import { type StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 import { TreeRegistry } from "../registry/tree-registry";
 import { BehaviourTree } from "../tree";
 import { Action, NodeResult } from "../base";
-import { OffFunction } from "../types";
+import { type OffFunction } from "../types";
 
 type CommandHandler = (command: StudioCommand) => void;
 type VoidHandler = () => void;

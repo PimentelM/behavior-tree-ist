@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { router, procedure } from '../../../infra/trpc/trpc-setup';
-import { AppDependencies } from '../../../types/app-dependencies';
+import { type AppDependencies } from '../../../types/app-dependencies';
 
 export function createClientsRouter({ clientRepository, agentConnectionRegistry }: AppDependencies) {
     return router({

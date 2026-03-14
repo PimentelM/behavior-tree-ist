@@ -1,6 +1,6 @@
 import { Composite } from "../../base/composite";
 import { NodeResult, NodeFlags } from "../../base/types";
-import { BTNode, TickContext } from "../../base/node";
+import { BTNode, type TickContext } from "../../base/node";
 
 export class Sequence extends Composite {
     public override readonly defaultName = "Sequence";

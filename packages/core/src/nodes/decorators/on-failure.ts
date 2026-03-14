@@ -1,4 +1,4 @@
-import { BTNode, Decorator, NodeResult, NodeFlags, TickContext } from "../../base";
+import { BTNode, Decorator, type NodeResult, NodeFlags, type TickContext } from "../../base";
 
 export class OnFailure extends Decorator {
     public override readonly defaultName = "OnFailure";

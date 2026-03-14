@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef, type PointerEvent as
 import { ReactFlowProvider } from '@xyflow/react';
 import { createPortal } from 'react-dom';
 import type { RefChangeEvent } from '@bt-studio/core';
-import { TreeInspector } from '@bt-studio/core/inspector';
+import { type TreeInspector } from '@bt-studio/core/inspector';
 import type { BehaviourTreeDebuggerProps, ThemeMode } from './types';
 import { useInspector } from './hooks/useInspector';
 import { useTreeLayout } from './hooks/useTreeLayout';
@@ -638,7 +638,7 @@ export function BehaviourTreeDebugger({
   useEffect(() => {
     const onPointerMove = (event: PointerEvent) => {
       const drag = activityDragRef.current;
-      if (!drag || event.pointerId !== drag.pointerId) return;
+      if (event.pointerId !== drag?.pointerId) return;
 
       const nextX = drag.startX + (event.clientX - drag.startClientX);
       const nextY = drag.startY + (event.clientY - drag.startClientY);
@@ -647,7 +647,7 @@ export function BehaviourTreeDebugger({
 
     const onPointerEnd = (event: PointerEvent) => {
       const drag = activityDragRef.current;
-      if (!drag || event.pointerId !== drag.pointerId) return;
+      if (event.pointerId !== drag?.pointerId) return;
       activityDragRef.current = null;
     };
 

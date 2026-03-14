@@ -1,5 +1,5 @@
-import { SerializableNode } from "../base";
-import { BehaviourTree } from "../tree";
+import { type SerializableNode } from "../base";
+import { type BehaviourTree } from "../tree";
 
 export type TreeId = string;
 

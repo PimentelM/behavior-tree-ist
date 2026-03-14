@@ -1,4 +1,4 @@
-import { BTNode, TickContext } from "./node";
+import { BTNode, type TickContext } from "./node";
 import { NodeResult, NodeFlags } from "./types";
 
 export abstract class ConditionNode extends BTNode {

@@ -1,4 +1,4 @@
-import { ActivityMetadata, NodeFlags, NodeResult, SerializableMetadata, SerializableState } from "../base/types";
+import { type ActivityMetadata, type NodeFlags, type NodeResult, type SerializableMetadata, type SerializableState } from "../base/types";
 
 /** Flat node from serialized tree, with parent/children refs for fast lookups */
 export interface IndexedNode {

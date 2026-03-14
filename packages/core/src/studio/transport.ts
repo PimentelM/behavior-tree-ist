@@ -1,4 +1,4 @@
-import { OffFunction } from "../types";
+import { type OffFunction } from "../types";
 
 export type TransportData = string | Uint8Array;
 

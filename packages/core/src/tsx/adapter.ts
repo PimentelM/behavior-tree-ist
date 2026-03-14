@@ -1,7 +1,7 @@
-import { BTNode, CancellationSignal, NodeResult, TickContext, SerializableState } from "../base";
-import { UtilityScorer } from "../base/utility";
+import { type BTNode, type CancellationSignal, type NodeResult, type TickContext, type SerializableState } from "../base";
+import { type UtilityScorer } from "../base/utility";
 import * as Builder from "../builder";
-import { ParallelPolicy } from "../nodes/composite/parallel";
+import { type ParallelPolicy } from "../nodes/composite/parallel";
 import { Utility as UtilityNode } from "../nodes/decorators/utility";
 
 export function Fragment(_props: unknown, ...children: BTNode[]): BTNode[] {

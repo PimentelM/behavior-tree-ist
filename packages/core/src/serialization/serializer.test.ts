@@ -3,7 +3,7 @@ import { BehaviourTree } from "../tree";
 import { Action } from "../base/action";
 import { Decorator } from "../base/decorator";
 import { Composite } from "../base/composite";
-import { NodeResult, NodeFlags, SerializableState, TickContext, BTNode } from "../base";
+import { NodeResult, NodeFlags, type SerializableState, type TickContext, BTNode } from "../base";
 import { SubTree } from "../nodes/decorators/sub-tree";
 
 class MockAction extends Action {

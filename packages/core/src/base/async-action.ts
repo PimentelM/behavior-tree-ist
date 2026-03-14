@@ -1,5 +1,5 @@
-import { BTNode, TickContext } from "./node";
-import { CancellationSignal, CancellationHandle, createCancellationHandle } from "./cancellation";
+import { BTNode, type TickContext } from "./node";
+import { type CancellationSignal, type CancellationHandle, createCancellationHandle } from "./cancellation";
 import { NodeFlags, NodeResult } from "./types";
 
 export type AsyncActionState = {

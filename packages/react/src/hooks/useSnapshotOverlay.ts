@@ -269,7 +269,7 @@ export function useSnapshotOverlay(
 
       const nextEdge: Edge<BTEdgeData> = {
         ...baseEdge,
-        data: { ...baseEdge.data, childResult, isOnActivityPathEdge: nextIsOnActivityPathEdge } as BTEdgeData,
+        data: ({ ...baseEdge.data, childResult, isOnActivityPathEdge: nextIsOnActivityPathEdge } as unknown) as BTEdgeData,
         animated: nextAnimated,
       };
 
