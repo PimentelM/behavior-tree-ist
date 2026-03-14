@@ -14,7 +14,7 @@ export function useInspector(
   options?: TreeInspectorOptions,
 ): UseInspectorResult {
   const inspectorRef = useRef<TreeInspector | null>(null);
-  // Track all ingested tickIds by Set (supports bidirectional window insertion)
+  // Track all ingested tickIds by Set for dedup and seek detection
   const ingestedTickIdsRef = useRef<Set<number>>(new Set());
   const [tickGeneration, setTickGeneration] = useState(0);
   const prevTreeRef = useRef<SerializableNode | null>(null);
@@ -40,7 +40,7 @@ export function useInspector(
     }
   }, [tree, inspector]);
 
-  // Diff-ingest new ticks using Set tracking (handles sliding-window + windowed inserts)
+  // Diff-ingest new ticks using Set tracking (forward-only; TT windows are static)
   useEffect(() => {
     const ingested = ingestedTickIdsRef.current;
     const newTicks = ticks.filter((t) => !ingested.has(t.tickId));
@@ -53,24 +53,8 @@ export function useInspector(
       ingestedTickIdsRef.current = new Set();
     }
 
-    const currentIngested = ingestedTickIdsRef.current;
-    const newestStored = inspector.getStats().newestTickId;
-    const cutoff = newestStored ?? -Infinity;
-
-    // Forward ticks: append as usual
-    const forwardTicks = newTicks.filter((t) => t.tickId > cutoff);
-    if (forwardTicks.length > 0) {
-      inspector.ingestTicks(forwardTicks);
-    }
-
-    // Backward ticks: use insertTicksBefore if available (added by data-layer builder)
-    const backwardTicks = newTicks.filter((t) => t.tickId <= cutoff);
-    if (backwardTicks.length > 0) {
-      const insertTicksBefore = (inspector as unknown as { insertTicksBefore?: (r: TickRecord[]) => void }).insertTicksBefore;
-      insertTicksBefore?.call(inspector, backwardTicks);
-    }
-
-    for (const t of newTicks) currentIngested.add(t.tickId);
+    inspector.ingestTicks(newTicks);
+    for (const t of newTicks) ingestedTickIdsRef.current.add(t.tickId);
     setTickGeneration((g) => g + 1);
   }, [ticks, inspector]);
 
