@@ -127,9 +127,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-92a9"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-14T06:13:28.998Z",
-		"completedAt": null
+		"completedAt": "2026-03-14T21:59:05.443Z"
 	},
 	{
 		"id": "group-863d1723",
@@ -137,8 +137,18 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-6ae6"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-14T06:32:37.533Z",
-		"completedAt": null
+		"completedAt": "2026-03-14T21:59:05.646Z"
+	},
+	{
+		"id": "group-c6f57a64",
+		"name": "ticket-review",
+		"memberIssueIds": [
+			"behavior-tree-ist-674e"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-14T22:04:34.124Z",
+		"completedAt": "2026-03-14T22:32:39.301Z"
 	}
 ]

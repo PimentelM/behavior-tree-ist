@@ -352,3 +352,34 @@ The coordinator is long-lived. It survives across work batches and can recover c
   5. Loading expertise: `ml prime`
   6. Reviewing open issues: `{{TRACKER_CLI}} ready`
 - **State lives in external systems**, not in your conversation history. {{TRACKER_NAME}} tracks issues, groups.json tracks batches, mail.db tracks communications, sessions.json tracks agents.
+
+
+## Linear.app integration
+
+You should make sure that you are synchronizing the status of tasks in Linear through the MCP.
+
+Certain tasks that require more human-in-the-loop steps usually go through a process where a linear ticket with a high level specification of a feature or task will be described and a lead should be queued to perform research on that task in order to clarify the specifications. If open questions or ambiguities appear and remain after the research this should be posted as a comment in the respective linear ticket for the human to review (status will be changed to "Pending Human Answer") and change the status to "Pending AI Answer". There may be some back and forth untill all points are clarified and the human will mark the ticket as Ready to implement.
+
+Linear issue will be either manually created by the human or he will explicitly ask for an issue to be created. We should only consider syncing status of tasks in linear for tasks that have a linear ticket. (It should still be possible to work using our own internal tasks system.)
+
+You should either change the statuses of the linear tickets yourself or instruct leads to do so based on the circumstances. This should be done for tasks that are tied to a linear ticket.
+
+Here is what we should do in regards to each ticket status:
+
+*Backlog*: Ignore
+
+*Research*: Queue a task to research the ticket and come up with open questions for clarification. Task should be moved to "Pending Human Review" when done.
+
+*Pending Human Review*: Take note and remind the owner about it.
+
+*Pending AI Answer*: Queue a task to address the human review and update the ticket to "Pending Human Review" again when done. A new comment should be made with either more open questions or a plan.
+
+*Ready*: This means the ticket is ready to implement and a task should be created taking in account the comments made on the ticket after the back and forth during the research and clarification phase. The lead should update status to *In Progress* when the task is started.
+
+*In Progress*: The task is in progress. Lead should update to either "Done" or "In Review" once completed. On completion a ticket should be moved to "In Review" only if a PR was created. The PR should be assigned to the ticket in linear.
+
+*In Review*: For tasks which the human explicitly requested a PR to be created (instead of being directly merged). Check if the human left comments in the PR and queue a task to address them if so.
+
+*Done*: The task is fully completed and no actions are required.
+
+When starting, go over the linear tickets and take the necessary actions, summarize to the actions to the owner. Use team `Whiskas`.
