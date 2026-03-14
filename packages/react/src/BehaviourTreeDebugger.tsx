@@ -228,6 +228,7 @@ export function BehaviourTreeDebugger({
   const displayTimeAsTimestamp = timeFormatOverride ?? (timeTravelControls.nowIsTimestamp ?? false);
 
   const prevModeRef = useRef(timeTravelControls.mode);
+  const prevIsLoadingWindowRef = useRef(studioControls?.isLoadingWindow ?? false);
   useEffect(() => {
     if (prevModeRef.current === 'paused' && timeTravelControls.mode === 'live') {
       studioControls?.onResumeStreaming?.();
@@ -718,7 +719,6 @@ export function BehaviourTreeDebugger({
   const showTimeline = panels.timeline !== false;
   const showRefTraces = panels.refTraces !== false;
   const showPerformance = panels.performance !== false;
-  const prevIsLoadingWindowRef = useRef(studioControls?.isLoadingWindow ?? false);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
   const [shadowStyles, setShadowStyles] = useState('');
