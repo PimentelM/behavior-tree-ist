@@ -150,5 +150,25 @@
 		"status": "completed",
 		"createdAt": "2026-03-14T22:04:34.124Z",
 		"completedAt": "2026-03-14T22:32:39.301Z"
+	},
+	{
+		"id": "group-f16e534e",
+		"name": "lint-tier2",
+		"memberIssueIds": [
+			"behavior-tree-ist-a938"
+		],
+		"status": "active",
+		"createdAt": "2026-03-14T22:35:47.528Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-d16cd672",
+		"name": "tt-window-fixes",
+		"memberIssueIds": [
+			"behavior-tree-ist-7c2b"
+		],
+		"status": "active",
+		"createdAt": "2026-03-14T23:02:11.005Z",
+		"completedAt": null
 	}
 ]
