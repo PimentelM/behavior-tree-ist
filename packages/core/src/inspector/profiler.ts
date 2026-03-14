@@ -261,58 +261,6 @@ export class Profiler {
     }
 
     /**
-     * Ingest historical ticks that are older than the current window (out-of-order).
-     * Uses tickContribByTick for dedup instead of lastProcessedTickId.
-     * Does NOT update lastProcessedTickId.
-     */
-    ingestTicksBefore(ticks: Array<{ tickId: number; events: TickTraceEvent[] }>): void {
-        if (ticks.length === 0) return;
-        this.invalidateExactPercentiles();
-
-        for (const { tickId, events } of ticks) {
-            if (events.length === 0) continue;
-            if (this.tickContribByTick.has(tickId)) continue; // already ingested
-            const tickContribByNode = new Map<number, TickNodeContribution>();
-            const timedEvents: TimedEvent[] = [];
-
-            for (const event of events) {
-                if (event.startedAt === undefined || event.finishedAt === undefined) continue;
-                const cpuTime = event.finishedAt - event.startedAt;
-                const contribution = this.getOrCreateContribution(tickContribByNode, event.nodeId);
-                this.addCpuSampleToContribution(contribution, cpuTime);
-                timedEvents.push({
-                    nodeId: event.nodeId,
-                    startedAt: event.startedAt,
-                    finishedAt: event.finishedAt,
-                    inclusiveTime: cpuTime,
-                    childInclusiveTime: 0,
-                });
-                this.pushPercentileCpuSample(event.nodeId, cpuTime);
-            }
-
-            const tickSelfTimes = this.groupSelfCpuSamplesFromTimedEvents(timedEvents);
-            for (const [nodeId, samples] of tickSelfTimes) {
-                const contribution = this.getOrCreateContribution(tickContribByNode, nodeId);
-                for (const sample of samples) {
-                    this.addSelfCpuSampleToContribution(contribution, sample);
-                    this.pushPercentileSelfSample(nodeId, sample);
-                }
-            }
-
-            if (timedEvents.length > 0) {
-                this._tickCount++;
-            }
-            this.tickContribByTick.set(tickId, tickContribByNode);
-            for (const [nodeId, contribution] of tickContribByNode) {
-                this.applyContribution(nodeId, contribution);
-            }
-        }
-
-        this.repairDirtyNodes(this.maxDirtyNodesPerRepairPass);
-        this.ticksSinceRepair = 0;
-    }
-
-    /**
      * Batch-subtract evicted ticks' contributions.
      * Single percentile invalidation.
      */

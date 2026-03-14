@@ -117,43 +117,6 @@ export class TreeInspector {
         this.profiler.ingestTicks(survivors.map(r => ({ tickId: r.tickId, events: r.events })));
     }
 
-    /**
-     * Insert historical tick records before the current window.
-     * Records older than the current oldest stored tick are prepended.
-     * If the buffer overflows, the newest ticks are evicted from the tail.
-     * Does NOT increment totalTickCount (historical loads are not new live ticks).
-     */
-    insertTicksBefore(records: TickRecord[]): void {
-        if (records.length === 0) return;
-
-        const evicted = this.store.insertBefore(records);
-
-        // Evicted are previously-stored ticks — remove from profiler and CPU tracking
-        if (evicted.length > 0) {
-            this.profiler.removeTicks(evicted.map(e => ({ tickId: e.tickId, events: e.events })));
-            for (const e of evicted) {
-                const evictedRootCpu = this.rootCpuByTick.get(e.tickId) ?? 0;
-                this.totalRootCpuTime -= evictedRootCpu;
-                this.rootCpuByTick.delete(e.tickId);
-            }
-        }
-
-        // Ingest records that actually made it into the store
-        const survivors: TickRecord[] = [];
-        for (const record of records) {
-            if (this.store.hasTick(record.tickId)) {
-                survivors.push(record);
-            }
-        }
-
-        for (const record of survivors) {
-            const rootCpuTime = this.getRootCpuTime(record);
-            this.rootCpuByTick.set(record.tickId, rootCpuTime);
-            this.totalRootCpuTime += rootCpuTime;
-        }
-        this.profiler.ingestTicksBefore(survivors.map(r => ({ tickId: r.tickId, events: r.events })));
-    }
-
     // --- State reconstruction ---
 
     getSnapshotAtTick(tickId: number): TreeTickSnapshot | undefined {
