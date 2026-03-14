@@ -19,6 +19,13 @@ export class IfThenElse extends Composite {
         return composite;
     }
 
+    public override validate(): string[] {
+        if (this.nodes.length < 2 || this.nodes.length > 3) {
+            return [`IfThenElse "${this.displayName}" must have 2 or 3 children (got ${this.nodes.length})`];
+        }
+        return [];
+    }
+
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length < 2 || this.nodes.length > 3) {
             throw new Error(`IfThenElse node ${this.name} must have 2 or 3 children`);
