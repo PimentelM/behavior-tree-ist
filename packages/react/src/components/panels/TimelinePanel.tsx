@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from 'react';
 import type { CpuTimelineEntry } from '@bt-studio/core/inspector';
-import type { TimeTravelControls } from '../../types';
+import type { TimeTravelControls, StudioTickBounds } from '../../types';
 import { formatNowValue } from '../../utils/format';
 import { CpuSparkline } from './CpuSparkline';
 import { WindowRangeTrimmer } from './WindowRangeTrimmer';
@@ -43,6 +43,7 @@ function TimelinePanelInner({
   const hasScrubberRange = scrubberMin !== undefined && scrubberMax !== undefined;
 
   const [trimmerOpen, setTrimmerOpen] = useState(false);
+  const [frozenBounds, setFrozenBounds] = useState<StudioTickBounds | null>(null);
   const showWindowSelector = serverBounds !== null && onSelectRange !== undefined;
 
   const formattedNow = formatNowValue(viewedNow, displayTimeAsTimestamp);
@@ -63,11 +64,25 @@ function TimelinePanelInner({
     }
   }, [jumpToLive, newestTickId, onTickChange]);
 
+  const handleToggleTrimmer = useCallback(() => {
+    setTrimmerOpen((prev) => {
+      if (!prev) setFrozenBounds(serverBounds);
+      else setFrozenBounds(null);
+      return !prev;
+    });
+  }, [serverBounds]);
+
+  const handleTrimmerClose = useCallback(() => {
+    setTrimmerOpen(false);
+    setFrozenBounds(null);
+  }, []);
+
   const handleTrimmerApply = useCallback(
     (from: number, to: number) => {
       onSelectRange?.(from, to);
       controls.navigateToTick(from);
       setTrimmerOpen(false);
+      setFrozenBounds(null);
     },
     [onSelectRange, controls],
   );
@@ -154,7 +169,7 @@ function TimelinePanelInner({
             <button
               type="button"
               className="bt-timeline__window-btn"
-              onClick={() => setTrimmerOpen((v) => !v)}
+              onClick={handleToggleTrimmer}
               disabled={isLoading}
               title="Select tick window range"
             >
@@ -162,14 +177,14 @@ function TimelinePanelInner({
             </button>
             {trimmerOpen && (
               <WindowRangeTrimmer
-                minTickId={serverBounds!.minTickId}
-                maxTickId={serverBounds!.maxTickId}
-                totalCount={serverBounds!.totalCount}
+                minTickId={(frozenBounds ?? serverBounds)!.minTickId}
+                maxTickId={(frozenBounds ?? serverBounds)!.maxTickId}
+                totalCount={(frozenBounds ?? serverBounds)!.totalCount}
                 defaultFrom={oldestTickId}
                 defaultTo={newestTickId}
                 isLoading={isLoading}
                 onApply={handleTrimmerApply}
-                onClose={() => setTrimmerOpen(false)}
+                onClose={handleTrimmerClose}
               />
             )}
           </div>

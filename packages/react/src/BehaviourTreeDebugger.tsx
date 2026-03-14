@@ -240,10 +240,11 @@ export function BehaviourTreeDebugger({
     }
 
     if (pausedInspector) return;
+    if (studioControls?.isLoadingWindow) return;
 
     const frozen = inspector.cloneForTimeTravel({ exactPercentiles: true });
     setPausedInspector(frozen);
-  }, [timeTravelControls.mode, pausedInspector, inspector]);
+  }, [timeTravelControls.mode, pausedInspector, inspector, studioControls?.isLoadingWindow]);
 
   // When a window fetch (seekToRange) completes while paused, the live inspector has been
   // cleared and re-ingested with the new range. Refresh pausedInspector so the scrubber
