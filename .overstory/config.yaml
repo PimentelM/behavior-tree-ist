@@ -61,6 +61,6 @@ runtime:
   pi:
     provider: anthropic
     modelMap:
-      opus: anthropic/claude-opus-4-6
+      opus: anthropic/claude-opus-4-6[1m]
       sonnet: anthropic/claude-sonnet-4-6
-      haiku: anthropic/claude-haiku-4-5
+      haiku: anthropic/claude-sonnet-4-6
