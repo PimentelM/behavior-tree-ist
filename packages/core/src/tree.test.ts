@@ -5,7 +5,7 @@ import { StubAction } from "./test-helpers";
 import { Throttle, Sleep } from "./nodes";
 import { fallback, sequence, condition, action } from "./builder";
 import { Action, AsyncAction, ref } from "./base";
-import { Sequence, Fallback, Parallel, IfThenElse } from "./nodes/composite";
+import { Sequence, Fallback, Parallel, IfThenElse, SequenceWithMemory, FallbackWithMemory, UtilitySequence, UtilityFallback } from "./nodes/composite";
 
 describe("BehaviourTree", () => {
     it("ticks root node", () => {
@@ -416,6 +416,50 @@ describe("BehaviourTree", () => {
             const errors = tree.validate();
 
             expect(errors[0]).toContain("mySeq");
+        });
+
+        it("returns error for SequenceWithMemory with no children", () => {
+            const seq = new SequenceWithMemory();
+            const tree = new BehaviourTree(seq);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/SequenceWithMemory/);
+            expect(errors[0]).toMatch(/no children/);
+        });
+
+        it("returns error for FallbackWithMemory with no children", () => {
+            const fb = new FallbackWithMemory();
+            const tree = new BehaviourTree(fb);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/FallbackWithMemory/);
+            expect(errors[0]).toMatch(/no children/);
+        });
+
+        it("returns error for UtilitySequence with no children", () => {
+            const us = new UtilitySequence();
+            const tree = new BehaviourTree(us);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/UtilitySequence/);
+            expect(errors[0]).toMatch(/no children/);
+        });
+
+        it("returns error for UtilityFallback with no children", () => {
+            const uf = new UtilityFallback();
+            const tree = new BehaviourTree(uf);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/UtilityFallback/);
+            expect(errors[0]).toMatch(/no children/);
         });
     });
 

@@ -55,6 +55,16 @@ export class UtilitySequence extends Composite {
         return this;
     }
 
+    public override validate(): string[] {
+        const errors = super.validate();
+        for (let i = 0; i < this.nodes.length; i++) {
+            if (!(this.nodes[i] instanceof Utility)) {
+                errors.push(`${this.displayName} child at index ${i} is not a Utility node`);
+            }
+        }
+        return errors;
+    }
+
     public override getDisplayState(): UtilitySequenceState {
         return this.lastScores;
     }

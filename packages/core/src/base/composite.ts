@@ -18,6 +18,12 @@ export abstract class Composite extends BTNode {
         return this._nodes;
     }
 
+    public override validate(): string[] {
+        if (this._nodes.length === 0) {
+            return [`${this.displayName} has no children`];
+        }
+        return [];
+    }
 
     protected abortChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {
         for (let i = startIndexInclusive; i < this._nodes.length; i++) {

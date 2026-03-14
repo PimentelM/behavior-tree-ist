@@ -83,13 +83,6 @@ export class Parallel extends Composite {
         this.addFlags(NodeFlags.Parallel);
     }
 
-    public override validate(): string[] {
-        if (this.nodes.length === 0) {
-            return [`Parallel "${this.displayName}" has no children`];
-        }
-        return [];
-    }
-
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
             throw new Error(`Parallel node ${this.name} has no nodes`);
