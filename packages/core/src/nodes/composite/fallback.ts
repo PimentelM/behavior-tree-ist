@@ -20,6 +20,13 @@ export class Fallback extends Composite {
         return composite;
     }
 
+    public override validate(): string[] {
+        if (this.nodes.length === 0) {
+            return [`Fallback "${this.displayName}" has no children`];
+        }
+        return [];
+    }
+
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
             throw new Error(`Fallback node ${this.name} has no nodes`);

@@ -5,6 +5,7 @@ import { StubAction } from "./test-helpers";
 import { Throttle, Sleep } from "./nodes";
 import { fallback, sequence, condition, action } from "./builder";
 import { Action, AsyncAction, ref } from "./base";
+import { Sequence, Fallback, Parallel, IfThenElse } from "./nodes/composite";
 
 describe("BehaviourTree", () => {
     it("ticks root node", () => {
@@ -315,6 +316,107 @@ describe("BehaviourTree", () => {
             })
         });
 
+    });
+
+    describe('validate', () => {
+        it("returns empty array for valid tree", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+
+            expect(tree.validate()).toEqual([]);
+        });
+
+        it("returns error for Sequence with no children", () => {
+            const seq = new Sequence();
+            const tree = new BehaviourTree(seq);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/Sequence/);
+            expect(errors[0]).toMatch(/no children/);
+        });
+
+        it("returns error for Fallback with no children", () => {
+            const fb = new Fallback();
+            const tree = new BehaviourTree(fb);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/Fallback/);
+            expect(errors[0]).toMatch(/no children/);
+        });
+
+        it("returns error for Parallel with no children", () => {
+            const par = new Parallel();
+            const tree = new BehaviourTree(par);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/Parallel/);
+            expect(errors[0]).toMatch(/no children/);
+        });
+
+        it("returns error for IfThenElse with wrong child count", () => {
+            const ite = new IfThenElse();
+            ite.addNode(new StubAction(NodeResult.Succeeded));
+            const tree = new BehaviourTree(ite);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/IfThenElse/);
+            expect(errors[0]).toMatch(/2 or 3/);
+        });
+
+        it("returns no error for IfThenElse with 2 children", () => {
+            const ite = IfThenElse.from([new StubAction(NodeResult.Succeeded), new StubAction(NodeResult.Succeeded)]);
+            const tree = new BehaviourTree(ite);
+
+            expect(tree.validate()).toEqual([]);
+        });
+
+        it("returns no error for IfThenElse with 3 children", () => {
+            const ite = IfThenElse.from([new StubAction(NodeResult.Succeeded), new StubAction(NodeResult.Succeeded), new StubAction(NodeResult.Succeeded)]);
+            const tree = new BehaviourTree(ite);
+
+            expect(tree.validate()).toEqual([]);
+        });
+
+        it("collects errors from multiple invalid nodes across the tree", () => {
+            const emptySeq = new Sequence("emptySeq");
+            const emptyFb = new Fallback("emptyFb");
+            const root = Sequence.from([emptySeq, emptyFb]);
+            const tree = new BehaviourTree(root);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(2);
+            expect(errors.some(e => e.includes("emptySeq"))).toBe(true);
+            expect(errors.some(e => e.includes("emptyFb"))).toBe(true);
+        });
+
+        it("validates nested nodes", () => {
+            const emptySeq = new Sequence("inner");
+            const root = Sequence.from([emptySeq]);
+            const tree = new BehaviourTree(root);
+
+            const errors = tree.validate();
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/inner/);
+        });
+
+        it("uses displayName in error messages", () => {
+            const seq = new Sequence("mySeq");
+            const tree = new BehaviourTree(seq);
+
+            const errors = tree.validate();
+
+            expect(errors[0]).toContain("mySeq");
+        });
     });
 
     describe('profiling', () => {

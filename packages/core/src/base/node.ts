@@ -112,6 +112,9 @@ export abstract class BTNode {
     /** Returns the children of this node, if it's a structural node */
     public getChildren?(): ReadonlyArray<BTNode>;
 
+    /** Returns structural validation errors for this node. Called by BehaviourTree.validate(). */
+    public validate?(): string[];
+
     // =========================================================================
     // State & Serialization
     // =========================================================================

@@ -20,6 +20,13 @@ export class Sequence extends Composite {
         return composite;
     }
 
+    public override validate(): string[] {
+        if (this.nodes.length === 0) {
+            return [`Sequence "${this.displayName}" has no children`];
+        }
+        return [];
+    }
+
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
             throw new Error(`Sequence node ${this.name} has no nodes`);

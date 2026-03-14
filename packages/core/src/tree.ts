@@ -61,6 +61,22 @@ export class BehaviourTree {
         return this;
     }
 
+    public validate(): string[] {
+        const errors: string[] = [];
+        const queue: BTNode[] = [this.root];
+        while (queue.length > 0) {
+            const node = queue.shift()!;
+            if (node.validate) {
+                errors.push(...node.validate());
+            }
+            const children = node.getChildren?.();
+            if (children) {
+                queue.push(...children);
+            }
+        }
+        return errors;
+    }
+
     public serialize(options?: { includeState?: boolean }): SerializableNode {
         return serializeTree(this.root, options);
     }
