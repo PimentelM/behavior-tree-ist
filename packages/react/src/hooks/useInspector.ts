@@ -54,7 +54,7 @@ export function useInspector(
     }
 
     inspector.ingestTicks(newTicks);
-    for (const t of newTicks) ingestedTickIdsRef.current.add(t.tickId);
+    ingestedTickIdsRef.current = new Set(ticks.map((t) => t.tickId));
     setTickGeneration((g) => g + 1);
   }, [ticks, inspector]);
 

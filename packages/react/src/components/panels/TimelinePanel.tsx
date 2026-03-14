@@ -1,20 +1,9 @@
 import { memo, useCallback, useState } from 'react';
 import type { CpuTimelineEntry } from '@bt-studio/core/inspector';
 import type { TimeTravelControls } from '../../types';
+import { formatNowValue } from '../../utils/format';
 import { CpuSparkline } from './CpuSparkline';
 import { WindowRangeTrimmer } from './WindowRangeTrimmer';
-
-function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
-  if (now === null) return null;
-  if (!nowIsTimestamp) return `${now}`;
-
-  const timestampMs = Math.abs(now) >= 1e12 ? now : now * 1000;
-  const date = new Date(timestampMs);
-  const hh = `${date.getHours()}`.padStart(2, '0');
-  const mm = `${date.getMinutes()}`.padStart(2, '0');
-  const ss = `${date.getSeconds()}`.padStart(2, '0');
-  return `${hh}:${mm}:${ss}`;
-}
 
 interface TimelinePanelProps {
   controls: TimeTravelControls;
@@ -67,14 +56,6 @@ function TimelinePanelInner({
     [goToTick, onTickChange],
   );
 
-  const handleStepBack = useCallback(() => {
-    stepBack();
-  }, [stepBack]);
-
-  const handleStepForward = useCallback(() => {
-    stepForward();
-  }, [stepForward]);
-
   const handleJumpToLive = useCallback(() => {
     jumpToLive();
     if (newestTickId !== undefined) {
@@ -116,7 +97,7 @@ function TimelinePanelInner({
       <div className="bt-timeline__controls">
         <button
           className="bt-timeline__btn"
-          onClick={handleStepBack}
+          onClick={stepBack}
           disabled={isLoading || !hasTicks || viewedTickId === oldestTickId}
           title="Step back (Left Arrow)"
           type="button"
@@ -125,7 +106,7 @@ function TimelinePanelInner({
         </button>
         <button
           className="bt-timeline__btn"
-          onClick={handleStepForward}
+          onClick={stepForward}
           disabled={isLoading || !hasTicks || viewedTickId === newestTickId}
           title="Step forward (Right Arrow)"
           type="button"
