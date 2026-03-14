@@ -101,14 +101,16 @@ export function useTimeTravelControls(
     setFrozenTickId(newestTickId ?? null);
   }, [newestTickId]);
 
-  // Reset to live when inspector is reset (tree changes)
+  // Reset to live when inspector is reset (tree changes).
+  // Guard isLoading: during a window fetch, inspector is temporarily cleared
+  // (totalTicks→0) — don't reset mode in that case.
   useEffect(() => {
-    if (totalTicks === 0) {
+    if (totalTicks === 0 && !isLoading) {
       setMode('live');
       setFrozenTickId(null);
       nowIsTimestampRef.current = null;
     }
-  }, [totalTicks]);
+  }, [totalTicks, isLoading]);
 
   // If paused on an evicted tick, clamp to the oldest available tick.
   useEffect(() => {
