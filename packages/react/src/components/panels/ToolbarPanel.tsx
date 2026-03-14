@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { ReactNode } from 'react';
 import type { ThemeMode } from '../../types';
+import { formatNowValue } from '../../utils/format';
 
 interface ToolbarPanelProps {
   showSidebar: boolean;
@@ -23,18 +24,6 @@ interface ToolbarPanelProps {
   activityWindowEnabled?: boolean;
   activityWindowVisible?: boolean;
   onToggleActivityWindow?: () => void;
-}
-
-function formatNowValue(now: number | null, nowIsTimestamp: boolean | null): string | null {
-  if (now === null) return null;
-  if (!nowIsTimestamp) return `${now}`;
-
-  const timestampMs = Math.abs(now) >= 1e12 ? now : now * 1000;
-  const date = new Date(timestampMs);
-  const hh = `${date.getHours()}`.padStart(2, '0');
-  const mm = `${date.getMinutes()}`.padStart(2, '0');
-  const ss = `${date.getSeconds()}`.padStart(2, '0');
-  return `${hh}:${mm}:${ss}`;
 }
 
 function ToolbarPanelInner({

@@ -193,9 +193,6 @@ export function BehaviourTreeDebugger({
 
   useEffect(() => {
     setPausedInspector(null);
-  }, [tree]);
-
-  useEffect(() => {
     setSelectedActivityTailNodeId(null);
   }, [tree]);
 
@@ -438,6 +435,23 @@ export function BehaviourTreeDebugger({
     [timeTravelControls, onTickChange],
   );
 
+  const handleToggleTimeTravel = useCallback(() => {
+    if (timeTravelControls.mode === 'paused') {
+      timeTravelControls.jumpToLive();
+      const liveNewest = inspector.getStats().newestTickId;
+      if (liveNewest !== undefined) {
+        onTickChange?.(liveNewest);
+      }
+      return;
+    }
+
+    timeTravelControls.pause();
+    const liveNewest = inspector.getStats().newestTickId;
+    if (liveNewest !== undefined) {
+      onTickChange?.(liveNewest);
+    }
+  }, [timeTravelControls, inspector, onTickChange]);
+
   useEffect(() => {
     const isEditableElement = (el: unknown): boolean => {
       if (!(el instanceof HTMLElement)) return false;
@@ -460,21 +474,7 @@ export function BehaviourTreeDebugger({
       if ((event.code === 'Space' || event.key === ' ') && !event.repeat) {
         if (isEditableTarget(event.target)) return;
         event.preventDefault();
-
-        if (timeTravelControls.mode === 'paused') {
-          timeTravelControls.jumpToLive();
-          const liveNewest = inspector.getStats().newestTickId;
-          if (liveNewest !== undefined) {
-            onTickChange?.(liveNewest);
-          }
-          return;
-        }
-
-        timeTravelControls.pause();
-        const liveNewest = inspector.getStats().newestTickId;
-        if (liveNewest !== undefined) {
-          onTickChange?.(liveNewest);
-        }
+        handleToggleTimeTravel();
         return;
       }
 
@@ -501,7 +501,7 @@ export function BehaviourTreeDebugger({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [timeTravelControls, inspector, onTickChange]);
+  }, [timeTravelControls, handleToggleTimeTravel, onTickChange]);
 
   const handleToggleTheme = useCallback(() => {
     const nextMode: ThemeMode = themeMode === 'dark' ? 'light' : 'dark';
@@ -518,23 +518,6 @@ export function BehaviourTreeDebugger({
   const handleTogglePerformanceMode = useCallback(() => {
     setPerformanceMode((v) => !v);
   }, []);
-
-  const handleToggleTimeTravel = useCallback(() => {
-    if (timeTravelControls.mode === 'paused') {
-      timeTravelControls.jumpToLive();
-      const liveNewest = inspector.getStats().newestTickId;
-      if (liveNewest !== undefined) {
-        onTickChange?.(liveNewest);
-      }
-      return;
-    }
-
-    timeTravelControls.pause();
-    const liveNewest = inspector.getStats().newestTickId;
-    if (liveNewest !== undefined) {
-      onTickChange?.(liveNewest);
-    }
-  }, [timeTravelControls, inspector, onTickChange]);
 
   const handleToggleTimeFormat = useCallback(() => {
     const current = timeFormatOverride ?? (timeTravelControls.nowIsTimestamp ?? false);
@@ -698,10 +681,7 @@ export function BehaviourTreeDebugger({
     event.stopPropagation();
   }, []);
 
-  const collapsedActivityBranch = useMemo(() => {
-    const branch = activityBranches[activityBranches.length - 1];
-    return branch;
-  }, [activityBranches]);
+  const collapsedActivityBranch = activityBranches[activityBranches.length - 1];
 
   const collapsedActivityEntry = useMemo(() => {
     const branch = collapsedActivityBranch;
