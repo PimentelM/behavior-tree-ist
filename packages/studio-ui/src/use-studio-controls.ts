@@ -8,7 +8,6 @@ import { useTrees } from './hooks/use-trees';
 import { useSelectedTree } from './hooks/use-selected-tree';
 import { useTreeStatuses } from './hooks/use-tree-statuses';
 import { useTickPoller } from './hooks/use-tick-poller';
-import type { TickPollerMode } from './hooks/use-tick-poller';
 import { useServerSettings } from './hooks/use-server-settings';
 import { useUiSettings } from './hooks/use-ui-settings';
 import { trpc } from './trpc';
@@ -65,11 +64,12 @@ export function useStudioControls(): UseStudioControlsResult {
 
     const { treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace } = useTreeStatuses(selection, isSelectedOnline);
 
-    const streaming = treeStatuses?.streaming ?? false;
-    const [manualWindowActive, setManualWindowActive] = useState(false);
+    const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.ringBufferSize);
+
+    // TT window: static snapshot fetched from server; null = show live buffer
+    const [ttWindowTicks, setTtWindowTicks] = useState<TickRecord[] | null>(null);
+    const [ttWindowLoading, setTtWindowLoading] = useState(false);
     const [windowMaxTicks, setWindowMaxTicks] = useState<number | null>(null);
-    const pollerMode: TickPollerMode = (streaming && !manualWindowActive) ? 'streaming' : 'windowed';
-    const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.ringBufferSize, pollerMode);
 
     // --- Tick bounds (server-side total history) ---
     const [tickBounds, setTickBounds] = useState<StudioTickBounds | null>(null);
@@ -103,22 +103,55 @@ export function useStudioControls(): UseStudioControlsResult {
         };
     }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
 
-    const ticks = pollerResult.ticks;
-    const isLoadingWindow = pollerResult.isLoading;
+    // ticks: TT window overrides live buffer; falling back to live when no TT window active
+    const ticks = ttWindowTicks ?? pollerResult.ticks;
+    const isLoadingWindow = ttWindowLoading;
 
     const onFetchTicksAround = useCallback((tickId: number) => {
         const half = Math.floor(uiSettings.ringBufferSize / 2);
-        pollerResult.seekToRange(Math.max(0, tickId - half), tickId + half - 1);
-    }, [pollerResult.seekToRange, uiSettings.ringBufferSize]);
+        const from = Math.max(0, tickId - half);
+        const to = tickId + half - 1;
+        const sel = selectionRef.current;
+        if (!sel) return;
+        setWindowMaxTicks(to - from + 1);
+        setTtWindowLoading(true);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((trpc.ticks as any).range.query as any)({
+            clientId: sel.clientId,
+            sessionId: sel.sessionId,
+            treeId: sel.treeId,
+            fromTickId: from,
+            toTickId: to,
+            limit: Math.min(to - from + 1, 10000),
+        }).then((newTicks: TickRecord[]) => {
+            const sorted = [...newTicks].sort((a: TickRecord, b: TickRecord) => a.tickId - b.tickId);
+            setTtWindowTicks(sorted);
+            setTtWindowLoading(false);
+        }).catch(() => { setTtWindowLoading(false); });
+    }, [uiSettings.ringBufferSize]);
 
     const onFetchTickRange = useCallback((from: number, to: number) => {
-        setManualWindowActive(true);
+        const sel = selectionRef.current;
+        if (!sel) return;
         setWindowMaxTicks(to - from + 1);
-        pollerResult.seekToRange(from, to);
-    }, [pollerResult.seekToRange]);
+        setTtWindowLoading(true);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((trpc.ticks as any).range.query as any)({
+            clientId: sel.clientId,
+            sessionId: sel.sessionId,
+            treeId: sel.treeId,
+            fromTickId: from,
+            toTickId: to,
+            limit: Math.min(to - from + 1, 10000),
+        }).then((newTicks: TickRecord[]) => {
+            const sorted = [...newTicks].sort((a: TickRecord, b: TickRecord) => a.tickId - b.tickId);
+            setTtWindowTicks(sorted);
+            setTtWindowLoading(false);
+        }).catch(() => { setTtWindowLoading(false); });
+    }, []);
 
     const onResumeStreaming = useCallback(() => {
-        setManualWindowActive(false);
+        setTtWindowTicks(null);
         setWindowMaxTicks(null);
     }, []);
 
