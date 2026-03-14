@@ -34,7 +34,12 @@ const main = defineCommand({
     },
     demo: {
       type: 'boolean',
-      description: 'Run a demo agent',
+      description: 'Run NPC demo agent (default demo)',
+      default: false,
+    },
+    'demo-cpu': {
+      type: 'boolean',
+      description: 'Run CPU-heavy demo agent',
       default: false,
     },
     db: {
@@ -61,15 +66,23 @@ const main = defineCommand({
     const displayHost = args.host === '0.0.0.0' ? 'localhost' : args.host
     console.log(`BT Studio running at http://${displayHost}:${port}`)
 
-    let demoHandle: { shutdown(): void } | undefined
+    let npcHandle: { shutdown(): void } | undefined
+    let cpuHandle: { shutdown(): void } | undefined
+
     if (args.demo) {
-      demoHandle = startDemoAgent(`ws://${displayHost}:${port}/ws`)
-      console.log('Demo agent started')
+      npcHandle = startDemoAgent(`ws://${displayHost}:${port}/ws`, 'npc')
+      console.log('NPC demo agent started')
+    }
+
+    if (args['demo-cpu']) {
+      cpuHandle = startDemoAgent(`ws://${displayHost}:${port}/ws`, 'cpu')
+      console.log('CPU demo agent started')
     }
 
     const shutdown = async () => {
       console.log('\nShutting down...')
-      demoHandle?.shutdown()
+      npcHandle?.shutdown()
+      cpuHandle?.shutdown()
       await server.stop()
       process.exit(0)
     }
