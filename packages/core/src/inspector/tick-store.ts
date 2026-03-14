@@ -1,6 +1,6 @@
 import { RingBuffer } from "./ring-buffer";
-import { TickTraceEvent, NodeHistoryEvent, TickRecord } from "../base/types";
-import { NodeTickSnapshot, TreeTickSnapshot } from "./types";
+import { type TickTraceEvent, type NodeHistoryEvent, type TickRecord } from "../base/types";
+import { type NodeTickSnapshot, type TreeTickSnapshot } from "./types";
 
 export class TickStore {
     private readonly buffer: RingBuffer<TickRecord>;

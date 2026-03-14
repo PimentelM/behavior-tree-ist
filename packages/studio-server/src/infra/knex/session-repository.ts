@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
-import { SessionRepositoryInterface } from '../../domain/interfaces';
+import { type SessionRepositoryInterface } from '../../domain/interfaces';
 import type { DbSession } from './schemas';
 import { mapDbSessionToDomain, mapSessionToDb } from './mappers';
 

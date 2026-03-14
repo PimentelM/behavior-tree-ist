@@ -1,9 +1,9 @@
-import { IncomingMessage } from 'http';
-import { Duplex } from 'stream';
+import { type IncomingMessage } from 'http';
+import { type Duplex } from 'stream';
 import type { Server as MessageServer } from '../../_lib/connection';
-import { UiInboundMessage, UiOutboundMessage } from '@bt-studio/studio-common';
+import { type UiInboundMessage, type UiOutboundMessage } from '@bt-studio/studio-common';
 import { UiWebSocketClient } from './ui-websocket-client';
-import { Logger } from '../logging';
+import { type Logger } from '../logging';
 import { GenericWebSocketServer } from '../../_lib/server/generic-ws-server';
 
 export interface UiWebSocketServerConfigInterface {

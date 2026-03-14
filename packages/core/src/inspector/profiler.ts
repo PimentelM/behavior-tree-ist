@@ -1,6 +1,6 @@
-import { NodeResult, TickTraceEvent } from "../base/types";
-import { NodeProfilingData, FlameGraphFrame } from "./types";
-import { TreeIndex } from "./tree-index";
+import { NodeResult, type TickTraceEvent } from "../base/types";
+import { type NodeProfilingData, type FlameGraphFrame } from "./types";
+import { type TreeIndex } from "./tree-index";
 
 interface TimingEntry {
     nodeId: number;
@@ -762,7 +762,7 @@ export class Profiler {
 
     private repairNodeMinMax(nodeId: number): void {
         const acc = this.accumulators.get(nodeId);
-        if (!acc || !acc.dirtyMinMax) return;
+        if (!acc?.dirtyMinMax) return;
 
         let cpuMin = Number.MAX_VALUE;
         let cpuMax = 0;
@@ -848,7 +848,7 @@ export class Profiler {
     ): PercentileCache {
         if (this.exactPercentilesReady) {
             const exact = exactCacheByNode.get(nodeId);
-            if (exact && exact.version === version) {
+            if (exact?.version === version) {
                 return exact;
             }
             const empty: PercentileCache = { version, p50: 0, p95: 0, p99: 0 };
@@ -866,7 +866,7 @@ export class Profiler {
         cacheByNode: Map<number, PercentileCache>,
     ): PercentileCache {
         const cached = cacheByNode.get(nodeId);
-        if (cached && cached.version === version) {
+        if (cached?.version === version) {
             return cached;
         }
 

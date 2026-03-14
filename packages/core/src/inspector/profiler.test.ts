@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { NodeResult, NodeFlags, TickTraceEvent, SerializableNode } from "../base/types";
+import { NodeResult, NodeFlags, type TickTraceEvent, type SerializableNode } from "../base/types";
 import { Profiler } from "./profiler";
 import { TreeIndex } from "./tree-index";
 

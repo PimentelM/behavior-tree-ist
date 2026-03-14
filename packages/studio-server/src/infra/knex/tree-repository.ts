@@ -1,7 +1,7 @@
 import type { Knex } from 'knex';
 import type { SerializableNode } from '@bt-studio/core';
 import { BaseKnexRepository } from './base-repository';
-import { TreeRepositoryInterface } from '../../domain/interfaces';
+import { type TreeRepositoryInterface } from '../../domain/interfaces';
 import type { DbTree } from './schemas';
 import { mapDbTreeToDomain, mapTreeToDb } from './mappers';
 

@@ -1,5 +1,5 @@
-import { BTNode, TickContext } from "./node";
-import { ActivityMetadata } from "./types";
+import { BTNode, type TickContext } from "./node";
+import { type ActivityMetadata } from "./types";
 import { NodeFlags } from "./types";
 
 export abstract class Decorator extends BTNode {

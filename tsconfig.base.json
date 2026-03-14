@@ -12,6 +12,7 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "jsx": "react",
     "jsxFactory": "BT.createElement",

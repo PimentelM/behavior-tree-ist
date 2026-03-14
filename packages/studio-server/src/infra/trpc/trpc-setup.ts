@@ -1,5 +1,5 @@
 import { initTRPC } from '@trpc/server';
-import { AppDependencies } from '../../types/app-dependencies';
+import { type AppDependencies } from '../../types/app-dependencies';
 import { createLogger } from '../logging';
 
 export type TRPCContext = AppDependencies;

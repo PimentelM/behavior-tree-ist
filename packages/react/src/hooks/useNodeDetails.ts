@@ -46,7 +46,7 @@ export function useNodeDetails(
 
     currentDisplayState = inspectorWithStateLookup.getLastDisplayState?.(selectedNodeId, stateLookupTick) as SerializableState | undefined;
     if (currentDisplayState !== undefined && viewedTickId !== null) {
-      currentDisplayStateIsStale = selectedNodeSnapshot === undefined || selectedNodeSnapshot.state === undefined;
+      currentDisplayStateIsStale = selectedNodeSnapshot?.state === undefined;
     }
 
     if (currentDisplayState === undefined) {
@@ -131,7 +131,7 @@ function getSyntheticUtilityDecoratorState(
 
   return {
     state: { lastScore: score },
-    isStale: atOrBeforeTickId !== undefined && (parentNodeSnapshot === undefined || parentNodeSnapshot.state === undefined),
+    isStale: atOrBeforeTickId !== undefined && (parentNodeSnapshot?.state === undefined),
   };
 }
 

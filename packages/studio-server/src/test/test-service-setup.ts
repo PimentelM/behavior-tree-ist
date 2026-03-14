@@ -1,6 +1,6 @@
 import { createTRPCClient, httpBatchLink, type TRPCClient } from '@trpc/client';
 import * as net from 'net';
-import { createStudioServer, StudioServerHandle, StudioServerOptions } from '../index';
+import { createStudioServer, type StudioServerHandle, type StudioServerOptions } from '../index';
 import type { AppRouter } from '../app/handlers/trpc';
 
 export interface TestServiceOptions {

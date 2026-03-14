@@ -1,4 +1,4 @@
-import { parseStudioServerConfig, StudioServerConfig } from './configuration-schema';
+import { parseStudioServerConfig, type StudioServerConfig } from './configuration-schema';
 
 function readIntegerEnv(name: string, fallback: number): number {
     const raw = process.env[name];

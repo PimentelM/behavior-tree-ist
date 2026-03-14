@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { NodeFlags, SerializableNode } from "../base/types";
+import { NodeFlags, type SerializableNode } from "../base/types";
 import { TreeIndex } from "./tree-index";
 
 // TODO: Extract shared SerializableNode test stubs into a common test-stubs module.

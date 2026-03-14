@@ -1,6 +1,6 @@
-import { AnyDecoratorSpec, BTNode, TickContext, ValidateDecoratorSpecs } from "../../base/node";
+import { type AnyDecoratorSpec, BTNode, type TickContext, type ValidateDecoratorSpecs } from "../../base/node";
 import { Decorator } from "../../base/decorator";
-import { NodeFlags, NodeResult } from "../../base/types";
+import { NodeFlags, type NodeResult } from "../../base/types";
 
 export type SubTreeMetadata = {
     id?: string;

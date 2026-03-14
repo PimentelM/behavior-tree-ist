@@ -1,5 +1,5 @@
 import { MessageType } from '@bt-studio/core';
-import { AppDependencies } from '../../../types/app-dependencies';
+import { type AppDependencies } from '../../../types/app-dependencies';
 import { HelloHandler } from './hello-handler';
 import { TreeRegisteredHandler } from './tree-registered-handler';
 import { TreeRemovedHandler } from './tree-removed-handler';

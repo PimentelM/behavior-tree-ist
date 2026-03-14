@@ -1,8 +1,8 @@
-import { MessageType, OutboundMessage } from '@bt-studio/core';
+import { MessageType, type OutboundMessage } from '@bt-studio/core';
 import { BaseHandler } from './base-handler';
-import { MessageConnectionInterface } from '../../../types/interfaces';
-import { TickRepositoryInterface, SettingsRepositoryInterface } from '../../../domain/interfaces';
-import { AgentConnectionRegistryInterface } from '../../interfaces';
+import { type MessageConnectionInterface } from '../../../types/interfaces';
+import { type TickRepositoryInterface, type SettingsRepositoryInterface } from '../../../domain/interfaces';
+import { type AgentConnectionRegistryInterface } from '../../interfaces';
 
 interface TickBatchHandlerDeps {
     tickRepository: TickRepositoryInterface;

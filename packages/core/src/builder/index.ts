@@ -1,16 +1,16 @@
 import { ConditionNode } from "../base/condition";
-import { Action, AsyncAction, BTNode, CancellationSignal, NodeResult, TickContext, SerializableState } from "../base";
-import { ActivityMetadata } from "../base/types";
+import { Action, AsyncAction, type BTNode, type CancellationSignal, type NodeResult, type TickContext, type SerializableState } from "../base";
+import { type ActivityMetadata } from "../base/types";
 import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse, DisplayState } from "../nodes";
-import { ParallelPolicy } from "../nodes/composite/parallel";
+import { type ParallelPolicy } from "../nodes/composite/parallel";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
-import { UtilityScorer } from "../base/utility";
+import { type UtilityScorer } from "../base/utility";
 import { Utility } from "../nodes/decorators/utility";
-import { SubTree, SubTreeMetadata } from "../nodes/decorators/sub-tree";
+import { SubTree, type SubTreeMetadata } from "../nodes/decorators/sub-tree";
 import * as Decorators from "../nodes/decorators";
-import { AnyDecoratorSpec } from "../base/node";
-import { Ref, ReadonlyRef } from "../base/ref";
+import { type AnyDecoratorSpec } from "../base/node";
+import { type Ref, type ReadonlyRef } from "../base/ref";
 
 export interface NodeProps {
     name?: string;

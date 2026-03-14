@@ -1,5 +1,5 @@
-import { TickTraceEvent, RefChangeEvent, ActivityMetadata } from "./types";
-import { NodeResult, NodeFlags, SerializableState, SerializableMetadata } from "./types";
+import { type TickTraceEvent, type RefChangeEvent, type ActivityMetadata } from "./types";
+import { NodeResult, type NodeFlags, type SerializableState, type SerializableMetadata } from "./types";
 import { AmbientContext } from "./ambient-context";
 
 export type AnyDecoratorSpec = readonly [unknown, ...readonly unknown[]];

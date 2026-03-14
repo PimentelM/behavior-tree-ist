@@ -1,4 +1,4 @@
-import { BTNode, Decorator, NodeResult, TickContext } from "../../base";
+import { BTNode, Decorator, type NodeResult, type TickContext } from "../../base";
 
 export class NonAbortable extends Decorator {
     public override readonly defaultName = "NonAbortable";

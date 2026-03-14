@@ -1,8 +1,8 @@
-import { RegisteredTree, TreeId, TreeRegistryOptions } from "./types";
+import { type RegisteredTree, type TreeId, type TreeRegistryOptions } from "./types";
 import { assertValidTreeId } from "./validation";
-import { OffFunction } from "../types";
-import { BehaviourTree } from "../tree";
-import { TickRecord } from "../base";
+import { type OffFunction } from "../types";
+import { type BehaviourTree } from "../tree";
+import { type TickRecord } from "../base";
 
 export class TreeRegistry {
     private readonly trees = new Map<TreeId, RegisteredTree>();

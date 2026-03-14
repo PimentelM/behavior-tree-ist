@@ -1,5 +1,5 @@
-import { NodeFlags, hasFlag, SerializableNode } from "../base/types";
-import { IndexedNode } from "./types";
+import { NodeFlags, hasFlag, type SerializableNode } from "../base/types";
+import { type IndexedNode } from "./types";
 
 export class TreeIndex {
     private readonly byId = new Map<number, IndexedNode>();
@@ -119,7 +119,7 @@ export class TreeIndex {
 
     getParent(nodeId: number): IndexedNode | undefined {
         const node = this.byId.get(nodeId);
-        if (!node || node.parentId === undefined) return undefined;
+        if (node?.parentId === undefined) return undefined;
         return this.byId.get(node.parentId);
     }
 

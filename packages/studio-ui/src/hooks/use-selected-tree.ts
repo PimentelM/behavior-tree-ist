@@ -18,7 +18,7 @@ export function useSelectedTree(selection: StudioSelection | null) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (trpc.trees.getById.query as any)({ clientId, sessionId, treeId }).then((result: any) => {
             const cur = selectionRef.current;
-            if (!cur || cur.clientId !== clientId || cur.sessionId !== sessionId || cur.treeId !== treeId) return;
+            if (cur?.clientId !== clientId || cur.sessionId !== sessionId || cur.treeId !== treeId) return;
             setTree((result?.serializedTree as SerializableNode) ?? null);
         }).catch((err: unknown) => {
             console.log('[use-selected-tree] fetch error', err);

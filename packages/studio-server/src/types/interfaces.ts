@@ -1,7 +1,7 @@
-import { OutboundMessage } from '@bt-studio/core';
-import { MessageType } from '@bt-studio/core';
-import { Connection, Server } from '../_lib/connection';
-import { MessageHandler as GenericMessageHandler, MessageRouterInterface as GenericMessageRouterInterface } from '../_lib/router';
+import { type OutboundMessage } from '@bt-studio/core';
+import { type MessageType } from '@bt-studio/core';
+import { type Connection, type Server } from '../_lib/connection';
+import { type MessageHandler as GenericMessageHandler, type MessageRouterInterface as GenericMessageRouterInterface } from '../_lib/router';
 
 export type MessageTransport = 'websocket' | 'tcp';
 

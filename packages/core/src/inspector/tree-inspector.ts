@@ -1,17 +1,17 @@
-import { NodeResult, SerializableNode, SerializableState, NodeHistoryEvent, TickRecord } from "../base/types";
+import { type NodeResult, type SerializableNode, type SerializableState, type NodeHistoryEvent, type TickRecord } from "../base/types";
 import { TreeIndex } from "./tree-index";
 import { TickStore } from "./tick-store";
 import { Profiler } from "./profiler";
 import {
-    TreeInspectorOptions,
-    NodeTickSnapshot,
-    TreeTickSnapshot,
-    FlameGraphFrame,
-    TreeStats,
-    NodeProfilingData,
-    CpuTimelineEntry,
-    ActivityDisplayMode,
-    ActivitySnapshot,
+    type TreeInspectorOptions,
+    type NodeTickSnapshot,
+    type TreeTickSnapshot,
+    type FlameGraphFrame,
+    type TreeStats,
+    type NodeProfilingData,
+    type CpuTimelineEntry,
+    type ActivityDisplayMode,
+    type ActivitySnapshot,
 } from "./types";
 import { projectActivityFromTreeIndex } from "../activity/projector";
 

@@ -1,5 +1,5 @@
 import { Decorator } from "../../base/decorator";
-import { BTNode, TickContext } from "../../base/node";
+import { BTNode, type TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 export type TimeoutState = number;
 

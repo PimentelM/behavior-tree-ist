@@ -1,4 +1,4 @@
-import { SerializableNode, TickRecord } from '@bt-studio/core';
+import { type SerializableNode, type TickRecord } from '@bt-studio/core';
 import type { TickBounds } from '@bt-studio/studio-common';
 import type { ClientRecord, SessionRecord, TreeRecord, SettingsRecord } from './records';
 

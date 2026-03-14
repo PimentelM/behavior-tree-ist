@@ -1,5 +1,5 @@
-import { SerializableNode, TickRecord } from "../base";
-import { CommandResponse, CorrelationId, StudioCommand } from "./types";
+import { type SerializableNode, type TickRecord } from "../base";
+import { type CommandResponse, type CorrelationId, type StudioCommand } from "./types";
 
 export const MessageType = {
     Hello: 1,

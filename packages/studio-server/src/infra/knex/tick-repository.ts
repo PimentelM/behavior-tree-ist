@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import type { TickRecord } from '@bt-studio/core';
 import type { TickBounds } from '@bt-studio/studio-common';
 import { BaseKnexRepository } from './base-repository';
-import { TickRepositoryInterface } from '../../domain/interfaces';
+import { type TickRepositoryInterface } from '../../domain/interfaces';
 import type { DbTick } from './schemas';
 import { mapDbTickToDomain, mapTickToDb } from './mappers';
 

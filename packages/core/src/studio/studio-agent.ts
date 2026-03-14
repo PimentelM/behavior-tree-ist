@@ -1,10 +1,10 @@
-import { TickRecord } from "../base";
-import { TreeRegistry } from "../registry/tree-registry";
-import { RegisteredTree } from "../registry/types";
+import { type TickRecord } from "../base";
+import { type TreeRegistry } from "../registry/tree-registry";
+import { type RegisteredTree } from "../registry/types";
 import { assertValidId } from "../registry/validation";
-import { OffFunction } from "../types";
-import { StudioLinkInterface } from "./interfaces";
-import { CommandResponse, CommandResponseData, CommandResponseSuccess, StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
+import { type OffFunction } from "../types";
+import { type StudioLinkInterface } from "./interfaces";
+import { type CommandResponse, type CommandResponseData, type CommandResponseSuccess, type StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 
 interface AgentManagedTreeState {
     streaming: boolean;
@@ -146,7 +146,7 @@ export class StudioAgent {
 
     private sendSuccess(correlationId: string, data?: CommandResponseData): void {
         const response: CommandResponse = data !== undefined
-            ? { success: true, data } as CommandResponseSuccess
+            ? ({ success: true, data } as unknown) as CommandResponseSuccess
             : { success: true };
         this.link.sendCommandResponse(correlationId, response);
     }

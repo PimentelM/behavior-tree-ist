@@ -1,4 +1,4 @@
-import { createServer, Server as NetServer, Socket } from 'net';
+import { createServer, type Server as NetServer, type Socket } from 'net';
 import { v4 as uuidv4 } from 'uuid';
 import type { Connection, Server } from '../connection';
 import type { Logger } from '../logger';

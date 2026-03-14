@@ -1,8 +1,8 @@
 import {
     NodeResult,
-    SerializableNode,
+    type SerializableNode,
     StudioCommandType,
-    TickRecord,
+    type TickRecord,
 } from '@bt-studio/core';
 import type { TreeRecord } from '../../domain/records';
 

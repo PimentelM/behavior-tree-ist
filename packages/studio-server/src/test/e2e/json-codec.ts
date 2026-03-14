@@ -1,4 +1,4 @@
-import { InboundMessage, OutboundMessage, TransportData } from '@bt-studio/core';
+import { type InboundMessage, type OutboundMessage, type TransportData } from '@bt-studio/core';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

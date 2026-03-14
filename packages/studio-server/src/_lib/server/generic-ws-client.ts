@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
-import { Logger } from '../logger';
-import { Connection, ConnectionSerializer } from '../connection';
+import { type Logger } from '../logger';
+import { type Connection, type ConnectionSerializer } from '../connection';
 
 export interface GenericWebSocketClientOptions<TReceive, TSend> {
     logger: Logger;

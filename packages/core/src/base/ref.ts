@@ -1,6 +1,6 @@
-import { TickContext } from "./node";
+import { type TickContext } from "./node";
 import { AmbientContext } from "./ambient-context";
-import { RefChangeEvent } from "./types";
+import { type RefChangeEvent } from "./types";
 import { pushRefEvent } from "./ref-event";
 
 export interface ReadonlyRef<T> {

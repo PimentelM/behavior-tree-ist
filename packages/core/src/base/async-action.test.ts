@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { AsyncAction } from "./async-action";
 import { NodeResult } from "./types";
 import { createNodeTicker } from "../test-helpers";
-import { CancellationSignal } from "./cancellation";
+import { type CancellationSignal } from "./cancellation";
 
 describe("AsyncAction", () => {
     it("First tick returns Running", async () => {

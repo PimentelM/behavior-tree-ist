@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NodeFlags, NodeResult, SerializableNode, TickRecord } from "../base/types";
+import { NodeFlags, NodeResult, type SerializableNode, type TickRecord } from "../base/types";
 import { createActivityProjector, projectActivity } from "./projector";
 
 function makeTree(): SerializableNode {

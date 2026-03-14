@@ -1,5 +1,5 @@
-import { UiConnectionRegistryInterface } from '../interfaces';
-import { UiConnection } from '../../domain/types';
+import { type UiConnectionRegistryInterface } from '../interfaces';
+import { type UiConnection } from '../../domain/types';
 
 export class UiConnectionRegistry implements UiConnectionRegistryInterface {
     private connections = new Map<string, UiConnection>();

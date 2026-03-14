@@ -1,20 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { BTNode, NodeFlags, NodeResult, TickContext } from "../base";
+import { BTNode, NodeFlags, NodeResult, type TickContext } from "../base";
 import { Sequence, SequenceWithMemory, FallbackWithMemory, Fallback } from "../nodes";
 import { ConditionNode } from "../base/condition";
 import { Action } from "../base";
 import { Decorator } from "../base/decorator";
 import { AlwaysFailPolicy } from "../nodes/composite/parallel";
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 import { BT } from "./index"; // This will be the alias we use for JSX factory -> JSXFactory: "BT.createElement"
-import { NodeProps } from "../builder";
+import { type NodeProps } from "../builder";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
 import { createNodeTicker, tickNode, StubAction } from "../test-helpers";
 import { Utility } from "../nodes/decorators/utility";
 import { SubTree } from "../nodes/decorators/sub-tree";
 import { NonAbortable } from "../nodes/decorators/non-abortable";
-/* eslint-enable @typescript-eslint/no-unused-vars */
+ 
 
 
 

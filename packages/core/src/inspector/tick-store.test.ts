@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { NodeResult, TickTraceEvent, TickRecord } from "../base/types";
+import { NodeResult, type TickTraceEvent, type TickRecord } from "../base/types";
 import { TickStore } from "./tick-store";
 
 function makeRecord(tickId: number, nodeIds: number[] = [1, 2, 3]): TickRecord {

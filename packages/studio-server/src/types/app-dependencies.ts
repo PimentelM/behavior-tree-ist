@@ -1,11 +1,11 @@
 import type { Knex } from 'knex';
-import { WebSocketServerInterface } from '../infra/websocket/interfaces';
-import { UiWebSocketServerInterface } from '../infra/websocket/ui-websocket-server';
+import { type WebSocketServerInterface } from '../infra/websocket/interfaces';
+import { type UiWebSocketServerInterface } from '../infra/websocket/ui-websocket-server';
 import type { RawTcpServerInterface } from '../infra/tcp/interfaces';
-import { MessageRouterInterface } from './interfaces';
-import { ClientRepositoryInterface, SessionRepositoryInterface, TreeRepositoryInterface, TickRepositoryInterface, SettingsRepositoryInterface } from '../domain/interfaces';
+import { type MessageRouterInterface } from './interfaces';
+import { type ClientRepositoryInterface, type SessionRepositoryInterface, type TreeRepositoryInterface, type TickRepositoryInterface, type SettingsRepositoryInterface } from '../domain/interfaces';
 import type { AgentConnectionRegistryInterface, UiConnectionRegistryInterface, CommandBrokerInterface, DomainEventDispatcherInterface } from '../app/interfaces';
-import { StudioServerConfig } from '../configuration';
+import { type StudioServerConfig } from '../configuration';
 
 export interface InfrastructureClients {
     knex: Knex;

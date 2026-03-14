@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ConditionNode } from "./condition";
-import { BTNode, TickContext } from "./node";
+import { BTNode, type TickContext } from "./node";
 import { NodeResult } from "./types";
 import { createNodeTicker, createTickContext } from "../test-helpers";
 

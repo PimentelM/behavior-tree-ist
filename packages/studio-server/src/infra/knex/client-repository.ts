@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
-import { ClientRepositoryInterface } from '../../domain/interfaces';
+import { type ClientRepositoryInterface } from '../../domain/interfaces';
 import type { DbClient } from './schemas';
 import { mapClientToDb, mapDbClientToDomain } from './mappers';
 

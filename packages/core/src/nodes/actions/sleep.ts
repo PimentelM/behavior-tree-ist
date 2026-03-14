@@ -1,4 +1,4 @@
-import { TickContext } from "../../base";
+import { type TickContext } from "../../base";
 import { Action } from "../../base/action";
 import { NodeResult, NodeFlags } from "../../base/types";
 export type SleepState = number;

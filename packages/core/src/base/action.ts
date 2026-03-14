@@ -1,5 +1,5 @@
-import { BTNode, TickContext } from "./node";
-import { NodeResult, NodeFlags } from "./types";
+import { BTNode, type TickContext } from "./node";
+import { type NodeResult, NodeFlags } from "./types";
 
 export abstract class Action extends BTNode {
     public readonly defaultName: string = "Action";

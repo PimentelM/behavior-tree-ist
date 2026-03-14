@@ -1,5 +1,5 @@
-import { CommandResponse, StudioCommand, MessageType, InboundMessage } from '@bt-studio/core';
-import { CommandBrokerInterface, CommandSenderInterface } from '../interfaces';
+import { type CommandResponse, type StudioCommand, MessageType, type InboundMessage } from '@bt-studio/core';
+import { type CommandBrokerInterface, type CommandSenderInterface } from '../interfaces';
 import { createLogger } from '../../infra/logging';
 import { AbstractCommandBroker } from '../../_lib/command-broker';
 
