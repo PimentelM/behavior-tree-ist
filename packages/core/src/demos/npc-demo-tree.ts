@@ -6,7 +6,7 @@ import {
     ifThenElse, sequenceWithMemory, selectorWithMemory,
     utilityFallback, utilitySequence, utility,
     alwaysRunning, alwaysSuccess, alwaysFailure,
-    sleep, displayState, subTree,
+    sleep, displayState, displayNote, displayProgress, subTree,
 } from '../index.js'
 
 type Item = { id: number; x: number; y: number; type: string; collected: boolean }
@@ -188,6 +188,14 @@ export function createNpcDemoTree(): BehaviourTree {
                             }),
                             inputs: [tickCount, timeOfDay, weather, enemyDetected],
                             forceSuccess: true,
+                        }),
+                        displayNote({
+                            name: 'DemoNote',
+                            text: 'NPC Adventurer — patrol, combat, survival demo',
+                        }),
+                        displayProgress({
+                            name: 'HpBar',
+                            progress: () => ({ progress: hp.value / maxHp.value, label: 'HP' }),
                         }),
                     ])
                 ),
