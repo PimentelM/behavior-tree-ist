@@ -1,9 +1,7 @@
 /**
- * REPL plugin type definitions — no external dependencies.
- * StudioPlugin and PluginSender are canonical in ../interfaces.ts;
- * re-exported here for convenience.
+ * REPL plugin types — imports plugin interfaces from core and adds REPL-specific types.
  */
-export type { StudioPlugin, PluginSender } from '../interfaces';
+export type { StudioPlugin, PluginSender } from '@bt-studio/core';
 
 // ---------------------------------------------------------------------------
 // REPL action payloads (UI → Agent, decrypted)

@@ -12,6 +12,7 @@ export type {
 } from './repl-types';
 
 export {
+    ReplPlugin,
     toDisplayString,
     getPropertyNamesDeep,
     resolvePath,
@@ -23,6 +24,19 @@ export {
     base64urlEncode,
     base64urlDecode,
     getRandomBytes,
+    generateEphemeralKeyPair,
+    sealSessionSeed,
+    openSessionSeed,
+    deriveDirectionalKeys,
+    secretboxEncrypt,
+    secretboxDecrypt,
+    encodeEnvelope,
+    decodeEnvelope,
+    encodeHeaderToken,
+    decodeHeaderToken,
     jsonToBytes,
     bytesToJson,
+    DEMO_SERVER_KEYPAIR,
 } from './repl-crypto';
+
+export type { DirectionalKeys, HeaderTokenFields } from './repl-crypto';

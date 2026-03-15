@@ -55,8 +55,7 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
     );
 
     messageRouter.registerHandler(
-        // Cast required until MessageType.PluginMessage (7) is published from core
-        (7 as unknown) as MessageType,
+        MessageType.PluginMessage,
         new PluginMessageHandler({
             replBroker: deps.replBroker,
         })

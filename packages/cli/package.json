@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@bt-studio/core": "workspace:*",
+    "@bt-studio/studio-plugins": "workspace:*",
     "@bt-studio/studio-server": "workspace:^",
     "@bt-studio/studio-transport": "workspace:^",
     "@bt-studio/studio-ui": "workspace:^",
