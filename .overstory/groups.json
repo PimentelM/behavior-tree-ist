@@ -167,8 +167,28 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-7c2b"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-14T23:02:11.005Z",
+		"completedAt": "2026-03-14T23:25:20.309Z"
+	},
+	{
+		"id": "group-90289267",
+		"name": "repl-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-d981"
+		],
+		"status": "active",
+		"createdAt": "2026-03-14T23:26:24.946Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-7bcb7d6c",
+		"name": "tt-fixes-r2",
+		"memberIssueIds": [
+			"behavior-tree-ist-e800"
+		],
+		"status": "active",
+		"createdAt": "2026-03-14T23:36:40.274Z",
 		"completedAt": null
 	}
 ]
