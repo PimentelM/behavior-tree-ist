@@ -314,9 +314,9 @@
 
 .bt-toolbar {
   height: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   padding: 0 10px;
   gap: 8px;
 }
@@ -363,10 +363,6 @@
   justify-content: flex-end;
 }
 
-.bt-toolbar--split .bt-toolbar__travel-indicator {
-  margin-left: 0;
-  margin-right: 0;
-}
 
 .bt-toolbar__actions {
   display: flex;
@@ -413,8 +409,6 @@
 }
 
 .bt-toolbar__travel-indicator {
-  margin-left: auto;
-  margin-right: 8px;
   font-size: 11px;
   line-height: 1;
   padding: 5px 8px;
@@ -442,7 +436,6 @@
 }
 
 .bt-toolbar__theme-btn {
-  margin-left: auto;
   width: 30px;
   height: 30px;
   border-radius: 8px;
@@ -2136,6 +2129,20 @@
     grid-row: 1;
   }
 
+  .bt-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .bt-toolbar__main-center {
+    display: none;
+  }
+
+  .bt-toolbar__main-trailing {
+    margin-left: auto;
+  }
+
   .bt-toolbar--split {
     display: flex;
     align-items: center;
@@ -2154,14 +2161,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-
-  .bt-toolbar__main-center {
-    display: none;
-  }
-
-  .bt-toolbar__main-trailing {
-    margin-left: auto;
   }
 
   .bt-debugger-layout__canvas {
