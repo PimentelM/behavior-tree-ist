@@ -87,6 +87,7 @@ export interface BehaviourTreeDebuggerProps {
   showThemeToggle?: boolean;
   showToolbar?: boolean;
   toolbarActions?: ReactNode;
+  replPanel?: ReactNode;
   layoutDirection?: LayoutDirection;
   width?: string | number;
   height?: string | number;

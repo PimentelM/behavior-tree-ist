@@ -21,6 +21,9 @@ interface ToolbarPanelProps {
   onToggleTimeTravel?: () => void;
   performanceMode?: boolean;
   onTogglePerformanceMode?: () => void;
+  replPanelEnabled?: boolean;
+  replMode?: boolean;
+  onToggleReplMode?: () => void;
   activityWindowEnabled?: boolean;
   activityWindowVisible?: boolean;
   onToggleActivityWindow?: () => void;
@@ -44,6 +47,9 @@ function ToolbarPanelInner({
   onToggleTimeTravel,
   performanceMode,
   onTogglePerformanceMode,
+  replPanelEnabled,
+  replMode,
+  onToggleReplMode,
   activityWindowEnabled,
   activityWindowVisible,
   onToggleActivityWindow,
@@ -77,6 +83,17 @@ function ToolbarPanelInner({
                   title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
                 >
                   <ChartIcon />
+                </button>
+              )}
+              {replPanelEnabled && onToggleReplMode && (
+                <button
+                  className={`bt-toolbar__repl-btn ${replMode ? 'bt-toolbar__repl-btn--active' : ''}`}
+                  onClick={onToggleReplMode}
+                  type="button"
+                  aria-label={replMode ? 'Switch to tree view' : 'Switch to REPL view'}
+                  title={replMode ? 'Switch to tree view' : 'Switch to REPL view'}
+                >
+                  <TerminalIcon />
                 </button>
               )}
               {activityWindowEnabled && onToggleActivityWindow && (
@@ -165,6 +182,17 @@ function ToolbarPanelInner({
               title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
             >
               <ChartIcon />
+            </button>
+          )}
+          {replPanelEnabled && onToggleReplMode && (
+            <button
+              className={`bt-toolbar__repl-btn ${replMode ? 'bt-toolbar__repl-btn--active' : ''}`}
+              onClick={onToggleReplMode}
+              type="button"
+              aria-label={replMode ? 'Switch to tree view' : 'Switch to REPL view'}
+              title={replMode ? 'Switch to tree view' : 'Switch to REPL view'}
+            >
+              <TerminalIcon />
             </button>
           )}
           {activityWindowEnabled && onToggleActivityWindow && (
@@ -296,6 +324,29 @@ function ActivityIcon() {
     <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
       <path
         d="M4 7h16M4 12h12M4 17h8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TerminalIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="bt-toolbar__icon">
+      <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M6 9l4 3-4 3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13 15h5"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.8"

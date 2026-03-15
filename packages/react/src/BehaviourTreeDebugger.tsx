@@ -89,6 +89,7 @@ export function BehaviourTreeDebugger({
   showThemeToggle = true,
   showToolbar = true,
   toolbarActions,
+  replPanel,
   layoutDirection = 'TB',
   width = '100%',
   height = '100%',
@@ -122,6 +123,7 @@ export function BehaviourTreeDebugger({
   const [openDetailsSignal, setOpenDetailsSignal] = useState(0);
   const [centerTreeSignal, setCenterTreeSignal] = useState(0);
   const [performanceMode, setPerformanceMode] = useState(false);
+  const [replMode, setReplMode] = useState(false);
   const [focusNodeId, setFocusNodeId] = useState<number | null>(null);
   const [focusNodeSignal, setFocusNodeSignal] = useState(0);
   const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
@@ -525,7 +527,17 @@ export function BehaviourTreeDebugger({
   }, []);
 
   const handleTogglePerformanceMode = useCallback(() => {
-    setPerformanceMode((v) => !v);
+    setPerformanceMode((v) => {
+      if (!v) setReplMode(false);
+      return !v;
+    });
+  }, []);
+
+  const handleToggleReplMode = useCallback(() => {
+    setReplMode((v) => {
+      if (!v) setPerformanceMode(false);
+      return !v;
+    });
   }, []);
 
   const handleToggleTimeFormat = useCallback(() => {
@@ -766,6 +778,9 @@ export function BehaviourTreeDebugger({
               onToggleTimeTravel={handleToggleTimeTravel}
               performanceMode={performanceMode}
               onTogglePerformanceMode={showPerformance ? handleTogglePerformanceMode : undefined}
+              replPanelEnabled={replPanel !== undefined}
+              replMode={replMode}
+              onToggleReplMode={replPanel !== undefined ? handleToggleReplMode : undefined}
               activityWindowEnabled={activityWindowEnabled}
               activityWindowVisible={activityWindowVisible}
               onToggleActivityWindow={activityWindowEnabled ? handleToggleActivityWindow : undefined}
@@ -776,6 +791,8 @@ export function BehaviourTreeDebugger({
           <div className="bt-canvas-surface" ref={canvasSurfaceRef}>
             {isEmptyTree ? (
               <div className="bt-canvas-surface__empty-state">{emptyState}</div>
+            ) : replMode && replPanel ? (
+              <div className="bt-canvas-surface__repl">{replPanel}</div>
             ) : performanceMode ? (
               <PerformanceView
                 frames={performanceData.frames}
