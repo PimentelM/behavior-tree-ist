@@ -59,88 +59,169 @@ function printSuggestions(term: Terminal, suggestions: string[], selectedIdx: nu
 // ---- Key management panel ----
 
 interface KeyManagementProps {
-    publicKey: string | null;
+    keyPair: { publicKeyB64: string; privateKeyB64: string } | null;
     onGenerate: () => void;
+    onImport: (input: string) => void;
 }
 
-function KeyManagement({ publicKey, onGenerate }: KeyManagementProps) {
+function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
     const [copied, setCopied] = useState(false);
+    return (
+        <button
+            onClick={() => {
+                navigator.clipboard.writeText(text).then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                });
+            }}
+            style={{
+                background: 'transparent',
+                border: '1px solid #4a1942',
+                color: copied ? '#8ae234' : '#ad7fa8',
+                borderRadius: 3,
+                cursor: 'pointer',
+                fontSize: 10,
+                padding: '1px 6px',
+                flexShrink: 0,
+            }}
+        >
+            {copied ? 'Copied!' : label}
+        </button>
+    );
+}
 
-    function handleCopy() {
-        if (!publicKey) return;
-        navigator.clipboard.writeText(publicKey).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-        });
+function KeyRow({ label, value, dimmed }: { label: string; value: string; dimmed?: boolean }) {
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ color: '#555753', fontSize: 10, flexShrink: 0 }}>{label}</span>
+            <code
+                style={{
+                    background: '#300a24',
+                    padding: '1px 6px',
+                    borderRadius: 3,
+                    fontSize: 10,
+                    color: dimmed ? '#ad7fa8' : '#8ae234',
+                    maxWidth: 200,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 1,
+                }}
+                title={value}
+            >
+                {value}
+            </code>
+            <CopyButton text={value} />
+        </div>
+    );
+}
+
+function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
+    const [importOpen, setImportOpen] = useState(false);
+    const [importValue, setImportValue] = useState('');
+    const [importError, setImportError] = useState<string | null>(null);
+
+    function handleImport() {
+        try {
+            onImport(importValue);
+            setImportOpen(false);
+            setImportValue('');
+            setImportError(null);
+        } catch (err) {
+            setImportError(err instanceof Error ? err.message : String(err));
+        }
     }
 
     return (
         <div
             style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '4px 8px',
+                padding: '6px 10px',
                 background: '#1a0012',
                 borderTop: '1px solid #4a1942',
                 fontSize: 11,
                 fontFamily: 'Ubuntu Mono, monospace',
                 color: '#d3d7cf',
-                flexWrap: 'wrap',
             }}
         >
-            <span style={{ color: '#555753' }}>🔑 REPL Key:</span>
-            {publicKey ? (
-                <>
-                    <code
-                        style={{
-                            background: '#300a24',
-                            padding: '1px 6px',
-                            borderRadius: 3,
-                            fontSize: 10,
-                            color: '#8ae234',
-                            maxWidth: 240,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                        }}
-                        title={publicKey}
-                    >
-                        {publicKey}
-                    </code>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ color: '#555753', fontSize: 10, flexShrink: 0 }}>REPL Keys</span>
+                {keyPair ? (
+                    <>
+                        <KeyRow label="pub:" value={keyPair.publicKeyB64} />
+                        <KeyRow label="priv:" value={keyPair.privateKeyB64} dimmed />
+                    </>
+                ) : (
+                    <span style={{ color: '#cc0000', fontSize: 10 }}>No keypair set</span>
+                )}
+                <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', flexShrink: 0 }}>
                     <button
-                        onClick={handleCopy}
+                        onClick={() => { setImportOpen((v) => !v); setImportError(null); }}
                         style={{
                             background: 'transparent',
                             border: '1px solid #4a1942',
-                            color: copied ? '#8ae234' : '#ad7fa8',
+                            color: importOpen ? '#8ae234' : '#ad7fa8',
                             borderRadius: 3,
                             cursor: 'pointer',
                             fontSize: 10,
                             padding: '1px 6px',
                         }}
                     >
-                        {copied ? 'Copied!' : 'Copy'}
+                        Import Key
                     </button>
-                </>
-            ) : (
-                <span style={{ color: '#cc0000', fontSize: 10 }}>No keypair — generate one to enable REPL</span>
+                    <button
+                        onClick={onGenerate}
+                        style={{
+                            background: 'transparent',
+                            border: '1px solid #4a1942',
+                            color: '#ad7fa8',
+                            borderRadius: 3,
+                            cursor: 'pointer',
+                            fontSize: 10,
+                            padding: '1px 6px',
+                        }}
+                    >
+                        New Keypair
+                    </button>
+                </div>
+            </div>
+            {importOpen && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                    <input
+                        placeholder="Paste private key (hex or base64url)"
+                        value={importValue}
+                        onChange={(e) => { setImportValue(e.target.value); setImportError(null); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleImport(); }}
+                        style={{
+                            flex: 1,
+                            background: '#300a24',
+                            border: `1px solid ${importError ? '#cc0000' : '#4a1942'}`,
+                            color: '#d3d7cf',
+                            borderRadius: 3,
+                            fontSize: 10,
+                            padding: '2px 6px',
+                            fontFamily: 'Ubuntu Mono, monospace',
+                            outline: 'none',
+                        }}
+                    />
+                    <button
+                        onClick={handleImport}
+                        style={{
+                            background: 'transparent',
+                            border: '1px solid #8ae234',
+                            color: '#8ae234',
+                            borderRadius: 3,
+                            cursor: 'pointer',
+                            fontSize: 10,
+                            padding: '2px 6px',
+                        }}
+                    >
+                        Set
+                    </button>
+                    {importError && (
+                        <span style={{ color: '#cc0000', fontSize: 10 }}>{importError}</span>
+                    )}
+                </div>
             )}
-            <button
-                onClick={onGenerate}
-                style={{
-                    background: 'transparent',
-                    border: '1px solid #4a1942',
-                    color: '#ad7fa8',
-                    borderRadius: 3,
-                    cursor: 'pointer',
-                    fontSize: 10,
-                    padding: '1px 6px',
-                    marginLeft: 'auto',
-                }}
-            >
-                {publicKey ? 'Regenerate Keypair' : 'Generate Keypair'}
-            </button>
         </div>
     );
 }
@@ -150,11 +231,9 @@ function KeyManagement({ publicKey, onGenerate }: KeyManagementProps) {
 interface ReplTerminalProps {
     clientId: string | null;
     sessionId: string | null;
-    /** Height of the terminal container in pixels */
-    height?: number;
 }
 
-export function ReplTerminal({ clientId, sessionId, height = 260 }: ReplTerminalProps) {
+export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     // All mutable state accessed inside the stable terminal effect lives in refs
@@ -408,10 +487,11 @@ export function ReplTerminal({ clientId, sessionId, height = 260 }: ReplTerminal
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#300a24' }}>
-            <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden', height }} />
+            <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} />
             <KeyManagement
-                publicKey={repl.keyPair?.publicKeyB64 ?? null}
+                keyPair={repl.keyPair}
                 onGenerate={repl.generateKeyPair}
+                onImport={repl.importPrivateKey}
             />
         </div>
     );
