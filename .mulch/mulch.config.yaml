@@ -6,6 +6,7 @@ domains:
   - transport
   - screeps-transport
   - server-retention
+  - ui
 governance:
   max_entries: 100
   warn_entries: 150

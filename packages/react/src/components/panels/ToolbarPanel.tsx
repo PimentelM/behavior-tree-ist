@@ -135,49 +135,61 @@ function ToolbarPanelInner({
 
   return (
     <div className="bt-toolbar">
-      <div className="bt-toolbar__actions">
-        {studioSection}
-        <button
-          className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--live' : 'bt-toolbar__mode-btn--pause'}`}
-          onClick={onToggleTimeTravel}
-          type="button"
-          aria-label={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
-          title={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
-        >
-          {timeTravelMode === 'paused' ? '▶ Live' : '⏸ Pause'}
-        </button>
-        <button
-          className="bt-toolbar__camera-btn"
-          onClick={onCenterTree}
-          type="button"
-          aria-label="Center tree"
-          title="Center tree"
-        >
-          <CenterIcon />
-        </button>
-        {onTogglePerformanceMode && (
+      <div className="bt-toolbar__main-actions">
+        <div className="bt-toolbar__actions">
+          {studioSection}
           <button
-            className={`bt-toolbar__perf-btn ${performanceMode ? 'bt-toolbar__perf-btn--active' : ''}`}
-            onClick={onTogglePerformanceMode}
+            className={`bt-toolbar__mode-btn ${timeTravelMode === 'paused' ? 'bt-toolbar__mode-btn--live' : 'bt-toolbar__mode-btn--pause'}`}
+            onClick={onToggleTimeTravel}
             type="button"
-            aria-label={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
-            title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
+            aria-label={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
+            title={timeTravelMode === 'paused' ? 'Resume live mode' : 'Pause and enter time travel'}
           >
-            <ChartIcon />
+            {timeTravelMode === 'paused' ? '▶ Live' : '⏸ Pause'}
           </button>
-        )}
-        {activityWindowEnabled && onToggleActivityWindow && (
           <button
-            className={`bt-toolbar__activity-btn ${activityWindowVisible ? 'bt-toolbar__activity-btn--active' : ''}`}
-            onClick={onToggleActivityWindow}
+            className="bt-toolbar__camera-btn"
+            onClick={onCenterTree}
             type="button"
-            aria-label={toggleActivityLabel}
-            title={toggleActivityLabel}
+            aria-label="Center tree"
+            title="Center tree"
           >
-            <ActivityIcon />
+            <CenterIcon />
           </button>
-        )}
-        {actions}
+          {onTogglePerformanceMode && (
+            <button
+              className={`bt-toolbar__perf-btn ${performanceMode ? 'bt-toolbar__perf-btn--active' : ''}`}
+              onClick={onTogglePerformanceMode}
+              type="button"
+              aria-label={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
+              title={performanceMode ? 'Switch to tree view' : 'Switch to performance view'}
+            >
+              <ChartIcon />
+            </button>
+          )}
+          {activityWindowEnabled && onToggleActivityWindow && (
+            <button
+              className={`bt-toolbar__activity-btn ${activityWindowVisible ? 'bt-toolbar__activity-btn--active' : ''}`}
+              onClick={onToggleActivityWindow}
+              type="button"
+              aria-label={toggleActivityLabel}
+              title={toggleActivityLabel}
+            >
+              <ActivityIcon />
+            </button>
+          )}
+          {actions}
+        </div>
+      </div>
+      <div className="bt-toolbar__main-center">
+        {connectionBadge}
+        <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
+          {timeTravelMode === 'paused'
+            ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
+            : `Live${formattedNow !== null ? ` · time ${formattedNow}` : ''}`}
+        </div>
+      </div>
+      <div className="bt-toolbar__main-trailing">
         <button
           className="bt-toolbar__time-format-btn"
           onClick={onToggleTimeFormat}
@@ -190,25 +202,19 @@ function ToolbarPanelInner({
             {displayTimeAsTimestamp ? '::' : '#'}
           </span>
         </button>
+        {showThemeToggle && (
+          <button
+            className="bt-toolbar__theme-btn"
+            onClick={onToggleTheme}
+            type="button"
+            aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {themeMode === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </button>
+        )}
+        {settingsButton}
       </div>
-      {connectionBadge}
-      <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
-        {timeTravelMode === 'paused'
-          ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
-          : `Live${formattedNow !== null ? ` · time ${formattedNow}` : ''}`}
-      </div>
-      {showThemeToggle && (
-        <button
-          className="bt-toolbar__theme-btn"
-          onClick={onToggleTheme}
-          type="button"
-          aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {themeMode === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
-      )}
-      {settingsButton}
     </div>
   );
 }
