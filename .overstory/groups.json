@@ -190,5 +190,15 @@
 		"status": "active",
 		"createdAt": "2026-03-14T23:36:40.274Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-d1367125",
+		"name": "display-nodes",
+		"memberIssueIds": [
+			"behavior-tree-ist-be2c"
+		],
+		"status": "active",
+		"createdAt": "2026-03-15T00:15:53.125Z",
+		"completedAt": null
 	}
 ]
