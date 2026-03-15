@@ -8,9 +8,7 @@ import type { ReplResult, UseReplReturn } from './use-repl';
 
 // ---- ANSI colour helpers ----
 const RESET = '\x1b[0m';
-const GREEN = '\x1b[32m';
 const BRIGHT_GREEN = '\x1b[92m';
-const BRIGHT_BLUE = '\x1b[94m';
 const RED = '\x1b[91m';
 const CYAN = '\x1b[96m';
 const GRAY = '\x1b[90m';
