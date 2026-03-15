@@ -231,5 +231,25 @@
 		"status": "active",
 		"createdAt": "2026-03-15T20:21:03.622Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-d5ed629c",
+		"name": "repl-fixes",
+		"memberIssueIds": [
+			"behavior-tree-ist-0500"
+		],
+		"status": "active",
+		"createdAt": "2026-03-15T20:48:09.553Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-dce630d2",
+		"name": "repl-rename",
+		"memberIssueIds": [
+			"behavior-tree-ist-8fb6"
+		],
+		"status": "active",
+		"createdAt": "2026-03-15T21:07:55.028Z",
+		"completedAt": null
 	}
 ]
