@@ -2,6 +2,7 @@ import type { Socket } from 'net';
 import type { OutboundMessage } from '@bt-studio/core';
 import { OutboundMessageSchema } from '../../domain/core-schemas';
 import { createLogger } from '../logging';
+import type { Logger } from '../logging';
 import type { MessageConnectionInterface } from '../../types/interfaces';
 import { GenericTcpClient } from '../../_lib/server/generic-tcp-client';
 import type { ConnectionSerializer } from '../../_lib/connection';
@@ -9,6 +10,8 @@ import type { ConnectionSerializer } from '../../_lib/connection';
 const textDecoder = new TextDecoder();
 
 class JsonMessageSerializer implements ConnectionSerializer<OutboundMessage, object> {
+    constructor(private readonly logger: Logger) {}
+
     serialize(message: object): string {
         return JSON.stringify(message);
     }
@@ -19,7 +22,10 @@ class JsonMessageSerializer implements ConnectionSerializer<OutboundMessage, obj
         const parsed = OutboundMessageSchema.safeParse(rawObj);
 
         if (!parsed.success) {
-            return undefined; // Handled/dropped by generic client or logged externally if desirable
+            this.logger.warn('TCP message deserialization failed', {
+                error: parsed.error.message,
+            });
+            return undefined;
         }
 
         return parsed.data as OutboundMessage;
@@ -34,7 +40,7 @@ export class TCPSocketClient extends GenericTcpClient<OutboundMessage, object> i
         const logger = createLogger(`tcp-client:${id.slice(0, 8)}`);
         super(id, socket, {
             logger,
-            serializer: new JsonMessageSerializer()
+            serializer: new JsonMessageSerializer(logger)
         });
     }
 }

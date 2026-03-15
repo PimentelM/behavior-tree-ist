@@ -1,13 +1,17 @@
 import { MessageType, type OutboundMessage } from '@bt-studio/core';
 import { BaseHandler } from './base-handler';
 import { type MessageConnectionInterface } from '../../../types/interfaces';
-import { type TickRepositoryInterface, type SettingsRepositoryInterface } from '../../../domain/interfaces';
+import { type TickRepositoryInterface } from '../../../domain/interfaces';
 import { type AgentConnectionRegistryInterface, type ByteMetricsServiceInterface } from '../../interfaces';
+
+export interface RuntimeSettingsRef {
+    maxTicksPerTree: number;
+}
 
 interface TickBatchHandlerDeps {
     tickRepository: TickRepositoryInterface;
     agentConnectionRegistry: AgentConnectionRegistryInterface;
-    settingsRepository: SettingsRepositoryInterface;
+    runtimeSettings: RuntimeSettingsRef;
     byteMetricsService: ByteMetricsServiceInterface;
 }
 
@@ -38,12 +42,11 @@ export class TickBatchHandler extends BaseHandler {
         await this.deps.tickRepository.insertBatch(clientId, sessionId, message.treeId, message.ticks);
 
         // Prune old ticks
-        const settings = await this.deps.settingsRepository.get();
         await this.deps.tickRepository.pruneToLimit(
             clientId,
             sessionId,
             message.treeId,
-            settings.maxTicksPerTree
+            this.deps.runtimeSettings.maxTicksPerTree
         );
 
         this.logger.debug('Tick batch processed', {

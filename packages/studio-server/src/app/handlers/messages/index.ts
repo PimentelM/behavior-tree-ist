@@ -3,12 +3,14 @@ import { type AppDependencies } from '../../../types/app-dependencies';
 import { HelloHandler } from './hello-handler';
 import { TreeRegisteredHandler } from './tree-registered-handler';
 import { TreeRemovedHandler } from './tree-removed-handler';
-import { TickBatchHandler } from './tick-batch-handler';
+import { TickBatchHandler, type RuntimeSettingsRef } from './tick-batch-handler';
 import { CommandResponseHandler } from './command-response-handler';
 import { PluginMessageHandler } from './plugin-message-handler';
 import { createLogger } from '../../../infra/logging';
 
-export function registerMessageHandlers({ messageRouter, ...deps }: AppDependencies) {
+export type { RuntimeSettingsRef };
+
+export function registerMessageHandlers({ messageRouter, ...deps }: AppDependencies, runtimeSettings: RuntimeSettingsRef) {
     messageRouter.registerHandler(
         MessageType.Hello,
         new HelloHandler({
@@ -42,7 +44,7 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
         new TickBatchHandler({
             tickRepository: deps.tickRepository,
             agentConnectionRegistry: deps.agentConnectionRegistry,
-            settingsRepository: deps.settingsRepository,
+            runtimeSettings,
             byteMetricsService: deps.byteMetricsService,
         })
     );

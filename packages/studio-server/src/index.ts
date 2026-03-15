@@ -17,7 +17,7 @@ import { SessionRepository } from './infra/knex/session-repository';
 import { TreeRepository } from './infra/knex/tree-repository';
 import { TickRepository } from './infra/knex/tick-repository';
 import { SettingsRepository } from './infra/knex/settings-repository';
-import { registerMessageHandlers, createDisconnectHandler } from './app/handlers/messages';
+import { registerMessageHandlers, createDisconnectHandler, type RuntimeSettingsRef } from './app/handlers/messages';
 import { createAppRouter } from './app/handlers/trpc';
 import { type StudioServerConfig } from './configuration';
 import { parseStudioServerConfig } from './configuration-schema';
@@ -43,6 +43,7 @@ export interface StudioServerOptions {
     sqlitePath?: string;
     commandTimeoutMs?: number;
     maxTicksPerTree?: number;
+    maxConnections?: number;
     runMigrationsOnStartup?: boolean;
     /** Directory containing static files (e.g. built UI) to serve via Express */
     staticDir?: string;
@@ -76,6 +77,7 @@ function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
         },
         commandTimeoutMs: options?.commandTimeoutMs ?? 5000,
         maxTicksPerTree: options?.maxTicksPerTree ?? 100_000,
+        maxConnections: options?.maxConnections ?? 1000,
         logLevel: 'info',
         migrations: {
             runOnStartup: options?.runMigrationsOnStartup ?? true,
@@ -228,6 +230,20 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
                 setupLogger.warn('Attempted to send plugin message to unknown client', { clientId });
             },
         });
+        // Repositories
+        const clientRepository = new ClientRepository(knex);
+        const sessionRepository = new SessionRepository(knex);
+        const treeRepository = new TreeRepository(knex);
+        const tickRepository = new TickRepository(knex);
+        const settingsRepository = new SettingsRepository(knex);
+
+        // Load current settings once at startup to seed the runtime cache
+        const initialSettings = await settingsRepository.get();
+        const runtimeSettings: RuntimeSettingsRef = {
+            maxTicksPerTree: initialSettings.maxTicksPerTree,
+        };
+
+        // Update commandBroker timeout to match persisted settings (may differ from config default)
         commandBroker = new CommandBroker(
             {
                 sendToClient: (clientId, message) => {
@@ -244,15 +260,8 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
                     setupLogger.warn('Attempted to send command to unknown client', { clientId });
                 },
             },
-            config.commandTimeoutMs,
+            initialSettings.commandTimeoutMs,
         );
-
-        // Repositories
-        const clientRepository = new ClientRepository(knex);
-        const sessionRepository = new SessionRepository(knex);
-        const treeRepository = new TreeRepository(knex);
-        const tickRepository = new TickRepository(knex);
-        const settingsRepository = new SettingsRepository(knex);
 
         const deps: AppDependencies = {
             knex,
@@ -275,7 +284,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         };
 
         // Local event handlers
-        registerLocalDomainEventHandlers(deps);
+        registerLocalDomainEventHandlers({ ...deps, runtimeSettings });
 
         // Express + tRPC
         const app = createExpressApp();
@@ -305,7 +314,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             app.get('/', (_req, res) => res.status(200).send('ok'));
         }
 
-        registerMessageHandlers(deps);
+        registerMessageHandlers(deps, runtimeSettings);
 
         app.use((req, res) => {
             res.status(404).json({
@@ -386,15 +395,15 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         setupLogger.info(`HTTP server listening on ${config.http.host}:${config.http.port}`);
 
         await wsServer.start({
-            maxConnections: 1000,
+            maxConnections: config.maxConnections,
         });
         await uiWsServer.start({
-            maxConnections: 1000,
+            maxConnections: config.maxConnections,
         });
         await tcpServer.start({
             host: config.tcp.host,
             port: config.tcp.port,
-            maxConnections: 1000,
+            maxConnections: config.maxConnections,
         });
 
         setupLogger.info('Studio server initialized');

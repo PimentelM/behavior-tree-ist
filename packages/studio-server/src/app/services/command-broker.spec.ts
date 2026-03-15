@@ -63,4 +63,14 @@ describe('CommandBroker', () => {
 
         await expect(pending).rejects.toThrow(/shutting down/);
     });
+
+    it('updateTimeoutMs is used for subsequent commands', async () => {
+        const sender = new FakeCommandSender();
+        const broker = new CommandBroker(sender, 5000);
+
+        broker.updateTimeoutMs(20);
+
+        const pending = broker.sendCommand('connection-1', makeCommand({ correlationId: 'timeout-fast' }));
+        await expect(pending).rejects.toThrow(/timed out/);
+    });
 });
