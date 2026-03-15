@@ -73,6 +73,14 @@ export function useStudioControls(): UseStudioControlsResult {
     const [ttWindowLoading, setTtWindowLoading] = useState(false);
     const [windowMaxTicks, setWindowMaxTicks] = useState<number | null>(null);
 
+    // Clear TT window state whenever the tree selection changes so stale
+    // TT ticks from a previous tree are never shown for the new tree.
+    useEffect(() => {
+        setTtWindowTicks(null);
+        setTtWindowLoading(false);
+        setWindowMaxTicks(null);
+    }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
+
     // --- Tick bounds (server-side total history) ---
     const [tickBounds, setTickBounds] = useState<StudioTickBounds | null>(null);
     const selectionRef = useRef(selection);

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface WindowRangeTrimmerProps {
   minTickId: number;
@@ -47,6 +47,14 @@ export function WindowRangeTrimmer({
   });
 
   const trackRef = useRef<HTMLDivElement>(null);
+  // Track active drag listener pairs so they can be removed if the component unmounts mid-drag.
+  const activeDragCleanupRef = useRef<Array<() => void>>([]);
+  useEffect(() => {
+    return () => {
+      for (const cleanup of activeDragCleanupRef.current) cleanup();
+      activeDragCleanupRef.current = [];
+    };
+  }, []);
 
   const getFracFromPointer = useCallback((clientX: number): number => {
     const track = trackRef.current;
@@ -62,12 +70,14 @@ export function WindowRangeTrimmer({
         const frac = getFracFromPointer(ev.clientX);
         setFromFrac(Math.min(frac, toFrac - 0.001));
       };
-      const up = () => {
+      const cleanup = () => {
         window.removeEventListener('pointermove', move);
-        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointerup', cleanup);
+        activeDragCleanupRef.current = activeDragCleanupRef.current.filter((fn) => fn !== cleanup);
       };
+      activeDragCleanupRef.current.push(cleanup);
       window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', up);
+      window.addEventListener('pointerup', cleanup);
     },
     [getFracFromPointer, toFrac],
   );
@@ -79,12 +89,14 @@ export function WindowRangeTrimmer({
         const frac = getFracFromPointer(ev.clientX);
         setToFrac(Math.max(frac, fromFrac + 0.001));
       };
-      const up = () => {
+      const cleanup = () => {
         window.removeEventListener('pointermove', move);
-        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointerup', cleanup);
+        activeDragCleanupRef.current = activeDragCleanupRef.current.filter((fn) => fn !== cleanup);
       };
+      activeDragCleanupRef.current.push(cleanup);
       window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', up);
+      window.addEventListener('pointerup', cleanup);
     },
     [getFracFromPointer, fromFrac],
   );
@@ -103,12 +115,14 @@ export function WindowRangeTrimmer({
         setFromFrac(newFrom);
         setToFrac(newFrom + width);
       };
-      const up = () => {
+      const cleanup = () => {
         window.removeEventListener('pointermove', move);
-        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointerup', cleanup);
+        activeDragCleanupRef.current = activeDragCleanupRef.current.filter((fn) => fn !== cleanup);
       };
+      activeDragCleanupRef.current.push(cleanup);
       window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', up);
+      window.addEventListener('pointerup', cleanup);
     },
     [getFracFromPointer, fromFrac, toFrac],
   );
