@@ -8,7 +8,9 @@ interface ToolbarPanelProps {
   actions?: ReactNode;
   studioSection?: ReactNode;
   settingsButton?: ReactNode;
+  /** @deprecated Use byteMetricsBadge instead. Connection status badge has been removed. */
   connectionBadge?: ReactNode;
+  byteMetricsBadge?: ReactNode;
   showThemeToggle: boolean;
   themeMode: ThemeMode;
   onToggleTheme?: () => void;
@@ -31,7 +33,7 @@ function ToolbarPanelInner({
   actions,
   studioSection,
   settingsButton,
-  connectionBadge,
+  byteMetricsBadge,
   showThemeToggle,
   themeMode,
   onToggleTheme,
@@ -94,7 +96,6 @@ function ToolbarPanelInner({
             </div>
           </div>
           <div className="bt-toolbar__main-center">
-            {connectionBadge}
             <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
               {timeTravelMode === 'paused'
                 ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
@@ -102,6 +103,7 @@ function ToolbarPanelInner({
             </div>
           </div>
           <div className="bt-toolbar__main-trailing">
+            {byteMetricsBadge}
             <button
               className="bt-toolbar__time-format-btn"
               onClick={onToggleTimeFormat}
@@ -182,7 +184,6 @@ function ToolbarPanelInner({
         </div>
       </div>
       <div className="bt-toolbar__main-center">
-        {connectionBadge}
         <div className={`bt-toolbar__travel-indicator bt-toolbar__travel-indicator--${timeTravelMode}`}>
           {timeTravelMode === 'paused'
             ? `Time Travel · tick #${viewedTickId ?? '-'}${formattedNow !== null ? ` · time ${formattedNow}` : ''} `
@@ -190,6 +191,7 @@ function ToolbarPanelInner({
         </div>
       </div>
       <div className="bt-toolbar__main-trailing">
+        {byteMetricsBadge}
         <button
           className="bt-toolbar__time-format-btn"
           onClick={onToggleTimeFormat}
