@@ -37,3 +37,4 @@ export interface DomainEventDispatcherInterface extends Pick<BaseEventDispatcher
 }
 
 export type { ByteMetricsServiceInterface } from './services/byte-metrics-service';
+export type { ReplBrokerInterface } from './services/repl-broker';
