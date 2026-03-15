@@ -205,7 +205,13 @@ function BTNodeComponentInner({ data }: NodeProps<BTFlowNode>) {
             ))}
           </div>
         )}
-        {hasState && (
+        {visualKind === 'displayNote' && displayState !== undefined && (
+          <DisplayNoteInline text={getDisplayNoteText(displayState)} isStale={displayStateIsStale} />
+        )}
+        {visualKind === 'displayProgress' && displayState !== undefined && (
+          <DisplayProgressInline value={getDisplayProgressValue(displayState)} isStale={displayStateIsStale} />
+        )}
+        {hasState && visualKind !== 'displayNote' && visualKind !== 'displayProgress' && (
           <div className={`bt-node__display-state ${displayStateIsStale ? 'bt-node__display-state--stale' : ''}`}>
             {stateEntries.slice(0, MAX_CANVAS_STATE_ENTRIES).map(([key, value]) => (
               <div key={key} className="bt-node__state-entry">
@@ -291,6 +297,10 @@ function NodeGlyph({ kind, isAsyncAction }: { kind: NodeVisualKind; isAsyncActio
       );
     case 'ifThenElse':
       return <span className="bt-node__glyph-letter bt-node__glyph-letter--if">IF</span>;
+    case 'displayNote':
+      return <span className="bt-node__glyph-letter bt-node__glyph-letter--note">N</span>;
+    case 'displayProgress':
+      return <span className="bt-node__glyph-letter bt-node__glyph-letter--progress">%</span>;
     case 'node':
     default:
       return (
@@ -326,6 +336,48 @@ function formatValue(value: unknown): string {
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   const raw = typeof value === 'string' ? value : JSON.stringify(value);
   return raw.length > MAX_VALUE_LENGTH ? raw.slice(0, MAX_VALUE_LENGTH) + '\u2026' : raw;
+}
+
+function getDisplayNoteText(state: SerializableState): string {
+  if (typeof state === 'string') return state;
+  if (typeof state === 'object' && state !== null && !Array.isArray(state)) {
+    const note = (state as Record<string, unknown>).note;
+    if (typeof note === 'string') return note;
+  }
+  return '';
+}
+
+function getDisplayProgressValue(state: SerializableState): { progress: number; label?: string } {
+  if (typeof state === 'object' && state !== null && !Array.isArray(state)) {
+    const rec = state as Record<string, unknown>;
+    const progress = typeof rec.progress === 'number' ? Math.max(0, Math.min(1, rec.progress)) : 0;
+    const label = typeof rec.label === 'string' ? rec.label : undefined;
+    return { progress, label };
+  }
+  return { progress: 0 };
+}
+
+function DisplayNoteInline({ text, isStale }: { text: string; isStale: boolean }) {
+  return (
+    <div className={`bt-node__display-note ${isStale ? 'bt-node__display-note--stale' : ''}`}>
+      {text}
+    </div>
+  );
+}
+
+function DisplayProgressInline({ value, isStale }: { value: { progress: number; label?: string }; isStale: boolean }) {
+  const pct = Math.round(value.progress * 100);
+  return (
+    <div className={`bt-node__display-progress ${isStale ? 'bt-node__display-progress--stale' : ''}`}>
+      {value.label !== undefined && (
+        <div className="bt-node__display-progress-label">{value.label}</div>
+      )}
+      <div className="bt-node__display-progress-track">
+        <div className="bt-node__display-progress-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="bt-node__display-progress-pct">{pct}%</div>
+    </div>
+  );
 }
 
 function areNodePropsEqual(prev: NodeProps<BTFlowNode>, next: NodeProps<BTFlowNode>): boolean {

@@ -3,3 +3,5 @@ export * from './always-running';
 export * from './always-success';
 export * from './sleep';
 export * from './display-state';
+export * from './display-note';
+export * from './display-progress';

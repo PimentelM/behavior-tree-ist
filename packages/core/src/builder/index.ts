@@ -1,7 +1,8 @@
 import { ConditionNode } from "../base/condition";
 import { Action, AsyncAction, type BTNode, type CancellationSignal, type NodeResult, type TickContext, type SerializableState } from "../base";
 import { type ActivityMetadata } from "../base/types";
-import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse, DisplayState } from "../nodes";
+import { Parallel, Fallback, Sequence, SequenceWithMemory, FallbackWithMemory, AlwaysSuccess, AlwaysFailure, AlwaysRunning, Sleep, IfThenElse, DisplayState, DisplayNote, DisplayProgress } from "../nodes";
+import type { DisplayProgressValue } from "../nodes/actions/display-progress";
 import { type ParallelPolicy } from "../nodes/composite/parallel";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
@@ -261,4 +262,12 @@ export function sleep(props: NodeProps & { duration: number }): BTNode {
 
 export function displayState(props: NodeProps & { display: () => SerializableState }): BTNode {
     return applyDecorators(new DisplayState(props.name || "DisplayState", props.display), props);
+}
+
+export function displayNote(props: NodeProps & { text: string }): BTNode {
+    return applyDecorators(new DisplayNote(props.name || "DisplayNote", props.text), props);
+}
+
+export function displayProgress(props: NodeProps & { progress: () => DisplayProgressValue }): BTNode {
+    return applyDecorators(new DisplayProgress(props.name || "DisplayProgress", props.progress), props);
 }

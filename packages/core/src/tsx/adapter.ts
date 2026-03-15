@@ -112,6 +112,18 @@ export function createElement(
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return Builder.displayState(safeProps as unknown as any);
+        case "display-note":
+            if (typeof safeProps.text !== "string") {
+                throw new Error(`<display-note> requires a "text" prop of type string.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return Builder.displayNote(safeProps as unknown as any);
+        case "display-progress":
+            if (typeof safeProps.progress !== "function") {
+                throw new Error(`<display-progress> requires a "progress" prop of type function.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return Builder.displayProgress(safeProps as unknown as any);
         default:
             throw new Error(`Unknown intrinsic behavior tree node type: <${type}>`);
     }
@@ -154,6 +166,8 @@ declare global {
             "always-running": Builder.NodeProps;
             "sleep": Builder.NodeProps & { duration: number };
             "display-state": Builder.NodeProps & { display: () => SerializableState };
+            "display-note": Builder.NodeProps & { text: string };
+            "display-progress": Builder.NodeProps & { progress: () => { progress: number; label?: string } };
         }
     }
 }
