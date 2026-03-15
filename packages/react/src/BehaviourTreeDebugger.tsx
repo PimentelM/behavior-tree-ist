@@ -125,6 +125,9 @@ export function BehaviourTreeDebugger({
   const [focusNodeId, setFocusNodeId] = useState<number | null>(null);
   const [focusNodeSignal, setFocusNodeSignal] = useState(0);
   const [pausedInspector, setPausedInspector] = useState<TreeInspector | null>(null);
+  const [frozenByteTimeline, setFrozenByteTimeline] = useState<Array<{ tickId: number; bytes: number }> | null>(null);
+  const byteMetricsSamplesRef = useRef(studioControls?.byteMetrics?.samples ?? null);
+  byteMetricsSamplesRef.current = studioControls?.byteMetrics?.samples ?? null;
   const [timeFormatOverride, setTimeFormatOverride] = useState<boolean | null>(null);
   const [activityWindowVisible, setActivityWindowVisible] = useState(activityWindowEnabled);
   const [activityWindowCollapsed, setActivityWindowCollapsed] = useState(() => {
@@ -236,6 +239,7 @@ export function BehaviourTreeDebugger({
   useEffect(() => {
     if (timeTravelControls.mode === 'live') {
       setPausedInspector(null);
+      setFrozenByteTimeline(null);
       return;
     }
 
@@ -244,6 +248,8 @@ export function BehaviourTreeDebugger({
 
     const frozen = inspector.cloneForTimeTravel({ exactPercentiles: true });
     setPausedInspector(frozen);
+    const samples = byteMetricsSamplesRef.current;
+    setFrozenByteTimeline(samples ? [...samples] : null);
   }, [timeTravelControls.mode, pausedInspector, inspector, studioControls?.isLoadingWindow]);
 
   // When a window fetch (seekToRange) completes while paused, the live inspector has been
@@ -258,6 +264,8 @@ export function BehaviourTreeDebugger({
 
     if (!isLoading && wasLoading && timeTravelControls.mode === 'paused') {
       setPausedInspector(inspector.cloneForTimeTravel({ exactPercentiles: true }));
+      const samples = byteMetricsSamplesRef.current;
+      setFrozenByteTimeline(samples ? [...samples] : null);
       // Auto-navigate to first tick of the new window; navigateToTick skips onNeedTick
       const oldest = inspector.getStats().oldestTickId;
       if (oldest !== undefined) {
@@ -955,7 +963,7 @@ export function BehaviourTreeDebugger({
             <TimelinePanel
               controls={timeTravelControls}
               cpuTimeline={cpuTimeline}
-              byteTimeline={studioControls?.byteMetrics?.samples}
+              byteTimeline={timeTravelControls.mode === 'paused' ? (frozenByteTimeline ?? undefined) : studioControls?.byteMetrics?.samples}
               displayTimeAsTimestamp={displayTimeAsTimestamp}
               onTickChange={onTickChange}
               onSelectRange={studioControls ? handleSelectRange : undefined}
