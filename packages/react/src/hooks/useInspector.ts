@@ -17,28 +17,15 @@ export function useInspector(
   // Track all ingested tickIds by Set for dedup and seek detection
   const ingestedTickIdsRef = useRef<Set<number>>(new Set());
   const [tickGeneration, setTickGeneration] = useState(0);
-  const prevTreeRef = useRef<SerializableNode | null>(null);
 
   const inspector = useMemo(() => {
     const inst = new TreeInspector(options);
     inspectorRef.current = inst;
     ingestedTickIdsRef.current = new Set();
-    prevTreeRef.current = tree;
     inst.indexTree(tree);
     return inst;
     // Re-create inspector when tree identity or options change
   }, [tree, options?.maxTicks]);
-
-  // Re-index if tree reference changed but inspector was reused
-  useEffect(() => {
-    if (prevTreeRef.current !== tree) {
-      inspector.reset();
-      inspector.indexTree(tree);
-      ingestedTickIdsRef.current = new Set();
-      prevTreeRef.current = tree;
-      setTickGeneration((g) => g + 1);
-    }
-  }, [tree, inspector]);
 
   // Diff-ingest new ticks using Set tracking (forward-only; TT windows are static)
   useEffect(() => {
