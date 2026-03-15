@@ -32,6 +32,12 @@ describe('base64url', () => {
             expect(encoded).not.toContain('/');
         }
     });
+
+    it('throws on invalid base64url string (length % 4 === 1)', () => {
+        // A base64url string with length % 4 === 1 is inherently invalid
+        expect(() => base64urlDecode('a')).toThrow('Invalid base64url string');
+        expect(() => base64urlDecode('aaaaa')).toThrow('Invalid base64url string');
+    });
 });
 
 describe('getRandomBytes', () => {

@@ -34,6 +34,7 @@ export class TcpBinaryTransport implements TransportInterface {
 
             const onError = (err: Error) => {
                 socket.off("error", onError);
+                this.socket = null;
                 reject(err);
             };
 

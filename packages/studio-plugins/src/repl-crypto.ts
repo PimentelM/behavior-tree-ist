@@ -16,10 +16,11 @@ export function base64urlEncode(bytes: Uint8Array): string {
 }
 
 export function base64urlDecode(s: string): Uint8Array {
+    if (s.length % 4 === 1) throw new Error('Invalid base64url string');
     const pad =
         s.length % 4 === 2 ? '==' :
         s.length % 4 === 3 ? '=' :
-        s.length % 4 === 1 ? '===' : '';
+        '';
     const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
     return new Uint8Array(Buffer.from(b64, 'base64'));
 }
