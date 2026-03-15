@@ -21,9 +21,9 @@ export type OutboundMessage =
     | { t: typeof MessageType.TreeRemoved; treeId: string }
     | { t: typeof MessageType.TickBatch; treeId: string; ticks: TickRecord[] }
     | { t: typeof MessageType.CommandResponse; correlationId: CorrelationId; response: CommandResponse }
-    | { t: typeof MessageType.PluginMessage; pluginId: string; correlationId: string; payload: unknown };
+    | { t: typeof MessageType.PluginMessage; pluginId: string; correlationId: string; payload?: unknown };
 
 // Inbound (server → client)
 export type InboundMessage =
     | { t: typeof MessageType.Command; command: StudioCommand }
-    | { t: typeof MessageType.PluginMessage; pluginId: string; correlationId: string; payload: unknown };
+    | { t: typeof MessageType.PluginMessage; pluginId: string; correlationId: string; payload?: unknown };

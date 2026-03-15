@@ -5,6 +5,8 @@ import {
 } from '@bt-studio/core'
 import { createCpuHeavyTree, createNpcDemoTree } from '@bt-studio/core/demos'
 import { WsNodeStringTransport } from '@bt-studio/studio-transport/node'
+// @ts-expect-error — @bt-studio/studio-repl is created by the parallel builder; resolves after merge
+import { ReplPlugin, DEMO_REPL_KEYS } from '@bt-studio/studio-repl'
 
 export function startDemoAgent(wsUrl: string, type: 'npc' | 'cpu' = 'npc'): { shutdown(): void } {
   const tree = type === 'cpu' ? createCpuHeavyTree() : createNpcDemoTree()
@@ -23,6 +25,9 @@ export function startDemoAgent(wsUrl: string, type: 'npc' | 'cpu' = 'npc'): { sh
     registry,
     link,
   })
+
+  const replPlugin = new ReplPlugin({ serverPublicKey: DEMO_REPL_KEYS.publicKey })
+  agent.registerPlugin(replPlugin)
 
   agent.start()
 
