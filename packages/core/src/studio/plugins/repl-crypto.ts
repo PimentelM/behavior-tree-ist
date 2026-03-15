@@ -1,6 +1,6 @@
 /**
  * Pure crypto utilities for the REPL plugin — no external dependencies.
- * NaCl-based functions have moved to @bt-studio/studio-repl.
+ * NaCl-based functions have moved to @bt-studio/studio-plugins.
  */
 
 // ---------------------------------------------------------------------------

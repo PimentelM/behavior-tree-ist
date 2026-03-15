@@ -1,6 +1,6 @@
 /**
  * Pure REPL utility functions — no external dependencies.
- * The full ReplPlugin class (with NaCl encryption) is in @bt-studio/studio-repl.
+ * The full ReplPlugin class (with NaCl encryption) is in @bt-studio/studio-plugins.
  */
 
 export function toDisplayString(value: unknown): string {
