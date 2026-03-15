@@ -3,11 +3,13 @@ import { BaseHandler } from './base-handler';
 import { type MessageConnectionInterface } from '../../../types/interfaces';
 import { type TickRepositoryInterface, type SettingsRepositoryInterface } from '../../../domain/interfaces';
 import { type AgentConnectionRegistryInterface } from '../../interfaces';
+import { type ByteMetricsService } from '../../services/byte-metrics-service';
 
 interface TickBatchHandlerDeps {
     tickRepository: TickRepositoryInterface;
     agentConnectionRegistry: AgentConnectionRegistryInterface;
     settingsRepository: SettingsRepositoryInterface;
+    byteMetricsService: ByteMetricsService;
 }
 
 export class TickBatchHandler extends BaseHandler {
@@ -26,6 +28,10 @@ export class TickBatchHandler extends BaseHandler {
         }
 
         const { clientId, sessionId } = connection;
+
+        const firstTickId = message.ticks.length > 0 ? message.ticks[0].tickId : 0;
+        this.deps.byteMetricsService.record(clientId, sessionId, message.treeId, firstTickId, client.lastRawByteSize);
+
         await this.deps.tickRepository.insertBatch(clientId, sessionId, message.treeId, message.ticks);
 
         // Prune old ticks

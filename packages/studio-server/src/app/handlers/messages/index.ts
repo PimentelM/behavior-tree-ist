@@ -42,6 +42,7 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
             tickRepository: deps.tickRepository,
             agentConnectionRegistry: deps.agentConnectionRegistry,
             settingsRepository: deps.settingsRepository,
+            byteMetricsService: deps.byteMetricsService,
         })
     );
 
