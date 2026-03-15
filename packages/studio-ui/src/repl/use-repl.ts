@@ -48,10 +48,15 @@ function deriveDirectionalKeys(seed: Uint8Array): { c2s: Uint8Array; s2c: Uint8A
 }
 
 // ---- demo keypair (deterministic, for out-of-the-box REPL experience) ----
-// Private key: 31 zero bytes + 0x01
+// Must match DEMO_SERVER_KEYPAIR in packages/studio-plugins/src/repl-crypto.ts
+// Seed: "bt-studio-demo-repl-key-v1------" as ASCII bytes
 // NEVER use in production — this key is public knowledge.
-const DEMO_PRIVATE_KEY = new Uint8Array(32);
-DEMO_PRIVATE_KEY[31] = 1;
+const DEMO_PRIVATE_KEY = new Uint8Array([
+    0x62, 0x74, 0x2d, 0x73, 0x74, 0x75, 0x64, 0x69,
+    0x6f, 0x2d, 0x64, 0x65, 0x6d, 0x6f, 0x2d, 0x72,
+    0x65, 0x70, 0x6c, 0x2d, 0x6b, 0x65, 0x79, 0x2d,
+    0x76, 0x31, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d,
+]);
 
 // ---- localStorage key management ----
 

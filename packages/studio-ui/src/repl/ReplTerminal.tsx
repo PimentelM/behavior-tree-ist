@@ -10,11 +10,12 @@ import type { ReplResult, UseReplReturn } from './use-repl';
 const RESET = '\x1b[0m';
 const GREEN = '\x1b[32m';
 const BRIGHT_GREEN = '\x1b[92m';
+const BRIGHT_BLUE = '\x1b[94m';
 const RED = '\x1b[91m';
 const CYAN = '\x1b[96m';
 const GRAY = '\x1b[90m';
 
-const PROMPT = `${GREEN}>${RESET} `;
+const PROMPT = `${GREEN}user@studio${RESET}:${BRIGHT_BLUE}~${RESET}$ `;
 
 // ---- write helpers (pure) ----
 
@@ -268,8 +269,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         term.open(containerRef.current);
         fitAddon.fit();
 
-        writeln(term, `${CYAN}Behavior Tree Studio — REPL${RESET}`);
-        writeln(term, `${GRAY}Enter JavaScript. Enter to send, Shift+Enter for newline, Tab to complete.${RESET}`);
+        writeln(term, `${BRIGHT_GREEN}Welcome to BT Studio REPL${RESET}`);
+        writeln(term, `${GRAY}Type JavaScript and press Enter. Tab for completions.${RESET}`);
         writePrompt(term);
 
         async function doEval(code: string) {
