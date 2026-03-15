@@ -16,6 +16,7 @@ export class GenericWebSocketClient<TReceive, TSend> implements Connection<TRece
     private readonly serializer: ConnectionSerializer<TReceive, TSend>;
     private prefersBinary = false;
     readonly transport = 'websocket' as const;
+    lastRawByteSize = 0;
 
     constructor(
         public readonly id: string,
@@ -34,6 +35,9 @@ export class GenericWebSocketClient<TReceive, TSend> implements Connection<TRece
             this.messageQueue = this.messageQueue.then(async () => {
                 try {
                     const rawPayload = this.toRawPayload(data);
+                    this.lastRawByteSize = typeof rawPayload === 'string'
+                        ? Buffer.byteLength(rawPayload, 'utf8')
+                        : rawPayload.byteLength;
                     const parsed = this.serializer.deserialize(rawPayload);
 
                     if (parsed === undefined) {

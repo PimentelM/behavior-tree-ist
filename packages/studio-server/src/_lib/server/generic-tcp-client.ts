@@ -16,6 +16,7 @@ export class GenericTcpClient<TReceive, TSend> implements Connection<TReceive, T
     private readonly logger: Logger;
     private readonly serializer: ConnectionSerializer<TReceive, TSend>;
     readonly transport = 'tcp' as const;
+    lastRawByteSize = 0;
 
     constructor(
         public readonly id: string,
@@ -84,6 +85,7 @@ export class GenericTcpClient<TReceive, TSend> implements Connection<TReceive, T
 
     private async handleFrame(payload: Uint8Array): Promise<void> {
         try {
+            this.lastRawByteSize = payload.byteLength;
             const parsed = this.serializer.deserialize(payload);
 
             if (parsed === undefined) {

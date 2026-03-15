@@ -6,6 +6,7 @@ export interface ConnectionSerializer<TReceive, TSend> {
 export interface Connection<TReceive, TSend> {
     readonly id: string;
     readonly transport: string;
+    readonly lastRawByteSize: number;
     send(message: TSend): void;
     disconnect(): void;
     onMessage(handler: (message: TReceive) => void | Promise<void>): void;
