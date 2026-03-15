@@ -6,7 +6,7 @@ import { ByteMetricsBadge } from '../panels/ByteMetricsBadge';
 interface StudioToolbarFragments {
   leading: ReactNode;
   trailing: ReactNode;
-  connectionBadge: ReactNode;
+  byteMetricsBadge: ReactNode;
 }
 
 function selectionSummary(selection: StudioSelection | null): string {
@@ -95,7 +95,7 @@ export function buildStudioToolbarFragments(
         <SettingsIcon />
       </button>
     ),
-    connectionBadge: (
+    byteMetricsBadge: (
       <>
         {conn && (
           <span className={`bt-toolbar__connection-status bt-toolbar__connection-status--${conn.variant}`}>

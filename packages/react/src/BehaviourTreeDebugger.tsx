@@ -765,7 +765,7 @@ export function BehaviourTreeDebugger({
               actions={toolbarActions}
               studioSection={studioToolbar?.leading}
               settingsButton={studioToolbar?.trailing}
-              connectionBadge={studioToolbar?.connectionBadge}
+              byteMetricsBadge={studioToolbar?.byteMetricsBadge}
               showThemeToggle={showThemeToggle}
               themeMode={themeMode}
               onToggleTheme={handleToggleTheme}
