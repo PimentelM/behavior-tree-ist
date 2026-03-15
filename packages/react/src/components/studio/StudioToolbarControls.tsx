@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { StudioControls, StudioSelection } from '../../types';
 import { AttachIcon, StreamIcon, PauseIcon, ProfilingIcon, TraceIcon, SettingsIcon } from './icons';
+import { ByteMetricsBadge } from '../panels/ByteMetricsBadge';
 
 interface StudioToolbarFragments {
   leading: ReactNode;
@@ -94,11 +95,21 @@ export function buildStudioToolbarFragments(
         <SettingsIcon />
       </button>
     ),
-    connectionBadge: conn ? (
-      <span className={`bt-toolbar__connection-status bt-toolbar__connection-status--${conn.variant}`}>
-        <span className="bt-toolbar__connection-dot" />
-        {conn.label}
-      </span>
-    ) : null,
+    connectionBadge: (
+      <>
+        {conn && (
+          <span className={`bt-toolbar__connection-status bt-toolbar__connection-status--${conn.variant}`}>
+            <span className="bt-toolbar__connection-dot" />
+            {conn.label}
+          </span>
+        )}
+        {controls.byteMetrics != null && (
+          <ByteMetricsBadge
+            ratePerSecond={controls.byteMetrics.ratePerSecond}
+            totalBytes={controls.byteMetrics.totalBytes}
+          />
+        )}
+      </>
+    ),
   };
 }

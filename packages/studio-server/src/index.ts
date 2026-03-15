@@ -10,6 +10,7 @@ import { createLogger } from './infra/logging';
 import { AgentConnectionRegistry } from './app/services/agent-connection-registry';
 import { UiConnectionRegistry } from './app/services/ui-connection-registry';
 import { CommandBroker } from './app/services/command-broker';
+import { ByteMetricsService } from './app/services/byte-metrics-service';
 import { ClientRepository } from './infra/knex/client-repository';
 import { SessionRepository } from './infra/knex/session-repository';
 import { TreeRepository } from './infra/knex/tree-repository';
@@ -212,6 +213,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         // App services
         const agentConnectionRegistry = new AgentConnectionRegistry();
         const uiConnectionRegistry = new UiConnectionRegistry();
+        const byteMetricsService = new ByteMetricsService();
         commandBroker = new CommandBroker(
             {
                 sendToClient: (clientId, message) => {
@@ -248,6 +250,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             agentConnectionRegistry,
             uiConnectionRegistry,
             commandBroker,
+            byteMetricsService,
             clientRepository,
             sessionRepository,
             treeRepository,

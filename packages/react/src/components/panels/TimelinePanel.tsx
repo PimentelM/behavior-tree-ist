@@ -3,11 +3,13 @@ import type { CpuTimelineEntry } from '@bt-studio/core/inspector';
 import type { TimeTravelControls, StudioTickBounds } from '../../types';
 import { formatNowValue } from '../../utils/format';
 import { CpuSparkline } from './CpuSparkline';
+import { ByteSparkline, type ByteSparklineSample } from './ByteSparkline';
 import { WindowRangeTrimmer } from './WindowRangeTrimmer';
 
 interface TimelinePanelProps {
   controls: TimeTravelControls;
   cpuTimeline: CpuTimelineEntry[];
+  byteTimeline?: ByteSparklineSample[];
   displayTimeAsTimestamp: boolean;
   onTickChange?: (tickId: number) => void;
   onSelectRange?: (from: number, to: number) => void;
@@ -16,6 +18,7 @@ interface TimelinePanelProps {
 function TimelinePanelInner({
   controls,
   cpuTimeline,
+  byteTimeline,
   displayTimeAsTimestamp,
   onTickChange,
   onSelectRange,
@@ -151,6 +154,12 @@ function TimelinePanelInner({
           entries={cpuTimeline}
           viewedTickId={viewedTickId}
         />
+        {byteTimeline && byteTimeline.length > 0 && (
+          <ByteSparkline
+            samples={byteTimeline}
+            viewedTickId={viewedTickId}
+          />
+        )}
         {hasScrubberRange ? (
           <input
             type="range"

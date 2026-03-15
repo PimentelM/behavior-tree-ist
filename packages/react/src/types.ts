@@ -264,4 +264,10 @@ export interface StudioControls {
   loadingClients?: boolean;
   loadingSessions?: boolean;
   loadingTrees?: boolean;
+
+  byteMetrics?: {
+    samples: Array<{ tickId: number; bytes: number }>;
+    ratePerSecond: number;
+    totalBytes: number;
+  } | null;
 }

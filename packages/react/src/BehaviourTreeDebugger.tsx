@@ -955,6 +955,7 @@ export function BehaviourTreeDebugger({
             <TimelinePanel
               controls={timeTravelControls}
               cpuTimeline={cpuTimeline}
+              byteTimeline={studioControls?.byteMetrics?.samples}
               displayTimeAsTimestamp={displayTimeAsTimestamp}
               onTickChange={onTickChange}
               onSelectRange={studioControls ? handleSelectRange : undefined}

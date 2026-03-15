@@ -10,6 +10,7 @@ import { useTreeStatuses } from './hooks/use-tree-statuses';
 import { useTickPoller } from './hooks/use-tick-poller';
 import { useServerSettings } from './hooks/use-server-settings';
 import { useUiSettings } from './hooks/use-ui-settings';
+import { useByteMetrics } from './hooks/use-byte-metrics';
 import { trpc } from './trpc';
 
 const SELECTION_KEY = 'bt-studio-selection';
@@ -65,6 +66,7 @@ export function useStudioControls(): UseStudioControlsResult {
     const { treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace } = useTreeStatuses(selection, isSelectedOnline);
 
     const pollerResult = useTickPoller(selection, uiSettings.pollRateMs, uiSettings.ringBufferSize);
+    const byteMetrics = useByteMetrics(selection, uiSettings.pollRateMs);
 
     // TT window: static snapshot fetched from server; null = show live buffer
     const [ttWindowTicks, setTtWindowTicks] = useState<TickRecord[] | null>(null);
@@ -205,13 +207,14 @@ export function useStudioControls(): UseStudioControlsResult {
         loadingClients,
         loadingSessions,
         loadingTrees,
+        byteMetrics,
     }), [
         clients, sessions, trees, selection, onSelectionChange,
         expandedClientId, expandedSessionId,
         treeStatuses, onToggleStreaming, onToggleProfiling, onToggleStateTrace,
         isSelectedOnline, serverSettings, uiSettings, onServerSettingsChange, onUiSettingsChange,
         tickBounds, onFetchTicksAround, onFetchTickRange, onResumeStreaming, isLoadingWindow,
-        windowMaxTicks, loadingClients, loadingSessions, loadingTrees,
+        windowMaxTicks, loadingClients, loadingSessions, loadingTrees, byteMetrics,
     ]);
 
     return { studioControls, tree, ticks };

@@ -2,12 +2,13 @@ import { MessageType, type OutboundMessage } from '@bt-studio/core';
 import { BaseHandler } from './base-handler';
 import { type MessageConnectionInterface } from '../../../types/interfaces';
 import { type TickRepositoryInterface, type SettingsRepositoryInterface } from '../../../domain/interfaces';
-import { type AgentConnectionRegistryInterface } from '../../interfaces';
+import { type AgentConnectionRegistryInterface, type ByteMetricsServiceInterface } from '../../interfaces';
 
 interface TickBatchHandlerDeps {
     tickRepository: TickRepositoryInterface;
     agentConnectionRegistry: AgentConnectionRegistryInterface;
     settingsRepository: SettingsRepositoryInterface;
+    byteMetricsService: ByteMetricsServiceInterface;
 }
 
 export class TickBatchHandler extends BaseHandler {
@@ -26,6 +27,14 @@ export class TickBatchHandler extends BaseHandler {
         }
 
         const { clientId, sessionId } = connection;
+
+        // Record byte metrics before persisting
+        const bytes = Buffer.byteLength(JSON.stringify(message));
+        const lastTick = message.ticks[message.ticks.length - 1];
+        if (lastTick !== undefined) {
+            this.deps.byteMetricsService.record(clientId, sessionId, message.treeId, lastTick.tickId, bytes);
+        }
+
         await this.deps.tickRepository.insertBatch(clientId, sessionId, message.treeId, message.ticks);
 
         // Prune old ticks
