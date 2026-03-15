@@ -47,13 +47,34 @@ function deriveDirectionalKeys(seed: Uint8Array): { c2s: Uint8Array; s2c: Uint8A
     return { c2s: new Uint8Array(c2s), s2c: new Uint8Array(s2c) };
 }
 
+// ---- demo keypair (deterministic, for out-of-the-box REPL experience) ----
+// Must match DEMO_SERVER_KEYPAIR in packages/studio-plugins/src/repl-crypto.ts
+// Seed: "bt-studio-demo-repl-key-v1------" as ASCII bytes
+// NEVER use in production — this key is public knowledge.
+const DEMO_PRIVATE_KEY = new Uint8Array([
+    0x62, 0x74, 0x2d, 0x73, 0x74, 0x75, 0x64, 0x69,
+    0x6f, 0x2d, 0x64, 0x65, 0x6d, 0x6f, 0x2d, 0x72,
+    0x65, 0x70, 0x6c, 0x2d, 0x6b, 0x65, 0x79, 0x2d,
+    0x76, 0x31, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d,
+]);
+
 // ---- localStorage key management ----
 
 const LS_PRIVATE_KEY = 'repl-private-key';
 
 export interface ReplKeyPair {
     publicKeyB64: string;
+    privateKeyB64: string;
     secretKeyBytes: Uint8Array;
+}
+
+function keyPairFromSecret(sk: Uint8Array): ReplKeyPair {
+    const kp = nacl.box.keyPair.fromSecretKey(sk);
+    return {
+        publicKeyB64: base64urlEncode(kp.publicKey),
+        privateKeyB64: base64urlEncode(sk),
+        secretKeyBytes: sk,
+    };
 }
 
 export function loadStoredKeyPair(): ReplKeyPair | null {
@@ -61,19 +82,40 @@ export function loadStoredKeyPair(): ReplKeyPair | null {
         const stored = localStorage.getItem(LS_PRIVATE_KEY);
         if (!stored) return null;
         const sk = base64urlDecode(stored);
-        const kp = nacl.box.keyPair.fromSecretKey(sk);
-        return { publicKeyB64: base64urlEncode(kp.publicKey), secretKeyBytes: sk };
+        return keyPairFromSecret(sk);
     } catch {
         return null;
     }
 }
 
+function loadDefaultKeyPair(): ReplKeyPair {
+    const stored = loadStoredKeyPair();
+    if (stored) return stored;
+    const kp = keyPairFromSecret(DEMO_PRIVATE_KEY);
+    localStorage.setItem(LS_PRIVATE_KEY, kp.privateKeyB64);
+    return kp;
+}
+
 export function generateKeyPair(): ReplKeyPair {
     const sk = new Uint8Array(32);
     crypto.getRandomValues(sk);
-    const kp = nacl.box.keyPair.fromSecretKey(sk);
-    localStorage.setItem(LS_PRIVATE_KEY, base64urlEncode(sk));
-    return { publicKeyB64: base64urlEncode(kp.publicKey), secretKeyBytes: sk };
+    const kp = keyPairFromSecret(sk);
+    localStorage.setItem(LS_PRIVATE_KEY, kp.privateKeyB64);
+    return kp;
+}
+
+export function importPrivateKeyFromString(input: string): ReplKeyPair {
+    const trimmed = input.trim();
+    let sk: Uint8Array;
+    if (/^[0-9a-fA-F]+$/.test(trimmed) && trimmed.length === 64) {
+        sk = new Uint8Array(trimmed.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
+    } else {
+        sk = base64urlDecode(trimmed);
+    }
+    if (sk.length !== 32) throw new Error('Private key must be 32 bytes');
+    const kp = keyPairFromSecret(sk);
+    localStorage.setItem(LS_PRIVATE_KEY, kp.privateKeyB64);
+    return kp;
 }
 
 // ---- payload types ----
@@ -109,13 +151,14 @@ export interface UseReplReturn {
     ready: boolean;
     keyPair: ReplKeyPair | null;
     generateKeyPair: () => ReplKeyPair;
+    importPrivateKey: (input: string) => void;
     establishSession: (headerToken: string) => void;
     sendEval: (code: string) => Promise<ReplResult>;
     sendCompletions: (prefix: string, maxResults?: number) => Promise<string[]>;
 }
 
 export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn {
-    const [keyPair, setKeyPair] = useState<ReplKeyPair | null>(() => loadStoredKeyPair());
+    const [keyPair, setKeyPair] = useState<ReplKeyPair | null>(() => loadDefaultKeyPair());
     const [sessionKeys, setSessionKeys] = useState<{ c2s: Uint8Array; s2c: Uint8Array } | null>(null);
 
     const handleGenerateKeyPair = useCallback((): ReplKeyPair => {
@@ -123,6 +166,12 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         setKeyPair(kp);
         setSessionKeys(null);
         return kp;
+    }, []);
+
+    const handleImportPrivateKey = useCallback((input: string) => {
+        const kp = importPrivateKeyFromString(input);
+        setKeyPair(kp);
+        setSessionKeys(null);
     }, []);
 
     const establishSession = useCallback((headerToken: string) => {
@@ -187,6 +236,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         ready: sessionKeys !== null,
         keyPair,
         generateKeyPair: handleGenerateKeyPair,
+        importPrivateKey: handleImportPrivateKey,
         establishSession,
         sendEval,
         sendCompletions,

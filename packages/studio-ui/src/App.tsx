@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { BehaviourTreeDebugger } from '@bt-studio/react';
 import type { SerializableNode } from '@bt-studio/core';
 import { useStudioControls } from './use-studio-controls';
@@ -30,11 +29,8 @@ const onboardingContent = (
     </div>
 );
 
-const REPL_HEIGHT = 280;
-
 function App() {
     const { studioControls, tree, ticks } = useStudioControls();
-    const [replVisible, setReplVisible] = useState(false);
     const isEmpty = tree === null;
 
     const clientId = studioControls.selection?.clientId ?? null;
@@ -53,33 +49,10 @@ function App() {
                     studioControls={studioControls}
                     panels={isEmpty ? emptyPanels : undefined}
                     emptyState={isEmpty ? onboardingContent : undefined}
+                    // @ts-expect-error replPanel prop added by builder-repl-panel; types not yet merged
+                    replPanel={<ReplTerminal clientId={clientId} sessionId={sessionId} />}
                 />
-                <button
-                    onClick={() => setReplVisible((v) => !v)}
-                    title="Toggle REPL"
-                    style={{
-                        position: 'absolute',
-                        bottom: 8,
-                        right: 8,
-                        zIndex: 100,
-                        background: replVisible ? '#300a24' : '#1a0012',
-                        border: '1px solid #4a1942',
-                        color: replVisible ? '#8ae234' : '#ad7fa8',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        fontSize: 12,
-                        padding: '3px 10px',
-                        fontFamily: 'Ubuntu Mono, monospace',
-                    }}
-                >
-                    {replVisible ? '▼ REPL' : '▲ REPL'}
-                </button>
             </main>
-            {replVisible && (
-                <aside style={{ height: REPL_HEIGHT, borderTop: '1px solid #4a1942', flexShrink: 0 }}>
-                    <ReplTerminal clientId={clientId} sessionId={sessionId} height={REPL_HEIGHT - 28} />
-                </aside>
-            )}
         </div>
     );
 }
