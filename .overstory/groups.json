@@ -157,9 +157,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-a938"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-14T22:35:47.528Z",
-		"completedAt": null
+		"completedAt": "2026-03-15T19:47:52.921Z"
 	},
 	{
 		"id": "group-d16cd672",
@@ -177,9 +177,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-d981"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-14T23:26:24.946Z",
-		"completedAt": null
+		"completedAt": "2026-03-15T19:47:53.064Z"
 	},
 	{
 		"id": "group-7bcb7d6c",
@@ -187,9 +187,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-e800"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-14T23:36:40.274Z",
-		"completedAt": null
+		"completedAt": "2026-03-15T19:47:53.203Z"
 	},
 	{
 		"id": "group-d1367125",
@@ -197,9 +197,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-be2c"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T00:15:53.125Z",
-		"completedAt": null
+		"completedAt": "2026-03-15T19:47:53.329Z"
 	},
 	{
 		"id": "group-64df3824",
@@ -207,9 +207,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-8aee"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T18:02:26.187Z",
-		"completedAt": null
+		"completedAt": "2026-03-15T19:47:53.458Z"
 	},
 	{
 		"id": "group-327f857c",
