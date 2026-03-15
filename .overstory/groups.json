@@ -220,5 +220,16 @@
 		"status": "active",
 		"createdAt": "2026-03-15T19:08:11.125Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-40f0d2fa",
+		"name": "ui-fixes",
+		"memberIssueIds": [
+			"behavior-tree-ist-9659",
+			"behavior-tree-ist-59ec"
+		],
+		"status": "active",
+		"createdAt": "2026-03-15T20:21:03.622Z",
+		"completedAt": null
 	}
 ]
