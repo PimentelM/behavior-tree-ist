@@ -49,7 +49,6 @@ function App() {
                     studioControls={studioControls}
                     panels={isEmpty ? emptyPanels : undefined}
                     emptyState={isEmpty ? onboardingContent : undefined}
-                    // @ts-expect-error replPanel prop added by builder-repl-panel; types not yet merged
                     replPanel={<ReplTerminal clientId={clientId} sessionId={sessionId} />}
                 />
             </main>
