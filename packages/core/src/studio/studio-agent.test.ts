@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, type Mock } from "vitest";
 import { StudioAgent, type StudioAgentOptions } from "./studio-agent";
-import { type StudioLinkInterface } from "./interfaces";
+import { type StudioLinkInterface, type StudioPlugin, type PluginSender } from "./interfaces";
 import { type StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 import { TreeRegistry } from "../registry/tree-registry";
 import { BehaviourTree } from "../tree";
@@ -8,23 +8,27 @@ import { Action, NodeResult } from "../base";
 import { type OffFunction } from "../types";
 
 type CommandHandler = (command: StudioCommand) => void;
+type PluginMessageHandler = (pluginId: string, correlationId: string, payload: unknown) => void;
 type VoidHandler = () => void;
 type ErrorHandler = (error: Error) => void;
 
 interface MockStudioLink extends StudioLinkInterface {
     _commandHandlers: Set<CommandHandler>;
+    _pluginMessageHandlers: Set<PluginMessageHandler>;
     _connectedHandlers: Set<VoidHandler>;
     _disconnectedHandlers: Set<VoidHandler>;
     _errorHandlers: Set<ErrorHandler>;
     _simulateConnect: () => void;
     _simulateDisconnect: () => void;
     _simulateCommand: (command: StudioCommand) => void;
+    _simulatePluginMessage: (pluginId: string, correlationId: string, payload: unknown) => void;
     _isConnected: boolean;
     sendHello: Mock;
     sendTreeRegistered: Mock;
     sendTreeRemoved: Mock;
     sendTickBatch: Mock;
     sendCommandResponse: Mock;
+    sendPluginMessage: Mock;
     open: Mock;
     close: Mock;
     tick: Mock;
@@ -32,6 +36,7 @@ interface MockStudioLink extends StudioLinkInterface {
 
 function createMockLink(): MockStudioLink {
     const commandHandlers = new Set<CommandHandler>();
+    const pluginMessageHandlers = new Set<PluginMessageHandler>();
     const connectedHandlers = new Set<VoidHandler>();
     const disconnectedHandlers = new Set<VoidHandler>();
     const errorHandlers = new Set<ErrorHandler>();
@@ -39,6 +44,7 @@ function createMockLink(): MockStudioLink {
 
     const mock = {
         _commandHandlers: commandHandlers,
+        _pluginMessageHandlers: pluginMessageHandlers,
         _connectedHandlers: connectedHandlers,
         _disconnectedHandlers: disconnectedHandlers,
         _errorHandlers: errorHandlers,
@@ -57,16 +63,24 @@ function createMockLink(): MockStudioLink {
         _simulateCommand(command: StudioCommand) {
             for (const h of commandHandlers) h(command);
         },
+        _simulatePluginMessage(pluginId: string, correlationId: string, payload: unknown) {
+            for (const h of pluginMessageHandlers) h(pluginId, correlationId, payload);
+        },
 
         sendHello: vi.fn(),
         sendTreeRegistered: vi.fn(),
         sendTreeRemoved: vi.fn(),
         sendTickBatch: vi.fn(),
         sendCommandResponse: vi.fn(),
+        sendPluginMessage: vi.fn(),
 
         onCommand(handler: CommandHandler): OffFunction {
             commandHandlers.add(handler);
             return () => commandHandlers.delete(handler);
+        },
+        onPluginMessage(handler: PluginMessageHandler): OffFunction {
+            pluginMessageHandlers.add(handler);
+            return () => pluginMessageHandlers.delete(handler);
         },
         onConnected(handler: VoidHandler): OffFunction {
             connectedHandlers.add(handler);
@@ -89,6 +103,22 @@ function createMockLink(): MockStudioLink {
     };
 
     return mock;
+}
+
+function createMockPlugin(pluginId = "test-plugin"): StudioPlugin & {
+    attach: Mock;
+    detach: Mock;
+    handleInbound: Mock;
+    _sender: PluginSender | null;
+} {
+    let sender: PluginSender | null = null;
+    return {
+        pluginId,
+        attach: vi.fn((s: PluginSender) => { sender = s; }),
+        detach: vi.fn(() => { sender = null; }),
+        handleInbound: vi.fn(),
+        get _sender() { return sender; },
+    };
 }
 
 function createTree(): BehaviourTree {
@@ -549,6 +579,65 @@ describe("StudioAgent", () => {
             expect(agent.isConnected).toBe(true);
             link._simulateDisconnect();
             expect(agent.isConnected).toBe(false);
+        });
+    });
+
+    describe("plugin system", () => {
+        it("registerPlugin() throws if called after start", () => {
+            const { agent } = createAgent();
+            agent.start();
+            const plugin = createMockPlugin();
+            expect(() => agent.registerPlugin(plugin)).toThrow(/Cannot register plugin after agent is started/);
+        });
+
+        it("attaches plugin on start()", () => {
+            const { agent } = createAgent();
+            const plugin = createMockPlugin();
+            agent.registerPlugin(plugin);
+            agent.start();
+            expect(plugin.attach).toHaveBeenCalledTimes(1);
+        });
+
+        it("plugin sender calls link.sendPluginMessage with correct args", () => {
+            const { agent, link } = createAgent();
+            const plugin = createMockPlugin("repl");
+            agent.registerPlugin(plugin);
+            agent.start();
+
+            plugin._sender!.send("corr-1", { type: "result", text: "2" });
+
+            expect(link.sendPluginMessage).toHaveBeenCalledWith("repl", "corr-1", { type: "result", text: "2" });
+        });
+
+        it("routes inbound PluginMessage to the matching plugin", () => {
+            const { agent, link } = createAgent();
+            const plugin = createMockPlugin("repl");
+            agent.registerPlugin(plugin);
+            agent.start();
+
+            link._simulatePluginMessage("repl", "corr-1", { type: "eval", code: "1+1" });
+
+            expect(plugin.handleInbound).toHaveBeenCalledWith("corr-1", { type: "eval", code: "1+1" });
+        });
+
+        it("ignores inbound PluginMessage for unknown pluginId", () => {
+            const { agent, link } = createAgent();
+            const plugin = createMockPlugin("repl");
+            agent.registerPlugin(plugin);
+            agent.start();
+
+            link._simulatePluginMessage("unknown-plugin", "corr-1", {});
+
+            expect(plugin.handleInbound).not.toHaveBeenCalled();
+        });
+
+        it("detaches plugins on destroy()", () => {
+            const { agent } = createAgent();
+            const plugin = createMockPlugin();
+            agent.registerPlugin(plugin);
+            agent.start();
+            agent.destroy();
+            expect(plugin.detach).toHaveBeenCalledTimes(1);
         });
     });
 });

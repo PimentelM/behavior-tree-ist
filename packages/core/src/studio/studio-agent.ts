@@ -3,7 +3,7 @@ import { type TreeRegistry } from "../registry/tree-registry";
 import { type RegisteredTree } from "../registry/types";
 import { assertValidId } from "../registry/validation";
 import { type OffFunction } from "../types";
-import { type StudioLinkInterface } from "./interfaces";
+import { type StudioPlugin, type StudioLinkInterface } from "./interfaces";
 import { type CommandResponse, type CommandResponseData, type CommandResponseSuccess, type StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 
 interface AgentManagedTreeState {
@@ -23,6 +23,7 @@ export class StudioAgent {
     private readonly registry: TreeRegistry;
     private readonly link: StudioLinkInterface;
     private readonly agentManagedStates = new Map<string, AgentManagedTreeState>();
+    private readonly plugins = new Map<string, StudioPlugin>();
     private readonly unsubscribers: OffFunction[] = [];
     private destroyed = false;
     private started = false;
@@ -32,6 +33,11 @@ export class StudioAgent {
     public enableStreamingOnRegisteredTrees() {
         this.defaultStreamingState = true;
         return this;
+    }
+
+    public registerPlugin(plugin: StudioPlugin): void {
+        if (this.started) throw new Error('Cannot register plugin after agent is started');
+        this.plugins.set(plugin.pluginId, plugin);
     }
 
     constructor(options: StudioAgentOptions) {
@@ -61,7 +67,20 @@ export class StudioAgent {
             this.link.onConnected(() => this.handleConnected()),
             this.link.onDisconnected(() => this.handleDisconnected()),
             this.link.onCommand((command) => this.handleCommand(command)),
+            this.link.onPluginMessage((pluginId, correlationId, payload) => {
+                const plugin = this.plugins.get(pluginId);
+                if (plugin) void plugin.handleInbound(correlationId, payload);
+            }),
         );
+
+        // Attach plugins
+        for (const plugin of this.plugins.values()) {
+            plugin.attach({
+                send: (correlationId, payload) => {
+                    this.link.sendPluginMessage(plugin.pluginId, correlationId, payload);
+                },
+            });
+        }
 
         // Subscribe to registry events
         this.unsubscribers.push(
@@ -91,6 +110,7 @@ export class StudioAgent {
         }
         this.unsubscribers.length = 0;
         this.agentManagedStates.clear();
+        for (const plugin of this.plugins.values()) plugin.detach();
         this.link.close();
     }
 

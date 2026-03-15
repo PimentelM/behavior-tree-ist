@@ -43,6 +43,7 @@ export class StudioLink implements StudioLinkInterface {
     private transportCleanup: OffFunction[] = [];
 
     private readonly commandHandlers = new Set<(command: StudioCommand) => void>();
+    private readonly pluginMessageHandlers = new Set<(pluginId: string, correlationId: string, payload: unknown) => void>();
     private readonly connectedHandlers = new Set<() => void>();
     private readonly disconnectedHandlers = new Set<() => void>();
     private readonly errorHandlers = new Set<(error: Error) => void>();
@@ -80,11 +81,20 @@ export class StudioLink implements StudioLinkInterface {
         this.sendMessage({ t: MessageType.CommandResponse, correlationId, response });
     }
 
+    sendPluginMessage(pluginId: string, correlationId: string, payload: unknown): void {
+        this.sendMessage({ t: MessageType.PluginMessage, pluginId, correlationId, payload });
+    }
+
     // --- Inbound subscriptions ---
 
     onCommand(handler: (command: StudioCommand) => void): OffFunction {
         this.commandHandlers.add(handler);
         return () => this.commandHandlers.delete(handler);
+    }
+
+    onPluginMessage(handler: (pluginId: string, correlationId: string, payload: unknown) => void): OffFunction {
+        this.pluginMessageHandlers.add(handler);
+        return () => this.pluginMessageHandlers.delete(handler);
     }
 
     onConnected(handler: () => void): OffFunction {
@@ -181,6 +191,10 @@ export class StudioLink implements StudioLinkInterface {
 
         if (message.t === MessageType.Command) {
             this.emit(this.commandHandlers, message.command);
+        } else if (message.t === MessageType.PluginMessage) {
+            for (const handler of this.pluginMessageHandlers) {
+                handler(message.pluginId, message.correlationId, message.payload);
+            }
         }
     }
 
