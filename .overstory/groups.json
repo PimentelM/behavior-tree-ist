@@ -251,5 +251,15 @@
 		"status": "active",
 		"createdAt": "2026-03-15T21:07:55.028Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-f239f47d",
+		"name": "extreme-review",
+		"memberIssueIds": [
+			"behavior-tree-ist-33e6"
+		],
+		"status": "active",
+		"createdAt": "2026-03-15T21:31:33.433Z",
+		"completedAt": null
 	}
 ]
