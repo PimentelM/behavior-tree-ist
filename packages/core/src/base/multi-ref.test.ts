@@ -288,7 +288,8 @@ describe("patchRef", () => {
 
     describe("property descriptor filtering", () => {
         it("skips non-writable own properties", () => {
-            const obj = {} as { readonly frozen: number; mutable: number };
+            const _obj291: unknown = {};
+            const obj = _obj291 as { readonly frozen: number; mutable: number };
             Object.defineProperty(obj, "frozen", { value: 42, writable: false, enumerable: true, configurable: true });
             Object.defineProperty(obj, "mutable", { value: 1, writable: true, enumerable: true, configurable: true });
 
@@ -306,7 +307,8 @@ describe("patchRef", () => {
         });
 
         it("skips non-enumerable own properties", () => {
-            const obj = {} as { hidden: number; visible: number };
+            const _obj309: unknown = {};
+            const obj = _obj309 as { hidden: number; visible: number };
             Object.defineProperty(obj, "hidden", { value: 1, writable: true, enumerable: false, configurable: true });
             Object.defineProperty(obj, "visible", { value: 2, writable: true, enumerable: true, configurable: true });
 
