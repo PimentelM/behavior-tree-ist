@@ -5,6 +5,8 @@ import type {
     TransportFactory,
 } from "@bt-studio/core";
 
+const textDecoder = new TextDecoder();
+
 /**
  * WebSocket transport for Node.js that sends and receives string-only
  * data using the `ws` library.
@@ -55,7 +57,7 @@ export class WsNodeStringTransport implements TransportInterface {
         const str =
             typeof data === "string"
                 ? data
-                : new TextDecoder().decode(data);
+                : textDecoder.decode(data);
         this.ws.send(str);
     }
 

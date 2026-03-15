@@ -39,6 +39,7 @@ export class TcpStringTransport implements TransportInterface {
 
             const onError = (err: Error) => {
                 socket.off("error", onError);
+                this.socket = null;
                 reject(err);
             };
 

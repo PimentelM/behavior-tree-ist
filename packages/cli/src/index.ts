@@ -50,6 +50,9 @@ const main = defineCommand({
   },
   async run({ args }) {
     const port = parseInt(args.port, 10)
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error(`Invalid port: ${args.port}. Must be an integer between 1 and 65535.`)
+    }
     const dbPath = resolve(args.db)
     mkdirSync(dirname(dbPath), { recursive: true })
 
