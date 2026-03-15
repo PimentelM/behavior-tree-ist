@@ -30,14 +30,21 @@ export function WindowRangeTrimmer({
   onApply,
   onClose,
 }: WindowRangeTrimmerProps) {
-  const totalSpan = maxTickId - minTickId;
+  // +1 for inclusive count: selecting the full range (min to max) should show 100%
+  const totalSpan = maxTickId - minTickId + 1;
 
-  const [fromFrac, setFromFrac] = useState(() =>
-    defaultFrom !== undefined ? tickToFrac(defaultFrom, minTickId, maxTickId) : 0,
-  );
-  const [toFrac, setToFrac] = useState(() =>
-    defaultTo !== undefined ? tickToFrac(defaultTo, minTickId, maxTickId) : 1,
-  );
+  const [fromFrac, setFromFrac] = useState(() => {
+    if (defaultFrom === undefined) return 0;
+    // Clamp to server bounds so the handle never starts outside the track
+    const clamped = Math.max(minTickId, Math.min(maxTickId, defaultFrom));
+    return tickToFrac(clamped, minTickId, maxTickId);
+  });
+  const [toFrac, setToFrac] = useState(() => {
+    if (defaultTo === undefined) return 1;
+    // Clamp to server bounds so the handle never overflows past 100%
+    const clamped = Math.max(minTickId, Math.min(maxTickId, defaultTo));
+    return tickToFrac(clamped, minTickId, maxTickId);
+  });
 
   const trackRef = useRef<HTMLDivElement>(null);
 
