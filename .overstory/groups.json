@@ -210,5 +210,15 @@
 		"status": "active",
 		"createdAt": "2026-03-15T18:02:26.187Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-327f857c",
+		"name": "repl-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-f772"
+		],
+		"status": "active",
+		"createdAt": "2026-03-15T19:08:11.125Z",
+		"completedAt": null
 	}
 ]
