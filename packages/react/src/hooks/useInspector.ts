@@ -54,7 +54,10 @@ export function useInspector(
     }
 
     inspector.ingestTicks(newTicks);
-    ingestedTickIdsRef.current = new Set(ticks.map((t) => t.tickId));
+    // Track IDs actually stored in the inspector (not the full ticks array) so that
+    // seek detection works correctly when the window overlaps with previously-streamed
+    // tick IDs that the inspector has since evicted due to its maxTicks cap.
+    ingestedTickIdsRef.current = new Set(inspector.getStoredTickIds());
     setTickGeneration((g) => g + 1);
   }, [ticks, inspector]);
 
