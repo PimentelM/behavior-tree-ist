@@ -5,8 +5,11 @@ import { createLogger } from '../logging';
 import { OutboundMessageSchema } from '../../domain/core-schemas';
 import { GenericWebSocketClient } from '../../_lib/server/generic-ws-client';
 import type { ConnectionSerializer } from '../../_lib/connection';
+import type { Logger } from '../logging';
 
 class JsonMessageSerializer implements ConnectionSerializer<OutboundMessage, object> {
+    constructor(private readonly logger: Logger) {}
+
     serialize(message: object): string {
         return JSON.stringify(message);
     }
@@ -17,7 +20,10 @@ class JsonMessageSerializer implements ConnectionSerializer<OutboundMessage, obj
         const parsed = OutboundMessageSchema.safeParse(rawObj);
 
         if (!parsed.success) {
-            return undefined; // Handled/dropped by generic client or logged externally if desirable
+            this.logger.warn('WebSocket message deserialization failed', {
+                error: parsed.error.message,
+            });
+            return undefined;
         }
 
         return parsed.data as OutboundMessage;
@@ -32,7 +38,7 @@ export class WSWebSocketClient extends GenericWebSocketClient<OutboundMessage, o
         const logger = createLogger(`ws-client:${id.slice(0, 8)}`);
         super(id, socket, {
             logger,
-            serializer: new JsonMessageSerializer()
+            serializer: new JsonMessageSerializer(logger)
         });
     }
 }

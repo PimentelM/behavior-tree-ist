@@ -24,6 +24,7 @@ export interface UiConnectionRegistryInterface {
 export interface CommandBrokerInterface {
     sendCommand(connectionId: string, command: StudioCommand): Promise<CommandResponse>;
     handleResponse(correlationId: string, response: CommandResponse): void;
+    updateTimeoutMs(ms: number): void;
     shutdown(): void;
 }
 

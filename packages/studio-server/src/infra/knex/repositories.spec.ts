@@ -182,4 +182,67 @@ describe('TickRepository', () => {
 
         expect(result.map(t => t.tickId)).toEqual([1, 2, 3, 4]);
     });
+
+    it('findAfter returns ticks after given id in ascending order', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2), makeTick(3), makeTick(4), makeTick(5)]);
+
+        const result = await tickRepository.findAfter(C, S, T, 2, 10);
+
+        expect(result.map(t => t.tickId)).toEqual([3, 4, 5]);
+    });
+
+    it('findAfter respects limit', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2), makeTick(3), makeTick(4), makeTick(5)]);
+
+        const result = await tickRepository.findAfter(C, S, T, 1, 2);
+
+        expect(result.map(t => t.tickId)).toEqual([2, 3]);
+    });
+
+    it('findAfter returns empty for afterTickId beyond all ticks', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2)]);
+
+        const result = await tickRepository.findAfter(C, S, T, 100, 10);
+
+        expect(result).toHaveLength(0);
+    });
+
+    it('pruneToLimit does nothing when count is within limit', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2), makeTick(3)]);
+
+        await tickRepository.pruneToLimit(C, S, T, 5);
+
+        const bounds = await tickRepository.getTickBounds(C, S, T);
+        expect(bounds?.totalCount).toBe(3);
+    });
+
+    it('pruneToLimit deletes oldest ticks to reach limit', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2), makeTick(3), makeTick(4), makeTick(5)]);
+
+        await tickRepository.pruneToLimit(C, S, T, 3);
+
+        const bounds = await tickRepository.getTickBounds(C, S, T);
+        expect(bounds?.totalCount).toBe(3);
+        expect(bounds?.minTickId).toBe(3);
+        expect(bounds?.maxTickId).toBe(5);
+    });
+
+    it('pruneToLimit leaves exactly maxTicks ticks', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2), makeTick(3)]);
+
+        await tickRepository.pruneToLimit(C, S, T, 1);
+
+        const result = await tickRepository.findAfter(C, S, T, 0, 10);
+        expect(result.map(t => t.tickId)).toEqual([3]);
+    });
+
+    it('pruneToLimit only affects matching client/session/tree', async () => {
+        await tickRepository.insertBatch(C, S, T, [makeTick(1), makeTick(2), makeTick(3)]);
+        await tickRepository.insertBatch('other', S, T, [makeTick(1), makeTick(2), makeTick(3)]);
+
+        await tickRepository.pruneToLimit(C, S, T, 1);
+
+        const otherBounds = await tickRepository.getTickBounds('other', S, T);
+        expect(otherBounds?.totalCount).toBe(3);
+    });
 });

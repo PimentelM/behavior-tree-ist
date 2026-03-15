@@ -20,6 +20,7 @@ export const StudioServerConfigSchema = z.object({
     }),
     commandTimeoutMs: z.number().int().min(1),
     maxTicksPerTree: z.number().int().min(1),
+    maxConnections: z.number().int().min(1).default(1000),
     logLevel: z.string().min(1),
     migrations: z.object({
         runOnStartup: z.boolean(),

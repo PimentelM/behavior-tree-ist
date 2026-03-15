@@ -21,10 +21,14 @@ export abstract class AbstractCommandBroker<TCommand extends CorrelationIdentifi
 
     constructor(
         protected readonly commandSender: CommandSender<TOutbound>,
-        protected readonly timeoutMs: number,
+        protected timeoutMs: number,
         logger: Logger
     ) {
         this.logger = logger;
+    }
+
+    updateTimeoutMs(ms: number): void {
+        this.timeoutMs = ms;
     }
 
     protected abstract prepareMessage(command: TCommand): TOutbound;

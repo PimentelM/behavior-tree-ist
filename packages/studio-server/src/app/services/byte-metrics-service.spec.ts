@@ -79,4 +79,24 @@ describe('ByteMetricsService', () => {
         expect(svc.query('c', 's', 'tree-a').totalBytes).toBe(100);
         expect(svc.query('c', 's', 'tree-b').totalBytes).toBe(999);
     });
+
+    it('clearByAgent removes all trees for the given agent', () => {
+        const svc = new ByteMetricsService();
+
+        svc.record('c', 's', 'tree-a', 1, 100);
+        svc.record('c', 's', 'tree-b', 1, 200);
+        svc.record('other', 's', 'tree-a', 1, 999);
+
+        svc.clearByAgent('c', 's');
+
+        expect(svc.query('c', 's', 'tree-a').totalBytes).toBe(0);
+        expect(svc.query('c', 's', 'tree-b').totalBytes).toBe(0);
+        expect(svc.query('other', 's', 'tree-a').totalBytes).toBe(999);
+    });
+
+    it('clearByAgent is a no-op for unknown agent', () => {
+        const svc = new ByteMetricsService();
+
+        expect(() => svc.clearByAgent('ghost', 'session')).not.toThrow();
+    });
 });

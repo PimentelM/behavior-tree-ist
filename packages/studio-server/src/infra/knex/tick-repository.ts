@@ -112,32 +112,34 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         treeId: string,
         maxTicks: number
     ): Promise<void> {
-        const count = await this.withTransaction(
-            this.knex('ticks')
-                .where({ clientId, sessionId, treeId })
-                .count('* as cnt')
-        );
-
-        const total = Number((count[0] as { cnt: number | string }).cnt);
-        if (total <= maxTicks) return;
-
-        const toDelete = total - maxTicks;
-        const oldest = await this.withTransaction(
-            this.knex('ticks')
-                .where({ clientId, sessionId, treeId })
-                .orderBy('tickId', 'asc')
-                .limit(toDelete)
-                .select('tickId')
-        );
-
-        const tickIds = oldest.map((r: { tickId: number }) => r.tickId);
-        if (tickIds.length > 0) {
-            await this.withTransaction(
+        await this.executeTransactionally(async () => {
+            const count = await this.withTransaction(
                 this.knex('ticks')
                     .where({ clientId, sessionId, treeId })
-                    .whereIn('tickId', tickIds)
-                    .delete()
+                    .count('* as cnt')
             );
-        }
+
+            const total = Number((count[0] as { cnt: number | string }).cnt);
+            if (total <= maxTicks) return;
+
+            const toDelete = total - maxTicks;
+            const oldest = await this.withTransaction(
+                this.knex('ticks')
+                    .where({ clientId, sessionId, treeId })
+                    .orderBy('tickId', 'asc')
+                    .limit(toDelete)
+                    .select('tickId')
+            );
+
+            const tickIds = oldest.map((r: { tickId: number }) => r.tickId);
+            if (tickIds.length > 0) {
+                await this.withTransaction(
+                    this.knex('ticks')
+                        .where({ clientId, sessionId, treeId })
+                        .whereIn('tickId', tickIds)
+                        .delete()
+                );
+            }
+        });
     }
 }

@@ -16,6 +16,7 @@ export interface ByteMetricsQuery {
 export interface ByteMetricsServiceInterface {
     record(clientId: string, sessionId: string, treeId: string, tickId: number, bytes: number): void;
     query(clientId: string, sessionId: string, treeId: string): ByteMetricsQuery;
+    clearByAgent(clientId: string, sessionId: string): void;
 }
 
 export class ByteMetricsService implements ByteMetricsServiceInterface {
@@ -38,6 +39,15 @@ export class ByteMetricsService implements ByteMetricsServiceInterface {
         const arr = this.samples.get(k)!;
         arr.push({ tickId, bytes, timestamp: Date.now() });
         if (arr.length > this.maxSamples) arr.shift();
+    }
+
+    clearByAgent(clientId: string, sessionId: string): void {
+        const prefix = `${clientId}:${sessionId}:`;
+        for (const key of this.samples.keys()) {
+            if (key.startsWith(prefix)) {
+                this.samples.delete(key);
+            }
+        }
     }
 
     query(clientId: string, sessionId: string, treeId: string): ByteMetricsQuery {

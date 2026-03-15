@@ -53,6 +53,7 @@ export function makeConfig(): StudioServerConfig {
         },
         commandTimeoutMs: readIntegerEnv('COMMAND_TIMEOUT_MS', 5000),
         maxTicksPerTree: readIntegerEnv('MAX_TICKS_PER_TREE', 100_000),
+        maxConnections: readIntegerEnv('MAX_CONNECTIONS', 1000),
         logLevel: process.env.LOG_LEVEL || 'info',
         migrations: {
             runOnStartup: readBooleanEnv('RUN_MIGRATIONS_ON_STARTUP', true),

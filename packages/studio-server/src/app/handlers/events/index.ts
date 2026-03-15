@@ -1,10 +1,14 @@
 import { UiMessageType } from '@bt-studio/studio-common';
 import type { AppDependencies } from '../../../types';
+import type { RuntimeSettingsRef } from '../messages/tick-batch-handler';
 
 export function registerLocalDomainEventHandlers({
     uiWsServer,
     eventDispatcher,
-}: Pick<AppDependencies, 'uiWsServer' | 'eventDispatcher'>): void {
+    commandBroker,
+    byteMetricsService,
+    runtimeSettings,
+}: Pick<AppDependencies, 'uiWsServer' | 'eventDispatcher' | 'commandBroker' | 'byteMetricsService'> & { runtimeSettings: RuntimeSettingsRef }): void {
     eventDispatcher.on('Agent', 'AgentConnected', async ({ event }) => {
         const { clientId, sessionId } = event.body;
 
@@ -23,6 +27,8 @@ export function registerLocalDomainEventHandlers({
             clientId,
             sessionId,
         });
+
+        byteMetricsService.clearByAgent(clientId, sessionId);
     });
 
     eventDispatcher.on('Agent', 'CatalogChanged', async ({ event }) => {
@@ -33,5 +39,11 @@ export function registerLocalDomainEventHandlers({
             clientId,
             sessionId,
         });
+    });
+
+    eventDispatcher.on('Server', 'SettingsUpdated', async ({ event }) => {
+        const { maxTicksPerTree, commandTimeoutMs } = event.body.settings;
+        runtimeSettings.maxTicksPerTree = maxTicksPerTree;
+        commandBroker.updateTimeoutMs(commandTimeoutMs);
     });
 }
