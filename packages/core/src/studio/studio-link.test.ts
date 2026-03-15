@@ -420,6 +420,57 @@ describe("StudioLink", () => {
         });
     });
 
+    describe("plugin messages", () => {
+        it("sendPluginMessage serializes with correct t field", async () => {
+            const link = createStudioLink();
+            const transport = await connectLink(link);
+
+            link.sendPluginMessage("repl", "corr-1", { type: "eval", code: "1+1" });
+
+            const payload = JSON.parse(transport.send.mock.calls[0][0] as string);
+            expect(payload.t).toBe(MessageType.PluginMessage);
+            expect(payload.pluginId).toBe("repl");
+            expect(payload.correlationId).toBe("corr-1");
+            expect(payload.payload).toEqual({ type: "eval", code: "1+1" });
+        });
+
+        it("dispatches inbound PluginMessage to onPluginMessage handlers", async () => {
+            const link = createStudioLink();
+            const transport = await connectLink(link);
+
+            const handler = vi.fn();
+            link.onPluginMessage(handler);
+
+            transport._simulateMessage(JSON.stringify({
+                t: MessageType.PluginMessage,
+                pluginId: "repl",
+                correlationId: "corr-1",
+                payload: { kind: "result", text: "2" },
+            }));
+
+            expect(handler).toHaveBeenCalledTimes(1);
+            expect(handler).toHaveBeenCalledWith("repl", "corr-1", { kind: "result", text: "2" });
+        });
+
+        it("onPluginMessage returns working off function", async () => {
+            const link = createStudioLink();
+            const transport = await connectLink(link);
+
+            const handler = vi.fn();
+            const off = link.onPluginMessage(handler);
+            off();
+
+            transport._simulateMessage(JSON.stringify({
+                t: MessageType.PluginMessage,
+                pluginId: "repl",
+                correlationId: "corr-1",
+                payload: {},
+            }));
+
+            expect(handler).not.toHaveBeenCalled();
+        });
+    });
+
     describe("unsubscription", () => {
         it("onCommand returns working off function", async () => {
             const link = createStudioLink();

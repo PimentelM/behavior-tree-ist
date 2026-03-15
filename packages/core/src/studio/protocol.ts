@@ -8,6 +8,7 @@ export const MessageType = {
     TickBatch: 4,
     CommandResponse: 5,
     Command: 6,
+    PluginMessage: 7,
 } as const;
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
@@ -19,8 +20,10 @@ export type OutboundMessage =
     | { t: typeof MessageType.TreeRegistered; treeId: string; serializedTree: SerializableNode }
     | { t: typeof MessageType.TreeRemoved; treeId: string }
     | { t: typeof MessageType.TickBatch; treeId: string; ticks: TickRecord[] }
-    | { t: typeof MessageType.CommandResponse; correlationId: CorrelationId; response: CommandResponse };
+    | { t: typeof MessageType.CommandResponse; correlationId: CorrelationId; response: CommandResponse }
+    | { t: typeof MessageType.PluginMessage; pluginId: string; correlationId: string; payload: unknown };
 
 // Inbound (server → client)
 export type InboundMessage =
-    | { t: typeof MessageType.Command; command: StudioCommand };
+    | { t: typeof MessageType.Command; command: StudioCommand }
+    | { t: typeof MessageType.PluginMessage; pluginId: string; correlationId: string; payload: unknown };

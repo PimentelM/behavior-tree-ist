@@ -24,6 +24,7 @@ export const MessageTypeSchema = z.union([
     z.literal(MessageType.TickBatch),
     z.literal(MessageType.CommandResponse),
     z.literal(MessageType.Command),
+    z.literal(MessageType.PluginMessage),
 ]);
 
 export const StudioCommandTypeSchema = z.union([
@@ -173,14 +174,32 @@ export const OutboundMessageSchema: z.ZodType<OutboundMessage, z.ZodTypeDef, unk
             response: CommandResponseSchema,
         })
         .strict(),
+    z
+        .object({
+            t: z.literal(MessageType.PluginMessage),
+            pluginId: z.string(),
+            correlationId: z.string(),
+            payload: z.unknown(),
+        })
+        .strict(),
 ]);
 
-export const InboundMessageSchema: z.ZodType<InboundMessage, z.ZodTypeDef, unknown> = z
-    .object({
-        t: z.literal(MessageType.Command),
-        command: StudioCommandSchema,
-    })
-    .strict();
+export const InboundMessageSchema: z.ZodType<InboundMessage, z.ZodTypeDef, unknown> = z.union([
+    z
+        .object({
+            t: z.literal(MessageType.Command),
+            command: StudioCommandSchema,
+        })
+        .strict(),
+    z
+        .object({
+            t: z.literal(MessageType.PluginMessage),
+            pluginId: z.string(),
+            correlationId: z.string(),
+            payload: z.unknown(),
+        })
+        .strict(),
+]);
 
 type IsExact<A, B> =
     [A] extends [B]
