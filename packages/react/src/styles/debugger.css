@@ -315,7 +315,7 @@
 .bt-toolbar {
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   padding: 0 10px;
   gap: 8px;
@@ -340,7 +340,7 @@
 
 .bt-toolbar__main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: auto 1fr auto;
   align-items: center;
 }
 
@@ -350,17 +350,22 @@
 }
 
 .bt-toolbar__main-actions {
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .bt-toolbar__main-center {
   display: flex;
   justify-content: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .bt-toolbar__main-trailing {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 
@@ -417,6 +422,9 @@
   color: var(--bt-text-muted);
   background: color-mix(in srgb, var(--bt-bg-tertiary) 70%, transparent);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .bt-toolbar__travel-indicator--paused {
