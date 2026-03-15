@@ -5,6 +5,7 @@ import { TreeRegisteredHandler } from './tree-registered-handler';
 import { TreeRemovedHandler } from './tree-removed-handler';
 import { TickBatchHandler } from './tick-batch-handler';
 import { CommandResponseHandler } from './command-response-handler';
+import { PluginMessageHandler } from './plugin-message-handler';
 import { createLogger } from '../../../infra/logging';
 
 export function registerMessageHandlers({ messageRouter, ...deps }: AppDependencies) {
@@ -50,6 +51,14 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
         MessageType.CommandResponse,
         new CommandResponseHandler({
             commandBroker: deps.commandBroker,
+        })
+    );
+
+    messageRouter.registerHandler(
+        // Cast required until MessageType.PluginMessage (7) is published from core
+        (7 as unknown) as MessageType,
+        new PluginMessageHandler({
+            replBroker: deps.replBroker,
         })
     );
 }

@@ -7,6 +7,7 @@ import { createTicksRouter } from './ticks';
 import { createCommandsRouter } from './commands';
 import { createSettingsRouter } from './settings';
 import { createByteMetricsRouter } from './byte-metrics';
+import { createReplRouter } from './repl';
 import { type AppDependencies } from '../../../types/app-dependencies';
 
 export function createAppRouter(deps: AppDependencies) {
@@ -19,6 +20,7 @@ export function createAppRouter(deps: AppDependencies) {
         commands: createCommandsRouter(deps),
         settings: createSettingsRouter(deps),
         byteMetrics: createByteMetricsRouter(deps),
+        repl: createReplRouter(deps),
     });
 }
 
