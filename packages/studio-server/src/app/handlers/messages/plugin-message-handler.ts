@@ -20,13 +20,13 @@ export class PluginMessageHandler extends BaseHandler {
         super(100, 'plugin-message-handler');
     }
 
-    protected async handleMessage(message: OutboundMessage, _client: MessageConnectionInterface): Promise<void> {
+    protected async handleMessage(message: OutboundMessage, client: MessageConnectionInterface): Promise<void> {
         // The router delivers only PluginMessage (t=7) messages to this handler.
         // Cast is required until core OutboundMessage union includes PluginMessage.
         const { pluginId, correlationId, payload } = message as unknown as PluginMessageFields;
 
         if (pluginId === 'repl') {
-            this.deps.replBroker.handleAgentResponse(correlationId, payload);
+            this.deps.replBroker.handleAgentMessage(client.id, correlationId, payload);
         } else {
             this.logger.warn('Received PluginMessage for unknown plugin', { pluginId });
         }

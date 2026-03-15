@@ -32,6 +32,7 @@
   "dependencies": {
     "@bt-studio/core": "workspace:*",
     "@bt-studio/studio-common": "workspace:^",
+    "@bt-studio/studio-plugins": "workspace:^",
     "@bt-studio/studio-transport": "workspace:^",
     "@trpc/server": "^11.0.0",
     "better-sqlite3": "^12.4.1",

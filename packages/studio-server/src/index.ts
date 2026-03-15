@@ -12,6 +12,7 @@ import { UiConnectionRegistry } from './app/services/ui-connection-registry';
 import { CommandBroker } from './app/services/command-broker';
 import { ByteMetricsService } from './app/services/byte-metrics-service';
 import { ReplBroker } from './app/services/repl-broker';
+import { DEMO_SERVER_KEYPAIR } from '@bt-studio/studio-plugins';
 import { ClientRepository } from './infra/knex/client-repository';
 import { SessionRepository } from './infra/knex/session-repository';
 import { TreeRepository } from './infra/knex/tree-repository';
@@ -218,17 +219,20 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         const uiConnectionRegistry = new UiConnectionRegistry();
         const byteMetricsService = new ByteMetricsService();
         const replBroker = new ReplBroker({
-            sendToClient: (clientId, message) => {
-                if (wsServer?.getClient(clientId)) {
-                    wsServer.sendToClient(clientId, message);
-                    return;
-                }
-                if (tcpServer?.getClient(clientId)) {
-                    tcpServer.sendToClient(clientId, message);
-                    return;
-                }
-                setupLogger.warn('Attempted to send plugin message to unknown client', { clientId });
+            commandSender: {
+                sendToClient: (clientId, message) => {
+                    if (wsServer?.getClient(clientId)) {
+                        wsServer.sendToClient(clientId, message);
+                        return;
+                    }
+                    if (tcpServer?.getClient(clientId)) {
+                        tcpServer.sendToClient(clientId, message);
+                        return;
+                    }
+                    setupLogger.warn('Attempted to send plugin message to unknown client', { clientId });
+                },
             },
+            serverSecretKey: DEMO_SERVER_KEYPAIR.secretKey,
         });
         // Repositories
         const clientRepository = new ClientRepository(knex);

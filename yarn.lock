@@ -299,7 +299,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-plugins@workspace:*, @bt-studio/studio-plugins@workspace:packages/studio-plugins":
+"@bt-studio/studio-plugins@workspace:*, @bt-studio/studio-plugins@workspace:^, @bt-studio/studio-plugins@workspace:packages/studio-plugins":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-plugins@workspace:packages/studio-plugins"
   dependencies:
@@ -321,6 +321,7 @@ __metadata:
   dependencies:
     "@bt-studio/core": "workspace:*"
     "@bt-studio/studio-common": "workspace:^"
+    "@bt-studio/studio-plugins": "workspace:^"
     "@bt-studio/studio-transport": "workspace:^"
     "@trpc/client": "npm:^11.11.0"
     "@trpc/server": "npm:^11.0.0"
