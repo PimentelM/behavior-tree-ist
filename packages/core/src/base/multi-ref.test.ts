@@ -286,6 +286,45 @@ describe("patchRef", () => {
         });
     });
 
+    describe("property descriptor filtering", () => {
+        it("skips non-writable own properties", () => {
+            const obj = {} as { readonly frozen: number; mutable: number };
+            Object.defineProperty(obj, "frozen", { value: 42, writable: false, enumerable: true, configurable: true });
+            Object.defineProperty(obj, "mutable", { value: 1, writable: true, enumerable: true, configurable: true });
+
+            const patched = patchRef("obj", obj);
+            const node = Action.from("write", () => {
+                (patched as { mutable: number }).mutable = 99;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            expect(ctx.refEvents[0].refName).toBe("obj.mutable");
+        });
+
+        it("skips non-enumerable own properties", () => {
+            const obj = {} as { hidden: number; visible: number };
+            Object.defineProperty(obj, "hidden", { value: 1, writable: true, enumerable: false, configurable: true });
+            Object.defineProperty(obj, "visible", { value: 2, writable: true, enumerable: true, configurable: true });
+
+            const patched = patchRef("obj", obj);
+            const node = Action.from("write", () => {
+                patched.hidden = 10;
+                patched.visible = 20;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            expect(ctx.refEvents[0].refName).toBe("obj.visible");
+        });
+    });
+
     describe("tracing", () => {
         it("field write inside tick emits RefChangeEvent", () => {
             const state = patchRef("agent", new AgentState());
@@ -327,6 +366,20 @@ describe("patchRef", () => {
             state.health = 42;
 
             expect(state.health).toBe(42);
+        });
+
+        it("does not emit event when state tracing is disabled", () => {
+            const state = patchRef("agent", new AgentState());
+            const node = Action.from("hit", () => {
+                state.health = 50;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ isStateTraceEnabled: false });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(0);
+            expect(state.health).toBe(50);
         });
     });
 });

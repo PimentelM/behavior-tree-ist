@@ -18,9 +18,7 @@ export class KeepRunningUntilFailure extends Decorator {
         }
 
         if (result === NodeResult.Succeeded) {
-            // Child state already reset via onReset (triggered by Tick).
-            // Abort is a no-op if child was never Running.
-            BTNode.Abort(this.child, ctx);
+            // No abort needed — BTNode.Tick already cleared child._wasRunning when child returned Succeeded.
             return NodeResult.Running;
         }
 

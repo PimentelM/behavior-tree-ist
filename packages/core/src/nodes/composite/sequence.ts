@@ -22,7 +22,7 @@ export class Sequence extends Composite {
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`Sequence node ${this.name} has no nodes`);
+            throw new Error(`Sequence node ${this.displayName} has no nodes`);
         }
 
         for (let i = 0; i < this.nodes.length; i++) {

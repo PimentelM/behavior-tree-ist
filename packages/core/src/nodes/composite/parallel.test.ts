@@ -253,6 +253,18 @@ describe("Parallel", () => {
             expect(child2.abortCount).toBe(0);
             expect(child3.abortCount).toBe(0);
         });
+
+        it("fails when threshold exceeds total children and all children fail", () => {
+            const child1 = new StubAction(NodeResult.Failed);
+            const child2 = new StubAction(NodeResult.Failed);
+            const child3 = new StubAction(NodeResult.Failed);
+            const policy = SuccessThreshold(10);
+            const parallel = Parallel.from("test", [child1, child2, child3], policy);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            expect(result).toBe(NodeResult.Failed);
+        });
     });
 
     it("AlwaysRunningPolicy always returns Running", () => {

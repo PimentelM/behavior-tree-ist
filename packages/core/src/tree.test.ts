@@ -71,6 +71,45 @@ describe("BehaviourTree", () => {
             tree.tick({ now: 124 });
             expect(handler).toHaveBeenCalledTimes(1);
         });
+
+        it("multiple listeners all receive the tick record", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            const handler1 = vi.fn();
+            const handler2 = vi.fn();
+
+            tree.onTickRecord(handler1);
+            tree.onTickRecord(handler2);
+            const tickRecord = tree.tick({ now: 1 });
+
+            expect(handler1).toHaveBeenCalledWith(tickRecord);
+            expect(handler2).toHaveBeenCalledWith(tickRecord);
+        });
+
+        it("off function removes only the specific listener", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            const handler1 = vi.fn();
+            const handler2 = vi.fn();
+
+            const off1 = tree.onTickRecord(handler1);
+            tree.onTickRecord(handler2);
+            off1();
+            tree.tick({ now: 1 });
+
+            expect(handler1).not.toHaveBeenCalled();
+            expect(handler2).toHaveBeenCalledTimes(1);
+        });
+
+        it("throws on re-entrant tick", () => {
+            const root = new StubAction(NodeResult.Succeeded);
+            const tree = new BehaviourTree(root);
+            tree.onTickRecord(() => {
+                expect(() => tree.tick()).toThrow('Re-entrant tick detected');
+            });
+
+            tree.tick({ now: 1 });
+        });
     });
 
     describe('state tracing', () => {
