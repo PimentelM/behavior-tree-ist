@@ -830,7 +830,7 @@ export function BehaviourTreeDebugger({
               />
             )}
 
-            {!performanceMode && activityWindowEnabled && activityWindowVisible && (
+            {!performanceMode && !replMode && activityWindowEnabled && activityWindowVisible && (
               <div
                 className={`bt-canvas-surface__activity ${activityWindowCollapsed ? 'bt-canvas-surface__activity--collapsed' : ''}`}
                 ref={activityWindowRef}

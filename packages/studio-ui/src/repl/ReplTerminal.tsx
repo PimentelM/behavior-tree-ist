@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
-import { ubuntuTheme } from './repl-theme';
+import { replTheme } from './repl-theme';
 import { useRepl } from './use-repl';
 import type { ReplResult, UseReplReturn } from './use-repl';
 
@@ -15,7 +15,7 @@ const RED = '\x1b[91m';
 const CYAN = '\x1b[96m';
 const GRAY = '\x1b[90m';
 
-const PROMPT = `${GREEN}user@studio${RESET}:${BRIGHT_BLUE}~${RESET}$ `;
+const PROMPT = '\x1b[97m> \x1b[0m';
 
 // ---- write helpers (pure) ----
 
@@ -77,8 +77,8 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
             }}
             style={{
                 background: 'transparent',
-                border: '1px solid #4a1942',
-                color: copied ? '#8ae234' : '#ad7fa8',
+                border: '1px solid #333333',
+                color: copied ? '#5af78e' : '#888888',
                 borderRadius: 3,
                 cursor: 'pointer',
                 fontSize: 10,
@@ -94,14 +94,14 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
 function KeyRow({ label, value, dimmed }: { label: string; value: string; dimmed?: boolean }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ color: '#555753', fontSize: 10, flexShrink: 0 }}>{label}</span>
+            <span style={{ color: '#686868', fontSize: 10, flexShrink: 0 }}>{label}</span>
             <code
                 style={{
-                    background: '#300a24',
+                    background: '#1a1a1a',
                     padding: '1px 6px',
                     borderRadius: 3,
                     fontSize: 10,
-                    color: dimmed ? '#ad7fa8' : '#8ae234',
+                    color: dimmed ? '#888888' : '#5af78e',
                     maxWidth: 200,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -137,30 +137,30 @@ function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
         <div
             style={{
                 padding: '6px 10px',
-                background: '#1a0012',
-                borderTop: '1px solid #4a1942',
+                background: '#111111',
+                borderTop: '1px solid #333333',
                 fontSize: 11,
-                fontFamily: 'Ubuntu Mono, monospace',
-                color: '#d3d7cf',
+                fontFamily: 'Menlo, Consolas, monospace',
+                color: '#e0e0e0',
             }}
         >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#555753', fontSize: 10, flexShrink: 0 }}>REPL Keys</span>
+                <span style={{ color: '#686868', fontSize: 10, flexShrink: 0 }}>REPL Keys</span>
                 {keyPair ? (
                     <>
                         <KeyRow label="pub:" value={keyPair.publicKeyB64} />
                         <KeyRow label="priv:" value={keyPair.privateKeyB64} dimmed />
                     </>
                 ) : (
-                    <span style={{ color: '#cc0000', fontSize: 10 }}>No keypair set</span>
+                    <span style={{ color: '#ff5c57', fontSize: 10 }}>No keypair set</span>
                 )}
                 <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', flexShrink: 0 }}>
                     <button
                         onClick={() => { setImportOpen((v) => !v); setImportError(null); }}
                         style={{
                             background: 'transparent',
-                            border: '1px solid #4a1942',
-                            color: importOpen ? '#8ae234' : '#ad7fa8',
+                            border: '1px solid #333333',
+                            color: importOpen ? '#5af78e' : '#888888',
                             borderRadius: 3,
                             cursor: 'pointer',
                             fontSize: 10,
@@ -173,8 +173,8 @@ function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
                         onClick={onGenerate}
                         style={{
                             background: 'transparent',
-                            border: '1px solid #4a1942',
-                            color: '#ad7fa8',
+                            border: '1px solid #333333',
+                            color: '#888888',
                             borderRadius: 3,
                             cursor: 'pointer',
                             fontSize: 10,
@@ -194,13 +194,13 @@ function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
                         onKeyDown={(e) => { if (e.key === 'Enter') handleImport(); }}
                         style={{
                             flex: 1,
-                            background: '#300a24',
-                            border: `1px solid ${importError ? '#cc0000' : '#4a1942'}`,
-                            color: '#d3d7cf',
+                            background: '#1a1a1a',
+                            border: `1px solid ${importError ? '#ff5c57' : '#333333'}`,
+                            color: '#e0e0e0',
                             borderRadius: 3,
                             fontSize: 10,
                             padding: '2px 6px',
-                            fontFamily: 'Ubuntu Mono, monospace',
+                            fontFamily: 'Menlo, Consolas, monospace',
                             outline: 'none',
                         }}
                     />
@@ -208,8 +208,8 @@ function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
                         onClick={handleImport}
                         style={{
                             background: 'transparent',
-                            border: '1px solid #8ae234',
-                            color: '#8ae234',
+                            border: '1px solid #5af78e',
+                            color: '#5af78e',
                             borderRadius: 3,
                             cursor: 'pointer',
                             fontSize: 10,
@@ -219,7 +219,7 @@ function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
                         Set
                     </button>
                     {importError && (
-                        <span style={{ color: '#cc0000', fontSize: 10 }}>{importError}</span>
+                        <span style={{ color: '#ff5c57', fontSize: 10 }}>{importError}</span>
                     )}
                 </div>
             )}
@@ -254,8 +254,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         if (!containerRef.current) return;
 
         const term = new Terminal({
-            theme: ubuntuTheme,
-            fontFamily: 'Ubuntu Mono, Courier New, monospace',
+            theme: replTheme,
+            fontFamily: 'Menlo, Consolas, monospace',
             fontSize: 13,
             lineHeight: 1.2,
             cursorBlink: true,
@@ -269,7 +269,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         term.open(containerRef.current);
         fitAddon.fit();
 
-        writeln(term, `${BRIGHT_GREEN}Welcome to BT Studio REPL${RESET}`);
+        writeln(term, `\x1b[97mWelcome to BT Studio REPL${RESET}`);
         writeln(term, `${GRAY}Type JavaScript and press Enter. Tab for completions.${RESET}`);
         writePrompt(term);
 
@@ -487,7 +487,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     }, []); // intentionally empty — terminal is created once; handlers use replRef
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#300a24' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a' }}>
             <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} />
             <KeyManagement
                 keyPair={repl.keyPair}
