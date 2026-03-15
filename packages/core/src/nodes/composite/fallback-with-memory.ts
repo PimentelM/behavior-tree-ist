@@ -45,7 +45,7 @@ export class FallbackWithMemory extends Composite {
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`FallbackWithMemory node ${this.name} has no nodes`);
+            throw new Error(`FallbackWithMemory node ${this.displayName} has no nodes`);
         }
 
         const startIndex = this._runningChildIndex ?? 0;

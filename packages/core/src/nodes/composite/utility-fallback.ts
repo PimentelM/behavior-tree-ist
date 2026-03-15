@@ -74,7 +74,7 @@ export class UtilityFallback extends Composite {
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`UtilityFallback node ${this.name} has no nodes`);
+            throw new Error(`UtilityFallback node ${this.displayName} has no nodes`);
         }
 
         // Evaluate scores every tick without allocating new objects (zero-allocation hot path)

@@ -85,7 +85,7 @@ export class Parallel extends Composite {
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length <= 0) {
-            throw new Error(`Parallel node ${this.name} has no nodes`);
+            throw new Error(`Parallel node ${this.displayName} has no nodes`);
         }
 
         let successCount = 0;

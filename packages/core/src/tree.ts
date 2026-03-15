@@ -86,6 +86,10 @@ export class BehaviourTree {
     }
 
     public tick(pCtx: PublicTickContext = {}): TickRecord {
+        if (this.runtime.isTickRunning) {
+            throw new Error('Re-entrant tick detected: BehaviourTree.tick() called while a tick is already in progress');
+        }
+
         const events: TickTraceEvent[] = [];
         const refEvents: RefChangeEvent[] = [];
         const now = pCtx.now ?? Date.now();
