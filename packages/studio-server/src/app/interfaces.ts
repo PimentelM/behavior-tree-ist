@@ -35,3 +35,5 @@ export interface DomainEventDispatcherInterface extends Pick<BaseEventDispatcher
     dispatchAgentEvent(event: AgentEvent): Promise<void>;
     dispatchServerEvent(event: ServerEvent): Promise<void>;
 }
+
+export type { ByteMetricsServiceInterface } from './services/byte-metrics-service';
