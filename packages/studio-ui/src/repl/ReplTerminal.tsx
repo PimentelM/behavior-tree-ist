@@ -263,13 +263,19 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             lineHeight: 1.2,
             cursorBlink: true,
             cursorStyle: 'block',
-            convertEol: true,
             scrollback: 1000,
         });
 
         const fitAddon = new FitAddon();
         term.loadAddon(fitAddon);
         term.open(containerRef.current);
+
+        // Keep xterm's IME helper textarea off-screen so it cannot appear as a
+        // ghost input when the container clips it.
+        const styleEl = document.createElement('style');
+        styleEl.textContent = '.xterm-helper-textarea { opacity: 0 !important; left: -9999px !important; top: -9999px !important; }';
+        document.head.appendChild(styleEl);
+
         fitAddon.fit();
         term.focus();
 
@@ -462,7 +468,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             if (ev.key === 'ArrowLeft') {
                 if (cursorPosRef.current > 0) {
                     cursorPosRef.current -= 1;
-                    term.write('\x1b[D');
+                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
                 }
                 return;
             }
@@ -471,7 +477,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             if (ev.key === 'ArrowRight') {
                 if (cursorPosRef.current < inputBufferRef.current.length) {
                     cursorPosRef.current += 1;
-                    term.write('\x1b[C');
+                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
                 }
                 return;
             }
@@ -540,13 +546,12 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             keyDisposable.dispose();
             ro.disconnect();
             term.dispose();
+            styleEl.remove();
         };
     }, []); // intentionally empty — terminal is created once; handlers use replRef
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a' }}>
-            {/* Ensure xterm's IME helper textarea stays off-screen and invisible */}
-            <style>{`.xterm-helper-textarea { opacity: 0 !important; left: -9999px !important; top: -9999px !important; }`}</style>
             <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} />
             <KeyManagement
                 keyPair={repl.keyPair}
