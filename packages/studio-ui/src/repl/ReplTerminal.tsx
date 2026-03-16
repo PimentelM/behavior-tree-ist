@@ -93,7 +93,9 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
     );
 }
 
-function KeyRow({ label, value, dimmed }: { label: string; value: string; dimmed?: boolean }) {
+function KeyRow({ label, value, dimmed, masked }: { label: string; value: string; dimmed?: boolean; masked?: boolean }) {
+    const displayValue = masked && value.length > 4 ? value.slice(0, 4) + '••••••' : value;
+    const titleAttr = masked ? 'Private key (hidden)' : value;
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ color: '#686868', fontSize: 10, flexShrink: 0 }}>{label}</span>
@@ -110,9 +112,9 @@ function KeyRow({ label, value, dimmed }: { label: string; value: string; dimmed
                     whiteSpace: 'nowrap',
                     flexShrink: 1,
                 }}
-                title={value}
+                title={titleAttr}
             >
-                {value}
+                {displayValue}
             </code>
             <CopyButton text={value} />
         </div>
@@ -151,7 +153,7 @@ function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
                 {keyPair ? (
                     <>
                         <KeyRow label="pub:" value={keyPair.publicKeyB64} />
-                        <KeyRow label="priv:" value={keyPair.privateKeyB64} dimmed />
+                        <KeyRow label="priv:" value={keyPair.privateKeyB64} dimmed masked />
                     </>
                 ) : (
                     <span style={{ color: '#ff5c57', fontSize: 10 }}>No keypair set</span>
