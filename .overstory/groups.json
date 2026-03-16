@@ -272,5 +272,15 @@
 		"status": "active",
 		"createdAt": "2026-03-15T22:37:04.227Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-08932801",
+		"name": "repl-keyboard-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-17d0"
+		],
+		"status": "active",
+		"createdAt": "2026-03-16T00:55:28.228Z",
+		"completedAt": null
 	}
 ]
