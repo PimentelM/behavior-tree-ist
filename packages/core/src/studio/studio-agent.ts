@@ -3,11 +3,48 @@ import { type TreeRegistry } from "../registry/tree-registry";
 import { type RegisteredTree } from "../registry/types";
 import { assertValidId } from "../registry/validation";
 import { type OffFunction } from "../types";
-import { type StudioPlugin, type StudioLinkInterface } from "./interfaces";
+import { type PluginSender, type StudioPlugin, type StudioLinkInterface } from "./interfaces";
 import { type CommandResponse, type CommandResponseData, type CommandResponseSuccess, type StudioCommand, StudioCommandType, StudioErrorCode } from "./types";
 
 interface AgentManagedTreeState {
     streaming: boolean;
+}
+
+/**
+ * Captures outbound plugin messages sent synchronously during attach() and replays
+ * them on flush() (when the link first connects). After stopBuffering() is called,
+ * any send() calls go directly to the delegate — so normal operation is transparent.
+ *
+ * This solves the timing issue where plugins call send() inside attach() before the
+ * WebSocket link is open (StudioLink silently drops messages when not connected).
+ */
+class PluginMessageBuffer implements PluginSender {
+    private buffering = true;
+    private buffer: Array<{ correlationId: string; payload: unknown }> = [];
+
+    constructor(private readonly delegate: PluginSender) {}
+
+    send(correlationId: string, payload: unknown): void {
+        if (this.buffering) {
+            this.buffer.push({ correlationId, payload });
+        } else {
+            this.delegate.send(correlationId, payload);
+        }
+    }
+
+    /** Call after attach() returns so subsequent sends go directly to the delegate. */
+    stopBuffering(): void {
+        this.buffering = false;
+    }
+
+    /** Deliver all messages captured during attach() to the delegate. */
+    flush(): void {
+        const pending = this.buffer;
+        this.buffer = [];
+        for (const { correlationId, payload } of pending) {
+            this.delegate.send(correlationId, payload);
+        }
+    }
 }
 
 export interface StudioAgentOptions {
@@ -24,6 +61,7 @@ export class StudioAgent {
     private readonly link: StudioLinkInterface;
     private readonly agentManagedStates = new Map<string, AgentManagedTreeState>();
     private readonly plugins = new Map<string, StudioPlugin>();
+    private readonly pluginBuffers = new Map<string, PluginMessageBuffer>();
     private readonly unsubscribers: OffFunction[] = [];
     private destroyed = false;
     private started = false;
@@ -73,13 +111,19 @@ export class StudioAgent {
             }),
         );
 
-        // Attach plugins
+        // Attach plugins with buffering senders.
+        // Messages sent synchronously inside attach() (e.g. ReplPlugin handshake) are
+        // buffered and replayed when the link first connects. Subsequent sends go directly.
         for (const plugin of this.plugins.values()) {
-            plugin.attach({
+            const delegate: PluginSender = {
                 send: (correlationId, payload) => {
                     this.link.sendPluginMessage(plugin.pluginId, correlationId, payload);
                 },
-            });
+            };
+            const buffer = new PluginMessageBuffer(delegate);
+            this.pluginBuffers.set(plugin.pluginId, buffer);
+            plugin.attach(buffer);
+            buffer.stopBuffering();
         }
 
         // Subscribe to registry events
@@ -122,6 +166,12 @@ export class StudioAgent {
             if (entry) {
                 this.link.sendTreeRegistered(treeId, entry.serializedTree);
             }
+        }
+
+        // Flush any messages buffered before the first connection, then notify plugins
+        for (const plugin of this.plugins.values()) {
+            this.pluginBuffers.get(plugin.pluginId)?.flush();
+            plugin.onConnected?.();
         }
     }
 

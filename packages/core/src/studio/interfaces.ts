@@ -13,6 +13,8 @@ export interface StudioPlugin {
     /** Called once so the plugin can send outbound messages via the agent */
     attach(send: PluginSender): void;
     detach(): void;
+    /** Called each time the agent establishes a connection (including reconnects) */
+    onConnected?(): void;
 }
 
 export interface StudioLinkInterface {
