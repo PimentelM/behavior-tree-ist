@@ -12,11 +12,11 @@ const C_PUNCT = '\x1b[97m';
 
 function kw(s: string) { return C_KEYWORD + s; }
 function num(s: string) { return C_NUMBER + s; }
-function str(s: string) { return C_STRING + s; }
-function cmt(s: string) { return C_COMMENT + s; }
+function _str(s: string) { return C_STRING + s; }
+function _cmt(s: string) { return C_COMMENT + s; }
 function re(s: string) { return C_REGEX + s; }
-function pt(s: string) { return C_PUNCT + s; }
-function id(s: string) { return RESET + s; }
+function _pt(s: string) { return C_PUNCT + s; }
+function _id(s: string) { return RESET + s; }
 
 describe('highlightJs', () => {
     it('returns empty string for empty input', () => {
@@ -117,6 +117,7 @@ describe('highlightJs', () => {
         const src = 'const x = 42';
         const result = highlightJs(src);
         // Strip all ANSI sequences
+        // eslint-disable-next-line no-control-regex
         const stripped = result.replace(/\x1b\[[0-9;]*m/g, '');
         expect(stripped).toBe(src);
     });
