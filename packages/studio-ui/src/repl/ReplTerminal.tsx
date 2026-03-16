@@ -257,7 +257,31 @@ function applyCompletion(prefix: string, candidate: string): string {
 }
 
 // Internal readline state accessor (private fields accessed via cast).
-type RlInternal = { state?: { buffer(): string; update(t: string): void } };
+type RlState = {
+    buffer(): string;
+    update(t: string): void;
+    moveCursorBack(n: number): void;
+    moveCursorForward(n: number): void;
+    editBackspace(n: number): void;
+    line?: { pos: number; buf: string };
+};
+type RlInternal = { state?: RlState };
+
+// ---- Word boundary helpers ----
+
+function wordBoundaryLeft(text: string, pos: number): number {
+    let i = pos;
+    while (i > 0 && !/[a-zA-Z0-9_$]/.test(text[i - 1])) i--;
+    while (i > 0 && /[a-zA-Z0-9_$]/.test(text[i - 1])) i--;
+    return i;
+}
+
+function wordBoundaryRight(text: string, pos: number): number {
+    let i = pos;
+    while (i < text.length && !/[a-zA-Z0-9_$]/.test(text[i])) i++;
+    while (i < text.length && /[a-zA-Z0-9_$]/.test(text[i])) i++;
+    return i;
+}
 
 // ---- REPL Terminal ----
 
@@ -318,6 +342,36 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 void handleTab();
                 return false;
             }
+            // Alt+Left: move cursor back one word
+            if (ev.type === 'keydown' && ev.altKey && ev.key === 'ArrowLeft') {
+                const st = (rl as unknown as RlInternal).state;
+                if (st?.line) {
+                    const target = wordBoundaryLeft(st.line.buf, st.line.pos);
+                    const delta = st.line.pos - target;
+                    if (delta > 0) st.moveCursorBack(delta);
+                }
+                return false;
+            }
+            // Alt+Right: move cursor forward one word
+            if (ev.type === 'keydown' && ev.altKey && ev.key === 'ArrowRight') {
+                const st = (rl as unknown as RlInternal).state;
+                if (st?.line) {
+                    const target = wordBoundaryRight(st.line.buf, st.line.pos);
+                    const delta = target - st.line.pos;
+                    if (delta > 0) st.moveCursorForward(delta);
+                }
+                return false;
+            }
+            // Alt+Backspace: delete previous word
+            if (ev.type === 'keydown' && ev.altKey && ev.key === 'Backspace') {
+                const st = (rl as unknown as RlInternal).state;
+                if (st?.line) {
+                    const target = wordBoundaryLeft(st.line.buf, st.line.pos);
+                    const delta = st.line.pos - target;
+                    if (delta > 0) st.editBackspace(delta);
+                }
+                return false;
+            }
             return true;
         });
 
@@ -325,32 +379,36 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             const r = replRef.current;
             if (!r) return;
 
-            // Access readline's private state to read/update the current buffer.
             const rlInternal = rl as unknown as RlInternal;
             const rlState = rlInternal.state;
-            if (!rlState) return;
+            if (!rlState) {
+                console.warn('[REPL] Tab: readline state not available');
+                return;
+            }
 
             const prefix = rlState.buffer();
+            if (!prefix) return; // nothing to complete
 
             try {
                 const completions = await r.sendCompletions(prefix);
                 if (completions.length === 0) return;
 
-                // Re-check that readline is still in an active read after async gap.
-                if (!rlInternal.state) return;
+                // Re-check after async gap — discard if buffer changed.
+                const currentState = rlInternal.state;
+                if (!currentState || currentState.buffer() !== prefix) return;
 
                 if (completions.length === 1) {
-                    rlInternal.state.update(applyCompletion(prefix, completions[0]));
+                    currentState.update(applyCompletion(prefix, completions[0]));
                 } else {
                     // Multiple matches: apply longest common prefix.
                     const lcp = longestCommonPrefix(completions);
                     const completed = applyCompletion(prefix, lcp);
                     if (completed !== prefix) {
-                        rlInternal.state.update(completed);
+                        currentState.update(completed);
                     }
                 }
-            } catch {
-                // ignore network / eval errors during completions
+            } catch (err) {
+                console.warn('[REPL] Tab completion error:', err);
             }
         }
 
