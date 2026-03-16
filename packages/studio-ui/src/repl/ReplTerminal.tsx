@@ -266,6 +266,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         term.loadAddon(fitAddon);
         term.open(containerRef.current);
         fitAddon.fit();
+        term.focus();
 
         writeln(term, `\x1b[97mWelcome to BT Studio REPL${RESET}`);
         writeln(term, `${GRAY}Type JavaScript and press Enter. Tab for completions.${RESET}`);
@@ -362,7 +363,31 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             redrawInputLine(term, inputBufferRef.current);
         }
 
-        const disposable = term.onKey(({ key, domEvent: ev }) => {
+        // ---- onData: printable character input ----
+        // onData fires after dead key / IME composition resolves, giving properly
+        // composed characters. Control sequences are filtered and handled by onKey.
+        const dataDisposable = term.onData((data) => {
+            if (isEvalPendingRef.current) return;
+
+            // Skip sequences handled by onKey
+            if (data === '\r') return;                          // Enter
+            if (data === '\x7f') return;                        // Backspace
+            if (data.startsWith('\x1b')) return;                // Escape sequences
+            if (data.length === 1 && data.charCodeAt(0) < 0x20) return; // Ctrl sequences
+
+            // Clear suggestions on printable input
+            if (suggestionsRef.current.length > 0) {
+                suggestionsRef.current = [];
+                suggestionIndexRef.current = -1;
+            }
+
+            inputBufferRef.current += data;
+            historyIndexRef.current = -1;
+            term.write(data);
+        });
+
+        // ---- onKey: control / special keys only ----
+        const keyDisposable = term.onKey(({ domEvent: ev }) => {
             if (isEvalPendingRef.current) return;
 
             const suggestions = suggestionsRef.current;
@@ -385,9 +410,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     acceptSuggestionAtIndex(next);
                     return;
                 }
-                // Any other key clears suggestions
-                suggestionsRef.current = [];
-                suggestionIndexRef.current = -1;
+                // Printable chars clear suggestions via onData; special keys fall through
             }
 
             // ---- Enter ----
@@ -465,20 +488,14 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 term.write(inputBufferRef.current);
                 return;
             }
-
-            // ---- Printable characters ----
-            if (key.length === 1 && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
-                inputBufferRef.current += key;
-                historyIndexRef.current = -1;
-                term.write(key);
-            }
         });
 
         const ro = new ResizeObserver(() => fitAddon.fit());
         ro.observe(containerRef.current);
 
         return () => {
-            disposable.dispose();
+            dataDisposable.dispose();
+            keyDisposable.dispose();
             ro.disconnect();
             term.dispose();
         };

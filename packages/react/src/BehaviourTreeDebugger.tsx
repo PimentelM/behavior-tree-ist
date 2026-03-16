@@ -482,6 +482,7 @@ export function BehaviourTreeDebugger({
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
+      if (replMode) return;
       if ((event.code === 'Space' || event.key === ' ') && !event.repeat) {
         if (isEditableTarget(event.target)) return;
         event.preventDefault();
@@ -512,7 +513,7 @@ export function BehaviourTreeDebugger({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [timeTravelControls, handleToggleTimeTravel, onTickChange]);
+  }, [timeTravelControls, handleToggleTimeTravel, onTickChange, replMode]);
 
   const handleToggleTheme = useCallback(() => {
     const nextMode: ThemeMode = themeMode === 'dark' ? 'light' : 'dark';
