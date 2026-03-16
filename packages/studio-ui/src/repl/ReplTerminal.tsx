@@ -19,7 +19,7 @@ const PROMPT = '\x1b[97m> \x1b[0m';
 // ---- write helpers (pure) ----
 
 function writeln(term: Terminal, text: string) {
-    term.write(text + '\r\n');
+    term.write(text.replace(/\r?\n/g, '\r\n') + '\r\n');
 }
 
 function writePrompt(term: Terminal) {
