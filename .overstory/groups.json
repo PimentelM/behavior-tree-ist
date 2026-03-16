@@ -282,5 +282,15 @@
 		"status": "active",
 		"createdAt": "2026-03-16T00:55:28.228Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-39ae7284",
+		"name": "repl-keys-r2",
+		"memberIssueIds": [
+			"behavior-tree-ist-5c6b"
+		],
+		"status": "active",
+		"createdAt": "2026-03-16T02:02:08.696Z",
+		"completedAt": null
 	}
 ]
