@@ -90,7 +90,7 @@ describe('SerializableNodeSchema', () => {
         };
         const parsed = SerializableNodeSchema.parse(node);
         expect(parsed.children).toHaveLength(1);
-        expect(parsed.children![0]!.id).toBe(2);
+        expect(((parsed.children ?? []) as import("@bt-studio/core").SerializableNode[])[0]?.id).toBe(2);
     });
 });
 

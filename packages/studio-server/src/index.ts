@@ -88,7 +88,7 @@ function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
 
 async function closeHttpServer(httpServer: Server): Promise<void> {
     await new Promise<void>((resolve) => {
-        httpServer.close(() => resolve());
+        httpServer.close(() => { resolve(); });
     });
 }
 
@@ -310,7 +310,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             app.get('*', (req, res, next) => {
                 if (req.path.startsWith('/trpc') || req.path === '/healthz'
                     || req.path === config.ws.path || req.path === config.uiWs.path) {
-                    return next();
+                    next(); return;
                 }
                 res.sendFile(join(resolvedDir, 'index.html'));
             });
@@ -381,7 +381,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
 
         httpServer = await new Promise<Server>((resolve, reject) => {
             const server = app.listen(config.http.port, config.http.host);
-            server.once('listening', () => resolve(server));
+            server.once('listening', () => { resolve(server); });
             server.once('error', reject);
         });
 

@@ -23,7 +23,7 @@ export class UtilityFallback extends Composite {
     public static from(name: string, nodes: Utility[]): UtilityFallback
     public static from(nameOrNodes: string | Utility[], possiblyNodes?: Utility[]): UtilityFallback {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "UtilityFallback";
-        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
+        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : (possiblyNodes as Utility[]);
         const composite = new UtilityFallback(name);
         composite.setNodes(nodes);
         return composite;
@@ -60,8 +60,8 @@ export class UtilityFallback extends Composite {
 
     public override validate(): string[] {
         const errors = super.validate();
-        for (let i = 0; i < this.nodes.length; i++) {
-            if (!(this.nodes[i] instanceof Utility)) {
+        for (const [i, node] of this.nodes.entries()) {
+            if (!(node instanceof Utility)) {
                 errors.push(`${this.displayName} child at index ${i} is not a Utility node`);
             }
         }
@@ -78,9 +78,9 @@ export class UtilityFallback extends Composite {
         }
 
         // Evaluate scores every tick without allocating new objects (zero-allocation hot path)
-        for (let i = 0; i < this.nodes.length; i++) {
-            this.scoreBuffer[i].index = i;
-            this.scoreBuffer[i].score = (this.nodes[i] as Utility).getScore(ctx);
+        for (const [i, entry] of this.scoreBuffer.entries()) {
+            entry.index = i;
+            entry.score = (this.nodes[i] as Utility).getScore(ctx);
         }
 
         this.lastScores = this.scoreBuffer.map(({ score }) => score);
@@ -96,9 +96,9 @@ export class UtilityFallback extends Composite {
         let finalResult: NodeResult = NodeResult.Failed;
         let runningOrSucceededIndex: number | undefined = undefined;
 
-        for (let i = 0; i < this.scoreBuffer.length; i++) {
-            const index = this.scoreBuffer[i].index;
-            const node = this.nodes[index];
+        for (const entry of this.scoreBuffer) {
+            const index = entry.index;
+            const node = this.nodes[index] as BTNode;
             const result = BTNode.Tick(node, ctx);
 
             if (result === NodeResult.Succeeded || result === NodeResult.Running) {
@@ -111,7 +111,7 @@ export class UtilityFallback extends Composite {
         // Abort any node that was previously running but isn't the one we just ticked and returned running/succeeded.
         // Also abort it if we completely failed out.
         if (this.currentlyRunningIndex !== undefined && this.currentlyRunningIndex !== runningOrSucceededIndex) {
-            BTNode.Abort(this.nodes[this.currentlyRunningIndex], ctx);
+            BTNode.Abort(this.nodes[this.currentlyRunningIndex] as BTNode, ctx);
         }
 
         if (finalResult === NodeResult.Running) {

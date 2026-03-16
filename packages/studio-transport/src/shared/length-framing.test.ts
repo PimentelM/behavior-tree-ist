@@ -70,7 +70,7 @@ describe("FrameDecoder", () => {
         decoder.feed(frame);
 
         expect(received).toHaveLength(1);
-        expect(Array.from(received[0])).toEqual([1, 2, 3]);
+        expect(Array.from(received[0] as Uint8Array)).toEqual([1, 2, 3]);
     });
 
     it("should decode multiple frames in a single chunk", () => {
@@ -86,8 +86,8 @@ describe("FrameDecoder", () => {
         decoder.feed(combined);
 
         expect(received).toHaveLength(2);
-        expect(Array.from(received[0])).toEqual([0x0a]);
-        expect(Array.from(received[1])).toEqual([0x0b, 0x0c]);
+        expect(Array.from(received[0] as Uint8Array)).toEqual([0x0a]);
+        expect(Array.from(received[1] as Uint8Array)).toEqual([0x0b, 0x0c]);
     });
 
     it("should handle partial header", () => {
@@ -103,7 +103,7 @@ describe("FrameDecoder", () => {
         // Feed the rest
         decoder.feed(frame.slice(2));
         expect(received).toHaveLength(1);
-        expect(Array.from(received[0])).toEqual([1, 2, 3]);
+        expect(Array.from(received[0] as Uint8Array)).toEqual([1, 2, 3]);
     });
 
     it("should handle partial payload", () => {
@@ -119,7 +119,7 @@ describe("FrameDecoder", () => {
         // Feed the rest
         decoder.feed(frame.slice(6));
         expect(received).toHaveLength(1);
-        expect(Array.from(received[0])).toEqual([1, 2, 3, 4, 5]);
+        expect(Array.from(received[0] as Uint8Array)).toEqual([1, 2, 3, 4, 5]);
     });
 
     it("should handle frame split across many chunks (byte by byte)", () => {
@@ -133,7 +133,7 @@ describe("FrameDecoder", () => {
         }
 
         expect(received).toHaveLength(1);
-        expect(Array.from(received[0])).toEqual([0xaa, 0xbb]);
+        expect(Array.from(received[0] as Uint8Array)).toEqual([0xaa, 0xbb]);
     });
 
     it("should handle interleaved partial and complete frames", () => {
@@ -160,9 +160,9 @@ describe("FrameDecoder", () => {
         decoder.feed(chunk2);
         expect(received).toHaveLength(3);
 
-        expect(Array.from(received[0])).toEqual([1]);
-        expect(Array.from(received[1])).toEqual([2, 3]);
-        expect(Array.from(received[2])).toEqual([4, 5, 6]);
+        expect(Array.from(received[0] as Uint8Array)).toEqual([1]);
+        expect(Array.from(received[1] as Uint8Array)).toEqual([2, 3]);
+        expect(Array.from(received[2] as Uint8Array)).toEqual([4, 5, 6]);
     });
 
     it("should decode empty frames", () => {
@@ -173,7 +173,7 @@ describe("FrameDecoder", () => {
         decoder.feed(frame);
 
         expect(received).toHaveLength(1);
-        expect(received[0].byteLength).toBe(0);
+        expect((received[0] as Uint8Array).byteLength).toBe(0);
     });
 
     it("should reset internal buffer", () => {
@@ -191,7 +191,7 @@ describe("FrameDecoder", () => {
         const frame2 = encodeFrame(new Uint8Array([9]));
         decoder.feed(frame2);
         expect(received).toHaveLength(1);
-        expect(Array.from(received[0])).toEqual([9]);
+        expect(Array.from(received[0] as Uint8Array)).toEqual([9]);
     });
 
     it("should roundtrip string data", () => {
@@ -217,8 +217,8 @@ describe("FrameDecoder", () => {
         decoder.feed(encodeFrame(payload));
 
         expect(received).toHaveLength(1);
-        expect(received[0].byteLength).toBe(5000);
-        expect(received[0].every((b) => b === 0xcd)).toBe(true);
+        expect((received[0] as Uint8Array).byteLength).toBe(5000);
+        expect((received[0] as Uint8Array).every((b) => b === 0xcd)).toBe(true);
     });
 
     it("should handle many sequential frames (stress: compaction + growth)", () => {
@@ -233,7 +233,7 @@ describe("FrameDecoder", () => {
 
         expect(received).toHaveLength(count);
         for (let i = 0; i < count; i++) {
-            expect(received[i][0]).toBe(i % 256);
+            expect((received[i] as Uint8Array)[0]).toBe(i % 256);
         }
     });
 
@@ -254,7 +254,7 @@ describe("FrameDecoder", () => {
         }
 
         expect(received).toHaveLength(1);
-        expect(received[0].byteLength).toBe(8000);
-        expect(Array.from(received[0])).toEqual(Array.from(payload));
+        expect((received[0] as Uint8Array).byteLength).toBe(8000);
+        expect(Array.from(received[0] as Uint8Array)).toEqual(Array.from(payload));
     });
 });

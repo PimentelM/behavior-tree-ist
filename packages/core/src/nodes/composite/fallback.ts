@@ -14,7 +14,7 @@ export class Fallback extends Composite {
     public static from(name: string, nodes: BTNode[]): Fallback
     public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): Fallback {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "";
-        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
+        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : (possiblyNodes as BTNode[]);
         const composite = new Fallback(name);
         composite.setNodes(nodes);
         return composite;
@@ -25,8 +25,7 @@ export class Fallback extends Composite {
             throw new Error(`Fallback node ${this.displayName} has no nodes`);
         }
 
-        for (let i = 0; i < this.nodes.length; i++) {
-            const node = this.nodes[i];
+        for (const [i, node] of this.nodes.entries()) {
             const status = BTNode.Tick(node, ctx);
             if (status === NodeResult.Succeeded || status === NodeResult.Running) {
                 this.abortChildrenFrom(i + 1, ctx);

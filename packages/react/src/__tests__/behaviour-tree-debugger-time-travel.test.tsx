@@ -286,7 +286,7 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     expect(entries).toHaveLength(1);
 
     onNodeSelect.mockClear();
-    fireEvent.click(entries[0]);
+    fireEvent.click(entries[0] as HTMLElement);
     expect(onNodeSelect).toHaveBeenCalledWith(3);
 
     const nodeFlagsEntries = screen.getAllByTestId('tree-canvas-node-flags');

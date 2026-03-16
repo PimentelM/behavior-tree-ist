@@ -89,7 +89,7 @@ export class WsNodeStringTransport implements TransportInterface {
             throw new Error("WsNodeStringTransport: not connected");
         }
 
-        const onErr = (err: Error) => handler(err);
+        const onErr = (err: Error) => { handler(err); };
         this.ws.on("error", onErr);
         return () => {
             this.ws?.off("error", onErr);

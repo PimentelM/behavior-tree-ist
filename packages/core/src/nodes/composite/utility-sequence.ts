@@ -20,7 +20,7 @@ export class UtilitySequence extends Composite {
     public static from(name: string, nodes: Utility[]): UtilitySequence
     public static from(nameOrNodes: string | Utility[], possiblyNodes?: Utility[]): UtilitySequence {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "UtilitySequence";
-        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
+        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : (possiblyNodes as Utility[]);
         const composite = new UtilitySequence(name);
         composite.setNodes(nodes);
         return composite;
@@ -57,8 +57,8 @@ export class UtilitySequence extends Composite {
 
     public override validate(): string[] {
         const errors = super.validate();
-        for (let i = 0; i < this.nodes.length; i++) {
-            if (!(this.nodes[i] instanceof Utility)) {
+        for (const [i, node] of this.nodes.entries()) {
+            if (!(node instanceof Utility)) {
                 errors.push(`${this.displayName} child at index ${i} is not a Utility node`);
             }
         }
@@ -75,9 +75,9 @@ export class UtilitySequence extends Composite {
         }
 
         // Evaluate scores every tick without allocating new objects (zero-allocation hot path)
-        for (let i = 0; i < this.nodes.length; i++) {
-            this.scoreBuffer[i].index = i;
-            this.scoreBuffer[i].score = (this.nodes[i] as Utility).getScore(ctx);
+        for (const [i, entry] of this.scoreBuffer.entries()) {
+            entry.index = i;
+            entry.score = (this.nodes[i] as Utility).getScore(ctx);
         }
 
         this.lastScores = this.scoreBuffer.map(({ score }) => score);
@@ -93,9 +93,9 @@ export class UtilitySequence extends Composite {
         let finalResult: NodeResult = NodeResult.Succeeded;
         let newRunningIndex: number | undefined = undefined;
 
-        for (let i = 0; i < this.scoreBuffer.length; i++) {
-            const index = this.scoreBuffer[i].index;
-            const node = this.nodes[index];
+        for (const entry of this.scoreBuffer) {
+            const index = entry.index;
+            const node = this.nodes[index] as BTNode;
             const result = BTNode.Tick(node, ctx);
 
             if (result === NodeResult.Failed || result === NodeResult.Running) {
@@ -109,7 +109,7 @@ export class UtilitySequence extends Composite {
 
         // Only abort the previously running node if it's no longer the actively running node
         if (this.currentlyRunningIndex !== undefined && this.currentlyRunningIndex !== newRunningIndex) {
-            BTNode.Abort(this.nodes[this.currentlyRunningIndex], ctx);
+            BTNode.Abort(this.nodes[this.currentlyRunningIndex] as BTNode, ctx);
         }
 
         this.currentlyRunningIndex = newRunningIndex;

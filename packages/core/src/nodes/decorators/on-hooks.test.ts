@@ -26,9 +26,9 @@ describe("Lifecycle hook decorators", () => {
             tickNode(node);
 
             expect(cb).toHaveBeenCalledTimes(3);
-            expect(cb.mock.calls[0][0]).toBe(NodeResult.Succeeded);
-            expect(cb.mock.calls[1][0]).toBe(NodeResult.Failed);
-            expect(cb.mock.calls[2][0]).toBe(NodeResult.Running);
+            expect((cb.mock.calls[0] as unknown[])[0]).toBe(NodeResult.Succeeded);
+            expect((cb.mock.calls[1] as unknown[])[0]).toBe(NodeResult.Failed);
+            expect((cb.mock.calls[2] as unknown[])[0]).toBe(NodeResult.Running);
         });
     });
 
@@ -113,8 +113,8 @@ describe("Lifecycle hook decorators", () => {
             tickNode(node);
 
             expect(cb).toHaveBeenCalledTimes(2);
-            expect(cb.mock.calls[0][0]).toBe(NodeResult.Succeeded);
-            expect(cb.mock.calls[1][0]).toBe(NodeResult.Failed);
+            expect((cb.mock.calls[0] as unknown[])[0]).toBe(NodeResult.Succeeded);
+            expect((cb.mock.calls[1] as unknown[])[0]).toBe(NodeResult.Failed);
         });
     });
 

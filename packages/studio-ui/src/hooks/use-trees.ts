@@ -22,6 +22,7 @@ export function useTrees(subscribe: WsSubscribe, expandedClientId: string | null
             })));
             setLoading(false);
         }).catch((err) => {
+            // eslint-disable-next-line no-console
             console.log('[use-trees] fetch error', err);
             if (currentRef.current.clientId === clientId && currentRef.current.sessionId === sessionId) setLoading(false);
         });

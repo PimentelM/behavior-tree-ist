@@ -23,16 +23,17 @@ export class MessageRouter<TMessageType, TMessage, TConnection> implements Messa
         if (!this.handlers.has(messageType)) {
             this.handlers.set(messageType, new Set());
         }
-        this.handlers.get(messageType)!.add(handler);
+        (this.handlers.get(messageType) as Set<MessageHandler<TMessage, TConnection>>).add(handler);
         this.logger.debug('Handler registered', { messageType: String(messageType), priority: handler.priority });
     }
 
     unregisterHandler(messageType: TMessageType, handler: MessageHandler<TMessage, TConnection>): void {
         if (!this.handlers.has(messageType)) return;
 
-        this.handlers.get(messageType)!.delete(handler);
+        const handlerSet = this.handlers.get(messageType) as Set<MessageHandler<TMessage, TConnection>>;
+        handlerSet.delete(handler);
 
-        if (this.handlers.get(messageType)!.size === 0) {
+        if (handlerSet.size === 0) {
             this.handlers.delete(messageType);
         }
     }
@@ -43,7 +44,7 @@ export class MessageRouter<TMessageType, TMessage, TConnection> implements Messa
             return;
         }
 
-        const messageHandlers = Array.from(this.handlers.get(messageType)!);
+        const messageHandlers = Array.from(this.handlers.get(messageType) as Set<MessageHandler<TMessage, TConnection>>);
         messageHandlers.sort((a, b) => a.priority - b.priority);
 
         for (const handler of messageHandlers) {
@@ -61,10 +62,10 @@ export class MessageRouter<TMessageType, TMessage, TConnection> implements Messa
 
     getHandlersForMessageType(messageType: TMessageType): MessageHandler<TMessage, TConnection>[] {
         if (!this.handlers.has(messageType)) return [];
-        return Array.from(this.handlers.get(messageType)!);
+        return Array.from(this.handlers.get(messageType) as Set<MessageHandler<TMessage, TConnection>>);
     }
 
     hasHandlersForMessageType(messageType: TMessageType): boolean {
-        return this.handlers.has(messageType) && this.handlers.get(messageType)!.size > 0;
+        return this.handlers.has(messageType) && (this.handlers.get(messageType)?.size ?? 0) > 0;
     }
 }

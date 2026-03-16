@@ -98,7 +98,7 @@ export class TcpStringTransport implements TransportInterface {
             throw new Error("TcpStringTransport: not connected");
         }
 
-        const onErr = (err: Error) => handler(err);
+        const onErr = (err: Error) => { handler(err); };
         this.socket.on("error", onErr);
         return () => {
             this.socket?.off("error", onErr);

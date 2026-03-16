@@ -72,7 +72,7 @@ function RefTracesPanelInner({
           <select
             className="bt-ref-traces__select"
             value={selectedRefName}
-            onChange={(event) => setSelectedRefName(event.target.value)}
+            onChange={(event) => { setSelectedRefName(event.target.value); }}
           >
             <option value={ALL_REFS_FILTER}>All refs</option>
             {knownRefNames.map((refName) => (
@@ -85,14 +85,14 @@ function RefTracesPanelInner({
           <button
             type="button"
             className={`bt-ref-traces__scope-btn ${scope === 'all' ? 'bt-ref-traces__scope-btn--active' : ''}`}
-            onClick={() => setScope('all')}
+            onClick={() => { setScope('all'); }}
           >
             All ticks
           </button>
           <button
             type="button"
             className={`bt-ref-traces__scope-btn ${scope === 'current' ? 'bt-ref-traces__scope-btn--active' : ''}`}
-            onClick={() => setScope('current')}
+            onClick={() => { setScope('current'); }}
           >
             Current tick
           </button>

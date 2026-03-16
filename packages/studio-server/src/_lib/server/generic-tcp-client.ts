@@ -37,7 +37,7 @@ export class GenericTcpClient<TReceive, TSend> implements Connection<TReceive, T
         });
 
         this.socket.on('close', () => {
-            this.disconnectHandlers.forEach((handler) => handler());
+            this.disconnectHandlers.forEach((handler) => { handler(); });
         });
 
         this.socket.on('error', (error) => {

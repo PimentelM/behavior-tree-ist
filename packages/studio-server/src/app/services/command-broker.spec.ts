@@ -36,8 +36,8 @@ describe('CommandBroker', () => {
         const pending = broker.sendCommand(connectionId, command);
 
         expect(sender.sent).toHaveLength(1);
-        expect(sender.sent[0].clientId).toBe(connectionId);
-        expect(sender.sent[0].message).toEqual({
+        expect((sender.sent[0] as (typeof sender.sent)[number]).clientId).toBe(connectionId);
+        expect((sender.sent[0] as (typeof sender.sent)[number]).message).toEqual({
             t: MessageType.Command,
             command,
         });

@@ -160,13 +160,13 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
         client.onDisconnect(() => {
             this.clients.delete(clientId);
             this.logger.debug('Client disconnected', { clientId });
-            this.disconnectionHandlers.forEach(handler => handler(clientId));
+            this.disconnectionHandlers.forEach(handler => { handler(clientId); });
         });
 
         const context: GenericWebSocketConnectionContext = {
             transport: 'websocket',
             request,
         };
-        this.connectionHandlers.forEach(handler => handler(client, context));
+        this.connectionHandlers.forEach(handler => { handler(client, context); });
     }
 }

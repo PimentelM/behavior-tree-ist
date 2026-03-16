@@ -68,7 +68,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
             onClick={() => {
                 navigator.clipboard.writeText(text).then(() => {
                     setCopied(true);
-                    setTimeout(() => setCopied(false), 1500);
+                    setTimeout(() => { setCopied(false); }, 1500);
                 });
             }}
             style={{
@@ -232,9 +232,9 @@ function KeyManagement({ keyPair, onGenerate, onImport }: KeyManagementProps) {
  */
 function longestCommonPrefix(strings: string[]): string {
     if (strings.length === 0) return '';
-    let prefix = strings[0];
+    let prefix = strings[0] as string;
     for (let i = 1; i < strings.length; i++) {
-        while (!strings[i].startsWith(prefix)) {
+        while (!(strings[i] as string).startsWith(prefix)) {
             prefix = prefix.slice(0, -1);
             if (prefix === '') return '';
         }
@@ -249,11 +249,11 @@ function longestCommonPrefix(strings: string[]): string {
 function applyCompletion(prefix: string, candidate: string): string {
     const match = prefix.match(/([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.?)$/);
     if (!match) return prefix;
-    const lastDot = match[1].lastIndexOf('.');
+    const lastDot = (match[1] as string).lastIndexOf('.');
     const replacement = lastDot >= 0
-        ? match[1].slice(0, lastDot + 1) + candidate
+        ? (match[1] as string).slice(0, lastDot + 1) + candidate
         : candidate;
-    return prefix.slice(0, prefix.length - match[1].length) + replacement;
+    return prefix.slice(0, prefix.length - (match[1] as string).length) + replacement;
 }
 
 // Internal readline state accessor (private fields accessed via cast).
@@ -271,15 +271,15 @@ type RlInternal = { state?: RlState };
 
 function wordBoundaryLeft(text: string, pos: number): number {
     let i = pos;
-    while (i > 0 && !/[a-zA-Z0-9_$]/.test(text[i - 1])) i--;
-    while (i > 0 && /[a-zA-Z0-9_$]/.test(text[i - 1])) i--;
+    while (i > 0 && !/[a-zA-Z0-9_$]/.test(text.charAt(i - 1))) i--;
+    while (i > 0 && /[a-zA-Z0-9_$]/.test(text.charAt(i - 1))) i--;
     return i;
 }
 
 function wordBoundaryRight(text: string, pos: number): number {
     let i = pos;
-    while (i < text.length && !/[a-zA-Z0-9_$]/.test(text[i])) i++;
-    while (i < text.length && /[a-zA-Z0-9_$]/.test(text[i])) i++;
+    while (i < text.length && !/[a-zA-Z0-9_$]/.test(text.charAt(i))) i++;
+    while (i < text.length && /[a-zA-Z0-9_$]/.test(text.charAt(i))) i++;
     return i;
 }
 
@@ -382,6 +382,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             const rlInternal = rl as unknown as RlInternal;
             const rlState = rlInternal.state;
             if (!rlState) {
+                // eslint-disable-next-line no-console
                 console.warn('[REPL] Tab: readline state not available');
                 return;
             }
@@ -395,10 +396,10 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
                 // Re-check after async gap — discard if buffer changed.
                 const currentState = rlInternal.state;
-                if (!currentState || currentState.buffer() !== prefix) return;
+                if (currentState?.buffer() !== prefix) return;
 
                 if (completions.length === 1) {
-                    currentState.update(applyCompletion(prefix, completions[0]));
+                    currentState.update(applyCompletion(prefix, completions[0] as string));
                 } else {
                     // Multiple matches: apply longest common prefix.
                     const lcp = longestCommonPrefix(completions);
@@ -408,6 +409,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     }
                 }
             } catch (err) {
+                // eslint-disable-next-line no-console
                 console.warn('[REPL] Tab completion error:', err);
             }
         }
@@ -449,7 +451,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
         void readLoop();
 
-        const ro = new ResizeObserver(() => fitAddon.fit());
+        const ro = new ResizeObserver(() => { fitAddon.fit(); });
         ro.observe(containerRef.current);
 
         return () => {

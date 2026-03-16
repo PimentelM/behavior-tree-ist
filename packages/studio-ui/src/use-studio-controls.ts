@@ -126,7 +126,7 @@ export function useStudioControls(): UseStudioControlsResult {
         setWindowMaxTicks(to - from + 1);
         setTtWindowLoading(true);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((trpc.ticks as any).range.query as any)({
+        ((trpc.ticks as any).range.query)({
             clientId: sel.clientId,
             sessionId: sel.sessionId,
             treeId: sel.treeId,
@@ -146,7 +146,7 @@ export function useStudioControls(): UseStudioControlsResult {
         setWindowMaxTicks(to - from + 1);
         setTtWindowLoading(true);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((trpc.ticks as any).range.query as any)({
+        ((trpc.ticks as any).range.query)({
             clientId: sel.clientId,
             sessionId: sel.sessionId,
             treeId: sel.treeId,

@@ -44,8 +44,8 @@ describe('Knex repositories', () => {
 
         const rows = await knex('clients').where({ clientId: 'client-1' });
         expect(rows).toHaveLength(1);
-        expect(rows[0].firstSeenAt).toBe(1000);
-        expect(rows[0].lastSeenAt).toBe(2000);
+        expect((rows[0] as (typeof rows)[number]).firstSeenAt).toBe(1000);
+        expect((rows[0] as (typeof rows)[number]).lastSeenAt).toBe(2000);
     });
 
     it('session upsert is idempotent on composite key and updates lastSeenAt', async () => {
@@ -58,8 +58,8 @@ describe('Knex repositories', () => {
 
         const rows = await knex('sessions').where({ clientId: 'client-1', sessionId: 'session-1' });
         expect(rows).toHaveLength(1);
-        expect(rows[0].startedAt).toBe(3000);
-        expect(rows[0].lastSeenAt).toBe(4000);
+        expect((rows[0] as (typeof rows)[number]).startedAt).toBe(3000);
+        expect((rows[0] as (typeof rows)[number]).lastSeenAt).toBe(4000);
     });
 
     it('tree upsert updates existing rows without duplication', async () => {
@@ -84,8 +84,8 @@ describe('Knex repositories', () => {
 
         const rows = await knex('trees').where({ clientId: 'client-1', sessionId: 'session-1', treeId: 'tree-1' });
         expect(rows).toHaveLength(1);
-        expect(rows[0].updatedAt).toBe(6000);
-        expect(rows[0].removedAt).toBeNull();
+        expect((rows[0] as (typeof rows)[number]).updatedAt).toBe(6000);
+        expect((rows[0] as (typeof rows)[number]).removedAt).toBeNull();
 
         const tree = await treeRepository.findById('client-1', 'session-1', 'tree-1');
         expect(tree?.serializedTree.name).toBe('TreeB');

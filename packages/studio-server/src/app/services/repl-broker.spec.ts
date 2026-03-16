@@ -66,7 +66,7 @@ describe('ReplBroker', () => {
         const evalPromise = broker.sendEval('conn-1', '1 + 1');
 
         expect(sender.sent).toHaveLength(1);
-        const msg = sender.sent[0]!.message as SentPluginMessage;
+        const msg = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
         expect(msg.t).toBe(7);
         expect(msg.pluginId).toBe('repl');
         expect(typeof msg.payload).toBe('string'); // encrypted envelope
@@ -86,7 +86,7 @@ describe('ReplBroker', () => {
         const keys = doHandshake(broker, 'conn-1');
 
         const evalPromise = broker.sendEval('conn-1', 'throw new Error("oops")');
-        const msg = sender.sent[0]!.message as SentPluginMessage;
+        const msg = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
 
         const result = { kind: 'error' as const, text: 'Error: oops' };
         const { nonce, box } = secretboxEncrypt(jsonToBytes(result), keys.c2s);
@@ -102,7 +102,7 @@ describe('ReplBroker', () => {
         const compPromise = broker.sendCompletions('conn-1', 'Math.');
 
         expect(sender.sent).toHaveLength(1);
-        const msg = sender.sent[0]!.message as SentPluginMessage;
+        const msg = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
         expect(msg.pluginId).toBe('repl');
         expect(typeof msg.payload).toBe('string');
 
@@ -118,7 +118,7 @@ describe('ReplBroker', () => {
         const keys = doHandshake(broker, 'conn-1');
 
         const compPromise = broker.sendCompletions('conn-1', 'obj.', 10);
-        const msg = sender.sent[0]!.message as SentPluginMessage;
+        const msg = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
 
         const result = { completions: [] };
         const { nonce, box } = secretboxEncrypt(jsonToBytes(result), keys.c2s);
@@ -155,7 +155,7 @@ describe('ReplBroker', () => {
     it('logs warning for unknown correlationId without throwing', () => {
         const { broker } = makeTestBroker();
 
-        expect(() => broker.handleAgentMessage('conn-1', 'unknown-id', 'payload')).not.toThrow();
+        expect(() => { broker.handleAgentMessage('conn-1', 'unknown-id', 'payload'); }).not.toThrow();
     });
 
     it('handles multiple concurrent requests independently', async () => {
@@ -166,8 +166,8 @@ describe('ReplBroker', () => {
         const p2 = broker.sendEval('conn-1', '2 + 2');
 
         expect(sender.sent).toHaveLength(2);
-        const msg1 = sender.sent[0]!.message as SentPluginMessage;
-        const msg2 = sender.sent[1]!.message as SentPluginMessage;
+        const msg1 = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
+        const msg2 = (sender.sent[1] as (typeof sender.sent)[number]).message as SentPluginMessage;
         expect(msg1.correlationId).not.toBe(msg2.correlationId);
 
         const r2 = { kind: 'result' as const, text: '4' };
@@ -195,7 +195,7 @@ describe('ReplBroker', () => {
         const { broker } = makeTestBroker();
 
         expect(() =>
-            broker.handleAgentMessage('conn-1', 'handshake', { type: 'handshake', headerToken: 'not-valid-token' })
+            { broker.handleAgentMessage('conn-1', 'handshake', { type: 'handshake', headerToken: 'not-valid-token' }); }
         ).not.toThrow();
     });
 
@@ -205,7 +205,7 @@ describe('ReplBroker', () => {
         void keys; // unused here
 
         const evalPromise = broker.sendEval('conn-1', 'code', 100);
-        const msg = sender.sent[0]!.message as SentPluginMessage;
+        const msg = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
 
         // Agent sends a plain object instead of encrypted string — should reject
         broker.handleAgentMessage('conn-1', msg.correlationId, { wrongType: true });

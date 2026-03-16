@@ -6,9 +6,6 @@ import type { DbTree } from './schemas';
 import { mapDbTreeToDomain, mapTreeToDb } from './mappers';
 
 export class TreeRepository extends BaseKnexRepository implements TreeRepositoryInterface {
-    constructor(knex: Knex) {
-        super(knex);
-    }
 
     async findBySession(clientId: string, sessionId: string) {
         const rows = await this.withTransaction(

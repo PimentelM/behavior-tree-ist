@@ -13,6 +13,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "jsx": "react",
     "jsxFactory": "BT.createElement",

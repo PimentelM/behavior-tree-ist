@@ -22,6 +22,7 @@ export function useSessions(subscribe: WsSubscribe, expandedClientId: string | n
             })));
             setLoading(false);
         }).catch((err) => {
+            // eslint-disable-next-line no-console
             console.log('[use-sessions] fetch error', err);
             if (currentClientIdRef.current === clientId) setLoading(false);
         });

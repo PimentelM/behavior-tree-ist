@@ -5,7 +5,7 @@ export function pushRefEvent(ctx: TickContext, event: RefChangeEvent): void {
     const runtime = ctx.runtime;
     if (runtime) {
         if (runtime.isTickRunning) {
-            runtime.latest!.refEvents.push(event);
+            (runtime.latest as TickContext).refEvents.push(event);
         } else {
             runtime.pendingRefEvents.push(event);
         }

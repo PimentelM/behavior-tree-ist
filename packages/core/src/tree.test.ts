@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { BehaviourTree } from "./tree";
-import { NodeResult } from "./base/types";
+import { NodeResult, type TickTraceEvent } from "./base/types";
 import { StubAction } from "./test-helpers";
 import { Throttle, Sleep } from "./nodes";
 import { fallback, sequence, condition, action } from "./builder";
@@ -141,7 +141,7 @@ describe("BehaviourTree", () => {
 
             const { events } = tree.tick({ now: 100 });
 
-            expect(events[0]).toEqual({
+            expect((events[0] as TickTraceEvent)).toEqual({
                 nodeId: root.id,
                 result: NodeResult.Succeeded,
             });
@@ -340,7 +340,7 @@ describe("BehaviourTree", () => {
 
                 // Tick 1: Starts the async action
                 const tick1 = tree.tick();
-                expect(tick1.events[0].result).toBe(NodeResult.Running);
+                expect((tick1.events[0] as TickTraceEvent).result).toBe(NodeResult.Running);
                 expect(tick1.refEvents).toHaveLength(0);
 
                 // During 10ms loop every 1ms and assert refEvents is empty
@@ -512,8 +512,8 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
-            expect(events[0].startedAt).toBeDefined();
-            expect(events[0].finishedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).startedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).finishedAt).toBeDefined();
         });
 
         it("enableProfiling emits timing events without state tracing", () => {
@@ -524,8 +524,8 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
-            expect(events[0].startedAt).toBeDefined();
-            expect(events[0].finishedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).startedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).finishedAt).toBeDefined();
         });
 
         it("disableProfiling stops profiling data but keeps tracing", () => {
@@ -537,8 +537,8 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
-            expect(events[0].startedAt).toBeUndefined();
-            expect(events[0].finishedAt).toBeUndefined();
+            expect((events[0] as TickTraceEvent).startedAt).toBeUndefined();
+            expect((events[0] as TickTraceEvent).finishedAt).toBeUndefined();
         });
 
         it("disableStateTrace does not disable profiling timings", () => {
@@ -550,9 +550,9 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
-            expect(events[0].startedAt).toBeDefined();
-            expect(events[0].finishedAt).toBeDefined();
-            expect(events[0].state).toBeUndefined();
+            expect((events[0] as TickTraceEvent).startedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).finishedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).state).toBeUndefined();
         });
 
         it("re-enabling state trace after disable does not affect profiling timings", () => {
@@ -565,8 +565,8 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
-            expect(events[0].startedAt).toBeDefined();
-            expect(events[0].finishedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).startedAt).toBeDefined();
+            expect((events[0] as TickTraceEvent).finishedAt).toBeDefined();
         });
 
         it("nested node timing: parent startedAt < child startedAt, parent finishedAt > child finishedAt", () => {
@@ -578,15 +578,15 @@ describe("BehaviourTree", () => {
 
             const { events } = tree.tick({ now: 0 });
 
-            const childEvent = events.find(e => e.nodeId === child.id)!;
-            const rootEvent = events.find(e => e.nodeId === root.id)!;
+            const childEvent = (events.find(e => e.nodeId === child.id) as TickTraceEvent);
+            const rootEvent = (events.find(e => e.nodeId === root.id) as TickTraceEvent);
 
             expect(rootEvent.startedAt).toBeDefined();
             expect(rootEvent.finishedAt).toBeDefined();
             expect(childEvent.startedAt).toBeDefined();
             expect(childEvent.finishedAt).toBeDefined();
-            expect(rootEvent.startedAt!).toBeLessThan(childEvent.startedAt!);
-            expect(rootEvent.finishedAt!).toBeGreaterThan(childEvent.finishedAt!);
+            expect(rootEvent.startedAt).toBeLessThan(childEvent.startedAt);
+            expect(rootEvent.finishedAt).toBeGreaterThan(childEvent.finishedAt);
         });
 
         it("no startedAt/finishedAt when only state tracing (no profiling)", () => {
@@ -597,8 +597,8 @@ describe("BehaviourTree", () => {
             const { events } = tree.tick({ now: 0 });
 
             expect(events).toHaveLength(1);
-            expect(events[0].startedAt).toBeUndefined();
-            expect(events[0].finishedAt).toBeUndefined();
+            expect((events[0] as TickTraceEvent).startedAt).toBeUndefined();
+            expect((events[0] as TickTraceEvent).finishedAt).toBeUndefined();
         });
 
     });

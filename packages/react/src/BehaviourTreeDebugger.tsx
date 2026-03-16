@@ -152,11 +152,10 @@ export function BehaviourTreeDebugger({
   const activityWindowRef = useRef<HTMLDivElement | null>(null);
   const activityDragRef = useRef<ActivityDragState | null>(null);
 
-  const treeId = tree?.id;
-  const subtreeStorageKey = treeId !== undefined ? `${SUBTREE_COLLAPSED_STORAGE_PREFIX}${treeId}` : null;
+  const treeId = tree.id;
+  const subtreeStorageKey = `${SUBTREE_COLLAPSED_STORAGE_PREFIX}${treeId}`;
 
   const [collapsedSubTrees, setCollapsedSubTrees] = useState<Set<number>>(() => {
-    if (!subtreeStorageKey) return new Set();
     try {
       const stored = localStorage.getItem(subtreeStorageKey);
       if (stored) return new Set(JSON.parse(stored) as number[]);
@@ -166,10 +165,6 @@ export function BehaviourTreeDebugger({
 
   // Reset collapsed subtrees on tree change, load from localStorage
   useEffect(() => {
-    if (!subtreeStorageKey) {
-      setCollapsedSubTrees(new Set());
-      return;
-    }
     try {
       const stored = localStorage.getItem(subtreeStorageKey);
       if (stored) {
@@ -193,7 +188,6 @@ export function BehaviourTreeDebugger({
   }, []);
 
   useEffect(() => {
-    if (!subtreeStorageKey) return;
     try { localStorage.setItem(subtreeStorageKey, JSON.stringify([...collapsedSubTrees])); } catch { /* ignore */ }
   }, [subtreeStorageKey, collapsedSubTrees]);
 
@@ -369,8 +363,8 @@ export function BehaviourTreeDebugger({
       getActivitySnapshotAtTick?: (tickId: number, mode?: 'running' | 'running_or_success' | 'all') => { branches: readonly ActivityBranchData[] } | undefined;
     };
     const snapshot = viewedTickId === null
-      ? inspectorWithActivity.getLatestActivitySnapshot?.(activityModeState)
-      : inspectorWithActivity.getActivitySnapshotAtTick?.(viewedTickId, activityModeState);
+      ? inspectorWithActivity.getLatestActivitySnapshot(activityModeState)
+      : inspectorWithActivity.getActivitySnapshotAtTick(viewedTickId, activityModeState);
     return snapshot?.branches ?? [];
   }, [activeInspector, viewedTickId, activityModeState, tickGeneration]);
 
@@ -513,7 +507,7 @@ export function BehaviourTreeDebugger({
     };
 
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    return () => { window.removeEventListener('keydown', onKeyDown); };
   }, [timeTravelControls, handleToggleTimeTravel, onTickChange, replMode]);
 
   const handleToggleTheme = useCallback(() => {
@@ -641,7 +635,7 @@ export function BehaviourTreeDebugger({
       setActivityWindowPosition({ x: ACTIVITY_WINDOW_PADDING, y: ACTIVITY_WINDOW_PADDING });
     });
 
-    return () => cancelAnimationFrame(frame);
+    return () => { cancelAnimationFrame(frame); };
   }, [activityWindowEnabled, activityWindowVisible, performanceMode, activityWindowPosition]);
 
   useEffect(() => {
@@ -697,7 +691,7 @@ export function BehaviourTreeDebugger({
       startX: start.x,
       startY: start.y,
     };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    event.currentTarget.setPointerCapture(event.pointerId);
   }, [activityWindowPosition]);
 
   const handleActivityWindowControlPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -735,7 +729,7 @@ export function BehaviourTreeDebugger({
   useEffect(() => {
     if (!isolateStyles) return;
 
-    const syncStyles = () => setShadowStyles(collectDebuggerStyles());
+    const syncStyles = () => { setShadowStyles(collectDebuggerStyles()); };
     syncStyles();
 
     const observer = new MutationObserver(syncStyles);
@@ -744,7 +738,7 @@ export function BehaviourTreeDebugger({
       subtree: true,
     });
 
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); };
   }, [isolateStyles]);
 
   const isEmptyTree = emptyState !== undefined

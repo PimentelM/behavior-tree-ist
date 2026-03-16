@@ -44,7 +44,7 @@ export function useNodeDetails(
       ? undefined
       : inspector.getNodeAtTick(selectedNodeId, viewedTickId);
 
-    currentDisplayState = inspectorWithStateLookup.getLastDisplayState?.(selectedNodeId, stateLookupTick) as SerializableState | undefined;
+    currentDisplayState = inspectorWithStateLookup.getLastDisplayState?.(selectedNodeId, stateLookupTick);
     if (currentDisplayState !== undefined && viewedTickId !== null) {
       currentDisplayStateIsStale = selectedNodeSnapshot?.state === undefined;
     }
@@ -118,7 +118,7 @@ function getSyntheticUtilityDecoratorState(
     getLastDisplayState?: (selectedNodeId: number, atOrBeforeTickId?: number) => unknown;
   };
 
-  const parentState = inspectorWithStateLookup.getLastDisplayState?.(parentId, atOrBeforeTickId) as SerializableState | undefined;
+  const parentState = inspectorWithStateLookup.getLastDisplayState?.(parentId, atOrBeforeTickId);
   const lastScores = getUtilityScores(parentState);
   if (!lastScores) return undefined;
 
@@ -149,7 +149,7 @@ function getUtilityScores(displayState: SerializableState | undefined): number[]
   if (!Array.isArray(maybeScores) || !maybeScores.every((value) => typeof value === 'number')) {
     return undefined;
   }
-  return maybeScores as number[];
+  return maybeScores;
 }
 
 function isStateRecord(state: SerializableState): state is Record<string, SerializableValue> {

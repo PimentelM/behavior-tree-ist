@@ -148,7 +148,7 @@ export class Profiler {
                 if (!this.runningStartTimes.has(event.nodeId)) {
                     this.runningStartTimes.set(event.nodeId, event.startedAt);
                 }
-            } else if (event.result === NodeResult.Succeeded || event.result === NodeResult.Failed) {
+            } else {
                 const initialStartedAt = this.runningStartTimes.get(event.nodeId) ?? event.startedAt;
                 const runningTime = event.finishedAt - initialStartedAt;
                 this.addRunningSampleToContribution(contribution, runningTime);
@@ -223,7 +223,7 @@ export class Profiler {
                     if (!this.runningStartTimes.has(event.nodeId)) {
                         this.runningStartTimes.set(event.nodeId, event.startedAt);
                     }
-                } else if (event.result === NodeResult.Succeeded || event.result === NodeResult.Failed) {
+                } else {
                     const initialStartedAt = this.runningStartTimes.get(event.nodeId) ?? event.startedAt;
                     const runningTime = event.finishedAt - initialStartedAt;
                     this.addRunningSampleToContribution(contribution, runningTime);
@@ -347,8 +347,8 @@ export class Profiler {
             .filter(e => e.startedAt !== undefined && e.finishedAt !== undefined)
             .map(e => ({
                 nodeId: e.nodeId,
-                startedAt: e.startedAt!,
-                finishedAt: e.finishedAt!,
+                startedAt: e.startedAt as number,
+                finishedAt: e.finishedAt as number,
             }))
             .sort((a, b) => a.startedAt - b.startedAt);
     }
@@ -968,10 +968,10 @@ export class Profiler {
 
         const stack: TimedEvent[] = [];
         for (const event of sortedEvents) {
-            while (stack.length > 0 && event.startedAt >= stack[stack.length - 1]!.finishedAt) {
+            while (stack.length > 0 && event.startedAt >= (stack[stack.length - 1] as TimedEvent).finishedAt) {
                 stack.pop();
             }
-            while (stack.length > 0 && event.finishedAt > stack[stack.length - 1]!.finishedAt) {
+            while (stack.length > 0 && event.finishedAt > (stack[stack.length - 1] as TimedEvent).finishedAt) {
                 stack.pop();
             }
             const parent = stack[stack.length - 1];
@@ -1000,6 +1000,6 @@ export class Profiler {
             sortedSamples.length - 1,
             Math.max(0, Math.ceil(quantile * sortedSamples.length) - 1),
         );
-        return sortedSamples[idx]!;
+        return sortedSamples[idx] as number;
     }
 }

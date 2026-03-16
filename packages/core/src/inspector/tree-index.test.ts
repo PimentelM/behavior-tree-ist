@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { NodeFlags, type SerializableNode } from "../base/types";
 import { TreeIndex } from "./tree-index";
+import { type IndexedNode } from "./types";
 
 // TODO: Extract shared SerializableNode test stubs into a common test-stubs module.
 function makeTree(): SerializableNode {
@@ -75,39 +76,39 @@ describe("TreeIndex", () => {
 
     it("stores correct depth for each node", () => {
         const index = new TreeIndex(makeTree());
-        expect(index.getById(1)!.depth).toBe(0);
-        expect(index.getById(2)!.depth).toBe(1);
-        expect(index.getById(3)!.depth).toBe(2);
-        expect(index.getById(4)!.depth).toBe(3);
-        expect(index.getById(6)!.depth).toBe(1);
-        expect(index.getById(7)!.depth).toBe(2);
+        expect((index.getById(1) as IndexedNode).depth).toBe(0);
+        expect((index.getById(2) as IndexedNode).depth).toBe(1);
+        expect((index.getById(3) as IndexedNode).depth).toBe(2);
+        expect((index.getById(4) as IndexedNode).depth).toBe(3);
+        expect((index.getById(6) as IndexedNode).depth).toBe(1);
+        expect((index.getById(7) as IndexedNode).depth).toBe(2);
     });
 
     it("stores parent references", () => {
         const index = new TreeIndex(makeTree());
-        expect(index.getById(1)!.parentId).toBeUndefined();
-        expect(index.getById(2)!.parentId).toBe(1);
-        expect(index.getById(4)!.parentId).toBe(3);
-        expect(index.getById(7)!.parentId).toBe(6);
+        expect((index.getById(1) as IndexedNode).parentId).toBeUndefined();
+        expect((index.getById(2) as IndexedNode).parentId).toBe(1);
+        expect((index.getById(4) as IndexedNode).parentId).toBe(3);
+        expect((index.getById(7) as IndexedNode).parentId).toBe(6);
     });
 
     it("stores children ids", () => {
         const index = new TreeIndex(makeTree());
-        expect(index.getById(1)!.childrenIds).toEqual([2, 6]);
-        expect(index.getById(2)!.childrenIds).toEqual([3, 5]);
-        expect(index.getById(4)!.childrenIds).toEqual([]);
+        expect((index.getById(1) as IndexedNode).childrenIds).toEqual([2, 6]);
+        expect((index.getById(2) as IndexedNode).childrenIds).toEqual([3, 5]);
+        expect((index.getById(4) as IndexedNode).childrenIds).toEqual([]);
     });
 
     it("stores optional activity metadata", () => {
         const withActivity = makeTree();
         withActivity.activity = "RootActivity";
         const index = new TreeIndex(withActivity);
-        expect(index.getById(1)!.activity).toBe("RootActivity");
-        expect(index.getById(2)!.activity).toBeUndefined();
+        expect((index.getById(1) as IndexedNode).activity).toBe("RootActivity");
+        expect((index.getById(2) as IndexedNode).activity).toBeUndefined();
 
         withActivity.activity = true;
         const withDefaultLabelActivity = new TreeIndex(withActivity);
-        expect(withDefaultLabelActivity.getById(1)!.activity).toBe(true);
+        expect((withDefaultLabelActivity.getById(1) as IndexedNode).activity).toBe(true);
     });
 
     it("pre-order traversal", () => {
@@ -119,10 +120,10 @@ describe("TreeIndex", () => {
         const index = new TreeIndex(makeTree());
         // node 2 has name="Combat"
         expect(index.getByName("Combat")).toHaveLength(1);
-        expect(index.getByName("Combat")[0].id).toBe(2);
+        expect((index.getByName("Combat")[0] as IndexedNode).id).toBe(2);
         // node 4 has name="" so indexed by defaultName "Attack"
         expect(index.getByName("Attack")).toHaveLength(1);
-        expect(index.getByName("Attack")[0].id).toBe(4);
+        expect((index.getByName("Attack")[0] as IndexedNode).id).toBe(4);
         // no match
         expect(index.getByName("Nonexistent")).toHaveLength(0);
     });
@@ -134,7 +135,7 @@ describe("TreeIndex", () => {
         expect(combatNodes.map(n => n.id).sort()).toEqual([4, 5]);
 
         expect(index.getByTag("damage")).toHaveLength(1);
-        expect(index.getByTag("damage")[0].id).toBe(4);
+        expect((index.getByTag("damage")[0] as IndexedNode).id).toBe(4);
 
         expect(index.getByTag("unknown")).toHaveLength(0);
     });

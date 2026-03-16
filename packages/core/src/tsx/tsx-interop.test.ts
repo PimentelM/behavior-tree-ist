@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createHeroSubtree } from "./tsx-interop-fixture";
 import { Sequence } from "../nodes";
 import { ConditionNode } from "../base/condition";
-import { Action, NodeResult } from "../base";
+import { Action, NodeResult, type BTNode } from "../base";
 import { tickNode } from "../test-helpers";
 
 describe("TSX Interop", () => {
@@ -18,10 +18,10 @@ describe("TSX Interop", () => {
         expect(children.length).toBe(2);
 
         expect(children[0]).toBeInstanceOf(ConditionNode);
-        expect(children[0].name).toBe("Is Alive");
+        expect((children[0] as BTNode).name).toBe("Is Alive");
 
         expect(children[1]).toBeInstanceOf(Action);
-        expect(children[1].name).toBe("Attack");
+        expect((children[1] as BTNode).name).toBe("Attack");
 
         // 2. Verify runtime execution behaves correctly
         const result = tickNode(subtree);

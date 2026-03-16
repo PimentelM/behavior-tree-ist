@@ -21,7 +21,7 @@ export class TickStore {
 
         const tickId = record.tickId;
 
-        if (this.buffer.size > 0 && tickId <= this.buffer.peekLast()!.tickId) {
+        if (this.buffer.size > 0 && tickId <= (this.buffer.peekLast() as TickRecord).tickId) {
             return undefined; // ignore older or duplicate ticks
         }
 
@@ -49,7 +49,7 @@ export class TickStore {
     pushMany(records: TickRecord[]): TickRecord[] {
         // Filter: non-empty, monotonically increasing relative to current newest
         const valid: TickRecord[] = [];
-        let lastId = this.buffer.size > 0 ? this.buffer.peekLast()!.tickId : -Infinity;
+        let lastId = this.buffer.size > 0 ? (this.buffer.peekLast() as TickRecord).tickId : -Infinity;
         for (const record of records) {
             if (record.events.length === 0) continue;
             if (record.tickId <= lastId) continue;
@@ -71,15 +71,15 @@ export class TickStore {
         // Valid items that didn't survive (batch exceeded capacity)
         if (valid.length > this.capacity) {
             const droppedCount = valid.length - this.capacity;
-            for (let i = 0; i < droppedCount; i++) {
-                allEvicted.push(valid[i]);
+            for (const record of valid.slice(0, droppedCount)) {
+                allEvicted.push(record);
             }
         }
 
         // Only add surviving records to byTickId
         const survivorStart = Math.max(0, valid.length - this.capacity);
-        for (let i = survivorStart; i < valid.length; i++) {
-            this.byTickId.set(valid[i].tickId, valid[i]);
+        for (const record of valid.slice(survivorStart)) {
+            this.byTickId.set(record.tickId, record);
         }
 
         return allEvicted;

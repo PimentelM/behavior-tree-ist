@@ -34,7 +34,7 @@ export function createWsEchoServer(): TestServerHarness {
                 client.close();
             }
             return new Promise<void>((resolve) => {
-                wss.close(() => resolve());
+                wss.close(() => { resolve(); });
             });
         },
     };

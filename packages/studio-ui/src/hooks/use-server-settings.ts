@@ -9,6 +9,7 @@ export function useServerSettings() {
         trpc.settings.get.query().then((result) => {
             setServerSettings({ maxTicksPerTree: result.maxTicksPerTree });
         }).catch((err) => {
+            // eslint-disable-next-line no-console
             console.log('[use-server-settings] fetch error', err);
         });
     }, []);
@@ -17,6 +18,7 @@ export function useServerSettings() {
         trpc.settings.update.mutate(patch).then((result) => {
             setServerSettings({ maxTicksPerTree: result.maxTicksPerTree });
         }).catch((err) => {
+            // eslint-disable-next-line no-console
             console.log('[use-server-settings] update error', err);
         });
     }, []);

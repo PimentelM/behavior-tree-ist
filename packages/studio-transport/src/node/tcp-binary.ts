@@ -74,7 +74,7 @@ export class TcpBinaryTransport implements TransportInterface {
             throw new Error("TcpBinaryTransport: not connected");
         }
 
-        this.decoder = new FrameDecoder((payload) => handler(payload));
+        this.decoder = new FrameDecoder((payload) => { handler(payload); });
 
         const onData = (chunk: Buffer) => {
             this.decoder?.feed(new Uint8Array(chunk));
@@ -94,7 +94,7 @@ export class TcpBinaryTransport implements TransportInterface {
             throw new Error("TcpBinaryTransport: not connected");
         }
 
-        const onErr = (err: Error) => handler(err);
+        const onErr = (err: Error) => { handler(err); };
         this.socket.on("error", onErr);
         return () => {
             this.socket?.off("error", onErr);

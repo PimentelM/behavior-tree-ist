@@ -6,9 +6,6 @@ import type { DbSettings } from './schemas';
 import { mapDbSettingsToDomain } from './mappers';
 
 export class SettingsRepository extends BaseKnexRepository implements SettingsRepositoryInterface {
-    constructor(knex: Knex) {
-        super(knex);
-    }
 
     private async ensureDefaultRow(): Promise<void> {
         const now = Date.now();

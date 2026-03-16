@@ -68,7 +68,7 @@ export abstract class BaseEventDispatcher<DispatchedEvent extends BaseDispatched
         }
 
         for (const handler of handlers) {
-            await handler(event).catch((error) => this.logError(error, event));
+            await handler(event).catch((error) => { this.logError(error, event); });
         }
     }
 }

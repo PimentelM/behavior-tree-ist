@@ -58,7 +58,7 @@ async function closeWebSocket(socket: WebSocket): Promise<void> {
     if (socket.readyState === WebSocket.CLOSED) return;
 
     await new Promise<void>((resolve) => {
-        socket.once('close', () => resolve());
+        socket.once('close', () => { resolve(); });
         socket.close();
     });
 }

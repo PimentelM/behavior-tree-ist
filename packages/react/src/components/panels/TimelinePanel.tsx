@@ -186,9 +186,9 @@ function TimelinePanelInner({
             </button>
             {trimmerOpen && (
               <WindowRangeTrimmer
-                minTickId={(frozenBounds ?? serverBounds)!.minTickId}
-                maxTickId={(frozenBounds ?? serverBounds)!.maxTickId}
-                totalCount={(frozenBounds ?? serverBounds)!.totalCount}
+                minTickId={(frozenBounds ?? serverBounds).minTickId}
+                maxTickId={(frozenBounds ?? serverBounds).maxTickId}
+                totalCount={(frozenBounds ?? serverBounds).totalCount}
                 defaultFrom={oldestTickId}
                 defaultTo={newestTickId}
                 isLoading={isLoading}
@@ -204,7 +204,7 @@ function TimelinePanelInner({
         {viewedTickId !== null ? `Tick #${viewedTickId}` : 'No ticks'}
         {formattedNow !== null ? ` · time ${formattedNow}` : ''}{' '}
         {showWindowInfo
-          ? `· Loaded: ${totalTicks.toLocaleString()}/${serverTotal!.toLocaleString()} ticks`
+          ? `· Loaded: ${totalTicks.toLocaleString()}/${serverTotal.toLocaleString()} ticks`
           : `/ ${totalTicks} total`}
       </span>
 

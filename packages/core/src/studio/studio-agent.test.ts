@@ -187,13 +187,13 @@ describe("StudioAgent", () => {
         it("throws if already started", () => {
             const { agent } = createAgent();
             agent.start();
-            expect(() => agent.start()).toThrow(/already been started/);
+            expect(() => { agent.start(); }).toThrow(/already been started/);
         });
 
         it("throws if destroyed", () => {
             const { agent } = createAgent();
             agent.destroy();
-            expect(() => agent.start()).toThrow(/has been destroyed/);
+            expect(() => { agent.start(); }).toThrow(/has been destroyed/);
         });
     });
 
@@ -587,7 +587,7 @@ describe("StudioAgent", () => {
             const { agent } = createAgent();
             agent.start();
             const plugin = createMockPlugin();
-            expect(() => agent.registerPlugin(plugin)).toThrow(/Cannot register plugin after agent is started/);
+            expect(() => { agent.registerPlugin(plugin); }).toThrow(/Cannot register plugin after agent is started/);
         });
 
         it("attaches plugin on start()", () => {

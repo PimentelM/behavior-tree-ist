@@ -6,11 +6,21 @@ import { type TickRepositoryInterface } from '../../domain/interfaces';
 import type { DbTick } from './schemas';
 import { mapDbTickToDomain, mapTickToDb } from './mappers';
 
-export class TickRepository extends BaseKnexRepository implements TickRepositoryInterface {
-    constructor(knex: Knex) {
-        super(knex);
-    }
+interface TickBoundsRow {
+    minTickId: string | null;
+    maxTickId: string | null;
+    count: string;
+}
 
+interface CountRow {
+    cnt: number | string;
+}
+
+interface TickIdRow {
+    tickId: number;
+}
+
+export class TickRepository extends BaseKnexRepository implements TickRepositoryInterface {
     async insertBatch(
         clientId: string,
         sessionId: string,
@@ -89,7 +99,7 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         treeId: string
     ): Promise<TickBounds | null> {
         const result = await this.withTransaction(
-            this.knex('ticks')
+            this.knex<TickBoundsRow>('ticks')
                 .where({ clientId, sessionId, treeId })
                 .select(
                     this.knex.raw('MIN("tickId") as "minTickId"'),
@@ -114,24 +124,24 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
     ): Promise<void> {
         await this.executeTransactionally(async () => {
             const count = await this.withTransaction(
-                this.knex('ticks')
+                this.knex<CountRow>('ticks')
                     .where({ clientId, sessionId, treeId })
                     .count('* as cnt')
             );
 
-            const total = Number((count[0] as { cnt: number | string }).cnt);
+            const total = Number(count[0]?.cnt);
             if (total <= maxTicks) return;
 
             const toDelete = total - maxTicks;
             const oldest = await this.withTransaction(
-                this.knex('ticks')
+                this.knex<TickIdRow>('ticks')
                     .where({ clientId, sessionId, treeId })
                     .orderBy('tickId', 'asc')
                     .limit(toDelete)
                     .select('tickId')
             );
 
-            const tickIds = oldest.map((r: { tickId: number }) => r.tickId);
+            const tickIds = oldest.map((r) => r.tickId);
             if (tickIds.length > 0) {
                 await this.withTransaction(
                     this.knex('ticks')

@@ -64,14 +64,14 @@ export function createElement(
                 throw new Error(`<utility-node> requires a "scorer" prop of type function.`);
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return Builder.utility(safeProps as unknown as any, flatChildren[0]);
+            return Builder.utility(safeProps as unknown as any, flatChildren[0] as BTNode);
         }
         case "sub-tree": {
             if (flatChildren.length !== 1) {
                 throw new Error(`<sub-tree> must have exactly one child node, but got ${flatChildren.length}.`);
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return Builder.subTree(safeProps as unknown as any, flatChildren[0]);
+            return Builder.subTree(safeProps as unknown as any, flatChildren[0] as BTNode);
         }
         case "action":
             // Action requires an execute prop

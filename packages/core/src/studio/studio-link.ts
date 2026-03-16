@@ -160,9 +160,9 @@ export class StudioLink implements StudioLinkInterface {
                 if (this.transport !== transport) return;
                 // Subscribe to transport events after connection is established
                 this.transportCleanup.push(
-                    transport.onMessage((data) => this.handleTransportMessage(data)),
-                    transport.onError((error) => this.emit(this.errorHandlers, error)),
-                    transport.onClose(() => this.handleTransportClose()),
+                    transport.onMessage((data) => { this.handleTransportMessage(data); }),
+                    transport.onError((error) => { this.emit(this.errorHandlers, error); }),
+                    transport.onClose(() => { this.handleTransportClose(); }),
                 );
                 this.state = ConnectionState.Connected;
                 this._pendingOpen = null;

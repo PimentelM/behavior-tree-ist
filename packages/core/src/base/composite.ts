@@ -26,16 +26,15 @@ export abstract class Composite extends BTNode {
     }
 
     protected abortChildrenFrom(startIndexInclusive: number, ctx: TickContext): void {
-        for (let i = startIndexInclusive; i < this._nodes.length; i++) {
-            const node = this._nodes[i];
+        for (const [i, node] of this._nodes.entries()) {
+            if (i < startIndexInclusive) continue;
             BTNode.Abort(node, ctx);
         }
     }
 
     protected abortChildrenExcept(indexToKeep: number, ctx: TickContext): void {
-        for (let i = 0; i < this._nodes.length; i++) {
+        for (const [i, node] of this._nodes.entries()) {
             if (i === indexToKeep) continue;
-            const node = this._nodes[i];
             BTNode.Abort(node, ctx);
         }
     }

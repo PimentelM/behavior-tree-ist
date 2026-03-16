@@ -85,7 +85,7 @@ function createStudioLink(overrides?: Partial<StudioLinkOptions>): StudioLink {
 }
 
 function lastTransport(): MockTransport {
-    return transports[transports.length - 1];
+    return transports[transports.length - 1] as MockTransport;
 }
 
 async function connectLink(link: StudioLink): Promise<MockTransport> {
@@ -111,7 +111,7 @@ describe("StudioLink", () => {
             link.sendHello("client-1", "session-1");
 
             expect(transport.send).toHaveBeenCalledTimes(1);
-            const payload = JSON.parse(transport.send.mock.calls[0][0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
             expect(payload).toEqual({
                 t: MessageType.Hello,
                 version: PROTOCOL_VERSION,
@@ -127,7 +127,7 @@ describe("StudioLink", () => {
             const serializedTree = { id: "root", type: "action" } as unknown as SerializableNode;
             link.sendTreeRegistered("tree-1", serializedTree);
 
-            const payload = JSON.parse(transport.send.mock.calls[0][0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
             expect(payload.t).toBe(MessageType.TreeRegistered);
             expect(payload.treeId).toBe("tree-1");
             expect(payload.serializedTree).toEqual(serializedTree);
@@ -139,7 +139,7 @@ describe("StudioLink", () => {
 
             link.sendTreeRemoved("tree-1");
 
-            const payload = JSON.parse(transport.send.mock.calls[0][0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
             expect(payload.t).toBe(MessageType.TreeRemoved);
             expect(payload.treeId).toBe("tree-1");
         });
@@ -151,7 +151,7 @@ describe("StudioLink", () => {
             const ticks = [{ tickId: 1 }] as unknown as TickRecord[];
             link.sendTickBatch("tree-1", ticks);
 
-            const payload = JSON.parse(transport.send.mock.calls[0][0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
             expect(payload.t).toBe(MessageType.TickBatch);
             expect(payload.treeId).toBe("tree-1");
             expect(payload.ticks).toEqual(ticks);
@@ -163,7 +163,7 @@ describe("StudioLink", () => {
 
             link.sendCommandResponse("corr-1", { success: true });
 
-            const payload = JSON.parse(transport.send.mock.calls[0][0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
             expect(payload.t).toBe(MessageType.CommandResponse);
             expect(payload.correlationId).toBe("corr-1");
             expect(payload.response).toEqual({ success: true });
@@ -195,7 +195,7 @@ describe("StudioLink", () => {
             transport._simulateMessage("not valid json{{{");
 
             expect(errorHandler).toHaveBeenCalledTimes(1);
-            expect(errorHandler.mock.calls[0][0]).toBeInstanceOf(Error);
+            expect((errorHandler.mock.calls[0] as unknown[])[0]).toBeInstanceOf(Error);
         });
 
         it("emits error on binary data with default deserializer", async () => {
@@ -208,7 +208,7 @@ describe("StudioLink", () => {
             transport._simulateMessage(new Uint8Array([1, 2, 3]));
 
             expect(errorHandler).toHaveBeenCalledTimes(1);
-            expect(errorHandler.mock.calls[0][0].message).toMatch(/binary/i);
+            expect(((errorHandler.mock.calls[0] as unknown[])[0] as Error).message).toMatch(/binary/i);
         });
     });
 
@@ -280,7 +280,7 @@ describe("StudioLink", () => {
             await Promise.resolve(); // flush microtask
 
             expect(errorHandler).toHaveBeenCalledTimes(1);
-            expect(errorHandler.mock.calls[0][0].message).toBe("connection refused");
+            expect(((errorHandler.mock.calls[0] as unknown[])[0] as Error).message).toBe("connection refused");
             expect(link.isConnected).toBe(false);
         });
 
@@ -416,7 +416,7 @@ describe("StudioLink", () => {
             transport._simulateError(new Error("transport broken"));
 
             expect(errorHandler).toHaveBeenCalledTimes(1);
-            expect(errorHandler.mock.calls[0][0].message).toBe("transport broken");
+            expect(((errorHandler.mock.calls[0] as unknown[])[0] as Error).message).toBe("transport broken");
         });
     });
 
@@ -427,7 +427,7 @@ describe("StudioLink", () => {
 
             link.sendPluginMessage("repl", "corr-1", { type: "eval", code: "1+1" });
 
-            const payload = JSON.parse(transport.send.mock.calls[0][0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
             expect(payload.t).toBe(MessageType.PluginMessage);
             expect(payload.pluginId).toBe("repl");
             expect(payload.correlationId).toBe("corr-1");

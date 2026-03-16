@@ -83,7 +83,7 @@ export class WsBrowserBinaryTransport implements TransportInterface {
             throw new Error("WsBrowserBinaryTransport: not connected");
         }
 
-        const onErr = () => handler(new Error("WebSocket error"));
+        const onErr = () => { handler(new Error("WebSocket error")); };
         this.ws.addEventListener("error", onErr);
         return () => {
             this.ws?.removeEventListener("error", onErr);

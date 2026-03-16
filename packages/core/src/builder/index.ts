@@ -236,7 +236,7 @@ export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeR
     return applyDecorators(Action.from(props.name || "Action", props.execute), props);
 }
 
-export function asyncAction(props: NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | void> }): BTNode {
+export function asyncAction(props: NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | undefined> }): BTNode {
     return applyDecorators(AsyncAction.from(props.name || "AsyncAction", props.execute), props);
 }
 

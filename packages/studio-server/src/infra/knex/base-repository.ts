@@ -14,10 +14,10 @@ export abstract class BaseKnexRepository {
 
     static asyncTransactionContext = new AsyncLocalStorage<TransactionContext>();
 
-    withTransaction(qb: Knex.QueryBuilder) {
+    withTransaction<TRecord, TResult>(qb: Knex.QueryBuilder<TRecord, TResult>): Knex.QueryBuilder<TRecord, TResult> {
         const { trx } = BaseKnexRepository.asyncTransactionContext.getStore() ?? {};
         if (trx) {
-            return qb.transacting(trx);
+            return qb.transacting(trx) as Knex.QueryBuilder<TRecord, TResult>;
         }
         return qb;
     }

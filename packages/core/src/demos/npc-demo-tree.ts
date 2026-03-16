@@ -154,7 +154,7 @@ export function createNpcDemoTree(): BehaviourTree {
                                     isFleeing.set(false, ctx)
                                 }
                                 const types = ['goblin', 'wolf', 'bandit', 'orc']
-                                enemyType.set(types[Math.floor(cycle / 80) % types.length], ctx)
+                                enemyType.set(types[Math.floor(cycle / 80) % types.length] as string, ctx)
                                 return NodeResult.Succeeded
                             },
                             throttle: 5,
@@ -275,7 +275,7 @@ export function createNpcDemoTree(): BehaviourTree {
                                     name: 'TravelToChapel',
                                     activity: 'Travelling',
                                     execute: async (ctx, signal) => {
-                                        const chapel = WAYPOINTS[5] // Old Chapel
+                                        const chapel = WAYPOINTS[5] as (typeof WAYPOINTS)[number] // Old Chapel
                                         while (dist(posX.value, posY.value, chapel.x, chapel.y) > 2) {
                                             if (signal.aborted) return NodeResult.Failed
                                             const p = stepToward(posX.value, posY.value, chapel.x, chapel.y, moveSpeed.value)
@@ -499,7 +499,7 @@ export function createNpcDemoTree(): BehaviourTree {
                                 execute: (ctx) => {
                                     const available = items.value.filter(i => !i.collected)
                                     if (available.length === 0) return NodeResult.Failed
-                                    let nearest = available[0]
+                                    let nearest = available[0] as (typeof available)[number]
                                     let nearestDist = dist(posX.value, posY.value, nearest.x, nearest.y)
                                     for (const item of available) {
                                         const d = dist(posX.value, posY.value, item.x, item.y)
@@ -532,7 +532,7 @@ export function createNpcDemoTree(): BehaviourTree {
                                     if (idx < 0) return NodeResult.Failed
                                     const updated = items.value.map((i, j) => j === idx ? { ...i, collected: true } : i)
                                     items.set(updated, ctx)
-                                    inventory.set([...inventory.value, updated[idx].type], ctx)
+                                    inventory.set([...inventory.value, (updated[idx] as (typeof updated)[number]).type], ctx)
                                     carryingItems.set(carryingItems.value + 1, ctx)
                                     targetItemId.set(-1, ctx)
                                     return NodeResult.Succeeded
@@ -575,12 +575,12 @@ export function createNpcDemoTree(): BehaviourTree {
                                         }
                                         waypointIndex.set(Math.max(0, Math.min(WAYPOINTS.length - 1, next)), ctx)
                                         atWaypoint.set(false, ctx)
-                                        currentActivity.set(`heading to ${WAYPOINTS[waypointIndex.value % WAYPOINTS.length].name}`, ctx)
+                                        currentActivity.set(`heading to ${(WAYPOINTS[waypointIndex.value % WAYPOINTS.length] as (typeof WAYPOINTS)[number]).name}`, ctx)
                                         return NodeResult.Succeeded
                                     } }),
                                     asyncAction({ name: 'MoveToWaypoint', activity: 'Patrolling',
                                         execute: async (ctx, signal) => {
-                                            const wp = WAYPOINTS[waypointIndex.value % WAYPOINTS.length]
+                                            const wp = (WAYPOINTS[waypointIndex.value % WAYPOINTS.length] as (typeof WAYPOINTS)[number])
                                             while (dist(posX.value, posY.value, wp.x, wp.y) > 1.5) {
                                                 if (signal.aborted) return NodeResult.Failed
                                                 const p = stepToward(posX.value, posY.value, wp.x, wp.y, moveSpeed.value)
@@ -732,7 +732,7 @@ export function createNpcDemoTree(): BehaviourTree {
                                 heading: `${heading.value}°`,
                                 speed: moveSpeed.value.toFixed(1),
                                 atWaypoint: atWaypoint.value,
-                                waypoint: WAYPOINTS[waypointIndex.value % WAYPOINTS.length].name,
+                                waypoint: (WAYPOINTS[waypointIndex.value % WAYPOINTS.length] as (typeof WAYPOINTS)[number]).name,
                                 visited: waypointsVisited.value,
                             }),
                             inputs: [posX, posY, heading, waypointIndex],

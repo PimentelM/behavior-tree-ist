@@ -75,7 +75,7 @@ export class StubAction extends Action {
         super();
         if (Array.isArray(resultOrQueue)) {
             this.resultQueue = [...resultOrQueue];
-            this.defaultResult = resultOrQueue[resultOrQueue.length - 1];
+            this.defaultResult = resultOrQueue[resultOrQueue.length - 1] as NodeResult;
         } else {
             this.resultQueue = [];
             this.defaultResult = resultOrQueue;

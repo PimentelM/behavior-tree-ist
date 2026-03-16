@@ -67,6 +67,7 @@ const main = defineCommand({
 
     await server.start()
     const displayHost = args.host === '0.0.0.0' ? 'localhost' : args.host
+    // eslint-disable-next-line no-console
     console.log(`BT Studio running at http://${displayHost}:${port}`)
 
     let npcHandle: { shutdown(): void } | undefined
@@ -74,15 +75,18 @@ const main = defineCommand({
 
     if (args.demo) {
       npcHandle = startDemoAgent(`ws://${displayHost}:${port}/ws`, 'npc')
+      // eslint-disable-next-line no-console
       console.log('NPC demo agent started')
     }
 
     if (args['demo-cpu']) {
       cpuHandle = startDemoAgent(`ws://${displayHost}:${port}/ws`, 'cpu')
+      // eslint-disable-next-line no-console
       console.log('CPU demo agent started')
     }
 
     const shutdown = async () => {
+      // eslint-disable-next-line no-console
       console.log('\nShutting down...')
       npcHandle?.shutdown()
       cpuHandle?.shutdown()

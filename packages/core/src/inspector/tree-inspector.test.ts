@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { NodeResult, NodeFlags, type SerializableNode, type TickTraceEvent, type TickRecord } from "../base/types";
+import { NodeResult, NodeFlags, type SerializableNode, type TickTraceEvent, type TickRecord, type NodeHistoryEvent } from "../base/types";
+import { type FlameGraphFrame, type ActivityBranch, type NodeProfilingData, type TreeTickSnapshot, type NodeTickSnapshot } from "./types";
 import { TreeInspector } from "./tree-inspector";
+import { type IndexedNode } from "./tree-index";
+import { TreeIndex } from "./tree-index";
 
 // TODO: Extract shared SerializableNode test stubs into a common test-stubs module.
 function makeTree(): SerializableNode {
@@ -55,8 +58,8 @@ describe("TreeInspector", () => {
         inspector.indexTree(makeTree());
 
         expect(inspector.tree).toBeDefined();
-        expect(inspector.tree!.size).toBe(4);
-        expect(inspector.tree!.getById(1)!.defaultName).toBe("Root");
+        expect((inspector.tree as TreeIndex).size).toBe(4);
+        expect(((inspector.tree as TreeIndex).getById(1) as IndexedNode).defaultName).toBe("Root");
     });
 
     it("ingests ticks and retrieves snapshots", () => {
@@ -71,8 +74,8 @@ describe("TreeInspector", () => {
 
         const snapshot = inspector.getSnapshotAtTick(1);
         expect(snapshot).toBeDefined();
-        expect(snapshot!.nodes.size).toBe(3);
-        expect(snapshot!.nodes.get(2)!.result).toBe(NodeResult.Running);
+        expect((snapshot as TreeTickSnapshot).nodes.size).toBe(3);
+        expect(((snapshot as TreeTickSnapshot).nodes.get(2) as NodeTickSnapshot).result).toBe(NodeResult.Running);
     });
 
     it("getLatestSnapshot returns most recent tick", () => {
@@ -81,7 +84,7 @@ describe("TreeInspector", () => {
         inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 20 }]));
 
         const latest = inspector.getLatestSnapshot();
-        expect(latest!.tickId).toBe(2);
+        expect((latest as TreeTickSnapshot).tickId).toBe(2);
     });
 
     it("getNodeAtTick returns single node snapshot", () => {
@@ -93,7 +96,7 @@ describe("TreeInspector", () => {
 
         const node = inspector.getNodeAtTick(2, 1);
         expect(node).toBeDefined();
-        expect(node!.result).toBe(NodeResult.Succeeded);
+        expect((node as NodeTickSnapshot).result).toBe(NodeResult.Succeeded);
 
         expect(inspector.getNodeAtTick(999, 1)).toBeUndefined();
     });
@@ -109,8 +112,8 @@ describe("TreeInspector", () => {
 
         const history = inspector.getNodeHistory(1);
         expect(history).toHaveLength(2);
-        expect(history[0].result).toBe(NodeResult.Running);
-        expect(history[1].result).toBe(NodeResult.Succeeded);
+        expect((history[0] as NodeHistoryEvent).result).toBe(NodeResult.Running);
+        expect((history[1] as NodeHistoryEvent).result).toBe(NodeResult.Succeeded);
     });
 
     it("getLastDisplayState returns latest state without changing result snapshot semantics", () => {
@@ -171,8 +174,8 @@ describe("TreeInspector", () => {
 
         const data = inspector.getNodeProfilingData(1);
         expect(data).toBeDefined();
-        expect(data!.totalCpuTime).toBe(30);
-        expect(data!.tickCount).toBe(2);
+        expect((data as NodeProfilingData).totalCpuTime).toBe(30);
+        expect((data as NodeProfilingData).tickCount).toBe(2);
     });
 
     it("profiling syncs eviction when buffer overflows", () => {
@@ -182,7 +185,7 @@ describe("TreeInspector", () => {
         inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 30 }]));
 
         // Tick 1 was evicted, profiling should reflect ticks 2 and 3 only
-        const data = inspector.getNodeProfilingData(1)!;
+        const data = (inspector.getNodeProfilingData(1) as NodeProfilingData);
         expect(data.totalCpuTime).toBe(50);
         expect(data.tickCount).toBe(2);
     });
@@ -211,9 +214,9 @@ describe("TreeInspector", () => {
 
         const frames = inspector.getFlameGraphFrames(1);
         expect(frames).toHaveLength(1);
-        expect(frames[0].nodeId).toBe(1);
-        expect(frames[0].selfTime).toBe(15);
-        expect(frames[0].children).toHaveLength(2);
+        expect((frames[0] as FlameGraphFrame).nodeId).toBe(1);
+        expect((frames[0] as FlameGraphFrame).selfTime).toBe(15);
+        expect((frames[0] as FlameGraphFrame).children).toHaveLength(2);
     });
 
     it("getFlameGraphFrames returns empty when no tree indexed", () => {
@@ -234,7 +237,7 @@ describe("TreeInspector", () => {
 
         const snapshot = inspector.getActivitySnapshotAtTick(1, "running_or_success");
         expect(snapshot).toBeDefined();
-        expect(snapshot!.branches.map((branch) => branch.labels.join(" > "))).toEqual([
+        expect((snapshot as TreeTickSnapshot).branches.map((branch) => branch.labels.join(" > "))).toEqual([
             "Hunting > Targeting > Attacking",
         ]);
     });
@@ -249,8 +252,8 @@ describe("TreeInspector", () => {
 
         const latest = inspector.getLatestActivitySnapshot("running");
         expect(latest).toBeDefined();
-        expect(latest!.tickId).toBe(1);
-        expect(latest!.branches[0].labels).toEqual(["Hunting", "Idle"]);
+        expect((latest as TreeTickSnapshot).tickId).toBe(1);
+        expect(((latest as TreeTickSnapshot).branches[0] as ActivityBranch).labels).toEqual(["Hunting", "Idle"]);
     });
 
     it("getStats returns aggregate statistics", () => {
@@ -328,7 +331,7 @@ describe("TreeInspector", () => {
         inspector.clearTicks();
 
         expect(inspector.tree).toBeDefined();
-        expect(inspector.tree!.size).toBe(4);
+        expect((inspector.tree as TreeIndex).size).toBe(4);
         expect(inspector.getStoredTickIds()).toEqual([]);
         expect(inspector.getStats().storedTickCount).toBe(0);
         expect(inspector.getStats().totalTickCount).toBe(0);
@@ -372,16 +375,16 @@ describe("TreeInspector", () => {
 
         const cloned = inspector.cloneForTimeTravel();
         expect(cloned.getStoredTickIds()).toEqual([1, 2, 3]);
-        expect(cloned.getNodeProfilingData(1)!.totalCpuTime).toBe(60);
+        expect((cloned.getNodeProfilingData(1) as NodeProfilingData).totalCpuTime).toBe(60);
         expect(cloned.getStats().totalRootCpuTime).toBe(60);
 
         inspector.ingestTick(makeTickRecord(4, [{ nodeId: 1, start: 0, end: 40 }]));
         expect(inspector.getStoredTickIds()).toEqual([2, 3, 4]);
-        expect(inspector.getNodeProfilingData(1)!.totalCpuTime).toBe(90);
+        expect((inspector.getNodeProfilingData(1) as NodeProfilingData).totalCpuTime).toBe(90);
 
         // Frozen copy should remain unchanged after live inspector advances.
         expect(cloned.getStoredTickIds()).toEqual([1, 2, 3]);
-        expect(cloned.getNodeProfilingData(1)!.totalCpuTime).toBe(60);
+        expect((cloned.getNodeProfilingData(1) as NodeProfilingData).totalCpuTime).toBe(60);
         expect(cloned.getStats().totalRootCpuTime).toBe(60);
     });
 
@@ -393,14 +396,14 @@ describe("TreeInspector", () => {
         inspector.ingestTick(makeTickRecord(2, [{ nodeId: 1, start: 0, end: 1 }]));
         inspector.ingestTick(makeTickRecord(3, [{ nodeId: 1, start: 0, end: 2 }]));
 
-        const liveData = inspector.getNodeProfilingData(1)!;
+        const liveData = (inspector.getNodeProfilingData(1) as NodeProfilingData);
         // Live mode keeps fast sampled percentiles and can include evicted outliers.
         expect(inspector.getPercentileMode()).toBe("sampled");
         expect(liveData.tickCount).toBe(2);
         expect(liveData.cpuP95).toBe(100);
 
         const frozen = inspector.cloneForTimeTravel();
-        const frozenData = frozen.getNodeProfilingData(1)!;
+        const frozenData = (frozen.getNodeProfilingData(1) as NodeProfilingData);
         expect(frozen.getPercentileMode()).toBe("exact");
         expect(frozenData.tickCount).toBe(2);
         expect(frozenData.cpuP50).toBe(1);
@@ -465,8 +468,8 @@ describe("TreeInspector", () => {
             expect(batch.getStoredTickIds()).toEqual(sequential.getStoredTickIds());
             expect(batch.getStats().totalTickCount).toBe(sequential.getStats().totalTickCount);
             expect(batch.getStats().totalRootCpuTime).toBe(sequential.getStats().totalRootCpuTime);
-            expect(batch.getNodeProfilingData(1)!.totalCpuTime).toBe(sequential.getNodeProfilingData(1)!.totalCpuTime);
-            expect(batch.getNodeProfilingData(2)!.totalCpuTime).toBe(sequential.getNodeProfilingData(2)!.totalCpuTime);
+            expect((batch.getNodeProfilingData(1) as NodeProfilingData).totalCpuTime).toBe((sequential.getNodeProfilingData(1) as NodeProfilingData).totalCpuTime);
+            expect((batch.getNodeProfilingData(2) as NodeProfilingData).totalCpuTime).toBe((sequential.getNodeProfilingData(2) as NodeProfilingData).totalCpuTime);
         });
 
         it("handles eviction correctly when batch overflows buffer", () => {
@@ -484,7 +487,7 @@ describe("TreeInspector", () => {
             expect(inspector.getStoredTickIds()).toEqual([3, 4, 5]);
             expect(inspector.getStats().totalTickCount).toBe(5);
 
-            const data = inspector.getNodeProfilingData(1)!;
+            const data = (inspector.getNodeProfilingData(1) as NodeProfilingData);
             expect(data.totalCpuTime).toBe(120); // 30+40+50
         });
 
@@ -548,7 +551,7 @@ describe("TreeInspector", () => {
 
         const sampledClone = inspector.cloneForTimeTravel({ exactPercentiles: false });
         expect(sampledClone.getPercentileMode()).toBe("sampled");
-        const sampledData = sampledClone.getNodeProfilingData(1)!;
+        const sampledData = (sampledClone.getNodeProfilingData(1) as NodeProfilingData);
         expect(sampledData.tickCount).toBe(2);
         expect(sampledData.cpuP95).toBe(100);
     });

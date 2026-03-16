@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { NodeResult, NodeFlags, type TickTraceEvent, type SerializableNode } from "../base/types";
 import { Profiler } from "./profiler";
 import { TreeIndex } from "./tree-index";
+import { type FlameGraphFrame, type NodeProfilingData } from "./types";
 
 function makeEvents(tickId: number, timings: Array<{ nodeId: number; start: number; end: number }>): TickTraceEvent[] {
     return timings.map(t => ({
@@ -25,10 +26,10 @@ describe("Profiler", () => {
 
         const node1 = profiler.getNodeData(1);
         expect(node1).toBeDefined();
-        expect(node1!.totalCpuTime).toBe(10);
-        expect(node1!.tickCount).toBe(1);
-        expect(node1!.minCpuTime).toBe(10);
-        expect(node1!.maxCpuTime).toBe(10);
+        expect((node1 as NodeProfilingData).totalCpuTime).toBe(10);
+        expect((node1 as NodeProfilingData).tickCount).toBe(1);
+        expect((node1 as NodeProfilingData).minCpuTime).toBe(10);
+        expect((node1 as NodeProfilingData).maxCpuTime).toBe(10);
     });
 
     it("accumulates across multiple ticks", () => {
@@ -40,7 +41,7 @@ describe("Profiler", () => {
             { nodeId: 1, start: 0, end: 20 },
         ]));
 
-        const node1 = profiler.getNodeData(1)!;
+        const node1 = profiler.getNodeData(1) as NodeProfilingData;
         expect(node1.totalCpuTime).toBe(30);
         expect(node1.tickCount).toBe(2);
         expect(node1.minCpuTime).toBe(10);
@@ -54,7 +55,7 @@ describe("Profiler", () => {
         profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 10 }]));
 
         expect(profiler.tickCount).toBe(1);
-        expect(profiler.getNodeData(1)!.totalCpuTime).toBe(10);
+        expect((profiler.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe(10);
     });
 
     it("ignores events without timing", () => {
@@ -77,7 +78,7 @@ describe("Profiler", () => {
         profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 20 }]));
 
         expect(profiler.tickCount).toBe(2);
-        expect(profiler.getNodeData(1)!.totalCpuTime).toBe(30);
+        expect((profiler.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe(30);
         expect(profiler.getAverageCpuTime(1)).toBe(15);
     });
 
@@ -105,7 +106,7 @@ describe("Profiler", () => {
         profiler.removeTick(1, tick1);
 
         expect(profiler.tickCount).toBe(1);
-        expect(profiler.getNodeData(1)!.totalCpuTime).toBe(20);
+        expect((profiler.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe(20);
         expect(profiler.totalCpuTime).toBe(20);
     });
 
@@ -135,8 +136,8 @@ describe("Profiler", () => {
             { nodeId: 2, start: 20, end: 60 },
         ]));
 
-        const root = profiler.getNodeData(1)!;
-        const child = profiler.getNodeData(2)!;
+        const root = profiler.getNodeData(1) as NodeProfilingData;
+        const child = profiler.getNodeData(2) as NodeProfilingData;
         expect(root.totalCpuTime).toBe(100);
         expect(root.totalSelfCpuTime).toBe(60);
         expect(child.totalCpuTime).toBe(40);
@@ -151,7 +152,7 @@ describe("Profiler", () => {
         profiler.ingestTick(4, makeEvents(4, [{ nodeId: 1, start: 0, end: 4 }]));
         profiler.ingestTick(5, makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }]));
 
-        const node = profiler.getNodeData(1)!;
+        const node = profiler.getNodeData(1) as NodeProfilingData;
         expect(node.cpuP50).toBe(3);
         expect(node.cpuP95).toBe(100);
         expect(node.cpuP99).toBe(100);
@@ -168,7 +169,7 @@ describe("Profiler", () => {
         profiler.ingestTick(4, makeEvents(4, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 96 }]));
         profiler.ingestTick(5, makeEvents(5, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 95 }]));
 
-        const root = profiler.getNodeData(1)!;
+        const root = profiler.getNodeData(1) as NodeProfilingData;
         expect(root.cpuP50).toBe(100);
         expect(root.cpuP95).toBe(100);
         expect(root.cpuP99).toBe(100);
@@ -188,13 +189,13 @@ describe("Profiler", () => {
         profiler.ingestTick(3, tick3);
         profiler.removeTick(1, tick1);
 
-        const sampledData = profiler.getNodeData(1)!;
+        const sampledData = profiler.getNodeData(1) as NodeProfilingData;
         expect(sampledData.tickCount).toBe(2);
         expect(sampledData.cpuP95).toBe(100);
 
         profiler.recomputeExactPercentilesFromTickEvents([tick2, tick3]);
         expect(profiler.getPercentileMode()).toBe("exact");
-        const exactData = profiler.getNodeData(1)!;
+        const exactData = profiler.getNodeData(1) as NodeProfilingData;
         expect(exactData.cpuP50).toBe(1);
         expect(exactData.cpuP95).toBe(2);
         expect(exactData.cpuP99).toBe(2);
@@ -202,7 +203,7 @@ describe("Profiler", () => {
         // Any further mutation should invalidate exact caches and return to sampled mode.
         profiler.ingestTick(4, makeEvents(4, [{ nodeId: 1, start: 0, end: 3 }]));
         expect(profiler.getPercentileMode()).toBe("sampled");
-        const backToSampled = profiler.getNodeData(1)!;
+        const backToSampled = profiler.getNodeData(1) as NodeProfilingData;
         expect(backToSampled.cpuP95).toBe(100);
     });
 
@@ -217,7 +218,7 @@ describe("Profiler", () => {
         profiler.ingestTick(3, tick3);
         profiler.removeTick(1, tick1);
 
-        const node = profiler.getNodeData(1)!;
+        const node = profiler.getNodeData(1) as NodeProfilingData;
         expect(node.minCpuTime).toBe(10);
         expect(node.maxCpuTime).toBe(20);
         expect(node.minSelfCpuTime).toBe(10);
@@ -266,14 +267,14 @@ describe("Profiler", () => {
         const cloned = profiler.clone();
         expect(cloned.tickCount).toBe(2);
         expect(cloned.totalCpuTime).toBe(30);
-        expect(cloned.getNodeData(1)!.totalCpuTime).toBe(30);
+        expect((cloned.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe(30);
 
         profiler.ingestTick(3, makeEvents(3, [{ nodeId: 1, start: 0, end: 40 }]));
         expect(profiler.tickCount).toBe(3);
         expect(profiler.totalCpuTime).toBe(70);
         expect(cloned.tickCount).toBe(2);
         expect(cloned.totalCpuTime).toBe(30);
-        expect(cloned.getNodeData(1)!.totalCpuTime).toBe(30);
+        expect((cloned.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe(30);
     });
 
     describe("runningTime (duration spans)", () => {
@@ -283,7 +284,7 @@ describe("Profiler", () => {
                 { nodeId: 1, start: 100, end: 110 }
             ]));
 
-            const data = profiler.getNodeData(1)!;
+            const data = profiler.getNodeData(1) as NodeProfilingData;
             expect(data.totalRunningTime).toBe(10);
             expect(data.runningTimeCount).toBe(1);
         });
@@ -297,7 +298,7 @@ describe("Profiler", () => {
             profiler.ingestTick(2, tick2);
             profiler.removeTick(1, tick1);
 
-            const data = profiler.getNodeData(1)!;
+            const data = profiler.getNodeData(1) as NodeProfilingData;
             expect(data.minRunningTime).toBe(30);
             expect(data.maxRunningTime).toBe(30);
         });
@@ -328,7 +329,7 @@ describe("Profiler", () => {
                 finishedAt: 2010, // The async task finally completes here
             }]);
 
-            const data = profiler.getNodeData(1)!;
+            const data = profiler.getNodeData(1) as NodeProfilingData;
             // totalCpuTime = (1005-1000) + (1502-1500) + (2010-2000) = 5 + 2 + 10 = 17
             expect(data.totalCpuTime).toBe(17);
 
@@ -355,7 +356,7 @@ describe("Profiler", () => {
                 finishedAt: 2010,
             }]);
 
-            const data = profiler.getNodeData(1)!;
+            const data = profiler.getNodeData(1) as NodeProfilingData;
             // CPU time was recorded for the first tick
             expect(data.totalCpuTime).toBe(10);
             // But NO running time should be finalized since it never hit Succeeded/Failed
@@ -370,7 +371,7 @@ describe("Profiler", () => {
                 finishedAt: 3010,
             }]);
 
-            const newData = profiler.getNodeData(1)!;
+            const newData = profiler.getNodeData(1) as NodeProfilingData;
             expect(newData.totalCpuTime).toBe(20);
             expect(newData.totalRunningTime).toBe(10); // Not 2010!
         });
@@ -387,10 +388,10 @@ describe("Profiler", () => {
             // Abortion: Tick 4 drops Node 1
             profiler.ingestTick(4, [{ nodeId: 2, result: NodeResult.Succeeded, startedAt: 400, finishedAt: 410 }]);
             // Node 1 should be swept from runningStartTimes. No running time logged yet.
-            expect(profiler.getNodeData(1)!.totalRunningTime).toBe(0);
-            expect(profiler.getNodeData(1)!.runningTimeCount).toBe(0);
+            expect((profiler.getNodeData(1) as NodeProfilingData).totalRunningTime).toBe(0);
+            expect((profiler.getNodeData(1) as NodeProfilingData).runningTimeCount).toBe(0);
             // cpu time is 10 + 20 + 30 = 60
-            expect(profiler.getNodeData(1)!.totalCpuTime).toBe(60);
+            expect((profiler.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe(60);
 
             // Second execution span: ticks 5 to 7
             profiler.ingestTick(5, [{ nodeId: 1, result: NodeResult.Running, startedAt: 500, finishedAt: 510 }]);
@@ -400,7 +401,7 @@ describe("Profiler", () => {
             profiler.ingestTick(8, [{ nodeId: 1, result: NodeResult.Succeeded, startedAt: 800, finishedAt: 830 }]);
 
             // Assert metrics:
-            const data = profiler.getNodeData(1)!;
+            const data = profiler.getNodeData(1) as NodeProfilingData;
 
             // New CPU time = 10 + 20 + 30 = 60
             // Total CPU time = 60 (from 1st span) + 60 (from 2nd span) = 120
@@ -435,13 +436,13 @@ describe("Profiler", () => {
             }];
             profiler.ingestTick(2, tick2);
 
-            expect(profiler.getNodeData(1)!.totalRunningTime).toBe(110);
-            expect(profiler.getNodeData(1)!.runningTimeCount).toBe(1);
+            expect((profiler.getNodeData(1) as NodeProfilingData).totalRunningTime).toBe(110);
+            expect((profiler.getNodeData(1) as NodeProfilingData).runningTimeCount).toBe(1);
 
             // Evicting tick 1 shouldn't remove the duration (it was finalized in tick 2)
             profiler.removeTick(1, tick1);
-            expect(profiler.getNodeData(1)!.totalRunningTime).toBe(110);
-            expect(profiler.getNodeData(1)!.runningTimeCount).toBe(1);
+            expect((profiler.getNodeData(1) as NodeProfilingData).totalRunningTime).toBe(110);
+            expect((profiler.getNodeData(1) as NodeProfilingData).runningTimeCount).toBe(1);
 
             // Evicting tick 2 should remove the duration
             profiler.removeTick(2, tick2);
@@ -469,7 +470,7 @@ describe("Profiler", () => {
             profiler.ingestTick(3, [{ nodeId: 1, result: NodeResult.Succeeded, startedAt: 300, finishedAt: 310 }]);
 
             // Let's assert!
-            const data = profiler.getNodeData(1)!;
+            const data = profiler.getNodeData(1) as NodeProfilingData;
 
             // Only tick 3 CPU time remains accumulated because tick 1 and 2 were explicitly evicted!
             expect(data.totalCpuTime).toBe(10); // 310 - 300
@@ -499,8 +500,8 @@ describe("Profiler batch methods", () => {
 
         expect(batch.tickCount).toBe(sequential.tickCount);
         expect(batch.totalCpuTime).toBe(sequential.totalCpuTime);
-        expect(batch.getNodeData(1)!.totalCpuTime).toBe(sequential.getNodeData(1)!.totalCpuTime);
-        expect(batch.getNodeData(2)!.totalCpuTime).toBe(sequential.getNodeData(2)!.totalCpuTime);
+        expect((batch.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe((sequential.getNodeData(1) as NodeProfilingData).totalCpuTime);
+        expect((batch.getNodeData(2) as NodeProfilingData).totalCpuTime).toBe((sequential.getNodeData(2) as NodeProfilingData).totalCpuTime);
     });
 
     it("ingestTicks skips duplicate and out-of-order tick ids", () => {
@@ -533,7 +534,7 @@ describe("Profiler batch methods", () => {
 
         expect(profiler.tickCount).toBe(1);
         expect(profiler.totalCpuTime).toBe(30);
-        expect(profiler.getNodeData(1)!.totalCpuTime).toBe(30);
+        expect((profiler.getNodeData(1) as NodeProfilingData).totalCpuTime).toBe(30);
     });
 
     it("ingestTicks handles empty input", () => {
@@ -587,27 +588,27 @@ describe("Profiler.buildFlameGraphFrames", () => {
         const frames = Profiler.buildFlameGraphFrames(events, treeIndex);
 
         expect(frames).toHaveLength(1); // single root
-        const root = frames[0];
+        const root = (frames[0] as FlameGraphFrame);
         expect(root.nodeId).toBe(1);
         expect(root.inclusiveTime).toBe(100);
         // selfTime = 100 - (70 + 15) = 15
         expect(root.selfTime).toBe(15);
         expect(root.children).toHaveLength(2);
 
-        const dec = root.children[0];
+        const dec = (root.children[0] as FlameGraphFrame);
         expect(dec.nodeId).toBe(2);
         expect(dec.inclusiveTime).toBe(70);
         // selfTime = 70 - 40 = 30
         expect(dec.selfTime).toBe(30);
         expect(dec.children).toHaveLength(1);
 
-        const attack = dec.children[0];
+        const attack = dec.children[0] as FlameGraphFrame;
         expect(attack.nodeId).toBe(3);
         expect(attack.inclusiveTime).toBe(40);
         expect(attack.selfTime).toBe(40); // leaf
         expect(attack.children).toHaveLength(0);
 
-        const idle = root.children[1];
+        const idle = (root.children[1] as FlameGraphFrame);
         expect(idle.nodeId).toBe(4);
         expect(idle.inclusiveTime).toBe(15);
         expect(idle.selfTime).toBe(15); // leaf
@@ -623,8 +624,8 @@ describe("Profiler.buildFlameGraphFrames", () => {
 
         const frames = Profiler.buildFlameGraphFrames(events, treeIndex);
         expect(frames).toHaveLength(1);
-        expect(frames[0].children).toHaveLength(1);
-        expect(frames[0].children[0].nodeId).toBe(2);
+        expect((frames[0] as FlameGraphFrame).children).toHaveLength(1);
+        expect(((frames[0] as FlameGraphFrame).children[0] as FlameGraphFrame).nodeId).toBe(2);
         // No child 3 or 4 frames since they weren't ticked
     });
 });

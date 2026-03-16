@@ -114,7 +114,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                 activity: 'Guarding',
                 policy: () => NodeResult.Running,
                 tag: 'demo',
-                onTicked: (result) => supressedLog(`Root ticked: ${result}`)
+                onTicked: (result) => { supressedLog(`Root ticked: ${result}`); }
             }, [
                 sequence({
                     name: 'WorldSimulation',
@@ -123,7 +123,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                 }, [
                     sequence({
                         name: 'WorldFrame',
-                        onEnter: () => supressedLog('World simulation started'),
+                        onEnter: () => { supressedLog('World simulation started'); },
                         throttle: 20
                     }, [
                         action({
@@ -153,7 +153,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                 alertLevel.set(Math.min(100, Math.floor((noise % 45) + (phase === 'engage' ? 45 : 10))), ctx);
                                 return NodeResult.Succeeded;
                             },
-                            onSuccess: () => supressedLog('World frame advanced')
+                            onSuccess: () => { supressedLog('World frame advanced'); }
                         }),
                         action({
                             name: 'DriftThreatPoints',
@@ -172,7 +172,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                 enemyVisible.set((tickCounter.value % 8) >= 2, ctx);
                                 return NodeResult.Succeeded;
                             },
-                            onTicked: () => supressedLog('Threat points drifted')
+                            onTicked: () => { supressedLog('Threat points drifted'); }
                         })
                     ])
                 ]),
@@ -186,17 +186,16 @@ export function createCpuHeavyTree(): BehaviourTree {
                         name: 'SensorSweep',
                         activity: 'Targeting',
                         tags: ['sensor', 'heavy'],
-                        onRunning: () => supressedLog('Perception running'),
+                        onRunning: () => { supressedLog('Perception running'); },
                         throttle: 180,
-                        onResume: () => supressedLog('Resuming sensor sweep')
+                        onResume: () => { supressedLog('Resuming sensor sweep'); }
                     }, [
                         sequence({ name: 'GeometryPipeline' }, [
                             action({
                                 name: 'NormalizeThreatCoordinates',
                                 execute: () => {
                                     let normAcc = 0;
-                                    for (let i = 0; i < threatPoints.value.length; i += 1) {
-                                        const point = threatPoints.value[i];
+                                    for (const [i, point] of threatPoints.value.entries()) {
                                         normAcc += Math.abs(point.x * 0.07) + Math.abs(point.y * 0.07);
                                         cpuBurst(scale(220), tickCounter.value + i + 7);
                                     }
@@ -211,8 +210,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                     let bestIndex = -1;
                                     let bestDistanceSq = Number.POSITIVE_INFINITY;
 
-                                    for (let i = 0; i < threatPoints.value.length; i += 1) {
-                                        const point = threatPoints.value[i];
+                                    for (const [i, point] of threatPoints.value.entries()) {
                                         const dx = point.x - agentX.value;
                                         const dy = point.y - agentY.value;
                                         const distanceSq = (dx * dx) + (dy * dy);
@@ -251,9 +249,9 @@ export function createCpuHeavyTree(): BehaviourTree {
                                 name: 'MediumThreatClusterPass',
                                 execute: () => {
                                     let clusterScore = 0;
-                                    for (let i = 0; i < threatPoints.value.length; i += 1) {
+                                    for (const [i, pt] of threatPoints.value.entries()) {
                                         const base = cpuBurst(scale(45), tickCounter.value + i + 501);
-                                        clusterScore += (base % 19) + (threatPoints.value[i].threat * 0.1);
+                                        clusterScore += (base % 19) + (pt.threat * 0.1);
                                     }
                                     alertLevel.value = Math.max(alertLevel.value, Math.min(100, Math.floor(clusterScore % 100)));
                                     return NodeResult.Succeeded;
@@ -298,7 +296,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                             }),
                             inputs: [agentX, agentY, threatPoints],
                             outputs: [nearestThreatId, nearestDistanceSq],
-                            onRunning: () => supressedLog('Perception HUD active')
+                            onRunning: () => { supressedLog('Perception HUD active'); }
                         })
                     ])
                 ]),
@@ -311,19 +309,19 @@ export function createCpuHeavyTree(): BehaviourTree {
                     selector({
                         name: 'HighLevelIntent',
                         activity: 'Intent',
-                        onFailedOrRunning: () => supressedLog('Decision branch failed or running'),
-                        onSuccessOrRunning: () => supressedLog('Decision branch success or running'),
-                        onFailure: () => supressedLog('No intent available')
+                        onFailedOrRunning: () => { supressedLog('Decision branch failed or running'); },
+                        onSuccessOrRunning: () => { supressedLog('Decision branch success or running'); },
+                        onFailure: () => { supressedLog('No intent available'); }
                     }, [
                         sequence({
                             name: 'EngageIntent',
                             activity: 'Combat',
                             precondition: { name: 'EnemyVisible', condition: () => enemyVisible.value },
-                            onEnter: () => supressedLog('Entering engage intent')
+                            onEnter: () => { supressedLog('Entering engage intent'); }
                         }, [
                             ifThenElse({ name: 'CriticalHealthDecision' }, [
                                 condition({ name: 'IsCriticalHP', eval: () => hp.value < 28 }),
-                                selectorWithMemory({ name: 'RetreatPlan', onResume: () => supressedLog('Retreat resumed') }, [
+                                selectorWithMemory({ name: 'RetreatPlan', onResume: () => { supressedLog('Retreat resumed'); } }, [
                                     sequence({ name: 'FindSafeWaypoint', retry: 2 }, [
                                         action({
                                             name: 'ComputeWaypointScores',
@@ -331,8 +329,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                                 const start = nowMs();
                                                 let bestScore = Number.NEGATIVE_INFINITY;
                                                 let bestIndex = -1;
-                                                for (let i = 0; i < threatPoints.value.length; i += 1) {
-                                                    const point = threatPoints.value[i];
+                                                for (const [i, point] of threatPoints.value.entries()) {
                                                     const dx = point.x - agentX.value;
                                                     const dy = point.y - agentY.value;
                                                     const d2 = dx * dx + dy * dy;
@@ -346,9 +343,9 @@ export function createCpuHeavyTree(): BehaviourTree {
                                                 navigationMs.set(nowMs() - start, ctx);
                                                 return bestIndex >= 0 ? NodeResult.Succeeded : NodeResult.Failed;
                                             },
-                                            onFinished: () => supressedLog('Waypoint scoring finished')
+                                            onFinished: () => { supressedLog('Waypoint scoring finished'); }
                                         }),
-                                        sleep({ name: 'RelocateToCover', duration: 140, onRunning: () => supressedLog('Relocating...') }),
+                                        sleep({ name: 'RelocateToCover', duration: 140, onRunning: () => { supressedLog('Relocating...'); } }),
                                         alwaysSuccess({ name: 'CoverReached' })
                                     ]),
                                     action({ name: 'FallbackCallBackup', execute: () => NodeResult.Succeeded, cooldown: 400 })
@@ -356,8 +353,8 @@ export function createCpuHeavyTree(): BehaviourTree {
                                 sequenceWithMemory({
                                     name: 'AttackPlan',
                                     timeout: 850,
-                                    onResume: () => supressedLog('Attack plan resumed'),
-                                    onFailedOrRunning: () => supressedLog('Attack unstable')
+                                    onResume: () => { supressedLog('Attack plan resumed'); },
+                                    onFailedOrRunning: () => { supressedLog('Attack unstable'); }
                                 }, [
                                     condition({ name: 'HasAmmo', eval: () => ammo.value > 0 }),
                                     sequence({ name: 'TargetingPipeline', activity: 'Targeting' }, [
@@ -396,7 +393,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                                 return success ? NodeResult.Succeeded : NodeResult.Failed;
                                             },
                                             retry: 1,
-                                            onFailure: () => supressedLog('Ballistic solution failed')
+                                            onFailure: () => { supressedLog('Ballistic solution failed'); }
                                         }),
                                         action({
                                             name: 'ReconcileRecoilModel',
@@ -427,8 +424,8 @@ export function createCpuHeavyTree(): BehaviourTree {
                                             ammo.set(Math.max(0, ammo.value - 1), ctx);
                                             return NodeResult.Succeeded;
                                         },
-                                        onAbort: () => supressedLog('Burst cancelled'),
-                                        onSuccess: () => supressedLog('Burst completed')
+                                        onAbort: () => { supressedLog('Burst cancelled'); },
+                                        onSuccess: () => { supressedLog('Burst completed'); }
                                     }),
                                     action({
                                         name: 'PostAttackRecovery',
@@ -436,7 +433,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                             stamina.value = Math.max(0, stamina.value - 1.8);
                                             return NodeResult.Succeeded;
                                         },
-                                        onSuccess: () => supressedLog('Attack committed')
+                                        onSuccess: () => { supressedLog('Attack committed'); }
                                     })
                                 ])
                             ])
@@ -528,7 +525,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                     hunger.value = Math.max(0, hunger.value - 35);
                                     return NodeResult.Succeeded;
                                 },
-                                onSuccess: () => supressedLog('Ration consumed')
+                                onSuccess: () => { supressedLog('Ration consumed'); }
                             })
                         ])),
                         utility({ scorer: () => thirst.value * thirst.value * 1.2 }, sequence({ name: 'HandleThirst', failIf: { name: 'NoWaterAccess', condition: () => (tickCounter.value % 37) === 0 } }, [
@@ -558,7 +555,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                     thirst.value = Math.max(0, thirst.value - 45);
                                     return NodeResult.Succeeded;
                                 },
-                                onFinished: () => supressedLog('Thirst task finished')
+                                onFinished: () => { supressedLog('Thirst task finished'); }
                             })
                         ])),
                         utility({ scorer: () => fatigue.value * 0.8 }, action({
@@ -586,7 +583,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                         sequence({
                             name: 'BootSelfTest',
                             runOnce: true,
-                            onEnter: () => supressedLog('Running boot self-test')
+                            onEnter: () => { supressedLog('Running boot self-test'); }
                         }, [
                             sequence({ name: 'WarmupPipeline' }, [
                                 action({
@@ -638,7 +635,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                                     cpuBurst(scale(350), tickCounter.value + 5000);
                                     return (tickCounter.value % 23) === 0 ? NodeResult.Failed : NodeResult.Succeeded;
                                 },
-                                onReset: () => supressedLog('Heartbeat reset')
+                                onReset: () => { supressedLog('Heartbeat reset'); }
                             })
                         ]),
 
@@ -650,15 +647,15 @@ export function createCpuHeavyTree(): BehaviourTree {
                                 name: 'GhostLoop',
                                 forceFailure: true,
                                 repeat: 3,
-                                onAbort: () => supressedLog('Ghost loop aborted')
+                                onAbort: () => { supressedLog('Ghost loop aborted'); }
                             })
                         ]),
 
                         sequence({
                             name: 'LifecycleHooksShowcase',
-                            onResume: () => supressedLog('Lifecycle sequence resumed'),
-                            onSuccessOrRunning: () => supressedLog('Lifecycle success or running'),
-                            onFailedOrRunning: () => supressedLog('Lifecycle failed or running')
+                            onResume: () => { supressedLog('Lifecycle sequence resumed'); },
+                            onSuccessOrRunning: () => { supressedLog('Lifecycle success or running'); },
+                            onFailedOrRunning: () => { supressedLog('Lifecycle failed or running'); }
                         }, [
                             action({
                                 name: 'HeavyLifecycleStressStep',
@@ -674,9 +671,9 @@ export function createCpuHeavyTree(): BehaviourTree {
                             action({
                                 name: 'LifecycleTickAction',
                                 execute: () => NodeResult.Succeeded,
-                                onEnter: () => supressedLog('Lifecycle action enter'),
-                                onRunning: () => supressedLog('Lifecycle action running'),
-                                onFailure: () => supressedLog('Lifecycle action failure')
+                                onEnter: () => { supressedLog('Lifecycle action enter'); },
+                                onRunning: () => { supressedLog('Lifecycle action running'); },
+                                onFailure: () => { supressedLog('Lifecycle action failure'); }
                             })
                         ]),
 
@@ -706,7 +703,7 @@ export function createCpuHeavyTree(): BehaviourTree {
                 alwaysRunning({
                     name: 'AmbientHeartbeat',
                     activity: 'Idle',
-                    onReset: () => supressedLog('Ambient heartbeat reset')
+                    onReset: () => { supressedLog('Ambient heartbeat reset'); }
                 })
             ]))
     ).enableStateTrace().setProfilingTimeProvider(() => performance.now()).enableProfiling();

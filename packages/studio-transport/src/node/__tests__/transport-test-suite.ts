@@ -59,7 +59,7 @@ export function defineTransportTests(config: TransportTestConfig): void {
             await createAndOpen();
 
             const closed = new Promise<void>((resolve) => {
-                transport.onClose(() => resolve());
+                transport.onClose(() => { resolve(); });
             });
 
             // Absorb expected connection-reset errors when server is killed
@@ -85,7 +85,7 @@ export function defineTransportTests(config: TransportTestConfig): void {
             await createAndOpen();
 
             const received = new Promise<TransportData>((resolve) => {
-                transport.onMessage((data) => resolve(data));
+                transport.onMessage((data) => { resolve(data); });
             });
 
             transport.send("hello");
@@ -132,7 +132,7 @@ export function defineTransportTests(config: TransportTestConfig): void {
 
             const payload = new Uint8Array([0x00, 0x01, 0xff, 0x80, 0x7f]);
             const received = new Promise<TransportData>((resolve) => {
-                transport.onMessage((data) => resolve(data));
+                transport.onMessage((data) => { resolve(data); });
             });
 
             transport.send(payload);
@@ -157,7 +157,7 @@ export function defineTransportTests(config: TransportTestConfig): void {
             }
 
             const received = new Promise<TransportData>((resolve) => {
-                transport.onMessage((data) => resolve(data));
+                transport.onMessage((data) => { resolve(data); });
             });
 
             transport.send(large);

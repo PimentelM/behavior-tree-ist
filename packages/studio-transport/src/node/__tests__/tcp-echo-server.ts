@@ -42,7 +42,7 @@ export function createTcpEchoServer(): TestServerHarness {
             }
             sockets.length = 0;
             return new Promise<void>((resolve) => {
-                server.close(() => resolve());
+                server.close(() => { resolve(); });
             });
         },
     };

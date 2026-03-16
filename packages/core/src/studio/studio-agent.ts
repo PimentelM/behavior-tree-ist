@@ -102,9 +102,9 @@ export class StudioAgent {
 
         // Subscribe to link events
         this.unsubscribers.push(
-            this.link.onConnected(() => this.handleConnected()),
-            this.link.onDisconnected(() => this.handleDisconnected()),
-            this.link.onCommand((command) => this.handleCommand(command)),
+            this.link.onConnected(() => { this.handleConnected(); }),
+            this.link.onDisconnected(() => { this.handleDisconnected(); }),
+            this.link.onCommand((command) => { this.handleCommand(command); }),
             this.link.onPluginMessage((pluginId, correlationId, payload) => {
                 const plugin = this.plugins.get(pluginId);
                 if (plugin) void plugin.handleInbound(correlationId, payload);
@@ -128,9 +128,9 @@ export class StudioAgent {
 
         // Subscribe to registry events
         this.unsubscribers.push(
-            this.registry.onTreeRegistered((entry) => this.handleTreeRegistered(entry)),
-            this.registry.onTreeRemoved((treeId) => this.handleTreeRemoved(treeId)),
-            this.registry.onTreeTick((treeId, record) => this.handleTreeTick(treeId, record)),
+            this.registry.onTreeRegistered((entry) => { this.handleTreeRegistered(entry); }),
+            this.registry.onTreeRemoved((treeId) => { this.handleTreeRemoved(treeId); }),
+            this.registry.onTreeTick((treeId, record) => { this.handleTreeTick(treeId, record); }),
         );
 
         // Initialize state for trees already in the registry

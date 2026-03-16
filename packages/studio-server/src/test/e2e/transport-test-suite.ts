@@ -158,7 +158,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
                 sessionId,
                 treeId,
             });
-            expect(trees[0].serializedTree).toHaveProperty('name');
+            expect((trees[0] as (typeof trees)[number]).serializedTree).toHaveProperty('name');
         });
 
         it('retrieves a specific tree by id', async () => {

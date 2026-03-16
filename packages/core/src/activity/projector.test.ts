@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NodeFlags, NodeResult, type SerializableNode, type TickRecord } from "../base/types";
 import { createActivityProjector, projectActivity } from "./projector";
+import { type ActivityBranch } from "../inspector/types";
 
 function makeTree(): SerializableNode {
     return {
@@ -83,18 +84,18 @@ describe("activity projector", () => {
             "Hunting > Movement > Kiting",
             "Hunting > Targeting > Attacking",
         ]);
-        expect(snapshot.branches[0].tailNodeId).toBe(6);
-        expect(snapshot.branches[0].tailResult).toBe(NodeResult.Running);
-        expect(snapshot.branches[1].tailNodeId).toBe(4);
-        expect(snapshot.branches[1].tailResult).toBe(NodeResult.Succeeded);
+        expect((snapshot.branches[0] as ActivityBranch).tailNodeId).toBe(6);
+        expect((snapshot.branches[0] as ActivityBranch).tailResult).toBe(NodeResult.Running);
+        expect((snapshot.branches[1] as ActivityBranch).tailNodeId).toBe(4);
+        expect((snapshot.branches[1] as ActivityBranch).tailResult).toBe(NodeResult.Succeeded);
     });
 
     it("filters by running mode", () => {
         const projector = createActivityProjector(makeTree());
         const snapshot = projector.project(makeTickRecord(), { mode: "running" });
         expect(snapshot.branches).toHaveLength(1);
-        expect(snapshot.branches[0].labels).toEqual(["Hunting", "Movement", "Kiting"]);
-        expect(snapshot.branches[0].tailResult).toBe(NodeResult.Running);
+        expect((snapshot.branches[0] as ActivityBranch).labels).toEqual(["Hunting", "Movement", "Kiting"]);
+        expect((snapshot.branches[0] as ActivityBranch).tailResult).toBe(NodeResult.Running);
     });
 
     it("returns empty when root was not ticked", () => {
@@ -153,10 +154,10 @@ describe("activity projector", () => {
         }, { mode: "all" });
 
         expect(snapshot.branches).toHaveLength(1);
-        expect(snapshot.branches[0].labels).toEqual(["Guarding", "Diagnostics Loop"]);
-        expect(snapshot.branches[0].tailNodeId).toBe(2);
-        expect(snapshot.branches[0].tailResult).toBe(NodeResult.Running);
-        expect(snapshot.branches[0].pathNodeIds).toEqual([1, 2]);
+        expect((snapshot.branches[0] as ActivityBranch).labels).toEqual(["Guarding", "Diagnostics Loop"]);
+        expect((snapshot.branches[0] as ActivityBranch).tailNodeId).toBe(2);
+        expect((snapshot.branches[0] as ActivityBranch).tailResult).toBe(NodeResult.Running);
+        expect((snapshot.branches[0] as ActivityBranch).pathNodeIds).toEqual([1, 2]);
     });
 
     it("uses node name or defaultName when activity metadata is true", () => {
@@ -188,8 +189,8 @@ describe("activity projector", () => {
         }, { mode: "running" });
 
         expect(snapshot.branches).toHaveLength(1);
-        expect(snapshot.branches[0].labels).toEqual(["RootSequence", "Patrolling"]);
-        expect(snapshot.branches[0].tailNodeId).toBe(2);
-        expect(snapshot.branches[0].tailResult).toBe(NodeResult.Running);
+        expect((snapshot.branches[0] as ActivityBranch).labels).toEqual(["RootSequence", "Patrolling"]);
+        expect((snapshot.branches[0] as ActivityBranch).tailNodeId).toBe(2);
+        expect((snapshot.branches[0] as ActivityBranch).tailResult).toBe(NodeResult.Running);
     });
 });

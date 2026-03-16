@@ -159,7 +159,7 @@ export class ReplBroker implements ReplBrokerInterface {
         });
 
         const timer = setTimeout(
-            () => reject(new Error(`REPL request timed out after ${timeoutMs}ms`)),
+            () => { reject(new Error(`REPL request timed out after ${timeoutMs}ms`)); },
             timeoutMs
         );
 
@@ -177,7 +177,7 @@ export class ReplBroker implements ReplBrokerInterface {
         return promise.finally(() => {
             clearTimeout(timer);
             this.pending.delete(correlationId);
-        }).then(transform) as Promise<T>;
+        }).then(transform);
     }
 
     private decryptResponse<T>(raw: unknown, key: Uint8Array): T {

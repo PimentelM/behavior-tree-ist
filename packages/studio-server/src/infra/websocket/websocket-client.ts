@@ -26,7 +26,7 @@ class JsonMessageSerializer implements ConnectionSerializer<OutboundMessage, obj
             return undefined;
         }
 
-        return parsed.data as OutboundMessage;
+        return parsed.data;
     }
 }
 

@@ -13,7 +13,7 @@ export class IfThenElse extends Composite {
     public static from(name: string, nodes: [BTNode, BTNode] | [BTNode, BTNode, BTNode]): IfThenElse
     public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): IfThenElse {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "";
-        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
+        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : (possiblyNodes as BTNode[]);
         const composite = new IfThenElse(name);
         composite.setNodes(nodes);
         return composite;
@@ -31,8 +31,8 @@ export class IfThenElse extends Composite {
             throw new Error(`IfThenElse node ${this.displayName} must have 2 or 3 children`);
         }
 
-        const conditionNode = this.nodes[0];
-        const thenNode = this.nodes[1];
+        const conditionNode = this.nodes[0] as BTNode;
+        const thenNode = this.nodes[1] as BTNode;
         const elseNode = this.nodes[2]; // Might be undefined
 
         const conditionResult = BTNode.Tick(conditionNode, ctx);

@@ -88,7 +88,7 @@ export class WsNodeBinaryTransport implements TransportInterface {
             throw new Error("WsNodeBinaryTransport: not connected");
         }
 
-        const onErr = (err: Error) => handler(err);
+        const onErr = (err: Error) => { handler(err); };
         this.ws.on("error", onErr);
         return () => {
             this.ws?.off("error", onErr);

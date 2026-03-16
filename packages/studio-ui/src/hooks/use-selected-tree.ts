@@ -21,6 +21,7 @@ export function useSelectedTree(selection: StudioSelection | null) {
             if (cur?.clientId !== clientId || cur.sessionId !== sessionId || cur.treeId !== treeId) return;
             setTree((result?.serializedTree as SerializableNode) ?? null);
         }).catch((err: unknown) => {
+            // eslint-disable-next-line no-console
             console.log('[use-selected-tree] fetch error', err);
         });
     }, [selection?.clientId, selection?.sessionId, selection?.treeId]);

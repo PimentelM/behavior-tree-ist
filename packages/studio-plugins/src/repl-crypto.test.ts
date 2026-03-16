@@ -84,7 +84,7 @@ describe('session seed seal / open', () => {
         const uiKp = nacl.box.keyPair();
         const seed = getRandomBytes(32);
         const { nonce, box } = sealSessionSeed(seed, uiKp.publicKey, agentKp.secretKey);
-        box[0] ^= 0xff;
+        box[0] = (box[0] as number) ^ 0xff;
 
         expect(() => openSessionSeed({ nonce, box }, agentKp.publicKey, uiKp.secretKey)).toThrow('Invalid header token');
     });
@@ -125,7 +125,7 @@ describe('secretbox encrypt / decrypt', () => {
     it('throws on tampered ciphertext', () => {
         const key = getRandomBytes(32);
         const { nonce, box } = secretboxEncrypt(new Uint8Array([1, 2, 3]), key);
-        box[0] ^= 0xff;
+        box[0] = (box[0] as number) ^ 0xff;
         expect(() => secretboxDecrypt(nonce, box, key)).toThrow('Decryption failed');
     });
 

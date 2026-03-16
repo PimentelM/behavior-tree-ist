@@ -67,7 +67,7 @@ export class Parallel extends Composite {
     public static from(name: string, nodes: BTNode[], policy?: ParallelPolicy, options?: ParallelOptions): Parallel
     public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[], policy: ParallelPolicy = RequireAllSuccess, options: ParallelOptions = {}): Parallel {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "";
-        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
+        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : (possiblyNodes as BTNode[]);
         const composite = new Parallel(name, policy, options);
         composite.setNodes(nodes);
         return composite;
@@ -92,8 +92,8 @@ export class Parallel extends Composite {
         let failureCount = 0;
         let runningCount = 0;
 
-        for (let i = 0; i < this.nodes.length; i++) {
-            const status = BTNode.Tick(this.nodes[i], ctx);
+        for (const node of this.nodes) {
+            const status = BTNode.Tick(node, ctx);
             if (status === NodeResult.Succeeded) successCount++;
             else if (status === NodeResult.Failed) failureCount++;
             else runningCount++;

@@ -5,9 +5,6 @@ import type { DbClient } from './schemas';
 import { mapClientToDb, mapDbClientToDomain } from './mappers';
 
 export class ClientRepository extends BaseKnexRepository implements ClientRepositoryInterface {
-    constructor(knex: Knex) {
-        super(knex);
-    }
 
     async findById(clientId: string) {
         const row = await this.withTransaction(

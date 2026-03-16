@@ -30,6 +30,9 @@ export function buildStudioToolbarFragments(
   const statuses = controls.treeStatuses;
   const toggleDisabled = offline || !statuses;
   const conn = connectionLabel(controls);
+  const isStreaming = statuses?.streaming ?? false;
+  const isProfiling = statuses?.profiling ?? false;
+  const isStateTrace = statuses?.stateTrace ?? false;
 
   return {
     leading: (
@@ -47,23 +50,23 @@ export function buildStudioToolbarFragments(
 
         <button
           type="button"
-          className={`bt-toolbar__studio-toggle ${statuses?.streaming ? 'bt-toolbar__studio-toggle--active' : ''} ${toggleDisabled ? 'bt-toolbar__studio-toggle--disabled' : ''}`}
+          className={`bt-toolbar__studio-toggle ${isStreaming ? 'bt-toolbar__studio-toggle--active' : ''} ${toggleDisabled ? 'bt-toolbar__studio-toggle--disabled' : ''}`}
           onClick={controls.onToggleStreaming}
           disabled={toggleDisabled}
-          aria-label={statuses?.streaming ? 'Pause streaming' : 'Start streaming'}
-          title={toggleDisabled ? 'Select an online tree first' : statuses?.streaming ? 'Pause streaming' : 'Start streaming'}
+          aria-label={isStreaming ? 'Pause streaming' : 'Start streaming'}
+          title={toggleDisabled ? 'Select an online tree first' : isStreaming ? 'Pause streaming' : 'Start streaming'}
         >
-          {statuses?.streaming ? <PauseIcon /> : <StreamIcon />}
+          {isStreaming ? <PauseIcon /> : <StreamIcon />}
           <span className="bt-toolbar__studio-toggle-label">Stream</span>
         </button>
 
         <button
           type="button"
-          className={`bt-toolbar__studio-toggle ${statuses?.profiling ? 'bt-toolbar__studio-toggle--active' : ''} ${toggleDisabled ? 'bt-toolbar__studio-toggle--disabled' : ''}`}
+          className={`bt-toolbar__studio-toggle ${isProfiling ? 'bt-toolbar__studio-toggle--active' : ''} ${toggleDisabled ? 'bt-toolbar__studio-toggle--disabled' : ''}`}
           onClick={controls.onToggleProfiling}
           disabled={toggleDisabled}
-          aria-label={statuses?.profiling ? 'Disable profiling' : 'Enable profiling'}
-          title={toggleDisabled ? 'Select an online tree first' : statuses?.profiling ? 'Disable profiling' : 'Enable profiling'}
+          aria-label={isProfiling ? 'Disable profiling' : 'Enable profiling'}
+          title={toggleDisabled ? 'Select an online tree first' : isProfiling ? 'Disable profiling' : 'Enable profiling'}
         >
           <ProfilingIcon />
           <span className="bt-toolbar__studio-toggle-label">Profile</span>
@@ -71,11 +74,11 @@ export function buildStudioToolbarFragments(
 
         <button
           type="button"
-          className={`bt-toolbar__studio-toggle ${statuses?.stateTrace ? 'bt-toolbar__studio-toggle--active' : ''} ${toggleDisabled ? 'bt-toolbar__studio-toggle--disabled' : ''}`}
+          className={`bt-toolbar__studio-toggle ${isStateTrace ? 'bt-toolbar__studio-toggle--active' : ''} ${toggleDisabled ? 'bt-toolbar__studio-toggle--disabled' : ''}`}
           onClick={controls.onToggleStateTrace}
           disabled={toggleDisabled}
-          aria-label={statuses?.stateTrace ? 'Disable state trace' : 'Enable state trace'}
-          title={toggleDisabled ? 'Select an online tree first' : statuses?.stateTrace ? 'Disable state trace' : 'Enable state trace'}
+          aria-label={isStateTrace ? 'Disable state trace' : 'Enable state trace'}
+          title={toggleDisabled ? 'Select an online tree first' : isStateTrace ? 'Disable state trace' : 'Enable state trace'}
         >
           <TraceIcon />
           <span className="bt-toolbar__studio-toggle-label">Trace</span>

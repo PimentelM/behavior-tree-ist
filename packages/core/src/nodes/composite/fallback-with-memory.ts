@@ -33,7 +33,7 @@ export class FallbackWithMemory extends Composite {
     public static from(name: string, nodes: BTNode[]): FallbackWithMemory
     public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): FallbackWithMemory {
         const name = typeof nameOrNodes === "string" ? nameOrNodes : "";
-        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : possiblyNodes!;
+        const nodes = Array.isArray(nameOrNodes) ? nameOrNodes : (possiblyNodes as BTNode[]);
         const composite = new FallbackWithMemory(name);
         composite.setNodes(nodes);
         return composite;
@@ -51,7 +51,7 @@ export class FallbackWithMemory extends Composite {
         const startIndex = this._runningChildIndex ?? 0;
 
         for (let i = startIndex; i < this.nodes.length; i++) {
-            const status = BTNode.Tick(this.nodes[i], ctx);
+            const status = BTNode.Tick(this.nodes[i] as BTNode, ctx);
 
             if (status === NodeResult.Running) {
                 this._runningChildIndex = i;

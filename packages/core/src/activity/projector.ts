@@ -18,8 +18,8 @@ type BranchCandidate = {
 export function createActivityProjector(tree: SerializableNode): ActivityProjector {
     const index = new TreeIndex(tree);
     const preOrderPosition = new Map<number, number>();
-    for (let i = 0; i < index.preOrder.length; i++) {
-        preOrderPosition.set(index.preOrder[i], i);
+    for (const [i, nodeId] of index.preOrder.entries()) {
+        preOrderPosition.set(nodeId, i);
     }
 
     return {
@@ -44,8 +44,8 @@ export function projectActivityFromTreeIndex(
     options: ActivityProjectionOptions = {},
 ): ActivitySnapshot {
     const preOrderPosition = new Map<number, number>();
-    for (let i = 0; i < index.preOrder.length; i++) {
-        preOrderPosition.set(index.preOrder[i], i);
+    for (const [i, nodeId] of index.preOrder.entries()) {
+        preOrderPosition.set(nodeId, i);
     }
     return projectActivityWithIndex(index, preOrderPosition, record, options);
 }
@@ -118,10 +118,9 @@ function collectBranchCandidates(
         return branches;
     }
 
-    let selectedChild = activeChildren[0];
+    let selectedChild = activeChildren[0] as number;
     let selectedEventIndex = eventMaps.lastEventIndexByNodeId.get(selectedChild) ?? -1;
-    for (let i = 1; i < activeChildren.length; i++) {
-        const childId = activeChildren[i];
+    for (const childId of activeChildren.slice(1)) {
         const childIndex = eventMaps.lastEventIndexByNodeId.get(childId) ?? -1;
         if (childIndex >= selectedEventIndex) {
             selectedChild = childId;
@@ -144,8 +143,7 @@ function toBranch(
     const labeledNodeIds: number[] = [];
     let tailPathEndIndex = -1;
 
-    for (let i = 0; i < candidate.pathNodeIds.length; i++) {
-        const nodeId = candidate.pathNodeIds[i];
+    for (const [i, nodeId] of candidate.pathNodeIds.entries()) {
         const node = index.getById(nodeId);
         if (!node) continue;
         const activityLabel = resolveActivityLabel(node);
@@ -211,8 +209,7 @@ function buildEventMaps(events: readonly TickTraceEvent[]): {
 } {
     const lastEventByNodeId = new Map<number, TickTraceEvent>();
     const lastEventIndexByNodeId = new Map<number, number>();
-    for (let i = 0; i < events.length; i++) {
-        const event = events[i];
+    for (const [i, event] of events.entries()) {
         lastEventByNodeId.set(event.nodeId, event);
         lastEventIndexByNodeId.set(event.nodeId, i);
     }

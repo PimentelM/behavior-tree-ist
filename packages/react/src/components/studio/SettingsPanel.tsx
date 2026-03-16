@@ -42,7 +42,7 @@ function NumberField({ label, value, onChange, min = 1, helpText }: NumberFieldP
           className="bt-studio-settings__number-input"
           value={draft}
           min={min}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => { setDraft(e.target.value); }}
           onBlur={commit}
           onKeyDown={handleKeyDown}
         />
@@ -72,13 +72,13 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
           <NumberField
             label="Ring Buffer Size"
             value={uiSettings.ringBufferSize}
-            onChange={(v) => onUiSettingsChange({ ringBufferSize: v })}
+            onChange={(v) => { onUiSettingsChange({ ringBufferSize: v }); }}
             helpText="Number of ticks kept in memory for live streaming"
           />
           <NumberField
             label="Poll Rate (ms)"
             value={uiSettings.pollRateMs}
-            onChange={(v) => onUiSettingsChange({ pollRateMs: v })}
+            onChange={(v) => { onUiSettingsChange({ pollRateMs: v }); }}
             min={50}
             helpText="How often the UI polls the server for new ticks"
           />
@@ -87,7 +87,7 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
               <input
                 type="checkbox"
                 checked={uiSettings.showTreeSelectorInToolbar}
-                onChange={(e) => onUiSettingsChange({ showTreeSelectorInToolbar: e.target.checked })}
+                onChange={(e) => { onUiSettingsChange({ showTreeSelectorInToolbar: e.target.checked }); }}
               />
               <span>Show Tree Selector in Toolbar</span>
             </label>
@@ -101,7 +101,7 @@ function SettingsPanelInner({ serverSettings, uiSettings, onServerSettingsChange
             <NumberField
               label="Max Ticks / Tree"
               value={serverSettings.maxTicksPerTree}
-              onChange={(v) => onServerSettingsChange({ maxTicksPerTree: v })}
+              onChange={(v) => { onServerSettingsChange({ maxTicksPerTree: v }); }}
               helpText="Maximum ticks the server stores per tree"
             />
           </div>

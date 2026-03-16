@@ -5,9 +5,6 @@ import type { DbSession } from './schemas';
 import { mapDbSessionToDomain, mapSessionToDb } from './mappers';
 
 export class SessionRepository extends BaseKnexRepository implements SessionRepositoryInterface {
-    constructor(knex: Knex) {
-        super(knex);
-    }
 
     async findByClientId(clientId: string) {
         const rows = await this.withTransaction(

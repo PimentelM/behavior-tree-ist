@@ -24,6 +24,7 @@ export function useClients(subscribe: WsSubscribe) {
             })));
             setLoading(false);
         }).catch((err) => {
+            // eslint-disable-next-line no-console
             console.log('[use-clients] fetch error', err);
             if (mountedRef.current) setLoading(false);
         });

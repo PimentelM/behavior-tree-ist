@@ -22,12 +22,13 @@ export function useUiWebSocket(): WsSubscribe {
                     listener(parsed);
                 }
             } catch {
+                // eslint-disable-next-line no-console
                 console.log('[ui-ws] failed to parse message', event.data);
             }
         };
 
         ws.onclose = () => {
-            reconnectTimer = setTimeout(() => setReconnectKey((k) => k + 1), 3000);
+            reconnectTimer = setTimeout(() => { setReconnectKey((k) => k + 1); }, 3000);
         };
 
         ws.onerror = () => {

@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
   {
     languageOptions: {
       parserOptions: {
@@ -17,6 +17,11 @@ export default tseslint.config(
         'prefer': 'type-imports',
         'fixStyle': 'inline-type-imports',
       }],
+      '@typescript-eslint/restrict-template-expressions': ['error', {
+        'allowNumber': true,
+        'allowBoolean': true,
+        'allowNullish': true,
+      }],
       '@typescript-eslint/consistent-type-assertions': ['error', {
         'assertionStyle': 'as',
         'objectLiteralTypeAssertions': 'never',
@@ -24,6 +29,11 @@ export default tseslint.config(
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/prefer-optional-chain': 'error',
       '@typescript-eslint/no-this-alias': 'off',
+      '@typescript-eslint/no-extraneous-class': ['error', {
+        'allowConstructorOnly': true,
+        'allowStaticOnly': true,
+      }],
+      'no-console': 'error',
       // Disable the base ESLint rule as it can report incorrect errors for TS
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [

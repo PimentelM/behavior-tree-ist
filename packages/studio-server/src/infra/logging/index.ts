@@ -18,15 +18,19 @@ export function createLogger(name: string): Logger {
 
     return {
         debug(message, meta) {
+            // eslint-disable-next-line no-console
             console.debug(format('DEBUG', message, meta));
         },
         info(message, meta) {
+            // eslint-disable-next-line no-console
             console.info(format('INFO', message, meta));
         },
         warn(message, meta) {
+            // eslint-disable-next-line no-console
             console.warn(format('WARN', message, meta));
         },
         error(message, meta) {
+            // eslint-disable-next-line no-console
             console.error(format('ERROR', message, meta));
         },
     };

@@ -61,7 +61,7 @@ export function toDisplayString(value: unknown): string {
                 );
             } catch {
                 const ctor = (value as { constructor?: { name?: string } })?.constructor?.name ?? 'Object';
-                const keys = Object.keys(value as object).slice(0, 20);
+                const keys = Object.keys(value).slice(0, 20);
                 return `[${ctor} { ${keys.join(', ')}${keys.length >= 20 ? ', ...' : ''} }]`;
             }
         }
@@ -212,7 +212,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
             reject(err);
         }, ms);
     });
-    return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+    return Promise.race([promise, timeoutPromise]).finally(() => { clearTimeout(timer); });
 }
 
 // ---------------------------------------------------------------------------

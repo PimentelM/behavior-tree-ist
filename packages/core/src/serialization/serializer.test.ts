@@ -45,12 +45,12 @@ class MockSequence extends Composite {
     constructor(children: BTNode[]) {
         super();
         this.addFlags(NodeFlags.Sequence);
-        children.forEach(c => this.addNode(c));
+        children.forEach(c => { this.addNode(c); });
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length > 0) {
-            BTNode.Tick(this.nodes[0], ctx);
+            BTNode.Tick(this.nodes[0] as BTNode, ctx);
         }
         return NodeResult.Running;
     }
@@ -91,8 +91,8 @@ describe("Serialization", () => {
         // Verify state and displayName are NOT present
         expect(serialized).not.toHaveProperty("state");
         expect(serialized).not.toHaveProperty("displayName");
-        expect(serialized.children![0]).not.toHaveProperty("state");
-        expect(serialized.children![0]).not.toHaveProperty("displayName");
+        expect(serialized.children?.[0]).not.toHaveProperty("state");
+        expect(serialized.children?.[0]).not.toHaveProperty("displayName");
     });
 
     it("serialized tree does not change after ticking", () => {

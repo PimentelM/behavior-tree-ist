@@ -27,6 +27,7 @@ export function useTreeStatuses(selection: StudioSelection | null, isOnline: boo
                 });
             }
         }).catch((err) => {
+            // eslint-disable-next-line no-console
             console.log('[use-tree-statuses] fetch error', err);
         });
     }, []);
@@ -55,6 +56,7 @@ export function useTreeStatuses(selection: StudioSelection | null, isOnline: boo
         }).then(() => {
             fetchStatuses();
         }).catch((err) => {
+            // eslint-disable-next-line no-console
             console.log('[use-tree-statuses] toggle error', err);
         });
     }, [fetchStatuses]);
