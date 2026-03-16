@@ -51,7 +51,7 @@ export abstract class WsBrowserTransportBase implements TransportInterface {
             throw new Error(`${this.constructor.name}: not connected`);
         }
 
-        const onErr = () => handler(new Error("WebSocket error"));
+        const onErr = () => { handler(new Error("WebSocket error")); };
         this.ws.addEventListener("error", onErr);
         return () => {
             this.ws?.removeEventListener("error", onErr);
