@@ -292,5 +292,17 @@
 		"status": "active",
 		"createdAt": "2026-03-16T02:02:08.696Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-bd6fffe6",
+		"name": "repl-parallel-batch",
+		"memberIssueIds": [
+			"behavior-tree-ist-e6f8",
+			"behavior-tree-ist-7fa5",
+			"behavior-tree-ist-01de"
+		],
+		"status": "active",
+		"createdAt": "2026-03-16T02:30:35.987Z",
+		"completedAt": null
 	}
 ]
