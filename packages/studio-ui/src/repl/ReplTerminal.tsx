@@ -378,7 +378,37 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 inputBufferRef.current = prefix.slice(0, prefix.length - match[1].length) + replacement;
             }
             cursorPosRef.current = inputBufferRef.current.length;
-            redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+        }
+
+        // Redraw suggestion list + prompt line in-place (moves cursor up, erases, reprints).
+        // Call after acceptSuggestionAtIndex when cycling with suggestions visible.
+        function redrawSuggestionsAndInput(
+            suggestions: string[],
+            selectedIdx: number,
+            input: string,
+            cursorPos: number
+        ) {
+            const linesToGoUp = suggestions.length + 1; // 1 blank line + N suggestion lines
+            term.write(`\x1b[${linesToGoUp}A\r\x1b[J`);
+            printSuggestions(term, suggestions, selectedIdx);
+            writePrompt(term);
+            term.write(highlightJs(input));
+            const stepsBack = input.length - cursorPos;
+            if (stepsBack > 0) term.write(`\x1b[${stepsBack}D`);
+        }
+
+        // Clear suggestion list + redraw only the prompt line (used on Escape/Enter).
+        function clearSuggestionsAndRedraw(
+            suggestionCount: number,
+            input: string,
+            cursorPos: number
+        ) {
+            const linesToGoUp = suggestionCount + 1;
+            term.write(`\x1b[${linesToGoUp}A\r\x1b[J`);
+            writePrompt(term);
+            term.write(highlightJs(input));
+            const stepsBack = input.length - cursorPos;
+            if (stepsBack > 0) term.write(`\x1b[${stepsBack}D`);
         }
 
         // ---- onData: printable character input ----
@@ -420,8 +450,10 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             // ---- suggestions navigation ----
             if (hasSuggestions) {
                 if (ev.key === 'Escape') {
+                    const count = suggestions.length;
                     suggestionsRef.current = [];
                     suggestionIndexRef.current = -1;
+                    clearSuggestionsAndRedraw(count, inputBufferRef.current, cursorPosRef.current);
                     return;
                 }
                 if (ev.key === 'Tab') {
@@ -432,6 +464,33 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                         : (cur >= suggestions.length - 1 ? 0 : cur + 1);
                     suggestionIndexRef.current = next;
                     acceptSuggestionAtIndex(next);
+                    redrawSuggestionsAndInput(suggestions, next, inputBufferRef.current, cursorPosRef.current);
+                    return;
+                }
+                if (ev.key === 'ArrowUp') {
+                    ev.preventDefault();
+                    const cur = suggestionIndexRef.current;
+                    const next = cur <= 0 ? suggestions.length - 1 : cur - 1;
+                    suggestionIndexRef.current = next;
+                    acceptSuggestionAtIndex(next);
+                    redrawSuggestionsAndInput(suggestions, next, inputBufferRef.current, cursorPosRef.current);
+                    return;
+                }
+                if (ev.key === 'ArrowDown') {
+                    ev.preventDefault();
+                    const cur = suggestionIndexRef.current;
+                    const next = cur >= suggestions.length - 1 ? 0 : cur + 1;
+                    suggestionIndexRef.current = next;
+                    acceptSuggestionAtIndex(next);
+                    redrawSuggestionsAndInput(suggestions, next, inputBufferRef.current, cursorPosRef.current);
+                    return;
+                }
+                if (ev.key === 'Enter') {
+                    const count = suggestions.length;
+                    acceptSuggestionAtIndex(suggestionIndexRef.current);
+                    suggestionsRef.current = [];
+                    suggestionIndexRef.current = -1;
+                    clearSuggestionsAndRedraw(count, inputBufferRef.current, cursorPosRef.current);
                     return;
                 }
                 // Printable chars clear suggestions via onData; special keys fall through
