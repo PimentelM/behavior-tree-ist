@@ -55,6 +55,7 @@ function collectDebuggerStyles(): string {
   const shouldInclude = (cssText: string) =>
     cssText.includes('.bt-')
     || cssText.includes('.react-flow')
+    || cssText.includes('.xterm')
     || cssText.includes('@keyframes bt-edge-dash');
 
   for (const sheet of Array.from(document.styleSheets)) {
