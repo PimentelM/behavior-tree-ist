@@ -97,7 +97,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
 }
 
 function KeyRow({ label, value, dimmed, masked }: { label: string; value: string; dimmed?: boolean; masked?: boolean }) {
-    const displayValue = masked && value.length > 4 ? value.slice(0, 4) + '••••••' : value;
+    const displayValue = masked && value.length > 4 ? value.slice(0, 4) + '•'.repeat(10) : value;
     const titleAttr = masked ? 'Private key (hidden)' : value;
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -274,12 +274,6 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         const fitAddon = new FitAddon();
         term.loadAddon(fitAddon);
         term.open(containerRef.current);
-
-        // Keep xterm's IME helper textarea off-screen so it cannot appear as a
-        // ghost input when the container clips it.
-        const styleEl = document.createElement('style');
-        styleEl.textContent = '.xterm-helper-textarea { opacity: 0 !important; left: -9999px !important; top: -9999px !important; }';
-        document.head.appendChild(styleEl);
 
         fitAddon.fit();
         term.focus();
@@ -606,7 +600,6 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             keyDisposable.dispose();
             ro.disconnect();
             term.dispose();
-            styleEl.remove();
         };
     }, []); // intentionally empty — terminal is created once; handlers use replRef
 
