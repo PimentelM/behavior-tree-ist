@@ -1,4 +1,3 @@
-import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
 import { type ClientRepositoryInterface } from '../../domain/interfaces';
 import type { DbClient } from './schemas';
@@ -7,9 +6,9 @@ import { mapClientToDb, mapDbClientToDomain } from './mappers';
 export class ClientRepository extends BaseKnexRepository implements ClientRepositoryInterface {
 
     async findById(clientId: string) {
-        const row = await this.withTransaction(
+        const row = (await this.withTransaction(
             this.knex<DbClient>('clients').where('clientId', clientId).first()
-        );
+        )) as DbClient | undefined;
         return row ? mapDbClientToDomain(row) : undefined;
     }
 
@@ -30,9 +29,9 @@ export class ClientRepository extends BaseKnexRepository implements ClientReposi
     }
 
     async findAll() {
-        const rows = await this.withTransaction(
+        const rows = (await this.withTransaction(
             this.knex<DbClient>('clients').select('*').orderBy('lastSeenAt', 'desc')
-        );
+        )) as DbClient[];
         return rows.map(mapDbClientToDomain);
     }
 

@@ -248,7 +248,7 @@ function mergeMutableEdgeData(
 
   for (const previousEdge of previousEdges) {
     const nextEdge = nextById.get(previousEdge.id);
-    if (!nextEdge) return nextEdges;
+    if (!nextEdge || !nextEdge.data || !previousEdge.data) return nextEdges;
 
     const nextChildResult = nextEdge.data.childResult;
     const nextIsOnActivityPathEdge = nextEdge.data.isOnActivityPathEdge;

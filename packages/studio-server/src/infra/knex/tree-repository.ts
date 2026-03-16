@@ -1,4 +1,3 @@
-import type { Knex } from 'knex';
 import type { SerializableNode } from '@bt-studio/core';
 import { BaseKnexRepository } from './base-repository';
 import { type TreeRepositoryInterface } from '../../domain/interfaces';
@@ -8,11 +7,11 @@ import { mapDbTreeToDomain, mapTreeToDb } from './mappers';
 export class TreeRepository extends BaseKnexRepository implements TreeRepositoryInterface {
 
     async findBySession(clientId: string, sessionId: string) {
-        const rows = await this.withTransaction(
+        const rows = (await this.withTransaction(
             this.knex<DbTree>('trees')
                 .where({ clientId, sessionId })
                 .orderBy('updatedAt', 'desc')
-        );
+        )) as DbTree[];
         return rows.map(mapDbTreeToDomain);
     }
 
@@ -48,11 +47,11 @@ export class TreeRepository extends BaseKnexRepository implements TreeRepository
     }
 
     async findById(clientId: string, sessionId: string, treeId: string) {
-        const row = await this.withTransaction(
+        const row = (await this.withTransaction(
             this.knex<DbTree>('trees')
                 .where({ clientId, sessionId, treeId })
                 .first()
-        );
+        )) as DbTree | undefined;
         return row ? mapDbTreeToDomain(row) : undefined;
     }
 }

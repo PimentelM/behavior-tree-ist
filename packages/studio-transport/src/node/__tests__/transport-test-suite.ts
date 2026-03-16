@@ -38,7 +38,7 @@ export function defineTransportTests(config: TransportTestConfig): void {
         });
 
         afterEach(async () => {
-            transport?.close();
+            transport.close();
             await server.stop();
         });
 

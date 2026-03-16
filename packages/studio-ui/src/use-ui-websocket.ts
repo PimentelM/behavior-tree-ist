@@ -17,7 +17,7 @@ export function useUiWebSocket(): WsSubscribe {
 
         ws.onmessage = (event) => {
             try {
-                const parsed = UiInboundMessageSchema.parse(JSON.parse(event.data));
+                const parsed = UiInboundMessageSchema.parse(JSON.parse(event.data as string));
                 for (const listener of listenersRef.current) {
                     listener(parsed);
                 }

@@ -691,7 +691,8 @@ export function BehaviourTreeDebugger({
       startX: start.x,
       startY: start.y,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    event.currentTarget.setPointerCapture?.(event.pointerId);
   }, [activityWindowPosition]);
 
   const handleActivityWindowControlPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {

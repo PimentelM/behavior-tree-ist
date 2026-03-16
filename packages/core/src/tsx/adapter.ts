@@ -63,14 +63,14 @@ export function createElement(
             if (typeof safeProps.scorer !== "function") {
                 throw new Error(`<utility-node> requires a "scorer" prop of type function.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.utility(safeProps as unknown as any, flatChildren[0] as BTNode);
         }
         case "sub-tree": {
             if (flatChildren.length !== 1) {
                 throw new Error(`<sub-tree> must have exactly one child node, but got ${flatChildren.length}.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.subTree(safeProps as unknown as any, flatChildren[0] as BTNode);
         }
         case "action":
@@ -78,14 +78,14 @@ export function createElement(
             if (typeof safeProps.execute !== "function") {
                 throw new Error(`<action> requires an "execute" prop of type function.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.action(safeProps as unknown as any);
         case "async-action":
             // AsyncAction requires an execute prop
             if (typeof safeProps.execute !== "function") {
                 throw new Error(`<async-action> requires an "execute" prop of type function.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.asyncAction(safeProps as unknown as any);
         case "always-success":
             return Builder.alwaysSuccess(safeProps);
@@ -98,31 +98,31 @@ export function createElement(
             if (typeof safeProps.eval !== "function") {
                 throw new Error(`<condition> requires an "eval" prop of type function.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.condition(safeProps as unknown as any);
         case "sleep":
             if (typeof safeProps.duration !== "number") {
                 throw new Error(`<sleep> requires a "duration" prop of type number.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.sleep(safeProps as unknown as any);
         case "display-state":
             if (typeof safeProps.display !== "function") {
                 throw new Error(`<display-state> requires a "display" prop of type function.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.displayState(safeProps as unknown as any);
         case "display-note":
             if (typeof safeProps.text !== "string") {
                 throw new Error(`<display-note> requires a "text" prop of type string.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.displayNote(safeProps as unknown as any);
         case "display-progress":
             if (typeof safeProps.progress !== "function") {
                 throw new Error(`<display-progress> requires a "progress" prop of type function.`);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.displayProgress(safeProps as unknown as any);
         default:
             throw new Error(`Unknown intrinsic behavior tree node type: <${type}>`);
@@ -159,7 +159,7 @@ declare global {
             "utility-node": Builder.NodeProps & { scorer: UtilityScorer; children?: Element | Element[] };
             "sub-tree": Builder.SubTreeProps & { children?: Element | Element[] };
             "action": Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
-            "async-action": Builder.NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | void> };
+            "async-action": Builder.NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | undefined> };
             "condition": Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
             "always-success": Builder.NodeProps;
             "always-failure": Builder.NodeProps;

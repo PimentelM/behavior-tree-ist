@@ -585,8 +585,8 @@ describe("BehaviourTree", () => {
             expect(rootEvent.finishedAt).toBeDefined();
             expect(childEvent.startedAt).toBeDefined();
             expect(childEvent.finishedAt).toBeDefined();
-            expect(rootEvent.startedAt).toBeLessThan(childEvent.startedAt);
-            expect(rootEvent.finishedAt).toBeGreaterThan(childEvent.finishedAt);
+            expect(rootEvent.startedAt).toBeLessThan(childEvent.startedAt as number);
+            expect(rootEvent.finishedAt).toBeGreaterThan(childEvent.finishedAt as number);
         });
 
         it("no startedAt/finishedAt when only state tracing (no profiling)", () => {

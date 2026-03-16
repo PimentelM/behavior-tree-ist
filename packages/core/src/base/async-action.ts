@@ -44,7 +44,7 @@ export abstract class AsyncAction extends BTNode {
 
         return {
             status,
-            ...(this._error !== undefined ? { error: this._error instanceof Error ? this._error.message : String(this._error as string | number | boolean | bigint | null | undefined) } : {})
+            ...(this._error !== undefined ? { error: this._error instanceof Error ? this._error.toString() : String(this._error as string | number | boolean | bigint | null | undefined) } : {})
         };
     }
 

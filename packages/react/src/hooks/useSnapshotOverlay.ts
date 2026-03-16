@@ -259,8 +259,9 @@ export function useSnapshotOverlay(
       if (
         previousEdge
         && hasSameBaseEdgeShape(previousEdge, baseEdge)
-        && previousEdge.data.childResult === childResult
-        && previousEdge.data.isOnActivityPathEdge === nextIsOnActivityPathEdge
+        && previousEdge.data?.childResult === childResult
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        && previousEdge.data?.isOnActivityPathEdge === nextIsOnActivityPathEdge
         && previousEdge.animated === nextAnimated
       ) {
         nextEdgesById.set(baseEdge.id, previousEdge);

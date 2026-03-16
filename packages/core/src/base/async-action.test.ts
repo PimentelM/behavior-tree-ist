@@ -72,7 +72,7 @@ describe("AsyncAction", () => {
         expect(ticker.tick(node)).toBe(NodeResult.Failed);
         expect(node.lastError).toEqual(new Error("Boom"));
         expect(node.getDisplayState().status).toBe("rejected");
-        expect(node.getDisplayState()?.error).toBe("Error: Boom");
+        expect(node.getDisplayState().error).toBe("Error: Boom");
     });
 
     it("Synchronous throw in execute() -> Failed on first tick", () => {

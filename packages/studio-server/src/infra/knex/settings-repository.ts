@@ -1,4 +1,3 @@
-import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
 import { type SettingsRepositoryInterface } from '../../domain/interfaces';
 import type { SettingsRecord } from '../../domain/records';
@@ -25,9 +24,9 @@ export class SettingsRepository extends BaseKnexRepository implements SettingsRe
     async get(): Promise<SettingsRecord> {
         await this.ensureDefaultRow();
 
-        const row = await this.withTransaction(
+        const row = (await this.withTransaction(
             this.knex<DbSettings>('serverSettings').where('id', 1).first()
-        );
+        )) as DbSettings | undefined;
 
         if (!row) {
             throw new Error('Settings row not found after initialization');

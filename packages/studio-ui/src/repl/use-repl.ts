@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import nacl from 'tweetnacl';
 import { hkdf } from '@noble/hashes/hkdf';
-import { sha256 } from '@noble/hashes/sha256';
+import { sha256 } from '@noble/hashes/sha2';
 import { trpc } from '../trpc';
 
 // ---- crypto helpers (browser-safe subset of Frostmod crypto.ts) ----
@@ -22,6 +22,7 @@ function jsonToBytes(obj: unknown): Uint8Array {
     return new TextEncoder().encode(JSON.stringify(obj));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function bytesToJson<T = unknown>(bytes: Uint8Array): T {
     return JSON.parse(new TextDecoder().decode(bytes)) as T;
 }
@@ -108,7 +109,7 @@ export function importPrivateKeyFromString(input: string): ReplKeyPair {
     const trimmed = input.trim();
     let sk: Uint8Array;
     if (/^[0-9a-fA-F]+$/.test(trimmed) && trimmed.length === 64) {
-        sk = new Uint8Array(trimmed.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
+        sk = new Uint8Array((trimmed.match(/.{2}/g) as RegExpMatchArray).map((b) => parseInt(b, 16)));
     } else {
         sk = base64urlDecode(trimmed);
     }
@@ -186,7 +187,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         if (!sessionKeys) {
             // No session keys yet — send plaintext eval for development/testing
             // In production the agent will reject this
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const raw = await (trpc as any).repl.eval.mutate({ clientId, sessionId, code });
             return raw as ReplResult;
         }
@@ -198,7 +199,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         const box = nacl.secretbox(plaintext, nonce, sessionKeys.s2c);
         const encryptedPayload = encodeEnvelope(nonce, box);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const raw = await (trpc as any).repl.eval.mutate({ clientId, sessionId, encryptedPayload });
 
         // Decrypt response with c2s key (agent → UI direction)
@@ -212,7 +213,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         if (!clientId || !sessionId) return [];
 
         if (!sessionKeys) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             const raw = await (trpc as any).repl.completions.mutate({ clientId, sessionId, prefix, maxResults });
             return (raw as { completions: string[] }).completions;
         }
@@ -223,7 +224,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         const box = nacl.secretbox(plaintext, nonce, sessionKeys.s2c);
         const encryptedPayload = encodeEnvelope(nonce, box);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const raw = await (trpc as any).repl.completions.mutate({ clientId, sessionId, encryptedPayload });
 
         const { nonce: rNonce, ciphertext } = decodeEnvelope(raw as string);

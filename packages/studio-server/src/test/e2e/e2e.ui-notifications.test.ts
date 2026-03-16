@@ -71,7 +71,7 @@ async function waitForUiMessage(
 ): Promise<UiInboundMessage> {
     let foundMessage: UiInboundMessage | undefined;
 
-    await waitFor(async () => {
+    await waitFor(() => {
         if (parseErrors.length > 0) {
             throw new Error(`Failed to parse UI message: ${parseErrors[0]}`);
         }

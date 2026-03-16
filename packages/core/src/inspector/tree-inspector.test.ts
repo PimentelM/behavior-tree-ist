@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { NodeResult, NodeFlags, type SerializableNode, type TickTraceEvent, type TickRecord, type NodeHistoryEvent } from "../base/types";
-import { type FlameGraphFrame, type ActivityBranch, type NodeProfilingData, type TreeTickSnapshot, type NodeTickSnapshot } from "./types";
+import { type FlameGraphFrame, type ActivityBranch, type ActivitySnapshot, type NodeProfilingData, type TreeTickSnapshot, type NodeTickSnapshot } from "./types";
 import { TreeInspector } from "./tree-inspector";
-import { type IndexedNode } from "./tree-index";
-import { TreeIndex } from "./tree-index";
+import type { IndexedNode } from "./types";
+import type { TreeIndex } from "./tree-index";
 
 // TODO: Extract shared SerializableNode test stubs into a common test-stubs module.
 function makeTree(): SerializableNode {
@@ -237,7 +237,7 @@ describe("TreeInspector", () => {
 
         const snapshot = inspector.getActivitySnapshotAtTick(1, "running_or_success");
         expect(snapshot).toBeDefined();
-        expect((snapshot as TreeTickSnapshot).branches.map((branch) => branch.labels.join(" > "))).toEqual([
+        expect((snapshot as unknown as ActivitySnapshot).branches.map((branch) => branch.labels.join(" > "))).toEqual([
             "Hunting > Targeting > Attacking",
         ]);
     });
@@ -252,8 +252,8 @@ describe("TreeInspector", () => {
 
         const latest = inspector.getLatestActivitySnapshot("running");
         expect(latest).toBeDefined();
-        expect((latest as TreeTickSnapshot).tickId).toBe(1);
-        expect(((latest as TreeTickSnapshot).branches[0] as ActivityBranch).labels).toEqual(["Hunting", "Idle"]);
+        expect((latest as unknown as ActivitySnapshot).tickId).toBe(1);
+        expect(((latest as unknown as ActivitySnapshot).branches[0] as ActivityBranch).labels).toEqual(["Hunting", "Idle"]);
     });
 
     it("getStats returns aggregate statistics", () => {

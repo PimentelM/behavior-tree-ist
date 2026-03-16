@@ -71,7 +71,7 @@ describe('REPL E2E', () => {
     });
 
     afterEach(async () => {
-        agent?.destroy();
+        agent.destroy();
         await delay(100);
     });
 

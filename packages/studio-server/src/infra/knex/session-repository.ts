@@ -1,4 +1,3 @@
-import type { Knex } from 'knex';
 import { BaseKnexRepository } from './base-repository';
 import { type SessionRepositoryInterface } from '../../domain/interfaces';
 import type { DbSession } from './schemas';
@@ -7,9 +6,9 @@ import { mapDbSessionToDomain, mapSessionToDb } from './mappers';
 export class SessionRepository extends BaseKnexRepository implements SessionRepositoryInterface {
 
     async findByClientId(clientId: string) {
-        const rows = await this.withTransaction(
+        const rows = (await this.withTransaction(
             this.knex<DbSession>('sessions').where('clientId', clientId).orderBy('lastSeenAt', 'desc')
-        );
+        )) as DbSession[];
         return rows.map(mapDbSessionToDomain);
     }
 
@@ -31,11 +30,11 @@ export class SessionRepository extends BaseKnexRepository implements SessionRepo
     }
 
     async findById(clientId: string, sessionId: string) {
-        const row = await this.withTransaction(
+        const row = (await this.withTransaction(
             this.knex<DbSession>('sessions')
                 .where({ clientId, sessionId })
                 .first()
-        );
+        )) as DbSession | undefined;
         return row ? mapDbSessionToDomain(row) : undefined;
     }
 

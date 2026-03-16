@@ -114,7 +114,7 @@ export class TreeIndex {
     getChildren(nodeId: number): readonly IndexedNode[] {
         const node = this.byId.get(nodeId);
         if (!node) return [];
-        return node.childrenIds.map(id => this.byId.get(id)!);
+        return node.childrenIds.map(id => this.byId.get(id) as IndexedNode);
     }
 
     getParent(nodeId: number): IndexedNode | undefined {
