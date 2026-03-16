@@ -25,8 +25,12 @@ function writePrompt(term: Terminal) {
     term.write(PROMPT);
 }
 
-function redrawInputLine(term: Terminal, text: string) {
+function redrawInputLine(term: Terminal, text: string, cursorPos: number) {
     term.write('\r\x1b[K' + PROMPT + text);
+    const stepsBack = text.length - cursorPos;
+    if (stepsBack > 0) {
+        term.write(`\x1b[${stepsBack}D`);
+    }
 }
 
 function printResult(term: Terminal, result: ReplResult) {
@@ -238,6 +242,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     // All mutable state accessed inside the stable terminal effect lives in refs
     const replRef = useRef<UseReplReturn | null>(null);
     const inputBufferRef = useRef('');
+    const cursorPosRef = useRef(0);
     const historyRef = useRef<string[]>([]);
     const historyIndexRef = useRef(-1);
     const suggestionsRef = useRef<string[]>([]);
@@ -333,7 +338,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     }
                     suggestionsRef.current = [];
                     suggestionIndexRef.current = -1;
-                    redrawInputLine(term, inputBufferRef.current);
+                    cursorPosRef.current = inputBufferRef.current.length;
+                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
                 } else {
                     // Multiple — print list inline
                     writeln(term, '');
@@ -360,7 +366,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     : suggestion;
                 inputBufferRef.current = prefix.slice(0, prefix.length - match[1].length) + replacement;
             }
-            redrawInputLine(term, inputBufferRef.current);
+            cursorPosRef.current = inputBufferRef.current.length;
+            redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
         }
 
         // ---- onData: printable character input ----
@@ -381,9 +388,19 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 suggestionIndexRef.current = -1;
             }
 
-            inputBufferRef.current += data;
+            const pos = cursorPosRef.current;
+            const buf = inputBufferRef.current;
+            inputBufferRef.current = buf.slice(0, pos) + data + buf.slice(pos);
+            cursorPosRef.current = pos + data.length;
             historyIndexRef.current = -1;
-            term.write(data);
+
+            if (pos === buf.length) {
+                // Cursor at end — just append
+                term.write(data);
+            } else {
+                // Mid-line insert — redraw
+                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+            }
         });
 
         // ---- onKey: control / special keys only ----
@@ -417,11 +434,13 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             if (ev.key === 'Enter') {
                 if (ev.shiftKey) {
                     inputBufferRef.current += '\n';
+                    cursorPosRef.current = inputBufferRef.current.length;
                     term.write('\r\n');
                     return;
                 }
                 const code = inputBufferRef.current;
                 inputBufferRef.current = '';
+                cursorPosRef.current = 0;
                 term.write('\r\n');
                 void doEval(code);
                 return;
@@ -429,9 +448,30 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
             // ---- Backspace ----
             if (ev.key === 'Backspace') {
-                if (inputBufferRef.current.length > 0) {
-                    inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-                    term.write('\b \b');
+                const pos = cursorPosRef.current;
+                const buf = inputBufferRef.current;
+                if (pos > 0) {
+                    inputBufferRef.current = buf.slice(0, pos - 1) + buf.slice(pos);
+                    cursorPosRef.current = pos - 1;
+                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                }
+                return;
+            }
+
+            // ---- ArrowLeft — move cursor left ----
+            if (ev.key === 'ArrowLeft') {
+                if (cursorPosRef.current > 0) {
+                    cursorPosRef.current -= 1;
+                    term.write('\x1b[D');
+                }
+                return;
+            }
+
+            // ---- ArrowRight — move cursor right ----
+            if (ev.key === 'ArrowRight') {
+                if (cursorPosRef.current < inputBufferRef.current.length) {
+                    cursorPosRef.current += 1;
+                    term.write('\x1b[C');
                 }
                 return;
             }
@@ -446,7 +486,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     historyIndexRef.current -= 1;
                 }
                 inputBufferRef.current = hist[historyIndexRef.current];
-                redrawInputLine(term, inputBufferRef.current);
+                cursorPosRef.current = inputBufferRef.current.length;
+                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
                 return;
             }
 
@@ -461,7 +502,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     historyIndexRef.current = -1;
                     inputBufferRef.current = '';
                 }
-                redrawInputLine(term, inputBufferRef.current);
+                cursorPosRef.current = inputBufferRef.current.length;
+                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
                 return;
             }
 
@@ -475,6 +517,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             // ---- Ctrl+C — clear input ----
             if (ev.ctrlKey && ev.key === 'c') {
                 inputBufferRef.current = '';
+                cursorPosRef.current = 0;
                 historyIndexRef.current = -1;
                 term.write('^C\r\n');
                 writePrompt(term);
@@ -484,8 +527,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             // ---- Ctrl+L — clear screen ----
             if (ev.ctrlKey && ev.key === 'l') {
                 term.clear();
-                writePrompt(term);
-                term.write(inputBufferRef.current);
+                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
                 return;
             }
         });
@@ -503,6 +545,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a' }}>
+            {/* Ensure xterm's IME helper textarea stays off-screen and invisible */}
+            <style>{`.xterm-helper-textarea { opacity: 0 !important; left: -9999px !important; top: -9999px !important; }`}</style>
             <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} />
             <KeyManagement
                 keyPair={repl.keyPair}
