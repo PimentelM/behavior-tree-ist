@@ -59,16 +59,16 @@ export function useSnapshotOverlay(
         representedNodeIdToHostNodeId.set(representedNodeId, node.data.nodeId);
       }
 
-      const latestState = inspectorWithStateLookup.getLastDisplayState?.(node.data.nodeId, stateLookupTick);
+      const latestState = inspectorWithStateLookup.getLastDisplayState(node.data.nodeId, stateLookupTick);
       rememberedStateByNode.set(
         node.data.nodeId,
-        latestState as SerializableState | undefined,
+        latestState,
       );
       for (const decorator of node.data.stackedDecorators) {
-        const decoratorState = inspectorWithStateLookup.getLastDisplayState?.(decorator.nodeId, stateLookupTick);
+        const decoratorState = inspectorWithStateLookup.getLastDisplayState(decorator.nodeId, stateLookupTick);
         rememberedStateByNode.set(
           decorator.nodeId,
-          decoratorState as SerializableState | undefined,
+          decoratorState,
         );
       }
     }
@@ -76,8 +76,8 @@ export function useSnapshotOverlay(
     if (activityPathNodeIds && activityPathNodeIds.length > 1) {
       const pathNodeIds = activityPathNodeIds;
       const pathNodeIndexById = new Map<number, number>();
-      for (let i = 0; i < pathNodeIds.length; i++) {
-        pathNodeIndexById.set(pathNodeIds[i], i);
+      for (const [i, nodeId] of pathNodeIds.entries()) {
+        pathNodeIndexById.set(nodeId, i);
       }
 
       for (const baseEdge of baseEdges) {
@@ -122,7 +122,7 @@ export function useSnapshotOverlay(
         if (!indexedParent) continue;
 
         const parentSnapshot = snapshot?.nodes.get(parentNode.data.nodeId);
-        const parentSnapshotState = parentSnapshot?.state as SerializableState | undefined;
+        const parentSnapshotState = parentSnapshot?.state;
         const parentFallbackState = rememberedStateByNode.get(parentNode.data.nodeId);
         const parentDisplayState = parentSnapshotState ?? parentFallbackState;
         const parentStateIsStale = parentDisplayState !== undefined
@@ -158,7 +158,7 @@ export function useSnapshotOverlay(
     const nodes = baseNodes.map((baseNode) => {
       const nodeSnapshot = snapshot?.nodes.get(baseNode.data.nodeId);
       const nextResult = nodeSnapshot?.result ?? null;
-      const snapshotState = nodeSnapshot?.state as SerializableState | undefined;
+      const snapshotState = nodeSnapshot?.state;
       const fallbackState = rememberedStateByNode.get(baseNode.data.nodeId);
       const nextDisplayState = snapshotState ?? fallbackState;
       const nextDisplayStateIsStale = nextDisplayState !== undefined
@@ -177,7 +177,7 @@ export function useSnapshotOverlay(
 
       const nextStackedDecorators = baseNode.data.stackedDecorators.map((decorator) => {
         const decoratorSnapshot = snapshot?.nodes.get(decorator.nodeId);
-        const decoratorSnapshotState = decoratorSnapshot?.state as SerializableState | undefined;
+        const decoratorSnapshotState = decoratorSnapshot?.state;
         const decoratorFallbackState = rememberedStateByNode.get(decorator.nodeId);
         const syntheticUtilityState = utilityDecoratorStateByNodeId.get(decorator.nodeId);
 
@@ -191,7 +191,7 @@ export function useSnapshotOverlay(
             ? syntheticUtilityState.isStale
             : (decoratorDisplayState !== undefined
               && tickId !== null
-              && (decoratorSnapshot === undefined || decoratorSnapshotState === undefined));
+              && decoratorSnapshot === undefined);
         const decoratorRefEvents = (refEventsByNodeId.get(decorator.nodeId) ?? []).map((event) => ({
           refName: event.refName,
           newValue: event.newValue,
@@ -260,6 +260,7 @@ export function useSnapshotOverlay(
         previousEdge
         && hasSameBaseEdgeShape(previousEdge, baseEdge)
         && previousEdge.data?.childResult === childResult
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         && previousEdge.data?.isOnActivityPathEdge === nextIsOnActivityPathEdge
         && previousEdge.animated === nextAnimated
       ) {
@@ -315,7 +316,7 @@ function getUtilityScores(
   const maybeScores = displayState.lastScores;
   if (!Array.isArray(maybeScores)) return undefined;
   if (!maybeScores.every((score) => typeof score === 'number')) return undefined;
-  return maybeScores as number[];
+  return maybeScores;
 }
 
 function isStateRecord(state: SerializableState): state is Record<string, SerializableValue> {
@@ -387,10 +388,11 @@ function shallowEqualRefEvents(
 ): boolean {
   if (left === right) return true;
   if (left.length !== right.length) return false;
-  for (let i = 0; i < left.length; i++) {
-    if (left[i].refName !== right[i].refName) return false;
-    if (!Object.is(left[i].newValue, right[i].newValue)) return false;
-    if (left[i].isAsync !== right[i].isAsync) return false;
+  for (const [i, leftItem] of left.entries()) {
+    const rightItem = right[i] as (typeof right)[number];
+    if (leftItem.refName !== rightItem.refName) return false;
+    if (!Object.is(leftItem.newValue, rightItem.newValue)) return false;
+    if (leftItem.isAsync !== rightItem.isAsync) return false;
   }
   return true;
 }
@@ -401,12 +403,13 @@ function shallowEqualDecoratorData(
 ): boolean {
   if (left === right) return true;
   if (left.length !== right.length) return false;
-  for (let i = 0; i < left.length; i++) {
-    if (left[i].nodeId !== right[i].nodeId) return false;
-    if (left[i].result !== right[i].result) return false;
-    if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
-    if (!shallowEqualState(left[i].displayState, right[i].displayState)) return false;
-    if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
+  for (const [i, leftItem] of left.entries()) {
+    const rightItem = right[i] as (typeof right)[number];
+    if (leftItem.nodeId !== rightItem.nodeId) return false;
+    if (leftItem.result !== rightItem.result) return false;
+    if (leftItem.displayStateIsStale !== rightItem.displayStateIsStale) return false;
+    if (!shallowEqualState(leftItem.displayState, rightItem.displayState)) return false;
+    if (!shallowEqualRefEvents(leftItem.refEvents, rightItem.refEvents)) return false;
   }
   return true;
 }

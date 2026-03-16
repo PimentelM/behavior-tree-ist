@@ -187,13 +187,13 @@ describe("StudioAgent", () => {
         it("throws if already started", () => {
             const { agent } = createAgent();
             agent.start();
-            expect(() => agent.start()).toThrow(/already been started/);
+            expect(() => { agent.start(); }).toThrow(/already been started/);
         });
 
         it("throws if destroyed", () => {
             const { agent } = createAgent();
             agent.destroy();
-            expect(() => agent.start()).toThrow(/has been destroyed/);
+            expect(() => { agent.start(); }).toThrow(/has been destroyed/);
         });
     });
 
@@ -328,7 +328,7 @@ describe("StudioAgent", () => {
             tree.tick();
 
             expect(link.sendTickBatch).toHaveBeenCalledTimes(1);
-            expect(link.sendTickBatch).toHaveBeenCalledWith("tree-1", [expect.objectContaining({ tickId: expect.any(Number) })]);
+            expect(link.sendTickBatch).toHaveBeenCalledWith("tree-1", [expect.objectContaining({ tickId: expect.any(Number) as number })]);
         });
 
         it("stops forwarding ticks when streaming is disabled", () => {
@@ -476,7 +476,7 @@ describe("StudioAgent", () => {
             expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", {
                 success: false,
                 errorCode: StudioErrorCode.UnknownCommand,
-                errorMessage: expect.any(String),
+                errorMessage: expect.any(String) as string,
             });
         });
 
@@ -490,7 +490,7 @@ describe("StudioAgent", () => {
             expect(link.sendCommandResponse).toHaveBeenCalledWith("c1", {
                 success: false,
                 errorCode: StudioErrorCode.TreeNotFound,
-                errorMessage: expect.any(String),
+                errorMessage: expect.any(String) as string,
             });
         });
 
@@ -587,7 +587,7 @@ describe("StudioAgent", () => {
             const { agent } = createAgent();
             agent.start();
             const plugin = createMockPlugin();
-            expect(() => agent.registerPlugin(plugin)).toThrow(/Cannot register plugin after agent is started/);
+            expect(() => { agent.registerPlugin(plugin); }).toThrow(/Cannot register plugin after agent is started/);
         });
 
         it("attaches plugin on start()", () => {
@@ -604,7 +604,7 @@ describe("StudioAgent", () => {
             agent.registerPlugin(plugin);
             agent.start();
 
-            plugin._sender!.send("corr-1", { type: "result", text: "2" });
+            (plugin._sender as NonNullable<typeof plugin._sender>).send("corr-1", { type: "result", text: "2" });
 
             expect(link.sendPluginMessage).toHaveBeenCalledWith("repl", "corr-1", { type: "result", text: "2" });
         });

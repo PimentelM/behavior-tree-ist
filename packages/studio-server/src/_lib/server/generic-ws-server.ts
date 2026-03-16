@@ -76,7 +76,7 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
                 this.logger.info('WebSocket server setup complete');
                 resolve();
             } catch (error) {
-                reject(error);
+                reject(error instanceof Error ? error : new Error(String(error)));
             }
         });
     }
@@ -86,13 +86,14 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
             return;
         }
 
+        const server = this.server;
         return new Promise((resolve, reject) => {
             for (const client of this.clients.values()) {
                 client.disconnect();
             }
             this.clients.clear();
 
-            this.server!.close((err) => {
+            server.close((err) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -160,13 +161,13 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
         client.onDisconnect(() => {
             this.clients.delete(clientId);
             this.logger.debug('Client disconnected', { clientId });
-            this.disconnectionHandlers.forEach(handler => handler(clientId));
+            this.disconnectionHandlers.forEach(handler => { handler(clientId); });
         });
 
         const context: GenericWebSocketConnectionContext = {
             transport: 'websocket',
             request,
         };
-        this.connectionHandlers.forEach(handler => handler(client, context));
+        this.connectionHandlers.forEach(handler => { handler(client, context); });
     }
 }

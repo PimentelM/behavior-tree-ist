@@ -139,7 +139,7 @@ describe("UtilityFallback", () => {
             ]);
 
             // Replaced!
-            expect(fallback.getChildren()?.length).toBe(1);
+            expect(fallback.getChildren().length).toBe(1);
         });
     });
 });

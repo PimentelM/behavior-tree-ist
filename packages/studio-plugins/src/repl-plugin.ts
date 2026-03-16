@@ -56,18 +56,20 @@ export function toDisplayString(value: unknown): string {
             try {
                 return JSON.stringify(
                     value,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                     (_k, v) => (typeof v === 'bigint' ? v.toString() : v),
                     2,
                 );
             } catch {
-                const ctor = (value as { constructor?: { name?: string } })?.constructor?.name ?? 'Object';
-                const keys = Object.keys(value as object).slice(0, 20);
+                const ctor = (value as { constructor?: { name?: string } }).constructor?.name ?? 'Object';
+                const keys = Object.keys(value).slice(0, 20);
                 return `[${ctor} { ${keys.join(', ')}${keys.length >= 20 ? ', ...' : ''} }]`;
             }
         }
     } catch (err) {
-        return `[[toString error]] ${err}`;
+        return `[[toString error]] ${err instanceof Error ? err.message : String(err)}`;
     }
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return String(value);
 }
 
@@ -103,7 +105,7 @@ export function resolvePath(root: unknown, pathSegments: string[]): unknown {
 
 export function isProbablyExpression(sourceCode: string): boolean {
     try {
-        const trimmed = (sourceCode ?? '').trim();
+        const trimmed = sourceCode.trim();
         if (!trimmed) return false;
         if (
             /^(let|const|var|function|class|import|export|if|for|while|do|switch|try|with)\b/.test(
@@ -116,6 +118,7 @@ export function isProbablyExpression(sourceCode: string): boolean {
         if (/^await[\s(]/.test(trimmed) && !trimmed.includes(';')) {
             return true;
         }
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval
         new Function(`return (${trimmed})`);
         return true;
     } catch {
@@ -135,7 +138,7 @@ export function findLastTopLevelSemicolon(code: string): number {
     let lastSemi = -1;
 
     for (let i = 0; i < code.length; i++) {
-        const ch = code[i]!;
+        const ch = code[i] as string;
 
         if (escaped) { escaped = false; continue; }
 
@@ -170,7 +173,7 @@ export function rewriteTopLevelDeclarations(sourceCode: string): string {
                 out.push(line);
                 continue;
             }
-            const decl = m[2]!;
+            const decl = m[2] as string;
             const parts = decl.split(',').map((s) => s.trim()).filter(Boolean);
             const assigns: string[] = [];
             for (const part of parts) {
@@ -212,7 +215,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
             reject(err);
         }, ms);
     });
-    return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+    return Promise.race([promise, timeoutPromise]).finally(() => { clearTimeout(timer); });
 }
 
 // ---------------------------------------------------------------------------
@@ -257,7 +260,7 @@ export class ReplPlugin implements StudioPlugin {
 
         if (action.type === 'eval') {
             await this.handleEval(correlationId, action.code);
-        } else if (action.type === 'completions') {
+        } else {
             this.handleCompletions(correlationId, action.prefix, action.maxResults);
         }
     }
@@ -314,6 +317,7 @@ export class ReplPlugin implements StudioPlugin {
                     const lastPart = rewritten.slice(lastSemi + 1).trim();
                     let stmtBody: string;
                     try {
+                        // eslint-disable-next-line @typescript-eslint/no-implied-eval
                         new Function(`return (${lastPart})`);
                         stmtBody = `${prefix}\n return (${lastPart});`;
                     } catch {
@@ -325,6 +329,7 @@ export class ReplPlugin implements StudioPlugin {
                 }
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-implied-eval
             const fn = new Function(body) as (console: typeof captureConsole) => Promise<unknown>;
             const result = await withTimeout(fn(captureConsole), EVAL_TIMEOUT_MS);
             const text = toDisplayString(result);
@@ -336,10 +341,10 @@ export class ReplPlugin implements StudioPlugin {
                 ...(consoleOutput.length > 0 ? { consoleOutput } : {}),
             } satisfies ReplOutputPayload);
         } catch (error: unknown) {
-            const isTimeout = (error as { name?: string })?.name === 'TimeoutError';
+            const isTimeout = (error as { name?: string }).name === 'TimeoutError';
             const text = isTimeout
                 ? (error as Error).message
-                : ((error as { stack?: string })?.stack ?? String(error));
+                : ((error as { stack?: string }).stack ?? String(error));
 
             this.sendEncrypted(correlationId, {
                 type: 'error',

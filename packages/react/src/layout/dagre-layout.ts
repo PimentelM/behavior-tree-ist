@@ -8,7 +8,7 @@ function getNodeHeight(node: Node<BTNodeData>): number {
   const canShowState = hasFlag(node.data.nodeFlags, NodeFlags.Stateful)
     || hasFlag(node.data.nodeFlags, NodeFlags.Display);
   const baseHeight = canShowState ? NODE_HEIGHT_WITH_STATE : NODE_HEIGHT_BASE;
-  const decoratorHeight = (node.data.stackedDecorators?.length ?? 0) * 24;
+  const decoratorHeight = node.data.stackedDecorators.length * 24;
   return baseHeight + decoratorHeight;
 }
 

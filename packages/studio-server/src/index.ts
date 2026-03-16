@@ -88,7 +88,7 @@ function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
 
 async function closeHttpServer(httpServer: Server): Promise<void> {
     await new Promise<void>((resolve) => {
-        httpServer.close(() => resolve());
+        httpServer.close(() => { resolve(); });
     });
 }
 
@@ -310,7 +310,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             app.get('*', (req, res, next) => {
                 if (req.path.startsWith('/trpc') || req.path === '/healthz'
                     || req.path === config.ws.path || req.path === config.uiWs.path) {
-                    return next();
+                    next(); return;
                 }
                 res.sendFile(join(resolvedDir, 'index.html'));
             });
@@ -359,10 +359,9 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             uiConnectionRegistry.register(client.id);
             setupLogger.debug('UI client connected', { clientId: client.id });
 
-            client.onMessage((message) => {
-                if (message.t === 'ping') {
-                    setupLogger.debug('Received ping from UI client', { clientId: client.id });
-                }
+            client.onMessage((_message) => {
+                // message.t === 'ping' is the only UI inbound message type
+                setupLogger.debug('Received ping from UI client', { clientId: client.id });
             });
         });
 
@@ -381,7 +380,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
 
         httpServer = await new Promise<Server>((resolve, reject) => {
             const server = app.listen(config.http.port, config.http.host);
-            server.once('listening', () => resolve(server));
+            server.once('listening', () => { resolve(server); });
             server.once('error', reject);
         });
 
@@ -413,7 +412,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         setupLogger.info('Studio server initialized');
         return { httpServer, deps };
     } catch (error) {
-        setupLogger.error('Studio server initialization failed', { error: String(error), stack: error instanceof Error && error?.stack });
+        setupLogger.error('Studio server initialization failed', { error: String(error), stack: error instanceof Error && error.stack });
         await cleanupInitializedResources({
             logger: setupLogger,
             commandBroker,

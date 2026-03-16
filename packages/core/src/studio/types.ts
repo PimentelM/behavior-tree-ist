@@ -31,27 +31,27 @@ export interface TreeStatuses {
     profiling: boolean;
 }
 
-// Maps each command to its response payload type (void = no data)
+// Maps each command to its response payload type (undefined = no data)
 export interface CommandPayloadMap {
-    [StudioCommandType.EnableStreaming]: void;
-    [StudioCommandType.DisableStreaming]: void;
-    [StudioCommandType.EnableStateTrace]: void;
-    [StudioCommandType.DisableStateTrace]: void;
-    [StudioCommandType.EnableProfiling]: void;
-    [StudioCommandType.DisableProfiling]: void;
+    [StudioCommandType.EnableStreaming]: undefined;
+    [StudioCommandType.DisableStreaming]: undefined;
+    [StudioCommandType.EnableStateTrace]: undefined;
+    [StudioCommandType.DisableStateTrace]: undefined;
+    [StudioCommandType.EnableProfiling]: undefined;
+    [StudioCommandType.DisableProfiling]: undefined;
     [StudioCommandType.GetTreeStatuses]: TreeStatuses;
 }
 
-// Union of all non-void response data types from the command payload map
+// Union of all non-undefined response data types from the command payload map
 export type CommandResponseData = {
-    [K in StudioCommandType]: CommandPayloadMap[K] extends void ? never : CommandPayloadMap[K];
+    [K in StudioCommandType]: CommandPayloadMap[K] extends undefined ? never : CommandPayloadMap[K];
 }[StudioCommandType];
 
 // Discriminated union for command responses
 // When parameterized with a specific command type, narrows the data field accordingly
 export type CommandResponseSuccess<T extends StudioCommandType = StudioCommandType> =
     T extends T
-        ? CommandPayloadMap[T] extends void
+        ? CommandPayloadMap[T] extends undefined
             ? { success: true }
             : { success: true; data: CommandPayloadMap[T] }
         : never;

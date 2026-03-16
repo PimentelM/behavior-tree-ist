@@ -50,4 +50,27 @@ export class WsNodeStringTransport extends WsNodeTransportBase {
             this.ws?.off("message", onMsg);
         };
     }
+
+    onError(handler: (error: Error) => void) {
+        if (!this.ws) {
+            throw new Error("WsNodeStringTransport: not connected");
+        }
+
+        const onErr = (err: Error) => { handler(err); };
+        this.ws.on("error", onErr);
+        return () => {
+            this.ws?.off("error", onErr);
+        };
+    }
+
+    onClose(handler: () => void) {
+        if (!this.ws) {
+            throw new Error("WsNodeStringTransport: not connected");
+        }
+
+        this.ws.on("close", handler);
+        return () => {
+            this.ws?.off("close", handler);
+        };
+    }
 }

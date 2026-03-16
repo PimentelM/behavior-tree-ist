@@ -38,10 +38,10 @@ describe("TSX Adapter", () => {
         expect(children.length).toBe(2);
 
         expect(children[0]).toBeInstanceOf(ConditionNode);
-        expect(children[0].name).toBe("Has Energy");
+        expect((children[0] as BTNode).name).toBe("Has Energy");
 
         expect(children[1]).toBeInstanceOf(Action);
-        expect(children[1].name).toBe("Attack");
+        expect((children[1] as BTNode).name).toBe("Attack");
     });
 
     it("supports fragment wrappers", () => {
@@ -54,8 +54,8 @@ describe("TSX Adapter", () => {
 
         expect(Array.isArray(nodes)).toBe(true);
         expect(nodes.length).toBe(2);
-        expect(nodes[0].name).toBe("Walk");
-        expect(nodes[1].name).toBe("Run");
+        expect((nodes[0] as BTNode).name).toBe("Walk");
+        expect((nodes[1] as BTNode).name).toBe("Run");
     });
 
     it("supports functional components and props", () => {
@@ -83,7 +83,7 @@ describe("TSX Adapter", () => {
         const tree = <SubTree name="CustomSelectorSubTree" customProp="CustomPropName" />;
         expect(tree).toBeInstanceOf(Fallback);
         expect(tree.name).toBe("CustomSelectorSubTree");
-        const [child] = tree.getChildren?.() ?? [];
+        const child = (tree.getChildren?.() ?? [])[0] as BTNode;
         expect(child).toBeInstanceOf(Action);
         expect(child.name).toBe("CustomPropName");
     })
@@ -125,7 +125,7 @@ describe("TSX Adapter", () => {
 
         // The TSX-created instance follows
         expect(children[1]).toBeInstanceOf(Action);
-        expect(children[1].name).toBe("TSX Action");
+        expect((children[1] as BTNode).name).toBe("TSX Action");
     });
     it("can create memory composite nodes", () => {
         const tree = (
@@ -146,10 +146,10 @@ describe("TSX Adapter", () => {
         expect(children.length).toBe(2);
 
         expect(children[0]).toBeInstanceOf(FallbackWithMemory);
-        expect(children[0].name).toBe("MemSel");
+        expect((children[0] as BTNode).name).toBe("MemSel");
 
         expect(children[1]).toBeInstanceOf(FallbackWithMemory);
-        expect(children[1].name).toBe("MemFall");
+        expect((children[1] as BTNode).name).toBe("MemFall");
     });
 
     it("supports custom policies on parallel nodes", () => {
@@ -315,14 +315,14 @@ describe("TSX Adapter", () => {
         expect(children.length).toBe(2);
 
         expect(children[0]).toBeInstanceOf(Utility);
-        expect(children[0].displayName).toBe("Utility");
-        const action10 = children[0].getChildren?.()[0];
+        expect((children[0] as BTNode).displayName).toBe("Utility");
+        const action10 = (children[0] as BTNode).getChildren?.()[0];
         expect(action10).toBeInstanceOf(Action);
         expect(action10?.displayName).toBe("Action10");
 
         expect(children[1]).toBeInstanceOf(Utility);
-        expect(children[1].displayName).toBe("Utility");
-        const action20 = children[1].getChildren?.()[0];
+        expect((children[1] as BTNode).displayName).toBe("Utility");
+        const action20 = (children[1] as BTNode).getChildren?.()[0];
         expect(action20).toBeInstanceOf(Action);
         expect(action20?.displayName).toBe("Action20");
 
@@ -374,14 +374,14 @@ describe("TSX Adapter", () => {
         expect(children.length).toBe(2);
 
         expect(children[0]).toBeInstanceOf(Utility);
-        expect(children[0].displayName).toBe("Utility");
-        const action10 = children[0].getChildren?.()[0];
+        expect((children[0] as BTNode).displayName).toBe("Utility");
+        const action10 = (children[0] as BTNode).getChildren?.()[0];
         expect(action10).toBeInstanceOf(Action);
         expect(action10?.displayName).toBe("Action10");
 
         expect(children[1]).toBeInstanceOf(Utility);
-        expect(children[1].displayName).toBe("Utility");
-        const action20 = children[1].getChildren?.()[0];
+        expect((children[1] as BTNode).displayName).toBe("Utility");
+        const action20 = (children[1] as BTNode).getChildren?.()[0];
         expect(action20).toBeInstanceOf(Action);
         expect(action20?.displayName).toBe("Action20");
 

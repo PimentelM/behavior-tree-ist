@@ -20,7 +20,7 @@ describe("TreeRegistry", () => {
         const registry = new TreeRegistry();
         const tree = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
 
-        expect(() => registry.register("invalid name", tree)).toThrow(/Invalid treeId/);
+        expect(() => { registry.register("invalid name", tree); }).toThrow(/Invalid treeId/);
     });
 
     it("register with duplicate treeId throws", () => {
@@ -29,7 +29,7 @@ describe("TreeRegistry", () => {
         const tree2 = new BehaviourTree(Action.from("Stub", () => NodeResult.Succeeded));
 
         registry.register("tree-1", tree1);
-        expect(() => registry.register("tree-1", tree2)).toThrow(/already registered/);
+        expect(() => { registry.register("tree-1", tree2); }).toThrow(/already registered/);
     });
 
     it("remove registered tree succeeds", () => {
@@ -44,7 +44,7 @@ describe("TreeRegistry", () => {
 
     it("remove unregistered treeId throws", () => {
         const registry = new TreeRegistry();
-        expect(() => registry.remove("not-found")).toThrow(/not registered/);
+        expect(() => { registry.remove("not-found"); }).toThrow(/not registered/);
     });
 
     it("onTreeRegistered callback fires on register", () => {

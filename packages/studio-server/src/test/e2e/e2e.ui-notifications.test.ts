@@ -58,7 +58,7 @@ async function closeWebSocket(socket: WebSocket): Promise<void> {
     if (socket.readyState === WebSocket.CLOSED) return;
 
     await new Promise<void>((resolve) => {
-        socket.once('close', () => resolve());
+        socket.once('close', () => { resolve(); });
         socket.close();
     });
 }
@@ -71,7 +71,7 @@ async function waitForUiMessage(
 ): Promise<UiInboundMessage> {
     let foundMessage: UiInboundMessage | undefined;
 
-    await waitFor(async () => {
+    await waitFor(() => {
         if (parseErrors.length > 0) {
             throw new Error(`Failed to parse UI message: ${parseErrors[0]}`);
         }

@@ -20,10 +20,13 @@ export abstract class BaseEventDispatcher<DispatchedEvent extends BaseDispatched
         eventName: EventName,
         handler: (dispatchedEvent: DispatchedEvent & { subject: Subject; event: { name: EventName } }) => Promise<void>,
     ): () => void {
-        const subjectEventHandlersMap = this.domainEventHandlers.get(subject) || new Map();
-        const eventHandlers = subjectEventHandlersMap.get(eventName) || [];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const subjectEventHandlersMap: Map<DispatchedEvent['event']['name'], ((event: DispatchedEvent) => Promise<void>)[]> =
+            this.domainEventHandlers.get(subject) ?? new Map();
+        const eventHandlers: ((event: DispatchedEvent) => Promise<void>)[] =
+            subjectEventHandlersMap.get(eventName) ?? [];
 
-        eventHandlers.push(handler);
+        eventHandlers.push(handler as ((event: DispatchedEvent) => Promise<void>));
 
         subjectEventHandlersMap.set(eventName, eventHandlers);
         this.domainEventHandlers.set(subject, subjectEventHandlersMap);
@@ -68,7 +71,7 @@ export abstract class BaseEventDispatcher<DispatchedEvent extends BaseDispatched
         }
 
         for (const handler of handlers) {
-            await handler(event).catch((error) => this.logError(error, event));
+            await handler(event).catch((error: unknown) => { this.logError(error instanceof Error ? error : new Error(String(error)), event); });
         }
     }
 }

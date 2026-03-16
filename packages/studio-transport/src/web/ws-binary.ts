@@ -47,4 +47,27 @@ export class WsBrowserBinaryTransport extends WsBrowserTransportBase {
             this.ws?.removeEventListener("message", onMsg);
         };
     }
+
+    onError(handler: (error: Error) => void) {
+        if (!this.ws) {
+            throw new Error("WsBrowserBinaryTransport: not connected");
+        }
+
+        const onErr = () => { handler(new Error("WebSocket error")); };
+        this.ws.addEventListener("error", onErr);
+        return () => {
+            this.ws?.removeEventListener("error", onErr);
+        };
+    }
+
+    onClose(handler: () => void) {
+        if (!this.ws) {
+            throw new Error("WsBrowserBinaryTransport: not connected");
+        }
+
+        this.ws.addEventListener("close", handler);
+        return () => {
+            this.ws?.removeEventListener("close", handler);
+        };
+    }
 }

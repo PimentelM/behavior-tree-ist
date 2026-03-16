@@ -133,6 +133,7 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
             if (Array.isArray(props.decorate[0])) {
                 // Array of specs
                 // @ts-expect-error - dynamic spread for generic specs
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 current = current.decorate(...props.decorate);
             } else {
                 // Single spec
@@ -236,7 +237,7 @@ export function action(props: NodeProps & { execute: (ctx: TickContext) => NodeR
     return applyDecorators(Action.from(props.name || "Action", props.execute), props);
 }
 
-export function asyncAction(props: NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | void> }): BTNode {
+export function asyncAction(props: NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | undefined> }): BTNode {
     return applyDecorators(AsyncAction.from(props.name || "AsyncAction", props.execute), props);
 }
 

@@ -20,9 +20,9 @@ export abstract class AsyncAction extends BTNode {
         this.addFlags(NodeFlags.Leaf | NodeFlags.Action | NodeFlags.Stateful | NodeFlags.Async);
     }
 
-    public static from(name: string, execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | void>): AsyncAction {
+    public static from(name: string, execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | undefined>): AsyncAction {
         class InlineAsyncAction extends AsyncAction {
-            protected execute(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult | void> {
+            protected execute(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult | undefined> {
                 return execute(ctx, signal);
             }
         }
@@ -44,11 +44,11 @@ export abstract class AsyncAction extends BTNode {
 
         return {
             status,
-            ...(this._error !== undefined ? { error: String(this._error) } : {})
+            ...(this._error !== undefined ? { error: this._error instanceof Error ? this._error.toString() : String(this._error as string | number | boolean | bigint | null | undefined) } : {})
         };
     }
 
-    protected abstract execute(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult | void>;
+    protected abstract execute(ctx: TickContext, signal: CancellationSignal): Promise<NodeResult | undefined>;
 
     protected override onEnter(ctx: TickContext): void {
         this._handle = createCancellationHandle();
@@ -61,11 +61,6 @@ export abstract class AsyncAction extends BTNode {
 
         try {
             const promise = this.execute(ctx, this._handle.signal);
-            if (!promise || typeof (promise as { then?: unknown }).then !== 'function') {
-                this._settled = true;
-                this._result = typeof promise === 'number' ? promise as NodeResult : NodeResult.Succeeded;
-                return;
-            }
 
             promise.then(
                 (result) => {
@@ -73,7 +68,7 @@ export abstract class AsyncAction extends BTNode {
                     this._settled = true;
                     this._result = result ?? NodeResult.Succeeded;
                 },
-                (error) => {
+                (error: unknown) => {
                     if (this._currentRun !== generation) return;
                     this._settled = true;
                     this._error = error;
@@ -89,7 +84,7 @@ export abstract class AsyncAction extends BTNode {
 
     protected override onTick(_ctx: TickContext): NodeResult {
         if (this._settled) {
-            return this._result!;
+            return this._result as NodeResult;
         }
         return NodeResult.Running;
     }

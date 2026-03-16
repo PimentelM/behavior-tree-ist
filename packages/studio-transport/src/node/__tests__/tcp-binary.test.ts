@@ -18,7 +18,7 @@ describe("TcpBinaryTransport — stale socket cleanup", () => {
         await expect(transport.open()).rejects.toThrow();
 
         // After failed open, socket must be null — methods should throw
-        expect(() => transport.send("test")).toThrow("not connected");
+        expect(() => { transport.send("test"); }).toThrow("not connected");
         expect(() => transport.onMessage(() => {})).toThrow("not connected");
     });
 });

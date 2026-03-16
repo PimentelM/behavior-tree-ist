@@ -5,7 +5,7 @@ export class RingBuffer<T> {
 
     constructor(private readonly capacity: number) {
         if (capacity <= 0) throw new Error("Capacity must be positive");
-        this.buffer = new Array(capacity).fill(undefined);
+        this.buffer = new Array<T | undefined>(capacity).fill(undefined);
     }
 
     push(item: T): void {

@@ -23,7 +23,7 @@ export function makeEventSchemaFromMap<T extends Record<string, z.ZodTypeAny>>(
         body: z.infer<T[K]>;
     };
 }[keyof T]> {
-    const keys = Object.keys(map) as string[];
+    const keys = Object.keys(map);
 
     if (keys.length === 0) {
         throw new Error("Cannot create union from empty map");
@@ -32,19 +32,19 @@ export function makeEventSchemaFromMap<T extends Record<string, z.ZodTypeAny>>(
     const schemas = keys.map(key =>
         z.object({
             name: z.literal(key),
-            body: map[key],
+            body: map[key] as z.ZodTypeAny,
         })
     );
 
     // Handle single schema edge case
     if (schemas.length === 1) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return z.union([schemas[0], schemas[0]]) as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+        return z.union([schemas[0] as z.ZodTypeAny, schemas[0] as z.ZodTypeAny]) as any;
     }
 
     // Create union with proper typing
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return z.discriminatedUnion("name", [schemas[0], schemas[1], ...schemas.slice(2)]) as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+    return z.discriminatedUnion("name", [schemas[0] as z.ZodDiscriminatedUnionOption<"name">, schemas[1] as z.ZodDiscriminatedUnionOption<"name">, ...schemas.slice(2) as z.ZodDiscriminatedUnionOption<"name">[]]) as any;
 }
 
 // Just an util to handle the EventMap object which references the schema objects

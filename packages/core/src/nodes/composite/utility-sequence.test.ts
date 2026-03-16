@@ -143,7 +143,7 @@ describe("UtilitySequence", () => {
             ]);
 
             // Replaced!
-            expect(sequence.getChildren()?.length).toBe(1);
+            expect(sequence.getChildren().length).toBe(1);
         });
     });
 });

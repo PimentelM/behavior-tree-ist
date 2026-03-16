@@ -4,7 +4,7 @@
  */
 import nacl from 'tweetnacl';
 import { hkdf } from '@noble/hashes/hkdf';
-import { sha256 } from '@noble/hashes/sha256';
+import { sha256 } from '@noble/hashes/sha2';
 
 // ---------------------------------------------------------------------------
 // Base64url helpers (no padding)
@@ -58,7 +58,7 @@ export function decodeHeaderToken(token: string): HeaderTokenFields {
     if (bytes.length < 1 + 32 + 24 + nacl.box.overheadLength) {
         throw new Error('Token too short');
     }
-    const version = bytes[0]!;
+    const version = bytes[0] as number;
     const cPub = bytes.slice(1, 1 + 32);
     const nonce = bytes.slice(1 + 32, 1 + 32 + 24);
     const ciphertext = bytes.slice(1 + 32 + 24);
@@ -194,6 +194,7 @@ export function jsonToBytes(obj: unknown): Uint8Array {
     return new Uint8Array(Buffer.from(JSON.stringify(obj), 'utf8'));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function bytesToJson<T = unknown>(bytes: Uint8Array): T {
     return JSON.parse(Buffer.from(bytes).toString('utf8')) as T;
 }

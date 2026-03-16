@@ -45,12 +45,12 @@ class MockSequence extends Composite {
     constructor(children: BTNode[]) {
         super();
         this.addFlags(NodeFlags.Sequence);
-        children.forEach(c => this.addNode(c));
+        children.forEach(c => { this.addNode(c); });
     }
 
     protected override onTick(ctx: TickContext): NodeResult {
         if (this.nodes.length > 0) {
-            BTNode.Tick(this.nodes[0], ctx);
+            BTNode.Tick(this.nodes[0] as BTNode, ctx);
         }
         return NodeResult.Running;
     }
@@ -68,18 +68,18 @@ describe("Serialization", () => {
         const serialized = tree.serialize();
 
         expect(serialized).toMatchObject({
-            id: expect.any(Number),
+            id: expect.any(Number) as number,
             nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
             defaultName: "MockSequence",
             name: "",
             tags: ["test-composite"],
             children: [{
-                id: expect.any(Number),
+                id: expect.any(Number) as number,
                 nodeFlags: NodeFlags.Decorator,
                 defaultName: "MockDecorator",
                 name: "",
                 children: [{
-                    id: expect.any(Number),
+                    id: expect.any(Number) as number,
                     nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
                     defaultName: "MockAction",
                     name: "",
@@ -91,8 +91,8 @@ describe("Serialization", () => {
         // Verify state and displayName are NOT present
         expect(serialized).not.toHaveProperty("state");
         expect(serialized).not.toHaveProperty("displayName");
-        expect(serialized.children![0]).not.toHaveProperty("state");
-        expect(serialized.children![0]).not.toHaveProperty("displayName");
+        expect(serialized.children?.[0]).not.toHaveProperty("state");
+        expect(serialized.children?.[0]).not.toHaveProperty("displayName");
     });
 
     it("serialized tree does not change after ticking", () => {
@@ -145,13 +145,13 @@ describe("Serialization", () => {
                 const serialized = tree.serialize({ includeState: true });
 
                 expect(serialized).toMatchObject({
-                    id: expect.any(Number),
+                    id: expect.any(Number) as number,
                     nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
                     defaultName: "MockSequence",
                     name: "",
                     tags: ["test-composite"],
                     children: [{
-                        id: expect.any(Number),
+                        id: expect.any(Number) as number,
                         nodeFlags: NodeFlags.Decorator,
                         defaultName: "MockDecorator",
                         name: "",
@@ -159,7 +159,7 @@ describe("Serialization", () => {
                             counts: 1
                         },
                         children: [{
-                            id: expect.any(Number),
+                            id: expect.any(Number) as number,
                             nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
                             defaultName: "MockAction",
                             name: "",

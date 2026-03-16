@@ -21,8 +21,9 @@ export function useSessions(subscribe: WsSubscribe, expandedClientId: string | n
                 online: s.online,
             })));
             setLoading(false);
-        }).catch((err) => {
-            console.log('[use-sessions] fetch error', err);
+        }).catch((_err: unknown) => {
+            // eslint-disable-next-line no-console
+            console.log('[use-sessions] fetch error', _err);
             if (currentClientIdRef.current === clientId) setLoading(false);
         });
     };

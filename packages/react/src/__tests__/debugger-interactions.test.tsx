@@ -240,11 +240,12 @@ describe('RefTracesPanel', () => {
     const entryButtons = screen.getAllByRole('button');
     // Find the entry button for our ref event (has "health" text)
     const refButton = entryButtons.find(
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       (btn) => btn.textContent?.includes('health') && btn.textContent?.includes('tick #5'),
     );
     expect(refButton).toBeTruthy();
 
-    fireEvent.click(refButton!);
+    fireEvent.click(refButton as HTMLElement);
 
     expect(onGoToTick).toHaveBeenCalledWith(5);
     expect(onFocusActorNode).toHaveBeenCalledWith(42);
@@ -347,7 +348,7 @@ describe('PerformanceView', () => {
 
     const firstBar = container.querySelector('.bt-flamegraph__bar');
     expect(firstBar).toBeTruthy();
-    fireEvent.mouseMove(firstBar!, { clientX: 100, clientY: 80 });
+    fireEvent.mouseMove(firstBar as Element, { clientX: 100, clientY: 80 });
 
     expect(screen.getByText('33.3%')).toBeTruthy();
   });
@@ -470,10 +471,10 @@ describe('PerformanceView', () => {
     expect(row).toBeTruthy();
     expect(bar).toBeTruthy();
 
-    fireEvent.mouseEnter(row!);
-    expect(bar!.getAttribute('class')).toContain('bt-flamegraph__bar--hovered');
+    fireEvent.mouseEnter(row as Element);
+    expect((bar as Element).getAttribute('class')).toContain('bt-flamegraph__bar--hovered');
 
-    fireEvent.mouseMove(bar!, { clientX: 30, clientY: 20 });
-    expect(row!.className).toContain('bt-hot-nodes__row--hovered');
+    fireEvent.mouseMove(bar as Element, { clientX: 30, clientY: 20 });
+    expect((row as Element).className).toContain('bt-hot-nodes__row--hovered');
   });
 });

@@ -75,7 +75,7 @@ export class StubAction extends Action {
         super();
         if (Array.isArray(resultOrQueue)) {
             this.resultQueue = [...resultOrQueue];
-            this.defaultResult = resultOrQueue[resultOrQueue.length - 1];
+            this.defaultResult = resultOrQueue[resultOrQueue.length - 1] as NodeResult;
         } else {
             this.resultQueue = [];
             this.defaultResult = resultOrQueue;
@@ -89,7 +89,7 @@ export class StubAction extends Action {
     protected override onTick(): NodeResult {
         this.tickCount++;
         if (this.resultQueue.length > 0) {
-            return this.resultQueue.shift()!;
+            return this.resultQueue.shift() as NodeResult;
         }
         return this.defaultResult;
     }

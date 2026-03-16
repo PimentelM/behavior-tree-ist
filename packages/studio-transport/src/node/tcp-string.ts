@@ -49,4 +49,27 @@ export class TcpStringTransport extends TcpTransportBase {
             this.decoder = null;
         };
     }
+
+    onError(handler: (error: Error) => void) {
+        if (!this.socket) {
+            throw new Error("TcpStringTransport: not connected");
+        }
+
+        const onErr = (err: Error) => { handler(err); };
+        this.socket.on("error", onErr);
+        return () => {
+            this.socket?.off("error", onErr);
+        };
+    }
+
+    onClose(handler: () => void) {
+        if (!this.socket) {
+            throw new Error("TcpStringTransport: not connected");
+        }
+
+        this.socket.on("close", handler);
+        return () => {
+            this.socket?.off("close", handler);
+        };
+    }
 }

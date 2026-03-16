@@ -9,7 +9,7 @@ import type { Node, Edge } from '@xyflow/react';
 // jsdom lacks PointerEvent — polyfill so pointerId propagates correctly
 beforeAll(() => {
   if (typeof globalThis.PointerEvent === 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
     (globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
       readonly pointerId: number;
       readonly pointerType: string;
@@ -286,7 +286,7 @@ describe('BehaviourTreeDebugger time-travel percentile mode', () => {
     expect(entries).toHaveLength(1);
 
     onNodeSelect.mockClear();
-    fireEvent.click(entries[0]);
+    fireEvent.click(entries[0] as HTMLElement);
     expect(onNodeSelect).toHaveBeenCalledWith(3);
 
     const nodeFlagsEntries = screen.getAllByTestId('tree-canvas-node-flags');

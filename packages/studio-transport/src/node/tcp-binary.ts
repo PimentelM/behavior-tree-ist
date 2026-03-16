@@ -31,7 +31,7 @@ export class TcpBinaryTransport extends TcpTransportBase {
             throw new Error("TcpBinaryTransport: not connected");
         }
 
-        this.decoder = new FrameDecoder((payload) => handler(payload));
+        this.decoder = new FrameDecoder((payload) => { handler(payload); });
 
         const onData = (chunk: Buffer) => {
             this.decoder?.feed(new Uint8Array(chunk));
@@ -43,6 +43,29 @@ export class TcpBinaryTransport extends TcpTransportBase {
             this.socket?.off("data", onData);
             this.decoder?.reset();
             this.decoder = null;
+        };
+    }
+
+    onError(handler: (error: Error) => void) {
+        if (!this.socket) {
+            throw new Error("TcpBinaryTransport: not connected");
+        }
+
+        const onErr = (err: Error) => { handler(err); };
+        this.socket.on("error", onErr);
+        return () => {
+            this.socket?.off("error", onErr);
+        };
+    }
+
+    onClose(handler: () => void) {
+        if (!this.socket) {
+            throw new Error("TcpBinaryTransport: not connected");
+        }
+
+        this.socket.on("close", handler);
+        return () => {
+            this.socket?.off("close", handler);
         };
     }
 }

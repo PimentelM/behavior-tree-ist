@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { multiRef, patchRef } from "./multi-ref";
 import { BTNode } from "./node";
-import { NodeResult } from "./types";
+import { NodeResult, type RefChangeEvent } from "./types";
 import { Action } from "./action";
 import { createTickContext } from "../test-helpers";
 import { Sequence } from "../nodes/composite/sequence";
@@ -60,7 +60,7 @@ describe("MultiRef", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(1);
-            expect(ctx.refEvents[0]).toEqual({
+            expect((ctx.refEvents[0] as RefChangeEvent)).toEqual({
                 tickId: 5,
                 timestamp: 100,
                 refName: "myBB.targetId",
@@ -82,10 +82,10 @@ describe("MultiRef", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(2);
-            expect(ctx.refEvents[0].refName).toBe("bb.x");
-            expect(ctx.refEvents[0].newValue).toBe(10);
-            expect(ctx.refEvents[1].refName).toBe("bb.y");
-            expect(ctx.refEvents[1].newValue).toBe(20);
+            expect((ctx.refEvents[0] as RefChangeEvent).refName).toBe("bb.x");
+            expect((ctx.refEvents[0] as RefChangeEvent).newValue).toBe(10);
+            expect((ctx.refEvents[1] as RefChangeEvent).refName).toBe("bb.y");
+            expect((ctx.refEvents[1] as RefChangeEvent).newValue).toBe(20);
         });
 
         it("no-op write (same value) does not emit event", () => {
@@ -135,8 +135,8 @@ describe("MultiRef", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(2);
-            expect(ctx.refEvents[0].refName).toBe("agent.posX");
-            expect(ctx.refEvents[1].refName).toBe("agent.rotation");
+            expect((ctx.refEvents[0] as RefChangeEvent).refName).toBe("agent.posX");
+            expect((ctx.refEvents[1] as RefChangeEvent).refName).toBe("agent.rotation");
         });
     });
 
@@ -157,8 +157,8 @@ describe("MultiRef", () => {
             BTNode.Tick(seq, ctx);
 
             expect(ctx.refEvents).toHaveLength(2);
-            expect(ctx.refEvents[0].newValue).toBe(1);
-            expect(ctx.refEvents[1].newValue).toBe(2);
+            expect((ctx.refEvents[0] as RefChangeEvent).newValue).toBe(1);
+            expect((ctx.refEvents[1] as RefChangeEvent).newValue).toBe(2);
         });
 
         it("separate ticks get separate refEvents", () => {
@@ -179,9 +179,9 @@ describe("MultiRef", () => {
             BTNode.Tick(node2, ctx2);
 
             expect(ctx1.refEvents).toHaveLength(1);
-            expect(ctx1.refEvents[0].newValue).toBe(10);
+            expect((ctx1.refEvents[0] as RefChangeEvent).newValue).toBe(10);
             expect(ctx2.refEvents).toHaveLength(1);
-            expect(ctx2.refEvents[0].newValue).toBe(20);
+            expect((ctx2.refEvents[0] as RefChangeEvent).newValue).toBe(20);
         });
 
         it("if a hook throws, the stack is cleaned up", () => {
@@ -201,7 +201,7 @@ describe("MultiRef", () => {
             BTNode.Tick(workingNode, ctx2);
 
             expect(ctx2.refEvents).toHaveLength(1);
-            expect(ctx2.refEvents[0].newValue).toBe(42);
+            expect((ctx2.refEvents[0] as RefChangeEvent).newValue).toBe(42);
             expect(AmbientContext.getTickContext()).toBeUndefined();
         });
     });
@@ -273,8 +273,8 @@ describe("patchRef", () => {
             expect(state.health).toBe(100);
             expect(state.target).toBeNull();
             expect(ctx.refEvents).toHaveLength(2);
-            expect(ctx.refEvents[0].refName).toBe("agent.health");
-            expect(ctx.refEvents[1].refName).toBe("agent.target");
+            expect((ctx.refEvents[0] as RefChangeEvent).refName).toBe("agent.health");
+            expect((ctx.refEvents[1] as RefChangeEvent).refName).toBe("agent.target");
         });
 
         it("only patches own enumerable data properties", () => {
@@ -303,7 +303,7 @@ describe("patchRef", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(1);
-            expect(ctx.refEvents[0].refName).toBe("obj.mutable");
+            expect((ctx.refEvents[0] as RefChangeEvent).refName).toBe("obj.mutable");
         });
 
         it("skips non-enumerable own properties", () => {
@@ -323,7 +323,7 @@ describe("patchRef", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(1);
-            expect(ctx.refEvents[0].refName).toBe("obj.visible");
+            expect((ctx.refEvents[0] as RefChangeEvent).refName).toBe("obj.visible");
         });
     });
 
@@ -339,7 +339,7 @@ describe("patchRef", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(1);
-            expect(ctx.refEvents[0]).toEqual({
+            expect((ctx.refEvents[0] as RefChangeEvent)).toEqual({
                 tickId: 3,
                 timestamp: 200,
                 refName: "agent.health",

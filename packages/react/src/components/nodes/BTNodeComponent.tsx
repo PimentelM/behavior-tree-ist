@@ -412,10 +412,11 @@ function shallowEqualStringArray(left: string[], right: string[]): boolean {
 function shallowEqualRefEvents(left: BTNodeData['refEvents'], right: BTNodeData['refEvents']): boolean {
   if (left === right) return true;
   if (left.length !== right.length) return false;
-  for (let i = 0; i < left.length; i++) {
-    if (left[i].refName !== right[i].refName) return false;
-    if (!Object.is(left[i].newValue, right[i].newValue)) return false;
-    if (left[i].isAsync !== right[i].isAsync) return false;
+  for (const [i, leftItem] of left.entries()) {
+    const rightItem = right[i] as (typeof right)[number];
+    if (leftItem.refName !== rightItem.refName) return false;
+    if (!Object.is(leftItem.newValue, rightItem.newValue)) return false;
+    if (leftItem.isAsync !== rightItem.isAsync) return false;
   }
   return true;
 }
@@ -426,12 +427,13 @@ function shallowEqualDecorators(
 ): boolean {
   if (left === right) return true;
   if (left.length !== right.length) return false;
-  for (let i = 0; i < left.length; i++) {
-    if (left[i].nodeId !== right[i].nodeId) return false;
-    if (left[i].result !== right[i].result) return false;
-    if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
-    if (!shallowEqualState(left[i].displayState, right[i].displayState)) return false;
-    if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
+  for (const [i, leftItem] of left.entries()) {
+    const rightItem = right[i] as (typeof right)[number];
+    if (leftItem.nodeId !== rightItem.nodeId) return false;
+    if (leftItem.result !== rightItem.result) return false;
+    if (leftItem.displayStateIsStale !== rightItem.displayStateIsStale) return false;
+    if (!shallowEqualState(leftItem.displayState, rightItem.displayState)) return false;
+    if (!shallowEqualRefEvents(leftItem.refEvents, rightItem.refEvents)) return false;
   }
   return true;
 }

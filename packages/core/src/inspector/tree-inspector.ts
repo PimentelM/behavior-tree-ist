@@ -218,8 +218,8 @@ export class TreeInspector {
         const range: TickRecord[] = [];
         const tickIds = this.store.getStoredTickIds();
         if (tickIds.length > 0) {
-            const firstTickId = tickIds[0]!;
-            const lastTickId = tickIds[tickIds.length - 1]!;
+            const firstTickId = tickIds[0] as number;
+            const lastTickId = tickIds[tickIds.length - 1] as number;
             range.push(...this.store.getTickRange(firstTickId, lastTickId));
             for (const record of range) {
                 cloned.store.push(record);

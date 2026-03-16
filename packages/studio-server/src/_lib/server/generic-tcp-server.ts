@@ -151,7 +151,7 @@ export class GenericTcpServer<TReceive, TSend, TConnection extends Connection<TR
         client.onDisconnect(() => {
             this.clients.delete(clientId);
             this.logger.debug('Raw TCP client disconnected', { clientId });
-            this.disconnectionHandlers.forEach((handler) => handler(clientId));
+            this.disconnectionHandlers.forEach((handler) => { handler(clientId); });
         });
 
         const context: GenericTcpConnectionContext = {
@@ -159,6 +159,6 @@ export class GenericTcpServer<TReceive, TSend, TConnection extends Connection<TR
             remoteAddress: socket.remoteAddress,
             remotePort: socket.remotePort,
         };
-        this.connectionHandlers.forEach((handler) => handler(client, context));
+        this.connectionHandlers.forEach((handler) => { handler(client, context); });
     }
 }

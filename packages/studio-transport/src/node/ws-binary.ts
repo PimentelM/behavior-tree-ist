@@ -52,4 +52,27 @@ export class WsNodeBinaryTransport extends WsNodeTransportBase {
             this.ws?.off("message", onMsg);
         };
     }
+
+    onError(handler: (error: Error) => void) {
+        if (!this.ws) {
+            throw new Error("WsNodeBinaryTransport: not connected");
+        }
+
+        const onErr = (err: Error) => { handler(err); };
+        this.ws.on("error", onErr);
+        return () => {
+            this.ws?.off("error", onErr);
+        };
+    }
+
+    onClose(handler: () => void) {
+        if (!this.ws) {
+            throw new Error("WsNodeBinaryTransport: not connected");
+        }
+
+        this.ws.on("close", handler);
+        return () => {
+            this.ws?.off("close", handler);
+        };
+    }
 }

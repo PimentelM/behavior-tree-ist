@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ref, readonlyRef, derivedRef } from "./ref";
 import { BTNode } from "./node";
-import { NodeResult } from "./types";
+import { NodeResult, type RefChangeEvent } from "./types";
 import { Action } from "./action";
 import { createTickContext } from "../test-helpers";
 import { Sequence } from "../nodes/composite/sequence";
@@ -61,7 +61,7 @@ describe("Ref", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(1);
-            expect(ctx.refEvents[0]).toEqual({
+            expect((ctx.refEvents[0] as RefChangeEvent)).toEqual({
                 tickId: 5,
                 timestamp: 100,
                 refName: "counter",
@@ -83,10 +83,10 @@ describe("Ref", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(2);
-            expect(ctx.refEvents[0].newValue).toBe(1);
-            expect(ctx.refEvents[1].newValue).toBe(2);
-            expect(ctx.refEvents[0].isAsync).toBe(false);
-            expect(ctx.refEvents[1].isAsync).toBe(false);
+            expect((ctx.refEvents[0] as RefChangeEvent).newValue).toBe(1);
+            expect((ctx.refEvents[1] as RefChangeEvent).newValue).toBe(2);
+            expect((ctx.refEvents[0] as RefChangeEvent).isAsync).toBe(false);
+            expect((ctx.refEvents[1] as RefChangeEvent).isAsync).toBe(false);
         });
 
         it("write outside tick produces no event and no error", () => {
@@ -129,7 +129,7 @@ describe("Ref", () => {
             BTNode.Tick(node, ctx);
 
             expect(ctx.refEvents).toHaveLength(1);
-            expect(ctx.refEvents[0]).toEqual({
+            expect((ctx.refEvents[0] as RefChangeEvent)).toEqual({
                 tickId: 1,
                 timestamp: 50,
                 refName: "started",
@@ -200,8 +200,8 @@ describe("Ref", () => {
 
             expect(ambientCtx.refEvents).toHaveLength(0);
             expect(explicitCtx.refEvents).toHaveLength(1);
-            expect(explicitCtx.refEvents[0].tickId).toBe(99);
-            expect(explicitCtx.refEvents[0].nodeId).toBe(node.id);
+            expect((explicitCtx.refEvents[0] as RefChangeEvent).tickId).toBe(99);
+            expect((explicitCtx.refEvents[0] as RefChangeEvent).nodeId).toBe(node.id);
         });
 
         it("works when no ambient ctx exists", () => {
@@ -212,7 +212,7 @@ describe("Ref", () => {
 
             expect(counter.value).toBe(42);
             expect(ctx.refEvents).toHaveLength(1);
-            expect(ctx.refEvents[0]).toEqual({
+            expect((ctx.refEvents[0] as RefChangeEvent)).toEqual({
                 tickId: 10,
                 timestamp: 200,
                 refName: "counter",
@@ -240,8 +240,8 @@ describe("Ref", () => {
             BTNode.Tick(seq, ctx);
 
             expect(ctx.refEvents).toHaveLength(2);
-            expect(ctx.refEvents[0].newValue).toBe(1);
-            expect(ctx.refEvents[1].newValue).toBe(2);
+            expect((ctx.refEvents[0] as RefChangeEvent).newValue).toBe(1);
+            expect((ctx.refEvents[1] as RefChangeEvent).newValue).toBe(2);
         });
 
         it("two different trees ticked sequentially get separate refEvents", () => {
@@ -262,10 +262,10 @@ describe("Ref", () => {
             BTNode.Tick(node2, ctx2);
 
             expect(ctx1.refEvents).toHaveLength(1);
-            expect(ctx1.refEvents[0].newValue).toBe(1);
+            expect((ctx1.refEvents[0] as RefChangeEvent).newValue).toBe(1);
 
             expect(ctx2.refEvents).toHaveLength(1);
-            expect(ctx2.refEvents[0].newValue).toBe(11);
+            expect((ctx2.refEvents[0] as RefChangeEvent).newValue).toBe(11);
         });
 
         it("if a hook throws, the stack is cleaned up", () => {
@@ -286,7 +286,7 @@ describe("Ref", () => {
             BTNode.Tick(workingNode, ctx2);
 
             expect(ctx2.refEvents).toHaveLength(1);
-            expect(ctx2.refEvents[0].newValue).toBe(42);
+            expect((ctx2.refEvents[0] as RefChangeEvent).newValue).toBe(42);
             expect(AmbientContext.getTickContext()).toBeUndefined();
         });
     });

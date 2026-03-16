@@ -159,7 +159,7 @@ export class ReplBroker implements ReplBrokerInterface {
         });
 
         const timer = setTimeout(
-            () => reject(new Error(`REPL request timed out after ${timeoutMs}ms`)),
+            () => { reject(new Error(`REPL request timed out after ${timeoutMs}ms`)); },
             timeoutMs
         );
 
@@ -177,9 +177,10 @@ export class ReplBroker implements ReplBrokerInterface {
         return promise.finally(() => {
             clearTimeout(timer);
             this.pending.delete(correlationId);
-        }).then(transform) as Promise<T>;
+        }).then(transform);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
     private decryptResponse<T>(raw: unknown, key: Uint8Array): T {
         if (typeof raw !== 'string') {
             throw new Error('Expected encrypted string response from agent');

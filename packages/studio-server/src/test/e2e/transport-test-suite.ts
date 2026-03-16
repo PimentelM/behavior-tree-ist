@@ -98,6 +98,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
             });
 
             agent.start();
+            // eslint-disable-next-line @typescript-eslint/require-await
             await waitFor(async () => agent.isConnected);
             await delay(50);
             agent.tick();
@@ -105,7 +106,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
         });
 
         afterEach(async () => {
-            agent?.destroy();
+            agent.destroy();
             await delay(100);
         });
 
@@ -158,7 +159,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
                 sessionId,
                 treeId,
             });
-            expect(trees[0].serializedTree).toHaveProperty('name');
+            expect((trees[0] as (typeof trees)[number]).serializedTree).toHaveProperty('name');
         });
 
         it('retrieves a specific tree by id', async () => {
@@ -240,6 +241,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
             });
             expect(statusAfterEnable).toMatchObject({
                 success: true,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 data: expect.objectContaining({ stateTrace: true }),
             });
 
@@ -263,6 +265,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
             });
             expect(statusAfterDisable).toMatchObject({
                 success: true,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 data: expect.objectContaining({ stateTrace: false }),
             });
         });
@@ -288,6 +291,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
             });
             expect(statusAfterEnable).toMatchObject({
                 success: true,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 data: expect.objectContaining({ profiling: true }),
             });
 

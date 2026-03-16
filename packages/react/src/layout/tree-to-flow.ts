@@ -22,6 +22,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
     const stackedDecoratorIds: number[] = [];
     const lifecycleDecoratorIds: number[] = [];
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (currentId !== undefined) {
       const current = treeIndex.getById(currentId);
       if (!current) return;
@@ -40,6 +41,7 @@ export function treeIndexToFlowElements(treeIndex: TreeIndex): {
       currentId = nextChildId;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const baseId = currentId ?? logicalNodeId;
     const baseNode = treeIndex.getById(baseId);
     if (!baseNode || visitedHosts.has(baseId)) return;

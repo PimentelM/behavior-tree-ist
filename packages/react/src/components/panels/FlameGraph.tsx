@@ -175,8 +175,8 @@ function FlameGraphInner({
             <g
               key={`${bar.frame.nodeId}-${bar.frame.depth}`}
               className={`bt-flamegraph__bar ${isSelected ? 'bt-flamegraph__bar--selected' : ''} ${isHovered ? 'bt-flamegraph__bar--hovered' : ''}`}
-              onClick={() => onSelectNode(bar.frame.nodeId)}
-              onMouseEnter={() => onHoverNode(bar.frame.nodeId)}
+              onClick={() => { onSelectNode(bar.frame.nodeId); }}
+              onMouseEnter={() => { onHoverNode(bar.frame.nodeId); }}
               onMouseMove={(e) => {
                 onHoverNode(bar.frame.nodeId);
                 setTooltip({

@@ -43,4 +43,27 @@ export class WsBrowserStringTransport extends WsBrowserTransportBase {
             this.ws?.removeEventListener("message", onMsg);
         };
     }
+
+    onError(handler: (error: Error) => void) {
+        if (!this.ws) {
+            throw new Error("WsBrowserStringTransport: not connected");
+        }
+
+        const onErr = () => { handler(new Error("WebSocket error")); };
+        this.ws.addEventListener("error", onErr);
+        return () => {
+            this.ws?.removeEventListener("error", onErr);
+        };
+    }
+
+    onClose(handler: () => void) {
+        if (!this.ws) {
+            throw new Error("WsBrowserStringTransport: not connected");
+        }
+
+        this.ws.addEventListener("close", handler);
+        return () => {
+            this.ws?.removeEventListener("close", handler);
+        };
+    }
 }

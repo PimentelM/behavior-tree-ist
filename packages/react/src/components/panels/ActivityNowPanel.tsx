@@ -40,7 +40,7 @@ function ActivityNowPanelInner({
                 key={branch.tailNodeId}
                 type="button"
                 className={`bt-activity-now__entry ${isSelected ? 'bt-activity-now__entry--selected' : ''}`}
-                onClick={() => onSelectBranch(branch)}
+                onClick={() => { onSelectBranch(branch); }}
                 title={text}
               >
                 <span

@@ -66,8 +66,8 @@ describe('ByteMetricsService', () => {
         const result = svc.query('c', 's', 't');
 
         expect(result.samples).toHaveLength(2);
-        expect(result.samples[0].tickId).toBe(2);
-        expect(result.samples[1].tickId).toBe(3);
+        expect((result.samples[0] as (typeof result.samples)[number]).tickId).toBe(2);
+        expect((result.samples[1] as (typeof result.samples)[number]).tickId).toBe(3);
     });
 
     it('isolates samples per tree key', () => {
@@ -97,6 +97,6 @@ describe('ByteMetricsService', () => {
     it('clearByAgent is a no-op for unknown agent', () => {
         const svc = new ByteMetricsService();
 
-        expect(() => svc.clearByAgent('ghost', 'session')).not.toThrow();
+        expect(() => { svc.clearByAgent('ghost', 'session'); }).not.toThrow();
     });
 });

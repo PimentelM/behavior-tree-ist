@@ -160,9 +160,9 @@ export class StudioLink implements StudioLinkInterface {
                 if (this.transport !== transport) return;
                 // Subscribe to transport events after connection is established
                 this.transportCleanup.push(
-                    transport.onMessage((data) => this.handleTransportMessage(data)),
-                    transport.onError((error) => this.emit(this.errorHandlers, error)),
-                    transport.onClose(() => this.handleTransportClose()),
+                    transport.onMessage((data) => { this.handleTransportMessage(data); }),
+                    transport.onError((error) => { this.emit(this.errorHandlers, error); }),
+                    transport.onClose(() => { this.handleTransportClose(); }),
                 );
                 this.state = ConnectionState.Connected;
                 this._pendingOpen = null;
@@ -191,7 +191,8 @@ export class StudioLink implements StudioLinkInterface {
 
         if (message.t === MessageType.Command) {
             this.emit(this.commandHandlers, message.command);
-        } else if (message.t === MessageType.PluginMessage) {
+        } else {
+            // message.t === MessageType.PluginMessage
             for (const handler of this.pluginMessageHandlers) {
                 handler(message.pluginId, message.correlationId, message.payload);
             }

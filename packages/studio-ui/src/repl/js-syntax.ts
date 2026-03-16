@@ -55,15 +55,15 @@ function tokenise(src: string): Token[] {
     // Returns the most recent non-whitespace token value, used for regex heuristic
     function lastNonWsValue(): string {
         for (let k = tokens.length - 1; k >= 0; k--) {
-            if (tokens[k].kind !== 'other' || tokens[k].value.trim() !== '') {
-                return tokens[k].value;
+            if ((tokens[k] as Token).kind !== 'other' || (tokens[k] as Token).value.trim() !== '') {
+                return (tokens[k] as Token).value;
             }
         }
         return '';
     }
 
     while (i < src.length) {
-        const ch = src[i];
+        const ch = src[i] as string;
 
         // ---- whitespace — pass through as 'other' ----
         if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
@@ -73,7 +73,7 @@ function tokenise(src: string): Token[] {
         }
 
         // ---- line comment ----
-        if (ch === '/' && src[i + 1] === '/') {
+        if (ch === '/' && src[i + 1] as string === '/') {
             const start = i;
             while (i < src.length && src[i] !== '\n') i++;
             tokens.push({ kind: 'comment', value: src.slice(start, i) });
@@ -81,7 +81,7 @@ function tokenise(src: string): Token[] {
         }
 
         // ---- block comment ----
-        if (ch === '/' && src[i + 1] === '*') {
+        if (ch === '/' && src[i + 1] as string === '*') {
             const start = i;
             i += 2;
             while (i < src.length && !(src[i - 1] === '*' && src[i] === '/')) i++;
@@ -107,7 +107,7 @@ function tokenise(src: string): Token[] {
                     i++;
                 }
                 // consume flags
-                while (i < src.length && /[gimsuy]/.test(src[i])) i++;
+                while (i < src.length && /[gimsuy]/.test(src[i] as string)) i++;
                 tokens.push({ kind: 'regex', value: src.slice(start, i) });
                 continue;
             }
@@ -153,29 +153,29 @@ function tokenise(src: string): Token[] {
         // Starts with digit, or '.' followed by digit
         if (
             (ch >= '0' && ch <= '9') ||
-            (ch === '.' && src[i + 1] >= '0' && src[i + 1] <= '9')
+            (ch === '.' && (src[i + 1] as string) >= '0' && (src[i + 1] as string) <= '9')
         ) {
             const start = i;
-            if (ch === '0' && (src[i + 1] === 'x' || src[i + 1] === 'X')) {
+            if (ch === '0' && (src[i + 1] as string === 'x' || src[i + 1] as string === 'X')) {
                 // hex
                 i += 2;
-                while (i < src.length && /[0-9a-fA-F_]/.test(src[i])) i++;
-            } else if (ch === '0' && (src[i + 1] === 'o' || src[i + 1] === 'O')) {
+                while (i < src.length && /[0-9a-fA-F_]/.test(src[i] as string)) i++;
+            } else if (ch === '0' && (src[i + 1] as string === 'o' || src[i + 1] as string === 'O')) {
                 // octal
                 i += 2;
-                while (i < src.length && /[0-7_]/.test(src[i])) i++;
-            } else if (ch === '0' && (src[i + 1] === 'b' || src[i + 1] === 'B')) {
+                while (i < src.length && /[0-7_]/.test(src[i] as string)) i++;
+            } else if (ch === '0' && (src[i + 1] as string === 'b' || src[i + 1] as string === 'B')) {
                 // binary
                 i += 2;
-                while (i < src.length && /[01_]/.test(src[i])) i++;
+                while (i < src.length && /[01_]/.test(src[i] as string)) i++;
             } else {
                 // decimal / float
-                while (i < src.length && /[0-9_.]/.test(src[i])) i++;
+                while (i < src.length && /[0-9_.]/.test(src[i] as string)) i++;
                 // optional exponent
                 if (i < src.length && (src[i] === 'e' || src[i] === 'E')) {
                     i++;
                     if (i < src.length && (src[i] === '+' || src[i] === '-')) i++;
-                    while (i < src.length && /[0-9_]/.test(src[i])) i++;
+                    while (i < src.length && /[0-9_]/.test(src[i] as string)) i++;
                 }
             }
             // bigint suffix
@@ -187,7 +187,7 @@ function tokenise(src: string): Token[] {
         // ---- identifier or keyword ----
         if (/[a-zA-Z_$]/.test(ch)) {
             const start = i;
-            while (i < src.length && /[a-zA-Z0-9_$]/.test(src[i])) i++;
+            while (i < src.length && /[a-zA-Z0-9_$]/.test(src[i] as string)) i++;
             const word = src.slice(start, i);
             if (KEYWORDS.has(word)) {
                 tokens.push({ kind: 'keyword', value: word });

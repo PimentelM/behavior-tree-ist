@@ -54,7 +54,7 @@ export class GenericWebSocketClient<TReceive, TSend> implements Connection<TRece
         });
 
         this.socket.on('close', () => {
-            this.disconnectHandlers.forEach(handler => handler());
+            this.disconnectHandlers.forEach(handler => { handler(); });
         });
 
         this.socket.on('error', (error) => {

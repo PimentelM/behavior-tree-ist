@@ -6,9 +6,9 @@ import { type CancellationSignal } from "./cancellation";
 
 describe("AsyncAction", () => {
     it("First tick returns Running", async () => {
-        let resolvePromise!: (result?: void) => void;
+        let resolvePromise!: (result?: NodeResult) => void;
         const execute = vi.fn().mockImplementation(() => {
-            return new Promise<void>((resolve) => {
+            return new Promise<NodeResult | undefined>((resolve) => {
                 resolvePromise = resolve;
             });
         });
@@ -18,13 +18,13 @@ describe("AsyncAction", () => {
 
         const result = ticker.tick(node);
         expect(result).toBe(NodeResult.Running);
-        expect(node.getDisplayState()?.status).toBe("pending");
+        expect(node.getDisplayState().status).toBe("pending");
 
         resolvePromise();
         await Promise.resolve(); // Microtask tick
 
         expect(ticker.tick(node)).toBe(NodeResult.Succeeded);
-        expect(node.getDisplayState()?.status).toBe("resolved");
+        expect(node.getDisplayState().status).toBe("resolved");
     });
 
     it("Resolves with void/undefined -> Succeeded on next tick", async () => {
@@ -71,8 +71,8 @@ describe("AsyncAction", () => {
 
         expect(ticker.tick(node)).toBe(NodeResult.Failed);
         expect(node.lastError).toEqual(new Error("Boom"));
-        expect(node.getDisplayState()?.status).toBe("rejected");
-        expect(node.getDisplayState()?.error).toBe("Error: Boom");
+        expect(node.getDisplayState().status).toBe("rejected");
+        expect(node.getDisplayState().error).toBe("Error: Boom");
     });
 
     it("Synchronous throw in execute() -> Failed on first tick", () => {
@@ -88,9 +88,9 @@ describe("AsyncAction", () => {
 
     it("Abort fires cancellation signal", () => {
         let signalRef!: CancellationSignal;
-        const execute = vi.fn().mockImplementation((_ctx, signal) => {
+        const execute = vi.fn().mockImplementation((_ctx, signal: CancellationSignal) => {
             signalRef = signal;
-            return new Promise<void>(() => { }); // pending forever
+            return new Promise<NodeResult | undefined>(() => { }); // pending forever
         });
 
         const node = AsyncAction.from("Test", execute);
@@ -128,7 +128,7 @@ describe("AsyncAction", () => {
 
     it("Reuse after abort", () => {
         const execute = vi.fn().mockImplementation(() => {
-            return new Promise<void>(() => { }); // pending forever
+            return new Promise<NodeResult | undefined>(() => { }); // pending forever
         });
 
         const node = AsyncAction.from("Test", execute);
@@ -136,16 +136,16 @@ describe("AsyncAction", () => {
 
         ticker.tick(node); // Running
         ticker.abort(node); // Aborts, resets
-        expect(node.getDisplayState()?.status).toBe('idle');
+        expect(node.getDisplayState().status).toBe('idle');
 
         ticker.tick(node); // Runs again
-        expect(node.getDisplayState()?.status).toBe('pending');
+        expect(node.getDisplayState().status).toBe('pending');
     });
 
     it("Stale promise results ignored after abort/reset", async () => {
-        let resolvePromise!: (result?: void) => void;
+        let resolvePromise!: (result?: NodeResult) => void;
         const execute = vi.fn().mockImplementation(() => {
-            return new Promise<void>((resolve) => {
+            return new Promise<NodeResult | undefined>((resolve) => {
                 resolvePromise = resolve;
             });
         });
@@ -163,10 +163,10 @@ describe("AsyncAction", () => {
         await Promise.resolve();
 
         // State should remain idle, not resolved from the stale promise
-        expect(node.getDisplayState()?.status).toBe('idle');
+        expect(node.getDisplayState().status).toBe('idle');
 
         // Tick again, it should be pending
         expect(ticker.tick(node)).toBe(NodeResult.Running);
-        expect(node.getDisplayState()?.status).toBe('pending');
+        expect(node.getDisplayState().status).toBe('pending');
     });
 });

@@ -14,8 +14,8 @@ function ByteSparklineInner({ samples, viewedTickId }: ByteSparklineProps) {
   const { areaPath, tickSpan, firstTickId } = useMemo(() => {
     if (samples.length < 2) return { areaPath: null, tickSpan: 0, firstTickId: 0 };
 
-    const first = samples[0].tickId;
-    const last = samples[samples.length - 1].tickId;
+    const first = (samples[0] as (typeof samples)[number]).tickId;
+    const last = (samples[samples.length - 1] as (typeof samples)[number]).tickId;
     const span = last - first;
     if (span <= 0) return { areaPath: null, tickSpan: 0, firstTickId: 0 };
 

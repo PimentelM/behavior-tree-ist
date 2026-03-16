@@ -26,7 +26,7 @@ export class TreeRegistry {
         this.trees.set(treeId, entry);
 
         // Subscribe to tick records
-        const off = tree.onTickRecord((record) => this.emitTreeTick(treeId, record));
+        const off = tree.onTickRecord((record) => { this.emitTreeTick(treeId, record); });
         this.treeTickOffFunctions.set(treeId, off);
 
         this.emitTreeRegistered(entry);

@@ -20,30 +20,28 @@ export function useByteMetrics(
         setResult(null);
         if (!selection) return;
 
-        let cancelled = false;
+        const cancelRef: { current: boolean } = { current: false };
 
-        const fetch = async () => {
+        type ByteMetricsQueryFn = (input: { clientId: string; sessionId: string; treeId: string }) => Promise<ByteMetricsResult>;
+        const queryFn = (trpc as unknown as { byteMetrics: { query: { query: ByteMetricsQueryFn } } }).byteMetrics.query.query;
+
+        const fetchData = async () => {
             const sel = selectionRef.current;
             if (!sel) return;
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const data = await ((trpc as any).byteMetrics.query.query)({
-                    clientId: sel.clientId,
-                    sessionId: sel.sessionId,
-                    treeId: sel.treeId,
-                });
-                if (!cancelled && selectionRef.current === sel) {
-                    setResult(data as ByteMetricsResult);
+                const data = await queryFn({ clientId: sel.clientId, sessionId: sel.sessionId, treeId: sel.treeId });
+                if (!cancelRef.current && selectionRef.current === sel) {
+                    setResult(data);
                 }
             } catch {
                 // silently ignore — byte metrics are best-effort
             }
         };
 
-        fetch();
-        const id = setInterval(fetch, pollRateMs);
+        void fetchData();
+        const id = setInterval(() => { void fetchData(); }, pollRateMs);
         return () => {
-            cancelled = true;
+            cancelRef.current = true;
             clearInterval(id);
         };
     }, [selection?.clientId, selection?.sessionId, selection?.treeId, pollRateMs]);

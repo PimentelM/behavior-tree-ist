@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { NodeResult, type TickTraceEvent, type TickRecord } from "../base/types";
+import { NodeResult, type TickTraceEvent, type TickRecord, type NodeHistoryEvent } from "../base/types";
 import { TickStore } from "./tick-store";
+import { type TreeTickSnapshot, type NodeTickSnapshot } from "./types";
 
 function makeRecord(tickId: number, nodeIds: number[] = [1, 2, 3]): TickRecord {
     const events = nodeIds.map((nodeId, i) => ({
@@ -57,7 +58,7 @@ describe("TickStore", () => {
         // Buffer is now full, next push evicts tick 1
         const evicted = store.push(makeRecord(4));
         expect(evicted).toBeDefined();
-        expect(evicted!.tickId).toBe(1);
+        expect((evicted as TickRecord).tickId).toBe(1);
         expect(store.hasTick(1)).toBe(false);
         expect(store.hasTick(4)).toBe(true);
         expect(store.size).toBe(3);
@@ -147,12 +148,12 @@ describe("TickStore", () => {
 
         const snapshot = store.getSnapshotAtTick(1);
         expect(snapshot).toBeDefined();
-        expect(snapshot!.tickId).toBe(1);
-        expect(snapshot!.timestamp).toBe(1000);
-        expect(snapshot!.nodes.size).toBe(2);
-        expect(snapshot!.nodes.get(10)!.result).toBe(NodeResult.Running);
-        expect(snapshot!.nodes.get(10)!.state).toEqual({ hp: 50 });
-        expect(snapshot!.nodes.get(20)!.result).toBe(NodeResult.Succeeded);
+        expect((snapshot as TreeTickSnapshot).tickId).toBe(1);
+        expect((snapshot as TreeTickSnapshot).timestamp).toBe(1000);
+        expect((snapshot as TreeTickSnapshot).nodes.size).toBe(2);
+        expect(((snapshot as TreeTickSnapshot).nodes.get(10) as NodeTickSnapshot).result).toBe(NodeResult.Running);
+        expect(((snapshot as TreeTickSnapshot).nodes.get(10) as NodeTickSnapshot).state).toEqual({ hp: 50 });
+        expect(((snapshot as TreeTickSnapshot).nodes.get(20) as NodeTickSnapshot).result).toBe(NodeResult.Succeeded);
     });
 
     it("getSnapshotAtTick returns undefined for unknown tick", () => {
@@ -177,10 +178,10 @@ describe("TickStore", () => {
 
         const history = store.getNodeHistory(5);
         expect(history).toHaveLength(2);
-        expect(history[0].tickId).toBe(1);
-        expect(history[0].result).toBe(NodeResult.Running);
-        expect(history[1].tickId).toBe(2);
-        expect(history[1].result).toBe(NodeResult.Succeeded);
+        expect((history[0] as NodeHistoryEvent).tickId).toBe(1);
+        expect((history[0] as NodeHistoryEvent).result).toBe(NodeResult.Running);
+        expect((history[1] as NodeHistoryEvent).tickId).toBe(2);
+        expect((history[1] as NodeHistoryEvent).result).toBe(NodeResult.Succeeded);
     });
 
     it("getLastNodeState returns most recent known state", () => {

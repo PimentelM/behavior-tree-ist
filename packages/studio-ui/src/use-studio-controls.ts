@@ -90,25 +90,22 @@ export function useStudioControls(): UseStudioControlsResult {
         setTickBounds(null);
         if (!selection) return;
 
-        let active = true;
+        const activeRef: { current: boolean } = { current: true };
+        type BoundsQueryFn = (input: { clientId: string; sessionId: string; treeId: string }) => Promise<StudioTickBounds | null>;
+        const boundsQuery = (trpc.ticks as unknown as { bounds: { query: BoundsQueryFn } }).bounds.query;
         const fetchBounds = async () => {
             const sel = selectionRef.current;
             if (!sel) return;
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const bounds = await (trpc.ticks.bounds.query as any)({
-                    clientId: sel.clientId,
-                    sessionId: sel.sessionId,
-                    treeId: sel.treeId,
-                });
-                if (active && bounds) setTickBounds(bounds as StudioTickBounds);
+                const bounds = await boundsQuery({ clientId: sel.clientId, sessionId: sel.sessionId, treeId: sel.treeId });
+                if (activeRef.current && bounds) setTickBounds(bounds);
             } catch { /* ignore */ }
         };
 
-        fetchBounds();
-        const id = setInterval(fetchBounds, BOUNDS_POLL_MS);
+        void fetchBounds();
+        const id = setInterval(() => { void fetchBounds(); }, BOUNDS_POLL_MS);
         return () => {
-            active = false;
+            activeRef.current = false;
             clearInterval(id);
         };
     }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
@@ -116,6 +113,9 @@ export function useStudioControls(): UseStudioControlsResult {
     // ticks: TT window overrides live buffer; falling back to live when no TT window active
     const ticks = ttWindowTicks ?? pollerResult.ticks;
     const isLoadingWindow = ttWindowLoading;
+
+    type TickRangeQueryFn = (input: { clientId: string; sessionId: string; treeId: string; fromTickId: number; toTickId: number; limit: number }) => Promise<TickRecord[]>;
+    const tickRangeQuery = (trpc.ticks as unknown as { range: { query: TickRangeQueryFn } }).range.query;
 
     const onFetchTicksAround = useCallback((tickId: number) => {
         const half = Math.floor(uiSettings.ringBufferSize / 2);
@@ -125,40 +125,38 @@ export function useStudioControls(): UseStudioControlsResult {
         if (!sel) return;
         setWindowMaxTicks(to - from + 1);
         setTtWindowLoading(true);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((trpc.ticks as any).range.query as any)({
+        tickRangeQuery({
             clientId: sel.clientId,
             sessionId: sel.sessionId,
             treeId: sel.treeId,
             fromTickId: from,
             toTickId: to,
             limit: Math.min(to - from + 1, 10000),
-        }).then((newTicks: TickRecord[]) => {
-            const sorted = [...newTicks].sort((a: TickRecord, b: TickRecord) => a.tickId - b.tickId);
+        }).then((newTicks) => {
+            const sorted = [...newTicks].sort((a, b) => a.tickId - b.tickId);
             setTtWindowTicks(sorted);
             setTtWindowLoading(false);
         }).catch(() => { setTtWindowLoading(false); });
-    }, [uiSettings.ringBufferSize]);
+    }, [uiSettings.ringBufferSize, tickRangeQuery]);
 
     const onFetchTickRange = useCallback((from: number, to: number) => {
         const sel = selectionRef.current;
         if (!sel) return;
         setWindowMaxTicks(to - from + 1);
         setTtWindowLoading(true);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((trpc.ticks as any).range.query as any)({
+        tickRangeQuery({
             clientId: sel.clientId,
             sessionId: sel.sessionId,
             treeId: sel.treeId,
             fromTickId: from,
             toTickId: to,
             limit: Math.min(to - from + 1, 10000),
-        }).then((newTicks: TickRecord[]) => {
-            const sorted = [...newTicks].sort((a: TickRecord, b: TickRecord) => a.tickId - b.tickId);
+        }).then((newTicks) => {
+            const sorted = [...newTicks].sort((a, b) => a.tickId - b.tickId);
             setTtWindowTicks(sorted);
             setTtWindowLoading(false);
         }).catch(() => { setTtWindowLoading(false); });
-    }, []);
+    }, [tickRangeQuery]);
 
     const onResumeStreaming = useCallback(() => {
         setTtWindowTicks(null);

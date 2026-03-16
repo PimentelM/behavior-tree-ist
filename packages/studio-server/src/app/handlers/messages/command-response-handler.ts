@@ -12,6 +12,7 @@ export class CommandResponseHandler extends BaseHandler {
         super(priority, 'command-response-handler');
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     protected async handleMessage(message: OutboundMessage, _client: MessageConnectionInterface): Promise<void> {
         if (message.t !== MessageType.CommandResponse) return;
 

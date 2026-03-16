@@ -189,8 +189,8 @@ describe('ReplPlugin handshake', () => {
         plugin.attach(sender);
 
         expect(sent).toHaveLength(1);
-        expect(sent[0]!.correlationId).toBe('handshake');
-        const payload = sent[0]!.payload as { type: string; headerToken: string };
+        expect((sent[0] as (typeof sent)[number]).correlationId).toBe('handshake');
+        const payload = (sent[0] as (typeof sent)[number]).payload as { type: string; headerToken: string };
         expect(payload.type).toBe('handshake');
         expect(typeof payload.headerToken).toBe('string');
     });
@@ -225,60 +225,61 @@ function uiEncrypt(payload: object, s2cKey: Uint8Array): string {
     return encodeEnvelope(nonce, box);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function uiDecrypt<T>(envelope: string, c2sKey: Uint8Array): T {
     const { nonce, ciphertext } = decodeEnvelope(envelope);
     return bytesToJson<T>(secretboxDecrypt(nonce, ciphertext, c2sKey));
 }
 
 describe('ReplPlugin eval round-trip', () => {
-    async function setupPluginWithSession() {
+    function setupPluginWithSession() {
         const uiKp = makeUiKeyPair();
         const plugin = makePlugin(uiKp.publicKey);
         const { sender, sent } = makeTestSender();
 
         plugin.attach(sender);
 
-        const handshake = sent[0]!.payload as { type: string; headerToken: string };
+        const handshake = (sent[0] as (typeof sent)[number]).payload as { type: string; headerToken: string };
         const uiKeys = extractSessionKeysFromHandshake(handshake, uiKp.secretKey);
 
         return { plugin, sent, uiKeys };
     }
 
     it('evaluates an expression and returns result', async () => {
-        const { plugin, sent, uiKeys } = await setupPluginWithSession();
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
 
         const encrypted = uiEncrypt({ type: 'eval', code: '1 + 1' }, uiKeys.s2c);
         await plugin.handleInbound('corr-1', encrypted);
 
         expect(sent).toHaveLength(2);
-        const result = uiDecrypt<{ type: string; text: string }>(sent[1]!.payload as string, uiKeys.c2s);
+        const result = uiDecrypt<{ type: string; text: string }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
         expect(result.type).toBe('result');
         expect(result.text).toBe('2');
     });
 
     it('captures console output', async () => {
-        const { plugin, sent, uiKeys } = await setupPluginWithSession();
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
 
         const encrypted = uiEncrypt({ type: 'eval', code: 'console.log("hi"); 42' }, uiKeys.s2c);
         await plugin.handleInbound('corr-2', encrypted);
 
-        const result = uiDecrypt<{ consoleOutput?: string[] }>(sent[1]!.payload as string, uiKeys.c2s);
+        const result = uiDecrypt<{ consoleOutput?: string[] }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
         expect(result.consoleOutput).toEqual(['hi']);
     });
 
     it('returns error payload on exception', async () => {
-        const { plugin, sent, uiKeys } = await setupPluginWithSession();
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
 
         const encrypted = uiEncrypt({ type: 'eval', code: 'throw new Error("oops")' }, uiKeys.s2c);
         await plugin.handleInbound('corr-3', encrypted);
 
-        const result = uiDecrypt<{ type: string; text: string }>(sent[1]!.payload as string, uiKeys.c2s);
+        const result = uiDecrypt<{ type: string; text: string }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
         expect(result.type).toBe('error');
         expect(result.text).toContain('oops');
     });
 
     it('persists variables across evals via globalThis rewrite', async () => {
-        const { plugin, sent, uiKeys } = await setupPluginWithSession();
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
 
         const enc1 = uiEncrypt({ type: 'eval', code: 'let _testVar123 = 42' }, uiKeys.s2c);
         await plugin.handleInbound('corr-4a', enc1);
@@ -286,7 +287,7 @@ describe('ReplPlugin eval round-trip', () => {
         const enc2 = uiEncrypt({ type: 'eval', code: '_testVar123' }, uiKeys.s2c);
         await plugin.handleInbound('corr-4b', enc2);
 
-        const result = uiDecrypt<{ type: string; text: string }>(sent[2]!.payload as string, uiKeys.c2s);
+        const result = uiDecrypt<{ type: string; text: string }>((sent[2] as (typeof sent)[number]).payload as string, uiKeys.c2s);
         expect(result.type).toBe('result');
         expect(result.text).toBe('42');
 
@@ -294,12 +295,12 @@ describe('ReplPlugin eval round-trip', () => {
     });
 
     it('returns completions for a prefix', async () => {
-        const { plugin, sent, uiKeys } = await setupPluginWithSession();
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
 
         const encrypted = uiEncrypt({ type: 'completions', prefix: 'Math.' }, uiKeys.s2c);
         await plugin.handleInbound('corr-5', encrypted);
 
-        const result = uiDecrypt<{ type: string; completions: string[] }>(sent[1]!.payload as string, uiKeys.c2s);
+        const result = uiDecrypt<{ type: string; completions: string[] }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
         expect(result.type).toBe('completions');
         expect(result.completions).toContain('PI');
         expect(result.completions).toContain('abs');
@@ -313,7 +314,7 @@ describe('ReplPlugin eval round-trip', () => {
     });
 
     it('silently drops tampered payloads', async () => {
-        const { plugin, sent, uiKeys } = await setupPluginWithSession();
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
 
         const enc = uiEncrypt({ type: 'eval', code: '1' }, uiKeys.s2c);
         const tampered = enc.slice(0, -4) + 'XXXX';
@@ -330,7 +331,7 @@ describe('ReplPlugin eval round-trip', () => {
         const plugin = makePlugin(uiKp.publicKey);
         const { sender, sent } = makeTestSender();
         plugin.attach(sender);
-        const handshake = sent[0]!.payload as { type: string; headerToken: string };
+        const handshake = (sent[0] as (typeof sent)[number]).payload as { type: string; headerToken: string };
         const uiKeys = extractSessionKeysFromHandshake(handshake, uiKp.secretKey);
 
         const encrypted = uiEncrypt({ type: 'eval', code: 'await new Promise(() => {})' }, uiKeys.s2c);
@@ -339,7 +340,7 @@ describe('ReplPlugin eval round-trip', () => {
         vi.advanceTimersByTime(15_001);
         await evalPromise;
 
-        const result = uiDecrypt<{ type: string; text: string }>(sent[1]!.payload as string, uiKeys.c2s);
+        const result = uiDecrypt<{ type: string; text: string }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
         expect(result.type).toBe('error');
         expect(result.text).toContain('timed out');
 

@@ -71,22 +71,22 @@ export function useTimeTravelControls(
 
   const stepForward = useCallback(() => {
     if (storedIds.length === 0) return;
-    const currentId = viewedTickId ?? storedIds[0];
+    const currentId = viewedTickId ?? storedIds[0] as number;
     const idx = storedIds.indexOf(currentId);
     if (idx < storedIds.length - 1) {
       setMode('paused');
-      setFrozenTickId(storedIds[idx + 1]);
+      setFrozenTickId(storedIds[idx + 1] as number);
     }
     // At edge of loaded window — user must use window selector to load more
   }, [storedIds, viewedTickId]);
 
   const stepBack = useCallback(() => {
     if (storedIds.length === 0) return;
-    const currentId = viewedTickId ?? storedIds[storedIds.length - 1];
+    const currentId = viewedTickId ?? storedIds[storedIds.length - 1] as number;
     const idx = storedIds.indexOf(currentId);
     if (idx > 0) {
       setMode('paused');
-      setFrozenTickId(storedIds[idx - 1]);
+      setFrozenTickId(storedIds[idx - 1] as number);
     }
     // At edge of loaded window — user must use window selector to load more
   }, [storedIds, viewedTickId]);
@@ -118,7 +118,7 @@ export function useTimeTravelControls(
     if (storedIds.includes(frozenTickId)) return;
     // Only clamp if tick is not fetchable via server
     if (serverBounds && frozenTickId >= serverBounds.minTickId && frozenTickId <= serverBounds.maxTickId) return;
-    setFrozenTickId(storedIds[0]);
+    setFrozenTickId(storedIds[0] as number);
   }, [mode, frozenTickId, storedIds, serverBounds]);
 
   return {

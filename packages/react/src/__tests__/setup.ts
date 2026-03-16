@@ -7,8 +7,10 @@ if (typeof localStorage === 'undefined' || typeof localStorage.removeItem !== 'f
   const _store: Record<string, string> = {};
   const localStorageMock: Storage = {
     getItem: (key: string) => _store[key] ?? null,
-    setItem: (key: string, value: string) => { _store[key] = String(value); },
+    setItem: (key: string, value: string) => { _store[key] = value; },
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     removeItem: (key: string) => { delete _store[key]; },
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     clear: () => { for (const k of Object.keys(_store)) delete _store[k]; },
     key: (index: number) => Object.keys(_store)[index] ?? null,
     get length() { return Object.keys(_store).length; },

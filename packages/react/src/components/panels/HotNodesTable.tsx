@@ -192,7 +192,7 @@ function HotNodesTableInner({
     <th className="bt-hot-nodes__cell bt-hot-nodes__cell--num">
       <button
         className={`bt-hot-nodes__sort ${sortKey === key ? 'bt-hot-nodes__sort--active' : ''}`}
-        onClick={() => setSort(key)}
+        onClick={() => { setSort(key); }}
         type="button"
       >
         {label}{sortKey === key ? sortArrow : ''}
@@ -225,7 +225,7 @@ function HotNodesTableInner({
               <button
                 key={option}
                 className={`bt-hot-nodes__percentile-btn ${selectedPercentile === option ? 'bt-hot-nodes__percentile-btn--active' : ''}`}
-                onClick={() => setSelectedPercentile(option)}
+                onClick={() => { setSelectedPercentile(option); }}
                 type="button"
               >
                 {option.toUpperCase()}
@@ -277,8 +277,8 @@ function HotNodesTableInner({
                     <tr
                       key={node.nodeId}
                       className={`bt-hot-nodes__row ${isSelected ? 'bt-hot-nodes__row--selected' : ''} ${isHovered ? 'bt-hot-nodes__row--hovered' : ''}`}
-                      onClick={() => onSelectNode(node.nodeId)}
-                      onMouseEnter={() => onHoverNode(node.nodeId)}
+                      onClick={() => { onSelectNode(node.nodeId); }}
+                      onMouseEnter={() => { onHoverNode(node.nodeId); }}
                     >
                       <td className="bt-hot-nodes__cell bt-hot-nodes__cell--name" title={name}>{name}</td>
                       <td className="bt-hot-nodes__cell bt-hot-nodes__cell--num">{formatMs(node.totalSelfCpuTime)}</td>

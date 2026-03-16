@@ -9,6 +9,7 @@ export function registerLocalDomainEventHandlers({
     byteMetricsService,
     runtimeSettings,
 }: Pick<AppDependencies, 'uiWsServer' | 'eventDispatcher' | 'commandBroker' | 'byteMetricsService'> & { runtimeSettings: RuntimeSettingsRef }): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
     eventDispatcher.on('Agent', 'AgentConnected', async ({ event }) => {
         const { clientId, sessionId } = event.body;
 
@@ -19,6 +20,7 @@ export function registerLocalDomainEventHandlers({
         });
     });
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     eventDispatcher.on('Agent', 'AgentDisconnected', async ({ event }) => {
         const { clientId, sessionId } = event.body;
 
@@ -31,6 +33,7 @@ export function registerLocalDomainEventHandlers({
         byteMetricsService.clearByAgent(clientId, sessionId);
     });
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     eventDispatcher.on('Agent', 'CatalogChanged', async ({ event }) => {
         const { clientId, sessionId } = event.body;
 
@@ -41,6 +44,7 @@ export function registerLocalDomainEventHandlers({
         });
     });
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     eventDispatcher.on('Server', 'SettingsUpdated', async ({ event }) => {
         const { maxTicksPerTree, commandTimeoutMs } = event.body.settings;
         runtimeSettings.maxTicksPerTree = maxTicksPerTree;

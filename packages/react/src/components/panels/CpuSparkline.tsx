@@ -10,8 +10,8 @@ function CpuSparklineInner({ entries, viewedTickId }: CpuSparklineProps) {
   const { areaPath, tickSpan, firstTickId } = useMemo(() => {
     if (entries.length < 2) return { areaPath: null, tickSpan: 0, firstTickId: 0 };
 
-    const first = entries[0].tickId;
-    const last = entries[entries.length - 1].tickId;
+    const first = (entries[0] as (typeof entries)[number]).tickId;
+    const last = (entries[entries.length - 1] as (typeof entries)[number]).tickId;
     const span = last - first;
     if (span <= 0) return { areaPath: null, tickSpan: 0, firstTickId: 0 };
 

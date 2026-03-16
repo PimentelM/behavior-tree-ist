@@ -24,18 +24,20 @@ export function toDisplayString(value: unknown): string {
             try {
                 return JSON.stringify(
                     value,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                     (_k, v) => (typeof v === 'bigint' ? v.toString() : v),
                     2,
                 );
             } catch {
-                const ctor = (value as { constructor?: { name?: string } })?.constructor?.name ?? 'Object';
-                const keys = Object.keys(value as object).slice(0, 20);
+                const ctor = (value as { constructor?: { name?: string } }).constructor?.name ?? 'Object';
+                const keys = Object.keys(value).slice(0, 20);
                 return `[${ctor} { ${keys.join(', ')}${keys.length >= 20 ? ', ...' : ''} }]`;
             }
         }
     } catch (err) {
-        return `[[toString error]] ${err}`;
+        return `[[toString error]] ${err instanceof Error ? err.message : String(err)}`;
     }
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return String(value);
 }
 
@@ -71,7 +73,7 @@ export function resolvePath(root: unknown, pathSegments: string[]): unknown {
 
 export function isProbablyExpression(sourceCode: string): boolean {
     try {
-        const trimmed = (sourceCode ?? '').trim();
+        const trimmed = sourceCode.trim();
         if (!trimmed) return false;
         if (
             /^(let|const|var|function|class|import|export|if|for|while|do|switch|try|with)\b/.test(
@@ -80,6 +82,7 @@ export function isProbablyExpression(sourceCode: string): boolean {
         ) {
             return false;
         }
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval
         new Function(`return (${trimmed})`);
         return true;
     } catch {
@@ -97,7 +100,7 @@ export function rewriteTopLevelDeclarations(sourceCode: string): string {
                 out.push(line);
                 continue;
             }
-            const decl = m[2]!;
+            const decl = m[2] as string;
             const parts = decl.split(',').map((s) => s.trim()).filter(Boolean);
             const assigns: string[] = [];
             for (const part of parts) {

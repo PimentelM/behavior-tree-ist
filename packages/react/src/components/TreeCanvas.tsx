@@ -43,7 +43,7 @@ const edgeTypes: EdgeTypes = {
 };
 
 function getMiniMapNodeColor(node: Node<BTNodeData>): string {
-  const result = node.data?.result;
+  const result = node.data.result;
   if (result === NodeResult.Succeeded) return '#22c55e';
   if (result === NodeResult.Failed) return '#ef4444';
   if (result === NodeResult.Running) return '#eab308';
@@ -97,10 +97,10 @@ function TreeCanvasInner({
     if (!flowInstance || renderNodes.length === 0) return;
 
     const frame = requestAnimationFrame(() => {
-      flowInstance.fitView({ padding: 0.2, maxZoom: 1.2 });
+      void flowInstance.fitView({ padding: 0.2, maxZoom: 1.2 });
     });
 
-    return () => cancelAnimationFrame(frame);
+    return () => { cancelAnimationFrame(frame); };
   }, [flowInstance, layoutVersion, renderNodes.length]);
 
   useEffect(() => {
@@ -109,7 +109,7 @@ function TreeCanvasInner({
     if (lastCenterSignalRef.current === centerTreeSignal) return;
 
     lastCenterSignalRef.current = centerTreeSignal;
-    flowInstance.fitView({ padding: 0.2, duration: 220, maxZoom: 1.2 });
+    void flowInstance.fitView({ padding: 0.2, duration: 220, maxZoom: 1.2 });
   }, [flowInstance, renderNodes.length, centerTreeSignal]);
 
   useEffect(() => {
@@ -127,14 +127,14 @@ function TreeCanvasInner({
       const centerY = targetNode.position.y + (nodeHeight / 2);
       const currentZoom = flowInstance.getZoom();
 
-      flowInstance.setCenter(centerX, centerY, {
+      void flowInstance.setCenter(centerX, centerY, {
         zoom: Math.min(Math.max(currentZoom, 0.9), 1.35),
         duration: 260,
       });
       lastFocusSignalRef.current = focusNodeSignal;
     });
 
-    return () => cancelAnimationFrame(frame);
+    return () => { cancelAnimationFrame(frame); };
   }, [flowInstance, renderNodes, focusNodeId, focusNodeSignal]);
 
   return (
@@ -248,12 +248,12 @@ function mergeMutableEdgeData(
 
   for (const previousEdge of previousEdges) {
     const nextEdge = nextById.get(previousEdge.id);
-    if (!nextEdge) return nextEdges;
+    if (!nextEdge || !nextEdge.data || !previousEdge.data) return nextEdges;
 
-    const nextChildResult = nextEdge.data?.childResult ?? null;
-    const nextIsOnActivityPathEdge = nextEdge.data?.isOnActivityPathEdge ?? false;
-    const sameMutableData = previousEdge.data?.childResult === nextChildResult
-      && (previousEdge.data?.isOnActivityPathEdge ?? false) === nextIsOnActivityPathEdge
+    const nextChildResult = nextEdge.data.childResult;
+    const nextIsOnActivityPathEdge = nextEdge.data.isOnActivityPathEdge;
+    const sameMutableData = previousEdge.data.childResult === nextChildResult
+      && previousEdge.data.isOnActivityPathEdge === nextIsOnActivityPathEdge
       && previousEdge.animated === nextEdge.animated;
 
     if (sameMutableData) {
@@ -315,10 +315,11 @@ function shallowEqualRefEvents(left: BTNodeData['refEvents'], right: BTNodeData[
   if (left === right) return true;
   if (left.length !== right.length) return false;
 
-  for (let i = 0; i < left.length; i++) {
-    if (left[i].refName !== right[i].refName) return false;
-    if (!Object.is(left[i].newValue, right[i].newValue)) return false;
-    if (left[i].isAsync !== right[i].isAsync) return false;
+  for (const [i, leftItem] of left.entries()) {
+    const rightItem = right[i] as (typeof right)[number];
+    if (leftItem.refName !== rightItem.refName) return false;
+    if (!Object.is(leftItem.newValue, rightItem.newValue)) return false;
+    if (leftItem.isAsync !== rightItem.isAsync) return false;
   }
 
   return true;
@@ -331,12 +332,13 @@ function shallowEqualDecorators(
   if (left === right) return true;
   if (left.length !== right.length) return false;
 
-  for (let i = 0; i < left.length; i++) {
-    if (left[i].nodeId !== right[i].nodeId) return false;
-    if (left[i].result !== right[i].result) return false;
-    if (left[i].displayStateIsStale !== right[i].displayStateIsStale) return false;
-    if (!shallowEqualState(left[i].displayState, right[i].displayState)) return false;
-    if (!shallowEqualRefEvents(left[i].refEvents, right[i].refEvents)) return false;
+  for (const [i, leftItem] of left.entries()) {
+    const rightItem = right[i] as (typeof right)[number];
+    if (leftItem.nodeId !== rightItem.nodeId) return false;
+    if (leftItem.result !== rightItem.result) return false;
+    if (leftItem.displayStateIsStale !== rightItem.displayStateIsStale) return false;
+    if (!shallowEqualState(leftItem.displayState, rightItem.displayState)) return false;
+    if (!shallowEqualRefEvents(leftItem.refEvents, rightItem.refEvents)) return false;
   }
 
   return true;

@@ -53,7 +53,7 @@ function NodeDetailPanelInner({
             className={`bt-detail-panel__tab ${
               activeTab === 'details' ? 'bt-detail-panel__tab--active' : ''
             }`}
-            onClick={() => setActiveTab('details')}
+            onClick={() => { setActiveTab('details'); }}
           >
             Node Details
           </button>
@@ -61,7 +61,7 @@ function NodeDetailPanelInner({
             className={`bt-detail-panel__tab ${
               activeTab === 'refs' ? 'bt-detail-panel__tab--active' : ''
             }`}
-            onClick={() => setActiveTab('refs')}
+            onClick={() => { setActiveTab('refs'); }}
           >
             Ref details
           </button>

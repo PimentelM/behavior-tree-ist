@@ -114,7 +114,7 @@ export class TreeIndex {
     getChildren(nodeId: number): readonly IndexedNode[] {
         const node = this.byId.get(nodeId);
         if (!node) return [];
-        return node.childrenIds.map(id => this.byId.get(id)!);
+        return node.childrenIds.map(id => this.byId.get(id) as IndexedNode);
     }
 
     getParent(nodeId: number): IndexedNode | undefined {
@@ -140,15 +140,15 @@ export class TreeIndex {
 
         // Use stack with reverse push for correct pre-order traversal
         const stack: number[] = [];
-        for (let i = node.childrenIds.length - 1; i >= 0; i--) {
-            stack.push(node.childrenIds[i]);
+        for (const childId of [...node.childrenIds].reverse()) {
+            stack.push(childId);
         }
         while (stack.length > 0) {
-            const id = stack.pop()!;
-            const child = this.byId.get(id)!;
+            const id = stack.pop() as number;
+            const child = this.byId.get(id) as IndexedNode;
             result.push(child);
-            for (let i = child.childrenIds.length - 1; i >= 0; i--) {
-                stack.push(child.childrenIds[i]);
+            for (const childId of [...child.childrenIds].reverse()) {
+                stack.push(childId);
             }
         }
         return result;

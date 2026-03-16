@@ -20,6 +20,7 @@ export function createByteMetricsRouter({ byteMetricsService }: AppDependencies)
                 ratePerSecond: z.number(),
                 totalBytes: z.number(),
             }))
+            // eslint-disable-next-line @typescript-eslint/require-await
             .query(async ({ input }) => {
                 return byteMetricsService.query(input.clientId, input.sessionId, input.treeId);
             }),

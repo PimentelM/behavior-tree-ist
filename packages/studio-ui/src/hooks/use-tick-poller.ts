@@ -43,8 +43,10 @@ export function useTickPoller(
 
         fetchingRef.current = true;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (trpc.ticks.query.query as any)({
+        const queryFn = trpc.ticks.query.query as unknown as (params: {
+            clientId: string; sessionId: string; treeId: string; afterTickId: number; limit: number;
+        }) => Promise<TickRecord[]>;
+        void queryFn({
             clientId: sel.clientId,
             sessionId: sel.sessionId,
             treeId: sel.treeId,
@@ -55,7 +57,7 @@ export function useTickPoller(
             if (selectionRef.current !== sel) return;
             if (newTicks.length === 0) return;
 
-            const newLastId = newTicks[newTicks.length - 1].tickId;
+            const newLastId = (newTicks[newTicks.length - 1] as (typeof newTicks)[number]).tickId;
             if (newLastId <= afterTickIdRef.current) return;
             afterTickIdRef.current = newLastId;
 
@@ -67,6 +69,7 @@ export function useTickPoller(
         }).catch((err: unknown) => {
             fetchingRef.current = false;
             setError(err);
+            // eslint-disable-next-line no-console
             console.error('[use-tick-poller] forward fetch error', err);
         });
     }, []);
@@ -75,7 +78,7 @@ export function useTickPoller(
     useEffect(() => {
         if (!selection) return;
 
-        let cancelled = false;
+        const cancelRef: { current: boolean } = { current: false };
         let intervalId: ReturnType<typeof setInterval> | null = null;
         const sel = selectionRef.current;
         if (!sel) return;
@@ -84,22 +87,28 @@ export function useTickPoller(
 
         void (async () => {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const bounds = await (trpc.ticks.bounds.query as any)({
+                type BoundsResult = { minTickId: number; maxTickId: number; totalCount: number } | null;
+                const boundsQueryFn = trpc.ticks.bounds.query as unknown as (params: {
+                    clientId: string; sessionId: string; treeId: string;
+                }) => Promise<BoundsResult>;
+                const bounds = await boundsQueryFn({
                     clientId: sel.clientId,
                     sessionId: sel.sessionId,
                     treeId: sel.treeId,
                 });
 
-                if (cancelled || selectionRef.current !== sel) return;
+                if (cancelRef.current || selectionRef.current !== sel) return;
 
-                if (bounds?.maxTickId > 0) {
+                if (bounds?.maxTickId != null && bounds.maxTickId > 0) {
                     const maxTickId: number = bounds.maxTickId;
                     const cap = ringBufferSizeRef.current;
                     const fromTickId = Math.max(0, maxTickId - cap + 1);
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const seedTicks: TickRecord[] = await ((trpc.ticks as any).range.query as any)({
+                    const rangeQueryFn = (trpc.ticks as unknown as { range: { query: (params: {
+                        clientId: string; sessionId: string; treeId: string;
+                        fromTickId: number; toTickId: number; limit: number;
+                    }) => Promise<TickRecord[]> } }).range.query;
+                    const seedTicks: TickRecord[] = await rangeQueryFn({
                         clientId: sel.clientId,
                         sessionId: sel.sessionId,
                         treeId: sel.treeId,
@@ -108,31 +117,33 @@ export function useTickPoller(
                         limit: cap,
                     });
 
-                    if (cancelled || selectionRef.current !== sel) return;
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                    if (cancelRef.current || selectionRef.current !== sel) return;
 
                     const sorted = [...seedTicks].sort((a, b) => a.tickId - b.tickId);
                     afterTickIdRef.current = maxTickId;
                     setTicks(sorted);
                 }
             } catch (err) {
-                if (!cancelled && selectionRef.current === sel) {
+                if (!cancelRef.current && selectionRef.current === sel) {
                     setError(err);
+                    // eslint-disable-next-line no-console
                     console.error('[use-tick-poller] seed error', err);
                 }
             } finally {
-                if (!cancelled && selectionRef.current === sel) {
+                if (!cancelRef.current && selectionRef.current === sel) {
                     setIsLoading(false);
                 }
             }
 
-            if (!cancelled && selectionRef.current === sel) {
+            if (!cancelRef.current && selectionRef.current === sel) {
                 intervalId = setInterval(fetchForward, pollRateMs);
                 fetchForward();
             }
         })();
 
         return () => {
-            cancelled = true;
+            cancelRef.current = true;
             setIsLoading(false);
             if (intervalId !== null) clearInterval(intervalId);
         };

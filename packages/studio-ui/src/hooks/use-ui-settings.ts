@@ -12,7 +12,7 @@ const DEFAULTS: StudioUiSettings = {
 function loadSettings(): StudioUiSettings {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return { ...DEFAULTS, ...JSON.parse(raw) };
+        if (raw) return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<StudioUiSettings>) };
     } catch { /* ignore */ }
     return DEFAULTS;
 }

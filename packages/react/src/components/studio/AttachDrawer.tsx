@@ -48,7 +48,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
   useEffect(() => {
     if (clients.length === 1 && !expandedClientId && !hasAutoExpandedClient.current) {
       hasAutoExpandedClient.current = true;
-      onExpandClient(clients[0].clientId);
+      onExpandClient((clients[0] as (typeof clients)[number]).clientId);
     }
   }, [clients, expandedClientId, onExpandClient]);
 
@@ -61,7 +61,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
   useEffect(() => {
     if (clientSessions.length === 1 && !expandedSessionId && !hasAutoExpandedSession.current) {
       hasAutoExpandedSession.current = true;
-      onExpandSession(clientSessions[0].sessionId);
+      onExpandSession((clientSessions[0] as (typeof clientSessions)[number]).sessionId);
     }
   }, [clientSessions, expandedSessionId, onExpandSession]);
 
@@ -123,13 +123,13 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
   // Flat mode: exactly 1 client AND 1 session — compute independently of expanded state
   // to avoid flicker on first render before auto-expand effects fire
   const soleClientSessions = useMemo(
-    () => clients.length === 1 ? sessions.filter((s) => s.clientId === clients[0].clientId) : [],
+    () => clients.length === 1 ? sessions.filter((s) => s.clientId === (clients[0] as (typeof clients)[number]).clientId) : [],
     [clients, sessions],
   );
   const isFlat = clients.length === 1 && soleClientSessions.length === 1;
   const filteredFlatTrees = useMemo(() => {
     if (!isFlat) return [];
-    const active = trees.filter((t) => t.clientId === clients[0].clientId && t.sessionId === soleClientSessions[0].sessionId && !t.removedAt);
+    const active = trees.filter((t) => t.clientId === (clients[0] as (typeof clients)[number]).clientId && t.sessionId === (soleClientSessions[0] as (typeof soleClientSessions)[number]).sessionId && !t.removedAt);
     return lowerFilter ? active.filter((t) => matchesFilter(t.treeId, lowerFilter)) : active;
   }, [isFlat, trees, clients, soleClientSessions, lowerFilter]);
 
@@ -152,7 +152,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
             className="bt-studio-drawer__search"
             placeholder="Filter..."
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={(e) => { setFilter(e.target.value); }}
           />
         )}
         {loadingClients && <div className="bt-studio-drawer__loading">Loading clients...</div>}
@@ -163,7 +163,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
         {isFlat ? (
           <>
             <div className="bt-studio-drawer__flat-breadcrumb">
-              {clients[0].clientId} &gt; {soleClientSessions[0].sessionId}
+              {(clients[0] as (typeof clients)[number]).clientId} &gt; {(soleClientSessions[0] as (typeof soleClientSessions)[number]).sessionId}
             </div>
             <ul className="bt-studio-drawer__list">
               {loadingTrees && <li className="bt-studio-drawer__loading">Loading trees...</li>}
@@ -175,7 +175,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
                   <button
                     type="button"
                     className="bt-studio-drawer__row bt-studio-drawer__row--tree"
-                    onClick={() => handleSelectTree(tree.clientId, tree.sessionId, tree.treeId)}
+                    onClick={() => { handleSelectTree(tree.clientId, tree.sessionId, tree.treeId); }}
                   >
                     <span className="bt-studio-drawer__row-label">{tree.treeId}</span>
                     <span className="bt-studio-drawer__row-time">{formatTimestamp(tree.updatedAt)}</span>
@@ -193,7 +193,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
                   <button
                     type="button"
                     className={`bt-studio-drawer__row ${expanded ? 'bt-studio-drawer__row--expanded' : ''}`}
-                    onClick={() => handleClickClient(client.clientId)}
+                    onClick={() => { handleClickClient(client.clientId); }}
                   >
                     <span className={`bt-studio-drawer__dot bt-studio-drawer__dot--${client.status}`} />
                     <span className="bt-studio-drawer__row-label">{client.clientId}</span>
@@ -214,7 +214,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
                             <button
                               type="button"
                               className={`bt-studio-drawer__row bt-studio-drawer__row--session ${sesExpanded ? 'bt-studio-drawer__row--expanded' : ''}`}
-                              onClick={() => handleClickSession(session.sessionId)}
+                              onClick={() => { handleClickSession(session.sessionId); }}
                             >
                               <span className={`bt-studio-drawer__dot bt-studio-drawer__dot--${session.online ? 'online' : 'offline'}`} />
                               <span className="bt-studio-drawer__row-label">{session.sessionId}</span>
@@ -233,7 +233,7 @@ function AttachDrawerInner({ controls, onClose }: AttachDrawerProps) {
                                     <button
                                       type="button"
                                       className="bt-studio-drawer__row bt-studio-drawer__row--tree"
-                                      onClick={() => handleSelectTree(tree.clientId, tree.sessionId, tree.treeId)}
+                                      onClick={() => { handleSelectTree(tree.clientId, tree.sessionId, tree.treeId); }}
                                     >
                                       <span className="bt-studio-drawer__row-label">{tree.treeId}</span>
                                       <span className="bt-studio-drawer__row-time">{formatTimestamp(tree.updatedAt)}</span>

@@ -36,27 +36,27 @@ export class BehaviourTree {
         return this.profilingEnabled;
     }
 
-    public enableStateTrace(): BehaviourTree {
+    public enableStateTrace(): this {
         this.stateTraceEnabled = true;
         return this;
     }
 
-    public disableStateTrace(): BehaviourTree {
+    public disableStateTrace(): this {
         this.stateTraceEnabled = false;
         return this;
     }
 
-    public enableProfiling(): BehaviourTree {
+    public enableProfiling(): this {
         this.profilingEnabled = true;
         return this;
     }
 
-    public disableProfiling(): BehaviourTree {
+    public disableProfiling(): this {
         this.profilingEnabled = false;
         return this;
     }
 
-    public setProfilingTimeProvider(provider: () => number): BehaviourTree {
+    public setProfilingTimeProvider(provider: () => number): this {
         this.profilingTimeProvider = provider;
         return this;
     }
@@ -65,7 +65,7 @@ export class BehaviourTree {
         const errors: string[] = [];
         const queue: BTNode[] = [this.root];
         while (queue.length > 0) {
-            const node = queue.shift()!;
+            const node = queue.shift() as BTNode;
             if (node.validate) {
                 errors.push(...node.validate());
             }
