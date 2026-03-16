@@ -89,7 +89,7 @@ export class StubAction extends Action {
     protected override onTick(): NodeResult {
         this.tickCount++;
         if (this.resultQueue.length > 0) {
-            return this.resultQueue.shift()!;
+            return this.resultQueue.shift() as NodeResult;
         }
         return this.defaultResult;
     }

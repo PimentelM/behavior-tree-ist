@@ -26,9 +26,9 @@ export function useTreeStatuses(selection: StudioSelection | null, isOnline: boo
                     profiling: response.data.profiling,
                 });
             }
-        }).catch((err) => {
+        }).catch((_err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-tree-statuses] fetch error', err);
+            console.log('[use-tree-statuses] fetch error', _err);
         });
     }, []);
 
@@ -55,9 +55,9 @@ export function useTreeStatuses(selection: StudioSelection | null, isOnline: boo
             command: currentValue ? disableCmd : enableCmd,
         }).then(() => {
             fetchStatuses();
-        }).catch((err) => {
+        }).catch((_err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-tree-statuses] toggle error', err);
+            console.log('[use-tree-statuses] toggle error', _err);
         });
     }, [fetchStatuses]);
 

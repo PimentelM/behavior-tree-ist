@@ -76,7 +76,7 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
                 this.logger.info('WebSocket server setup complete');
                 resolve();
             } catch (error) {
-                reject(error);
+                reject(error instanceof Error ? error : new Error(String(error)));
             }
         });
     }
@@ -86,13 +86,14 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
             return;
         }
 
+        const server = this.server;
         return new Promise((resolve, reject) => {
             for (const client of this.clients.values()) {
                 client.disconnect();
             }
             this.clients.clear();
 
-            this.server!.close((err) => {
+            server.close((err) => {
                 if (err) {
                     reject(err);
                 } else {

@@ -195,6 +195,7 @@ function formatRefValue(value: unknown): string {
   try {
     return JSON.stringify(value, null, 2);
   } catch {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return String(value);
   }
 }

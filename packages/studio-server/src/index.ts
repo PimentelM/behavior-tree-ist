@@ -359,10 +359,9 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             uiConnectionRegistry.register(client.id);
             setupLogger.debug('UI client connected', { clientId: client.id });
 
-            client.onMessage((message) => {
-                if (message.t === 'ping') {
-                    setupLogger.debug('Received ping from UI client', { clientId: client.id });
-                }
+            client.onMessage((_message) => {
+                // message.t === 'ping' is the only UI inbound message type
+                setupLogger.debug('Received ping from UI client', { clientId: client.id });
             });
         });
 
@@ -413,7 +412,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         setupLogger.info('Studio server initialized');
         return { httpServer, deps };
     } catch (error) {
-        setupLogger.error('Studio server initialization failed', { error: String(error), stack: error instanceof Error && error?.stack });
+        setupLogger.error('Studio server initialization failed', { error: String(error), stack: error instanceof Error && error.stack });
         await cleanupInitializedResources({
             logger: setupLogger,
             commandBroker,

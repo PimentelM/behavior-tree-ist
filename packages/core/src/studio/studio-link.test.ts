@@ -111,7 +111,7 @@ describe("StudioLink", () => {
             link.sendHello("client-1", "session-1");
 
             expect(transport.send).toHaveBeenCalledTimes(1);
-            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string) as Record<string, unknown>;
             expect(payload).toEqual({
                 t: MessageType.Hello,
                 version: PROTOCOL_VERSION,
@@ -127,7 +127,7 @@ describe("StudioLink", () => {
             const serializedTree = { id: "root", type: "action" } as unknown as SerializableNode;
             link.sendTreeRegistered("tree-1", serializedTree);
 
-            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string) as Record<string, unknown>;
             expect(payload.t).toBe(MessageType.TreeRegistered);
             expect(payload.treeId).toBe("tree-1");
             expect(payload.serializedTree).toEqual(serializedTree);
@@ -139,7 +139,7 @@ describe("StudioLink", () => {
 
             link.sendTreeRemoved("tree-1");
 
-            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string) as Record<string, unknown>;
             expect(payload.t).toBe(MessageType.TreeRemoved);
             expect(payload.treeId).toBe("tree-1");
         });
@@ -151,7 +151,7 @@ describe("StudioLink", () => {
             const ticks = [{ tickId: 1 }] as unknown as TickRecord[];
             link.sendTickBatch("tree-1", ticks);
 
-            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string) as Record<string, unknown>;
             expect(payload.t).toBe(MessageType.TickBatch);
             expect(payload.treeId).toBe("tree-1");
             expect(payload.ticks).toEqual(ticks);
@@ -163,7 +163,7 @@ describe("StudioLink", () => {
 
             link.sendCommandResponse("corr-1", { success: true });
 
-            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string) as Record<string, unknown>;
             expect(payload.t).toBe(MessageType.CommandResponse);
             expect(payload.correlationId).toBe("corr-1");
             expect(payload.response).toEqual({ success: true });
@@ -427,7 +427,7 @@ describe("StudioLink", () => {
 
             link.sendPluginMessage("repl", "corr-1", { type: "eval", code: "1+1" });
 
-            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string);
+            const payload = JSON.parse((transport.send.mock.calls[0] as unknown[])[0] as string) as Record<string, unknown>;
             expect(payload.t).toBe(MessageType.PluginMessage);
             expect(payload.pluginId).toBe("repl");
             expect(payload.correlationId).toBe("corr-1");

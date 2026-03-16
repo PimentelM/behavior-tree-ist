@@ -5,10 +5,6 @@ import { BTNode, type TickContext } from "../../base/node";
 export class IfThenElse extends Composite {
     public override readonly defaultName = "IfThenElse";
 
-    constructor(name?: string) {
-        super(name);
-    }
-
     public static from(nodes: [BTNode, BTNode] | [BTNode, BTNode, BTNode]): IfThenElse
     public static from(name: string, nodes: [BTNode, BTNode] | [BTNode, BTNode, BTNode]): IfThenElse
     public static from(nameOrNodes: string | BTNode[], possiblyNodes?: BTNode[]): IfThenElse {

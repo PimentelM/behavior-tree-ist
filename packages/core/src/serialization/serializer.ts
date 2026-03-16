@@ -9,7 +9,7 @@ export function serializeTree(root: BTNode, options?: { includeState?: boolean }
         name: root.name,
     };
 
-    if (root.tags && root.tags.length > 0) {
+    if (root.tags.length > 0) {
         serialized.tags = root.tags;
     }
 

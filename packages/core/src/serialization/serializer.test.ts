@@ -68,18 +68,18 @@ describe("Serialization", () => {
         const serialized = tree.serialize();
 
         expect(serialized).toMatchObject({
-            id: expect.any(Number),
+            id: expect.any(Number) as number,
             nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
             defaultName: "MockSequence",
             name: "",
             tags: ["test-composite"],
             children: [{
-                id: expect.any(Number),
+                id: expect.any(Number) as number,
                 nodeFlags: NodeFlags.Decorator,
                 defaultName: "MockDecorator",
                 name: "",
                 children: [{
-                    id: expect.any(Number),
+                    id: expect.any(Number) as number,
                     nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
                     defaultName: "MockAction",
                     name: "",
@@ -145,13 +145,13 @@ describe("Serialization", () => {
                 const serialized = tree.serialize({ includeState: true });
 
                 expect(serialized).toMatchObject({
-                    id: expect.any(Number),
+                    id: expect.any(Number) as number,
                     nodeFlags: NodeFlags.Composite | NodeFlags.Sequence,
                     defaultName: "MockSequence",
                     name: "",
                     tags: ["test-composite"],
                     children: [{
-                        id: expect.any(Number),
+                        id: expect.any(Number) as number,
                         nodeFlags: NodeFlags.Decorator,
                         defaultName: "MockDecorator",
                         name: "",
@@ -159,7 +159,7 @@ describe("Serialization", () => {
                             counts: 1
                         },
                         children: [{
-                            id: expect.any(Number),
+                            id: expect.any(Number) as number,
                             nodeFlags: NodeFlags.Leaf | NodeFlags.Action,
                             defaultName: "MockAction",
                             name: "",

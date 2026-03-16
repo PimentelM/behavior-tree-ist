@@ -286,7 +286,7 @@ export class StudioAgent {
             }
 
             default:
-                this.sendError(correlationId, StudioErrorCode.UnknownCommand, `Unknown command "${cmd}"`);
+                this.sendError(correlationId, StudioErrorCode.UnknownCommand, `Unknown command "${String(cmd)}"`);
                 break;
         }
     }

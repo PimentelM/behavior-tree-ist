@@ -56,6 +56,7 @@ export function jsonToBytes(obj: unknown): Uint8Array {
     return new Uint8Array(Buffer.from(JSON.stringify(obj), 'utf8'));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function bytesToJson<T = unknown>(bytes: Uint8Array): T {
     return JSON.parse(Buffer.from(bytes).toString('utf8')) as T;
 }

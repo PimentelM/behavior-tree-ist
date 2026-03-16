@@ -20,6 +20,7 @@ export class PluginMessageHandler extends BaseHandler {
         super(100, 'plugin-message-handler');
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     protected async handleMessage(message: OutboundMessage, client: MessageConnectionInterface): Promise<void> {
         // The router delivers only PluginMessage (t=7) messages to this handler.
         // Cast is required until core OutboundMessage union includes PluginMessage.

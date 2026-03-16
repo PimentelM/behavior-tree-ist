@@ -191,7 +191,8 @@ export class StudioLink implements StudioLinkInterface {
 
         if (message.t === MessageType.Command) {
             this.emit(this.commandHandlers, message.command);
-        } else if (message.t === MessageType.PluginMessage) {
+        } else {
+            // message.t === MessageType.PluginMessage
             for (const handler of this.pluginMessageHandlers) {
                 handler(message.pluginId, message.correlationId, message.payload);
             }

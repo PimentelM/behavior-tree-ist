@@ -8,18 +8,18 @@ export function useServerSettings() {
     useEffect(() => {
         trpc.settings.get.query().then((result) => {
             setServerSettings({ maxTicksPerTree: result.maxTicksPerTree });
-        }).catch((err) => {
+        }).catch((_err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-server-settings] fetch error', err);
+            console.log('[use-server-settings] fetch error', _err);
         });
     }, []);
 
     const onServerSettingsChange = useCallback((patch: Partial<StudioServerSettings>) => {
         trpc.settings.update.mutate(patch).then((result) => {
             setServerSettings({ maxTicksPerTree: result.maxTicksPerTree });
-        }).catch((err) => {
+        }).catch((_err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-server-settings] update error', err);
+            console.log('[use-server-settings] update error', _err);
         });
     }, []);
 

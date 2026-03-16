@@ -94,9 +94,9 @@ const main = defineCommand({
       process.exit(0)
     }
 
-    process.on('SIGINT', shutdown)
-    process.on('SIGTERM', shutdown)
+    process.on('SIGINT', () => { void shutdown(); })
+    process.on('SIGTERM', () => { void shutdown(); })
   },
 })
 
-runMain(main)
+void runMain(main)

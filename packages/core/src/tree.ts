@@ -65,7 +65,7 @@ export class BehaviourTree {
         const errors: string[] = [];
         const queue: BTNode[] = [this.root];
         while (queue.length > 0) {
-            const node = queue.shift()!;
+            const node = queue.shift() as BTNode;
             if (node.validate) {
                 errors.push(...node.validate());
             }

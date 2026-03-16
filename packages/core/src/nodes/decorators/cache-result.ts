@@ -47,7 +47,7 @@ export class CacheResult extends Decorator {
         this.lastNow = ctx.now;
 
         if (this.hasValidCache()) {
-            return this.cachedResult!;
+            return this.cachedResult as NodeResult;
         }
 
         const result = BTNode.Tick(this.child, ctx);

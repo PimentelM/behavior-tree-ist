@@ -23,9 +23,9 @@ export function useClients(subscribe: WsSubscribe) {
                 status: c.online ? 'online' as const : 'offline' as const,
             })));
             setLoading(false);
-        }).catch((err) => {
+        }).catch((_err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-clients] fetch error', err);
+            console.log('[use-clients] fetch error', _err);
             if (mountedRef.current) setLoading(false);
         });
     };

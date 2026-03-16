@@ -9,7 +9,7 @@ import type { Node, Edge } from '@xyflow/react';
 // jsdom lacks PointerEvent — polyfill so pointerId propagates correctly
 beforeAll(() => {
   if (typeof globalThis.PointerEvent === 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
     (globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
       readonly pointerId: number;
       readonly pointerType: string;

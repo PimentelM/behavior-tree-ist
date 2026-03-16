@@ -36,7 +36,7 @@ export class ByteMetricsService implements ByteMetricsServiceInterface {
     record(clientId: string, sessionId: string, treeId: string, tickId: number, bytes: number): void {
         const k = this.key(clientId, sessionId, treeId);
         if (!this.samples.has(k)) this.samples.set(k, []);
-        const arr = this.samples.get(k)!;
+        const arr = this.samples.get(k) as Array<{ tickId: number; bytes: number; timestamp: number }>;
         arr.push({ tickId, bytes, timestamp: Date.now() });
         if (arr.length > this.maxSamples) arr.shift();
     }
