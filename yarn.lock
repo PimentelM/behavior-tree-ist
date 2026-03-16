@@ -386,6 +386,7 @@ __metadata:
     tweetnacl: "npm:^1.0.3"
     typescript: "npm:^5.5.3"
     vite: "npm:^5.3.4"
+    xterm-readline: "npm:^1.1.2"
   languageName: unknown
   linkType: soft
 
@@ -5069,7 +5070,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string-width@npm:^4.1.0, string-width@npm:^4.2.0, string-width@npm:^4.2.3":
+"string-width@npm:^4, string-width@npm:^4.1.0, string-width@npm:^4.2.0, string-width@npm:^4.2.3":
   version: 4.2.3
   resolution: "string-width@npm:4.2.3"
   dependencies:
@@ -5893,6 +5894,17 @@ __metadata:
   version: 2.2.0
   resolution: "xmlchars@npm:2.2.0"
   checksum: 10c0/b64b535861a6f310c5d9bfa10834cf49127c71922c297da9d4d1b45eeaae40bf9b4363275876088fbe2667e5db028d2cd4f8ee72eed9bede840a67d57dab7593
+  languageName: node
+  linkType: hard
+
+"xterm-readline@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "xterm-readline@npm:1.1.2"
+  dependencies:
+    string-width: "npm:^4"
+  peerDependencies:
+    "@xterm/xterm": ^5.5.0
+  checksum: 10c0/a70be69ad1531c48f845aef7fe50debfdb7f3ea11c9f2dc0068a2651e6ef18ba18e741151aac2f6b9faee68bebbef1d51cc6b36d9ac81a50c921db92d6140a89
   languageName: node
   linkType: hard
 
