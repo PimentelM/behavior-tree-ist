@@ -1,9 +1,6 @@
 import WebSocket from "ws";
-import type {
-    TransportInterface,
-    TransportData,
-    TransportFactory,
-} from "@bt-studio/core";
+import type { TransportData, TransportFactory } from "@bt-studio/core";
+import { WsNodeTransportBase } from "./ws-base";
 
 const textDecoder = new TextDecoder();
 
@@ -11,43 +8,13 @@ const textDecoder = new TextDecoder();
  * WebSocket transport for Node.js that sends and receives string-only
  * data using the `ws` library.
  */
-export class WsNodeStringTransport implements TransportInterface {
-    private ws: WebSocket | null = null;
-
-    constructor(private readonly url: string) { }
-
+export class WsNodeStringTransport extends WsNodeTransportBase {
     /**
      * Creates a TransportFactory that produces WsNodeStringTransport instances
      * pre-configured with the given WebSocket URL.
      */
     static createFactory(url: string): TransportFactory {
         return () => new WsNodeStringTransport(url);
-    }
-
-    open(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const ws = new WebSocket(this.url);
-            this.ws = ws;
-
-            const onError = (err: Error) => {
-                ws.off("error", onError);
-                reject(err);
-            };
-
-            ws.once("error", onError);
-
-            ws.once("open", () => {
-                ws.off("error", onError);
-                resolve();
-            });
-        });
-    }
-
-    close(): void {
-        if (this.ws) {
-            this.ws.close();
-            this.ws = null;
-        }
     }
 
     send(data: TransportData): void {
@@ -81,29 +48,6 @@ export class WsNodeStringTransport implements TransportInterface {
         this.ws.on("message", onMsg);
         return () => {
             this.ws?.off("message", onMsg);
-        };
-    }
-
-    onError(handler: (error: Error) => void) {
-        if (!this.ws) {
-            throw new Error("WsNodeStringTransport: not connected");
-        }
-
-        const onErr = (err: Error) => handler(err);
-        this.ws.on("error", onErr);
-        return () => {
-            this.ws?.off("error", onErr);
-        };
-    }
-
-    onClose(handler: () => void) {
-        if (!this.ws) {
-            throw new Error("WsNodeStringTransport: not connected");
-        }
-
-        this.ws.on("close", handler);
-        return () => {
-            this.ws?.off("close", handler);
         };
     }
 }
