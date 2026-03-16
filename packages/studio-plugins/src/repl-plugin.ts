@@ -112,11 +112,52 @@ export function isProbablyExpression(sourceCode: string): boolean {
         ) {
             return false;
         }
+        // await expressions can't be tested with new Function (non-async context)
+        if (/^await[\s(]/.test(trimmed) && !trimmed.includes(';')) {
+            return true;
+        }
         new Function(`return (${trimmed})`);
         return true;
     } catch {
         return false;
     }
+}
+
+/**
+ * Finds the index of the last semicolon at depth 0 (not inside brackets or strings).
+ * Returns -1 if none found.
+ */
+export function findLastTopLevelSemicolon(code: string): number {
+    let depth = 0;
+    let inString = false;
+    let stringChar = '';
+    let escaped = false;
+    let lastSemi = -1;
+
+    for (let i = 0; i < code.length; i++) {
+        const ch = code[i]!;
+
+        if (escaped) { escaped = false; continue; }
+
+        if (inString) {
+            if (ch === '\\') escaped = true;
+            else if (ch === stringChar) inString = false;
+            continue;
+        }
+
+        if (ch === '"' || ch === "'" || ch === '`') {
+            inString = true;
+            stringChar = ch;
+        } else if (ch === '{' || ch === '(' || ch === '[') {
+            depth++;
+        } else if (ch === '}' || ch === ')' || ch === ']') {
+            depth--;
+        } else if (ch === ';' && depth === 0) {
+            lastSemi = i;
+        }
+    }
+
+    return lastSemi;
 }
 
 export function rewriteTopLevelDeclarations(sourceCode: string): string {
@@ -198,6 +239,11 @@ export class ReplPlugin implements StudioPlugin {
         this.sessionKeys = null;
     }
 
+    onConnected(): void {
+        // Re-establish session on reconnect (server purges session keys on disconnect)
+        this.doHandshake();
+    }
+
     async handleInbound(correlationId: string, encryptedPayload: unknown): Promise<void> {
         if (!this.sessionKeys) return; // handshake not complete
 
@@ -257,9 +303,27 @@ export class ReplPlugin implements StudioPlugin {
 
         try {
             const isExpr = isProbablyExpression(code);
-            const body = isExpr
-                ? `const console = arguments[0]; return (async () => ( ${code} ))();`
-                : `const console = arguments[0]; return (async () => { ${rewriteTopLevelDeclarations(code)}\n })();`;
+            let body: string;
+            if (isExpr) {
+                body = `const console = arguments[0]; return (async () => ( ${code} ))();`;
+            } else {
+                const rewritten = rewriteTopLevelDeclarations(code);
+                const lastSemi = findLastTopLevelSemicolon(rewritten);
+                if (lastSemi >= 0) {
+                    const prefix = rewritten.slice(0, lastSemi);
+                    const lastPart = rewritten.slice(lastSemi + 1).trim();
+                    let stmtBody: string;
+                    try {
+                        new Function(`return (${lastPart})`);
+                        stmtBody = `${prefix}\n return (${lastPart});`;
+                    } catch {
+                        stmtBody = rewritten;
+                    }
+                    body = `const console = arguments[0]; return (async () => { ${stmtBody}\n })();`;
+                } else {
+                    body = `const console = arguments[0]; return (async () => { ${rewritten}\n })();`;
+                }
+            }
 
             const fn = new Function(body) as (console: typeof captureConsole) => Promise<unknown>;
             const result = await withTimeout(fn(captureConsole), EVAL_TIMEOUT_MS);
