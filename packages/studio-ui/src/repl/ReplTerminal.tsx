@@ -3,6 +3,7 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { replTheme } from './repl-theme';
+import { highlightJs } from './js-syntax';
 import { useRepl } from './use-repl';
 import type { ReplResult, UseReplReturn } from './use-repl';
 
@@ -26,7 +27,9 @@ function writePrompt(term: Terminal) {
 }
 
 function redrawInputLine(term: Terminal, text: string, cursorPos: number) {
-    term.write('\r\x1b[K' + PROMPT + text);
+    // Use syntax-highlighted text for display; cursor math uses original text.length
+    // because ANSI escape codes are zero-width and don't affect terminal column count.
+    term.write('\r\x1b[K' + PROMPT + highlightJs(text));
     const stepsBack = text.length - cursorPos;
     if (stepsBack > 0) {
         term.write(`\x1b[${stepsBack}D`);
@@ -394,13 +397,9 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             cursorPosRef.current = pos + data.length;
             historyIndexRef.current = -1;
 
-            if (pos === buf.length) {
-                // Cursor at end — just append
-                term.write(data);
-            } else {
-                // Mid-line insert — redraw
-                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
-            }
+            // Always redraw so syntax highlighting stays consistent as tokens
+            // change meaning (e.g. typing a quote starts a new string context)
+            redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
         });
 
         // ---- onKey: control / special keys only ----
