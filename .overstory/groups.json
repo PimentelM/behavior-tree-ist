@@ -304,5 +304,16 @@
 		"status": "active",
 		"createdAt": "2026-03-16T02:30:35.987Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-954773f2",
+		"name": "linear-ready-batch",
+		"memberIssueIds": [
+			"behavior-tree-ist-2420",
+			"behavior-tree-ist-a2b2"
+		],
+		"status": "active",
+		"createdAt": "2026-03-16T05:33:49.421Z",
+		"completedAt": null
 	}
 ]
