@@ -52,7 +52,7 @@ export abstract class WsNodeTransportBase implements TransportInterface {
             throw new Error(`${this.constructor.name}: not connected`);
         }
 
-        const onErr = (err: Error) => handler(err);
+        const onErr = (err: Error) => { handler(err); };
         this.ws.on("error", onErr);
         return () => {
             this.ws?.off("error", onErr);
