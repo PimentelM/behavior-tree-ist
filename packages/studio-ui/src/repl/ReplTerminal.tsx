@@ -26,14 +26,61 @@ function writePrompt(term: Terminal) {
     term.write(PROMPT);
 }
 
-function redrawInputLine(term: Terminal, text: string, cursorPos: number) {
-    // Use syntax-highlighted text for display; cursor math uses original text.length
-    // because ANSI escape codes are zero-width and don't affect terminal column count.
-    term.write('\r\x1b[K' + PROMPT + highlightJs(text));
-    const stepsBack = text.length - cursorPos;
-    if (stepsBack > 0) {
-        term.write(`\x1b[${stepsBack}D`);
+// Visible character width of the prompt string '> ' (ANSI escape codes are zero-width).
+const PROMPT_VISIBLE_LEN = 2;
+
+function redrawInputLine(term: Terminal, text: string, cursorPos: number, prevLinesRendered = 1): number {
+    // Use syntax-highlighted text for display; cursor math uses original text because
+    // ANSI escape codes are zero-width and don't affect terminal column count.
+    const lines = text.split('\n');
+    const lineCount = lines.length;
+
+    // Move up to the first rendered line if previous render spanned multiple lines
+    if (prevLinesRendered > 1) {
+        term.write(`\x1b[${prevLinesRendered - 1}A`);
     }
+    // Clear from cursor to end of screen (erases all lines of previous render)
+    term.write('\r\x1b[J');
+
+    // Write prompt + highlighted content; replace \n with \r\n for proper line endings
+    term.write(PROMPT + highlightJs(text).replace(/\n/g, '\r\n'));
+
+    // Compute which line the cursor falls on and how many chars trail it on that line.
+    let remaining = cursorPos;
+    let cursorLine = 0;
+    let charsAfterCursorOnLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+        if (remaining <= lines[i].length) {
+            cursorLine = i;
+            charsAfterCursorOnLine = lines[i].length - remaining;
+            break;
+        }
+        remaining -= lines[i].length + 1; // +1 for the consumed \n
+    }
+
+    // After writing all content, cursor is at:
+    //   single-line:  column = PROMPT_VISIBLE_LEN + lines[0].length
+    //   multi-line:   column = lines[lineCount-1].length  (last line has no prompt)
+    const lastLineLen = lines[lineCount - 1].length;
+    const linesBelow = lineCount - 1 - cursorLine;
+
+    // Move cursor up to the cursor's line (column stays at lastLineLen or C_end).
+    if (linesBelow > 0) term.write(`\x1b[${linesBelow}A`);
+
+    // Column where the cursor currently sits after the upward move.
+    const colNow = linesBelow === 0 && lineCount === 1
+        ? PROMPT_VISIBLE_LEN + lastLineLen
+        : lastLineLen;
+
+    // Target column: prompt adds PROMPT_VISIBLE_LEN only on line 0.
+    const charsBeforeCursorOnLine = lines[cursorLine].length - charsAfterCursorOnLine;
+    const targetCol = (cursorLine === 0 ? PROMPT_VISIBLE_LEN : 0) + charsBeforeCursorOnLine;
+
+    const movementLeft = colNow - targetCol;
+    if (movementLeft > 0) term.write(`\x1b[${movementLeft}D`);
+    else if (movementLeft < 0) term.write(`\x1b[${-movementLeft}C`);
+
+    return lineCount;
 }
 
 function printResult(term: Terminal, result: ReplResult) {
@@ -253,6 +300,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     const suggestionsRef = useRef<string[]>([]);
     const suggestionIndexRef = useRef(-1);
     const isEvalPendingRef = useRef(false);
+    const linesRenderedRef = useRef(1);
 
     const repl = useRepl({ clientId, sessionId });
     replRef.current = repl;
@@ -277,6 +325,11 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
         fitAddon.fit();
         term.focus();
+
+        // Shorthand that captures term and linesRenderedRef for this terminal instance.
+        function redraw(text: string, cursorPos: number) {
+            linesRenderedRef.current = redrawInputLine(term, text, cursorPos, linesRenderedRef.current);
+        }
 
         writeln(term, `\x1b[97mWelcome to BT Studio REPL${RESET}`);
         writeln(term, `${GRAY}Type JavaScript and press Enter. Tab for completions.${RESET}`);
@@ -344,7 +397,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     suggestionsRef.current = [];
                     suggestionIndexRef.current = -1;
                     cursorPosRef.current = inputBufferRef.current.length;
-                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                    redraw(inputBufferRef.current, cursorPosRef.current);
                 } else {
                     // Multiple — print list inline
                     writeln(term, '');
@@ -376,6 +429,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
         // Redraw suggestion list + prompt line in-place (moves cursor up, erases, reprints).
         // Call after acceptSuggestionAtIndex when cycling with suggestions visible.
+        // Suggestions only exist during single-line input so linesRenderedRef stays 1.
         function redrawSuggestionsAndInput(
             suggestions: string[],
             selectedIdx: number,
@@ -387,11 +441,13 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             printSuggestions(term, suggestions, selectedIdx);
             writePrompt(term);
             term.write(highlightJs(input));
+            linesRenderedRef.current = 1;
             const stepsBack = input.length - cursorPos;
             if (stepsBack > 0) term.write(`\x1b[${stepsBack}D`);
         }
 
         // Clear suggestion list + redraw only the prompt line (used on Escape/Enter).
+        // Suggestions only exist during single-line input so linesRenderedRef stays 1.
         function clearSuggestionsAndRedraw(
             suggestionCount: number,
             input: string,
@@ -401,6 +457,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             term.write(`\x1b[${linesToGoUp}A\r\x1b[J`);
             writePrompt(term);
             term.write(highlightJs(input));
+            linesRenderedRef.current = 1;
             const stepsBack = input.length - cursorPos;
             if (stepsBack > 0) term.write(`\x1b[${stepsBack}D`);
         }
@@ -431,7 +488,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
             // Always redraw so syntax highlighting stays consistent as tokens
             // change meaning (e.g. typing a quote starts a new string context)
-            redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+            redraw(inputBufferRef.current, cursorPosRef.current);
         });
 
         // ---- onKey: control / special keys only ----
@@ -493,14 +550,16 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             // ---- Enter ----
             if (ev.key === 'Enter') {
                 if (ev.shiftKey) {
+                    // Append a newline and redraw so all lines render cleanly
                     inputBufferRef.current += '\n';
                     cursorPosRef.current = inputBufferRef.current.length;
-                    term.write('\r\n');
+                    redraw(inputBufferRef.current, cursorPosRef.current);
                     return;
                 }
                 const code = inputBufferRef.current;
                 inputBufferRef.current = '';
                 cursorPosRef.current = 0;
+                linesRenderedRef.current = 1;
                 term.write('\r\n');
                 void doEval(code);
                 return;
@@ -513,7 +572,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 if (pos > 0) {
                     inputBufferRef.current = buf.slice(0, pos - 1) + buf.slice(pos);
                     cursorPosRef.current = pos - 1;
-                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                    redraw(inputBufferRef.current, cursorPosRef.current);
                 }
                 return;
             }
@@ -522,7 +581,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             if (ev.key === 'ArrowLeft') {
                 if (cursorPosRef.current > 0) {
                     cursorPosRef.current -= 1;
-                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                    redraw(inputBufferRef.current, cursorPosRef.current);
                 }
                 return;
             }
@@ -531,7 +590,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             if (ev.key === 'ArrowRight') {
                 if (cursorPosRef.current < inputBufferRef.current.length) {
                     cursorPosRef.current += 1;
-                    redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                    redraw(inputBufferRef.current, cursorPosRef.current);
                 }
                 return;
             }
@@ -547,7 +606,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 }
                 inputBufferRef.current = hist[historyIndexRef.current];
                 cursorPosRef.current = inputBufferRef.current.length;
-                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                redraw(inputBufferRef.current, cursorPosRef.current);
                 return;
             }
 
@@ -563,7 +622,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     inputBufferRef.current = '';
                 }
                 cursorPosRef.current = inputBufferRef.current.length;
-                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                redraw(inputBufferRef.current, cursorPosRef.current);
                 return;
             }
 
@@ -579,6 +638,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 inputBufferRef.current = '';
                 cursorPosRef.current = 0;
                 historyIndexRef.current = -1;
+                linesRenderedRef.current = 1;
                 term.write('^C\r\n');
                 writePrompt(term);
                 return;
@@ -587,7 +647,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             // ---- Ctrl+L — clear screen ----
             if (ev.ctrlKey && ev.key === 'l') {
                 term.clear();
-                redrawInputLine(term, inputBufferRef.current, cursorPosRef.current);
+                linesRenderedRef.current = 1;
+                redraw(inputBufferRef.current, cursorPosRef.current);
                 return;
             }
         });
