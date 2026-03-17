@@ -338,7 +338,10 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 return false;
             }
             // Tab / Ctrl+Space: trigger async completions, suppress \t.
+            // preventDefault() is required to prevent the browser from moving focus
+            // to the next focusable element outside the xterm canvas.
             if (ev.type === 'keydown' && (ev.key === 'Tab' || (ev.ctrlKey && ev.key === ' '))) {
+                ev.preventDefault();
                 void handleTab();
                 return false;
             }
