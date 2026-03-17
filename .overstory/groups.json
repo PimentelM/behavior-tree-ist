@@ -217,9 +217,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-f772"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T19:08:11.125Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:23.805Z"
 	},
 	{
 		"id": "group-40f0d2fa",
@@ -228,9 +228,9 @@
 			"behavior-tree-ist-9659",
 			"behavior-tree-ist-59ec"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T20:21:03.622Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:24.009Z"
 	},
 	{
 		"id": "group-d5ed629c",
@@ -238,9 +238,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-0500"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T20:48:09.553Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:24.147Z"
 	},
 	{
 		"id": "group-dce630d2",
@@ -248,9 +248,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-8fb6"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T21:07:55.028Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:24.309Z"
 	},
 	{
 		"id": "group-f239f47d",
@@ -258,9 +258,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-33e6"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T21:31:33.433Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:24.462Z"
 	},
 	{
 		"id": "group-6db32075",
@@ -269,9 +269,9 @@
 			"behavior-tree-ist-3253",
 			"behavior-tree-ist-9025"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-15T22:37:04.227Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:24.665Z"
 	},
 	{
 		"id": "group-08932801",
@@ -279,9 +279,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-17d0"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-16T00:55:28.228Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:24.818Z"
 	},
 	{
 		"id": "group-39ae7284",
@@ -289,9 +289,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-5c6b"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-16T02:02:08.696Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:24.962Z"
 	},
 	{
 		"id": "group-bd6fffe6",
@@ -301,9 +301,9 @@
 			"behavior-tree-ist-7fa5",
 			"behavior-tree-ist-01de"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-16T02:30:35.987Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T00:35:25.264Z"
 	},
 	{
 		"id": "group-954773f2",
@@ -312,8 +312,20 @@
 			"behavior-tree-ist-2420",
 			"behavior-tree-ist-a2b2"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-16T05:33:49.421Z",
+		"completedAt": "2026-03-17T00:35:25.485Z"
+	},
+	{
+		"id": "group-d50d1ccd",
+		"name": "frida-repl-parity",
+		"memberIssueIds": [
+			"behavior-tree-ist-4132",
+			"behavior-tree-ist-2563",
+			"behavior-tree-ist-1635"
+		],
+		"status": "active",
+		"createdAt": "2026-03-17T00:50:26.262Z",
 		"completedAt": null
 	}
 ]
