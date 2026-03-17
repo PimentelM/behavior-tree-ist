@@ -391,5 +391,15 @@
 		"status": "active",
 		"createdAt": "2026-03-17T04:49:57.808Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-55436881",
+		"name": "mcp-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-eae7"
+		],
+		"status": "active",
+		"createdAt": "2026-03-17T05:21:29.371Z",
+		"completedAt": null
 	}
 ]
