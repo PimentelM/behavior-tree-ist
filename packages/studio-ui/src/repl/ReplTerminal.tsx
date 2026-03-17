@@ -520,7 +520,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         async function doEval(code: string) {
             if (!code.trim()) return;
 
-            if (/^clear\(\)?$/.test(code.trim())) {
+            if (/^clear(\(\))?$/.test(code.trim())) {
                 term.clear();
                 return;
             }
