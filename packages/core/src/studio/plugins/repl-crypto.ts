@@ -42,10 +42,7 @@ export function getRandomBytes(length: number): Uint8Array {
     } catch {
         // ignore
     }
-    // Non-crypto fallback (last resort)
-    const out = new Uint8Array(length);
-    for (let i = 0; i < length; i++) out[i] = Math.floor(Math.random() * 256);
-    return out;
+    throw new Error('No CSPRNG available: no crypto.getRandomValues or node:crypto found');
 }
 
 // ---------------------------------------------------------------------------

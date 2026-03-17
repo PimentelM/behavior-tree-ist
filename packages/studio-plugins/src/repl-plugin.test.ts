@@ -169,7 +169,7 @@ function makeUiKeyPair() {
 }
 
 function makePlugin(uiPublicKey: Uint8Array) {
-    return new ReplPlugin({ serverPublicKey: uiPublicKey });
+    return new ReplPlugin({ uiPublicKey });
 }
 
 function makeTestSender() {

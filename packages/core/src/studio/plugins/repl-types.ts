@@ -50,7 +50,7 @@ export type ReplOutboundPayload = ReplHandshakePayload | ReplOutputPayload | Rep
 // ReplPlugin config
 // ---------------------------------------------------------------------------
 
-export interface ReplPluginConfig {
-    /** UI's static NaCl box public key (32 bytes). Used to seal the session seed. */
-    serverPublicKey: Uint8Array;
-}
+export type ReplPluginConfig =
+    | { uiPublicKey: Uint8Array; serverPublicKey?: never }
+    /** @deprecated Pass uiPublicKey instead. serverPublicKey will be removed in the next version. */
+    | { serverPublicKey: Uint8Array; uiPublicKey?: never };
