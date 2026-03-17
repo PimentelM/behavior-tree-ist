@@ -419,11 +419,13 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                         currentState.update(completed);
                     } else {
                         // LCP didn't narrow further — display candidate list below the
-                        // current prompt line (bash/Frida double-tab style), then restore
-                        // the readline prompt by moving the cursor back up and refreshing.
+                        // current prompt line (bash-style), then redraw the prompt below
+                        // the candidates.  Do NOT attempt to move the cursor back up with
+                        // an escape sequence: readline does not track raw escape writes so
+                        // its internal cursor position would be out of sync, causing
+                        // refresh() to duplicate the prompt line.
                         const candidatesStr = completions.join('  ');
                         rl.write(`\r\n${GRAY}${candidatesStr}${RESET}\r\n`);
-                        rl.write('\x1b[2A\r');
                         currentState.refresh();
                     }
                 }
