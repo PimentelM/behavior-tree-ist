@@ -51,6 +51,6 @@ export type ReplOutboundPayload = ReplHandshakePayload | ReplOutputPayload | Rep
 // ---------------------------------------------------------------------------
 
 export type ReplPluginConfig =
-    | { uiPublicKey: Uint8Array; serverPublicKey?: never }
-    /** @deprecated Pass uiPublicKey instead. serverPublicKey will be removed in the next version. */
-    | { serverPublicKey: Uint8Array; uiPublicKey?: never };
+    | { publicKey: Uint8Array; serverPublicKey?: never }
+    /** @deprecated Pass publicKey instead. serverPublicKey will be removed in the next version. */
+    | { serverPublicKey: Uint8Array; publicKey?: never };

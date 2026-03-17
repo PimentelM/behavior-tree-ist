@@ -105,11 +105,11 @@ export function generateEphemeralKeyPair(): { publicKey: Uint8Array; secretKey: 
 
 export function sealSessionSeed(
     sessionSeed: Uint8Array,
-    uiPublicKey: Uint8Array,
+    publicKey: Uint8Array,
     clientEphemeralSecretKey: Uint8Array,
 ): { nonce: Uint8Array; box: Uint8Array } {
     const nonce = getRandomBytes(nacl.box.nonceLength);
-    const ciphertext = nacl.box(sessionSeed, nonce, uiPublicKey, clientEphemeralSecretKey);
+    const ciphertext = nacl.box(sessionSeed, nonce, publicKey, clientEphemeralSecretKey);
     return { nonce, box: ciphertext };
 }
 

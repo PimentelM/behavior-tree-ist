@@ -272,7 +272,7 @@ export class ReplPlugin implements StudioPlugin {
     private doHandshake(): void {
         const ephemeral = generateEphemeralKeyPair();
         const sessionSeed = getRandomBytes(32);
-        const uiPubKey = this.config.uiPublicKey ?? this.config.serverPublicKey;
+        const uiPubKey = this.config.publicKey ?? this.config.serverPublicKey;
         const { nonce, box } = sealSessionSeed(
             sessionSeed,
             uiPubKey,
