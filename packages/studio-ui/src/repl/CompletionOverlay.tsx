@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 interface CompletionOverlayProps {
     candidates: string[];
     selectedIndex: number;
@@ -8,6 +10,12 @@ interface CompletionOverlayProps {
 }
 
 export function CompletionOverlay({ candidates, selectedIndex, x, y, onSelect, onDismiss }: CompletionOverlayProps) {
+    const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    useEffect(() => {
+        itemRefs.current[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+    }, [selectedIndex]);
+
     return (
         <>
             {/* Click-outside backdrop */}
@@ -33,6 +41,7 @@ export function CompletionOverlay({ candidates, selectedIndex, x, y, onSelect, o
                 {candidates.map((candidate, i) => (
                     <div
                         key={candidate}
+                        ref={(el) => { itemRefs.current[i] = el; }}
                         onMouseDown={(e) => {
                             e.preventDefault();
                             onSelect(candidate);
