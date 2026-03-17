@@ -21,7 +21,7 @@ function attachPlugin(uiPublicKey: Uint8Array): {
     const sender: PluginSender = {
         send: (correlationId, payload) => sent.push({ correlationId, payload }),
     };
-    const plugin = new ReplPlugin({ serverPublicKey: uiPublicKey });
+    const plugin = new ReplPlugin({ publicKey: uiPublicKey });
     plugin.attach(sender);
     return { plugin, sent };
 }

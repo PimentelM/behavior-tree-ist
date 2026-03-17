@@ -25,7 +25,7 @@ export function startDemoAgent(wsUrl: string, type: 'npc' | 'cpu' = 'npc'): { sh
     link,
   })
 
-  const replPlugin = new ReplPlugin({ uiPublicKey: DEMO_UI_KEYPAIR.publicKey })
+  const replPlugin = new ReplPlugin({ publicKey: DEMO_UI_KEYPAIR.publicKey })
   agent.registerPlugin(replPlugin)
 
   agent.start()
