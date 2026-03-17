@@ -26,9 +26,16 @@ const jsHighlighter = {
     highlightPrompt(prompt: string): string {
         return prompt;
     },
-    highlightChar(): boolean {
-        // Always re-highlight so syntax colouring stays current as tokens change.
-        return true;
+    highlightChar(line: string, pos: number): boolean {
+        // Trigger a full re-highlight only for non-word characters (operators,
+        // punctuation, whitespace).  Word characters (letters, digits, _, $)
+        // use xterm-readline's optimised single-write fast path, avoiding the
+        // xterm WriteBuffer _didUserInput flicker: the optimisation processes
+        // only the *first* write after user input immediately and defers the
+        // rest to setTimeout, briefly exposing the cleared line between writes.
+        if (pos <= 0) return false;
+        const ch = line[pos - 1];
+        return ch !== undefined && !/[a-zA-Z0-9_$]/.test(ch);
     },
 };
 
