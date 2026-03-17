@@ -7,6 +7,7 @@ import { replTheme } from './repl-theme';
 import { highlightJs } from './js-syntax';
 import { useRepl } from './use-repl';
 import type { ReplResult, UseReplReturn } from './use-repl';
+import { CompletionOverlay } from './CompletionOverlay';
 
 // ---- ANSI colour helpers ----
 const RESET = '\x1b[0m';
@@ -298,14 +299,31 @@ interface ReplTerminalProps {
     sessionId: string | null;
 }
 
+type CompletionState = {
+    candidates: string[];
+    selectedIndex: number;
+    prefix: string;
+    rlState: RlState;
+    x: number;
+    y: number;
+};
+
 export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const termRef = useRef<Terminal | null>(null);
 
     // replRef allows the stable terminal effect to access current repl without closure staling.
     const replRef = useRef<UseReplReturn | null>(null);
 
     const repl = useRepl({ clientId, sessionId });
     replRef.current = repl;
+
+    // Completion overlay state — bridged from the one-time useEffect via refs.
+    const [completionState, setCompletionState] = useState<CompletionState | null>(null);
+    const completionStateRef = useRef<CompletionState | null>(null);
+    completionStateRef.current = completionState;
+    const setCompletionStateRef = useRef(setCompletionState);
+    setCompletionStateRef.current = setCompletionState;
 
     // ---- one-time terminal setup ----
     useEffect(() => {
@@ -320,6 +338,8 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             cursorStyle: 'block',
             scrollback: 1000,
         });
+
+        termRef.current = term;
 
         const fitAddon = new FitAddon();
         const rl = new Readline();
@@ -337,6 +357,40 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         // Tab (completions) and Shift+Enter (multi-line continuation).
         // readline's own handler only blocks Shift+Enter; we replace it.
         term.attachCustomKeyEventHandler((ev) => {
+            // When the completion overlay is open, intercept navigation keys.
+            if (completionStateRef.current && ev.type === 'keydown') {
+                if (ev.key === 'ArrowDown') {
+                    ev.preventDefault();
+                    setCompletionStateRef.current((prev) =>
+                        prev ? { ...prev, selectedIndex: (prev.selectedIndex + 1) % prev.candidates.length } : null
+                    );
+                    return false;
+                }
+                if (ev.key === 'ArrowUp') {
+                    ev.preventDefault();
+                    setCompletionStateRef.current((prev) =>
+                        prev
+                            ? { ...prev, selectedIndex: (prev.selectedIndex - 1 + prev.candidates.length) % prev.candidates.length }
+                            : null
+                    );
+                    return false;
+                }
+                if (ev.key === 'Enter' || ev.key === 'Tab') {
+                    ev.preventDefault();
+                    const st = completionStateRef.current;
+                    const candidate = st.candidates[st.selectedIndex];
+                    if (candidate !== undefined) {
+                        st.rlState.update(applyCompletion(st.prefix, candidate));
+                    }
+                    setCompletionStateRef.current(null);
+                    return false;
+                }
+                if (ev.key === 'Escape') {
+                    ev.preventDefault();
+                    setCompletionStateRef.current(null);
+                    return false;
+                }
+            }
             // Shift+Enter: send Alt+Enter sequence (\x1b\r) which readline
             // treats as AltEnter → editInsert("\n"), same as its native ShiftEnter.
             if (ev.key === 'Enter' && ev.shiftKey) {
@@ -386,6 +440,13 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             return true;
         });
 
+        // Dismiss completion overlay when user types (Tab re-triggers completions).
+        term.onData(() => {
+            if (completionStateRef.current) {
+                setCompletionStateRef.current(null);
+            }
+        });
+
         async function handleTab() {
             const r = replRef.current;
             if (!r) return;
@@ -414,29 +475,28 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 if (completions.length === 1) {
                     rlState.update(applyCompletion(prefix, completions[0] as string));
                 } else {
-                    // Multiple matches: apply longest common prefix.
+                    // Multiple matches: apply longest common prefix if it narrows.
                     const lcp = longestCommonPrefix(completions);
                     const completed = applyCompletion(prefix, lcp);
                     if (completed !== prefix) {
                         rlState.update(completed);
                     } else {
-                        // LCP didn't narrow further — display candidate list below the
-                        // current prompt line (bash/Frida double-tab style), then restore
-                        // the readline prompt.
-                        //
-                        // IMPORTANT: use term.write() (direct terminal write) NOT rl.write()
-                        // for the candidates.  rl.write() routes through xterm-readline's
-                        // state machine and updates layout.cursor/end, so the subsequent
-                        // clearOldRows() inside refresh() sees extra rows and tries to erase
-                        // them — putting the cursor in the wrong place and duplicating the
-                        // prompt.  term.write() bypasses readline's layout state entirely, so
-                        // readline still thinks cursor is at row 0 of the prompt.  Moving the
-                        // terminal cursor back up with term.write('\x1b[2A\r') then lets
-                        // refresh() clear and redraw the single prompt line cleanly.
-                        const candidatesStr = completions.join('  ');
-                        term.write(`\r\n${GRAY}${candidatesStr}${RESET}\r\n`);
-                        term.write('\x1b[2A\r');
-                        rlState.refresh();
+                        // LCP didn't narrow further — show HTML overlay positioned at cursor.
+                        const core = (term as unknown as Record<string, unknown>)._core as Record<string, unknown> | undefined;
+                        const dims = (core?._renderService as Record<string, unknown> | undefined)?.dimensions as Record<string, unknown> | undefined;
+                        const cellCss = (dims?.css as Record<string, unknown> | undefined)?.cell as Record<string, unknown> | undefined;
+                        const cellWidth = typeof cellCss?.width === 'number' ? cellCss.width : 8;
+                        const cellHeight = typeof cellCss?.height === 'number' ? cellCss.height : 17;
+                        const cursorX = term.buffer.active.cursorX * cellWidth;
+                        const cursorY = (term.buffer.active.cursorY + 1) * cellHeight;
+                        setCompletionStateRef.current({
+                            candidates: completions,
+                            selectedIndex: 0,
+                            prefix,
+                            rlState,
+                            x: cursorX,
+                            y: cursorY,
+                        });
                     }
                 }
             } catch (err) {
@@ -488,12 +548,28 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         return () => {
             ro.disconnect();
             term.dispose();
+            termRef.current = null;
         };
-    }, []); // intentionally empty — terminal created once; handlers use replRef
+    }, []); // intentionally empty — terminal created once; handlers use refs
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a' }}>
-            <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} />
+            <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+                {completionState && (
+                    <CompletionOverlay
+                        candidates={completionState.candidates}
+                        selectedIndex={completionState.selectedIndex}
+                        x={completionState.x}
+                        y={completionState.y}
+                        onSelect={(candidate) => {
+                            completionState.rlState.update(applyCompletion(completionState.prefix, candidate));
+                            setCompletionState(null);
+                            termRef.current?.focus();
+                        }}
+                        onDismiss={() => { setCompletionState(null); }}
+                    />
+                )}
+            </div>
             <KeyManagement
                 keyPair={repl.keyPair}
                 onGenerate={repl.generateKeyPair}
