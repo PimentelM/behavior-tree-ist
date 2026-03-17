@@ -9,16 +9,16 @@
         "--viewport-size",
         "1920x1080"
       ]
-    }
-  },
-  "bt-studio": {
-    "command": "node",
-    "args": [
-      "./packages/studio-mcp/dist/index.js"
-    ],
-    "env": {
-      "BT_STUDIO_URL": "http://localhost:4100",
-      "BT_STUDIO_PRIVATE_KEY": "YnQtc3R1ZGlvLWRlbW8tcmVwbC1rZXktdjEtLS0tLS0"
+    },
+    "bt-studio": {
+      "command": "node",
+      "args": [
+        "./packages/studio-mcp/dist/index.js"
+      ],
+      "env": {
+        "BT_STUDIO_URL": "http://localhost:4100",
+        "BT_STUDIO_PRIVATE_KEY": "YnQtc3R1ZGlvLWRlbW8tcmVwbC1rZXktdjEtLS0tLS0"
+      }
     }
   }
 }
