@@ -13,7 +13,7 @@ function makeUiKeyPair() {
 }
 
 /** Build a ReplPlugin attached to a sender; return the sent messages array. */
-function attachPlugin(uiPublicKey: Uint8Array): {
+function attachPlugin(publicKey: Uint8Array): {
     plugin: ReplPlugin;
     sent: { correlationId: string; payload: unknown }[];
 } {
@@ -21,7 +21,7 @@ function attachPlugin(uiPublicKey: Uint8Array): {
     const sender: PluginSender = {
         send: (correlationId, payload) => sent.push({ correlationId, payload }),
     };
-    const plugin = new ReplPlugin({ publicKey: uiPublicKey });
+    const plugin = new ReplPlugin({ publicKey: publicKey });
     plugin.attach(sender);
     return { plugin, sent };
 }

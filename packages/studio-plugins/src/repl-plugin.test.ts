@@ -35,8 +35,8 @@ describe('toDisplayString', () => {
     });
 
     it('handles functions', () => {
-        expect(toDisplayString(function myFn() {})).toBe('[Function myFn]');
-        expect(toDisplayString(() => {})).toBe('[Function anonymous]');
+        expect(toDisplayString(function myFn() { })).toBe('[Function myFn]');
+        expect(toDisplayString(() => { })).toBe('[Function anonymous]');
     });
 
     it('handles symbols', () => {
@@ -72,8 +72,8 @@ describe('getPropertyNamesDeep', () => {
     });
 
     it('walks up prototype chain', () => {
-        class Base { baseMethod() {} }
-        class Child extends Base { childMethod() {} }
+        class Base { baseMethod() { } }
+        class Child extends Base { childMethod() { } }
         const props = getPropertyNamesDeep(new Child());
         expect(props).toContain('baseMethod');
         expect(props).toContain('childMethod');
@@ -168,8 +168,8 @@ function makeUiKeyPair() {
     return nacl.box.keyPair();
 }
 
-function makePlugin(uiPublicKey: Uint8Array) {
-    return new ReplPlugin({ publicKey: uiPublicKey });
+function makePlugin(publicKey: Uint8Array) {
+    return new ReplPlugin({ publicKey: publicKey });
 }
 
 function makeTestSender() {
