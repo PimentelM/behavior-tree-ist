@@ -323,10 +323,22 @@
 			"behavior-tree-ist-4132",
 			"behavior-tree-ist-2563",
 			"behavior-tree-ist-1635",
-			"behavior-tree-ist-edca"
+			"behavior-tree-ist-edca",
+			"behavior-tree-ist-6509",
+			"behavior-tree-ist-915e"
 		],
 		"status": "active",
 		"createdAt": "2026-03-17T00:50:26.262Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-e9c19fbe",
+		"name": "mcp-eval-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-f547"
+		],
+		"status": "active",
+		"createdAt": "2026-03-17T01:29:34.995Z",
 		"completedAt": null
 	}
 ]
