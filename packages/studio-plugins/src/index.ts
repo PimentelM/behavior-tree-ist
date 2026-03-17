@@ -20,6 +20,8 @@ export {
     rewriteTopLevelDeclarations,
 } from './repl-plugin';
 
+export { ReplClient } from './repl-client';
+
 export {
     base64urlEncode,
     base64urlDecode,
