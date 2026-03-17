@@ -703,7 +703,6 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                                             color: '#e0e0e0',
                                             resize: 'none',
                                         }}
-                                        // eslint-disable-next-line react/no-danger
                                         dangerouslySetInnerHTML={{ __html: highlightJsHtml(inputValue) + '\n' }}
                                     />
                                     <textarea
