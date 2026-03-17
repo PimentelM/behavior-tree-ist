@@ -86,10 +86,7 @@ export function getRandomBytes(length: number): Uint8Array {
     } catch {
         // ignore
     }
-    // Non-crypto fallback (last resort)
-    const out = new Uint8Array(length);
-    for (let i = 0; i < length; i++) out[i] = Math.floor(Math.random() * 256);
-    return out;
+    throw new Error('No CSPRNG available: no crypto.getRandomValues or node:crypto found');
 }
 
 // ---------------------------------------------------------------------------
@@ -108,20 +105,20 @@ export function generateEphemeralKeyPair(): { publicKey: Uint8Array; secretKey: 
 
 export function sealSessionSeed(
     sessionSeed: Uint8Array,
-    serverPublicKey: Uint8Array,
+    uiPublicKey: Uint8Array,
     clientEphemeralSecretKey: Uint8Array,
 ): { nonce: Uint8Array; box: Uint8Array } {
     const nonce = getRandomBytes(nacl.box.nonceLength);
-    const ciphertext = nacl.box(sessionSeed, nonce, serverPublicKey, clientEphemeralSecretKey);
+    const ciphertext = nacl.box(sessionSeed, nonce, uiPublicKey, clientEphemeralSecretKey);
     return { nonce, box: ciphertext };
 }
 
 export function openSessionSeed(
     boxed: { nonce: Uint8Array; box: Uint8Array },
     clientEphemeralPublicKey: Uint8Array,
-    serverSecretKey: Uint8Array,
+    uiSecretKey: Uint8Array,
 ): Uint8Array {
-    const opened = nacl.box.open(boxed.box, boxed.nonce, clientEphemeralPublicKey, serverSecretKey);
+    const opened = nacl.box.open(boxed.box, boxed.nonce, clientEphemeralPublicKey, uiSecretKey);
     if (!opened) throw new Error('Invalid header token');
     return opened;
 }
@@ -204,13 +201,14 @@ export function bytesToJson<T = unknown>(bytes: Uint8Array): T {
 // ---------------------------------------------------------------------------
 
 /**
- * A fixed NaCl box keypair for demo/development mode.
- * Both the agent-side ReplPlugin and the UI-side ReplTerminal use this keypair
- * so the REPL works out of the box without key configuration.
+ * A fixed NaCl box keypair for the UI in demo/development mode.
+ * The agent-side ReplPlugin seals the session seed to this public key;
+ * the UI-side ReplTerminal holds the matching private key to open it.
+ * Works out of the box without key configuration.
  *
  * NEVER use this in production — these keys are public.
  */
-export const DEMO_SERVER_KEYPAIR: { publicKey: Uint8Array; secretKey: Uint8Array } = (() => {
+export const DEMO_UI_KEYPAIR: { publicKey: Uint8Array; secretKey: Uint8Array } = (() => {
     // Fixed 32-byte seed: "bt-studio-demo-repl-key-v1------"
     const seed = new Uint8Array([
         0x62, 0x74, 0x2d, 0x73, 0x74, 0x75, 0x64, 0x69,

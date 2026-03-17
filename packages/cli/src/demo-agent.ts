@@ -5,7 +5,7 @@ import {
 } from '@bt-studio/core'
 import { createCpuHeavyTree, createNpcDemoTree } from '@bt-studio/core/demos'
 import { WsNodeStringTransport } from '@bt-studio/studio-transport/node'
-import { ReplPlugin, DEMO_SERVER_KEYPAIR } from '@bt-studio/studio-plugins'
+import { ReplPlugin, DEMO_UI_KEYPAIR } from '@bt-studio/studio-plugins'
 
 export function startDemoAgent(wsUrl: string, type: 'npc' | 'cpu' = 'npc'): { shutdown(): void } {
   const tree = type === 'cpu' ? createCpuHeavyTree() : createNpcDemoTree()
@@ -25,7 +25,7 @@ export function startDemoAgent(wsUrl: string, type: 'npc' | 'cpu' = 'npc'): { sh
     link,
   })
 
-  const replPlugin = new ReplPlugin({ serverPublicKey: DEMO_SERVER_KEYPAIR.publicKey })
+  const replPlugin = new ReplPlugin({ uiPublicKey: DEMO_UI_KEYPAIR.publicKey })
   agent.registerPlugin(replPlugin)
 
   agent.start()

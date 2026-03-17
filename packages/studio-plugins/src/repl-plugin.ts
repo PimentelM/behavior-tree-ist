@@ -243,7 +243,7 @@ export class ReplPlugin implements StudioPlugin {
     }
 
     onConnected(): void {
-        // Re-establish session on reconnect (server purges session keys on disconnect)
+        // Re-establish session on reconnect (UI drops session keys on disconnect)
         this.doHandshake();
     }
 
@@ -272,9 +272,10 @@ export class ReplPlugin implements StudioPlugin {
     private doHandshake(): void {
         const ephemeral = generateEphemeralKeyPair();
         const sessionSeed = getRandomBytes(32);
+        const uiPubKey = this.config.uiPublicKey ?? this.config.serverPublicKey;
         const { nonce, box } = sealSessionSeed(
             sessionSeed,
-            this.config.serverPublicKey,
+            uiPubKey,
             ephemeral.secretKey,
         );
         const headerToken = encodeHeaderToken({

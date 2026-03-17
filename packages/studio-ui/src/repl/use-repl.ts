@@ -49,7 +49,7 @@ function deriveDirectionalKeys(seed: Uint8Array): { c2s: Uint8Array; s2c: Uint8A
 }
 
 // ---- demo keypair (deterministic, for out-of-the-box REPL experience) ----
-// Must match DEMO_SERVER_KEYPAIR in packages/studio-plugins/src/repl-crypto.ts
+// Must match DEMO_UI_KEYPAIR in packages/studio-plugins/src/repl-crypto.ts
 // Seed: "bt-studio-demo-repl-key-v1------" as ASCII bytes
 // NEVER use in production — this key is public knowledge.
 const DEMO_PRIVATE_KEY = new Uint8Array([
