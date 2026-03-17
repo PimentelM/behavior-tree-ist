@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import nacl from 'tweetnacl';
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha2';
@@ -181,16 +181,34 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         setSessionKeys(keys);
     }, [keyPair]);
 
+    // Automatically initiate handshake when agent is connected.
+    // Polls until the agent has sent its headerToken (repl.handshake.query).
+    useEffect(() => {
+        if (!clientId || !sessionId || sessionKeys) return;
+        if (!keyPair) return;
+        let cancelled = false;
+        const initSession = async () => {
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                const res = await (trpc as any).repl.handshake.query({ clientId, sessionId });
+                if (cancelled) return;
+                const { headerToken } = res as { headerToken: string };
+                const keys = openHandshake(headerToken, keyPair.secretKeyBytes);
+                setSessionKeys(keys);
+            } catch {
+                // Agent may not have connected yet — retry after a short delay
+                if (!cancelled) {
+                    setTimeout(() => { if (!cancelled) void initSession(); }, 500);
+                }
+            }
+        };
+        void initSession();
+        return () => { cancelled = true; };
+    }, [clientId, sessionId, keyPair, sessionKeys]);
+
     const sendEval = useCallback(async (code: string): Promise<ReplResult> => {
         if (!clientId || !sessionId) throw new Error('No agent selected');
-
-        if (!sessionKeys) {
-            // No session keys yet — send plaintext eval for development/testing
-            // In production the agent will reject this
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-            const raw = await (trpc as any).repl.eval.mutate({ clientId, sessionId, code });
-            return raw as ReplResult;
-        }
+        if (!sessionKeys) throw new Error('REPL session not ready — handshake in progress');
 
         // Encrypt payload with s2c key (UI → agent direction)
         const plaintext = jsonToBytes({ type: 'eval', code });
@@ -200,10 +218,10 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         const encryptedPayload = encodeEnvelope(nonce, box);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        const raw = await (trpc as any).repl.eval.mutate({ clientId, sessionId, encryptedPayload });
+        const response = await (trpc as any).repl.eval.mutate({ clientId, sessionId, encryptedPayload });
 
         // Decrypt response with c2s key (agent → UI direction)
-        const { nonce: rNonce, ciphertext } = decodeEnvelope(raw as string);
+        const { nonce: rNonce, ciphertext } = decodeEnvelope((response as { encryptedPayload: string }).encryptedPayload);
         const decrypted = nacl.secretbox.open(ciphertext, rNonce, sessionKeys.c2s);
         if (!decrypted) throw new Error('Failed to decrypt eval response');
         return bytesToJson<ReplResult>(decrypted);
@@ -211,12 +229,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
 
     const sendCompletions = useCallback(async (prefix: string, maxResults = 50): Promise<string[]> => {
         if (!clientId || !sessionId) return [];
-
-        if (!sessionKeys) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-            const raw = await (trpc as any).repl.completions.mutate({ clientId, sessionId, prefix, maxResults });
-            return (raw as { completions: string[] }).completions;
-        }
+        if (!sessionKeys) return [];
 
         const plaintext = jsonToBytes({ type: 'completions', prefix, maxResults });
         const nonce = new Uint8Array(nacl.secretbox.nonceLength);
@@ -225,9 +238,9 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         const encryptedPayload = encodeEnvelope(nonce, box);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        const raw = await (trpc as any).repl.completions.mutate({ clientId, sessionId, encryptedPayload });
+        const response = await (trpc as any).repl.completions.mutate({ clientId, sessionId, encryptedPayload });
 
-        const { nonce: rNonce, ciphertext } = decodeEnvelope(raw as string);
+        const { nonce: rNonce, ciphertext } = decodeEnvelope((response as { encryptedPayload: string }).encryptedPayload);
         const decrypted = nacl.secretbox.open(ciphertext, rNonce, sessionKeys.c2s);
         if (!decrypted) throw new Error('Failed to decrypt completions response');
         return bytesToJson<{ completions: string[] }>(decrypted).completions;
