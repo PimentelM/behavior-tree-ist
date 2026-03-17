@@ -307,6 +307,15 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     const repl = useRepl({ clientId, sessionId });
     replRef.current = repl;
 
+    // ---- Textarea button state ----
+    const doEvalRef = useRef<((code: string) => Promise<void>) | null>(null);
+    const outputBufferRef = useRef<string[]>([]);
+
+    const [inputOpen, setInputOpen] = useState(false);
+    const [outputOpen, setOutputOpen] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const [outputText, setOutputText] = useState('');
+
     // ---- one-time terminal setup ----
     useEffect(() => {
         if (!containerRef.current) return;
@@ -460,11 +469,22 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 const result = await r.sendEval(code);
                 rl.write('\r\x1b[K');
                 printResult(rl, result);
+                outputBufferRef.current.push('> ' + code);
+                if (result.consoleOutput) {
+                    for (const line of result.consoleOutput) {
+                        outputBufferRef.current.push('→ ' + line);
+                    }
+                }
+                outputBufferRef.current.push(result.text);
             } catch (err) {
                 rl.write('\r\x1b[K');
                 writeln(rl, `${RED}Error: ${err instanceof Error ? err.message : String(err)}${RESET}`);
+                outputBufferRef.current.push('> ' + code);
+                outputBufferRef.current.push('Error: ' + (err instanceof Error ? err.message : String(err)));
             }
         }
+
+        doEvalRef.current = doEval;
 
         writeln(rl, `\x1b[97mWelcome to BT Studio REPL${RESET}`);
         writeln(rl, `${GRAY}Type JavaScript and press Enter. Tab for completions. Shift+Enter for multi-line.${RESET}`);
@@ -491,9 +511,167 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         };
     }, []); // intentionally empty — terminal created once; handlers use replRef
 
+    const toolBtnStyle: React.CSSProperties = {
+        background: 'transparent',
+        border: '1px solid #333333',
+        color: '#888888',
+        borderRadius: 3,
+        cursor: 'pointer',
+        fontSize: 10,
+        padding: '1px 6px',
+        fontFamily: 'Menlo, Consolas, monospace',
+    };
+
+    const popupStyle: React.CSSProperties = {
+        position: 'absolute',
+        bottom: '100%',
+        left: 0,
+        background: '#1a1a1a',
+        border: '1px solid #333333',
+        borderRadius: 6,
+        boxShadow: '0 -4px 12px rgba(0,0,0,0.5)',
+        padding: 12,
+        zIndex: 20,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        minWidth: 400,
+    };
+
+    const popupTextareaStyle: React.CSSProperties = {
+        background: '#0a0a0a',
+        border: '1px solid #333333',
+        color: '#e0e0e0',
+        borderRadius: 3,
+        fontSize: 12,
+        padding: '6px 8px',
+        fontFamily: 'Menlo, Consolas, monospace',
+        resize: 'vertical',
+        outline: 'none',
+        width: '100%',
+        boxSizing: 'border-box',
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a' }}>
             <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden' }} />
+
+            {/* ---- Textarea utility toolbar ---- */}
+            <div style={{
+                display: 'flex',
+                gap: 6,
+                padding: '4px 10px',
+                background: '#111111',
+                borderTop: '1px solid #222222',
+                position: 'relative',
+                fontFamily: 'Menlo, Consolas, monospace',
+            }}>
+                {/* Paste Input button + popup */}
+                <div style={{ position: 'relative' }}>
+                    <button
+                        onClick={() => { setInputOpen((v) => !v); setOutputOpen(false); }}
+                        style={{ ...toolBtnStyle, color: inputOpen ? '#5af78e' : '#888888' }}
+                    >
+                        Paste Input
+                    </button>
+                    {inputOpen && (
+                        <div style={popupStyle}>
+                            <span style={{ color: '#686868', fontSize: 10 }}>
+                                Paste multi-line code — Ctrl+Enter to send
+                            </span>
+                            <textarea
+                                autoFocus
+                                rows={8}
+                                value={inputValue}
+                                onChange={(e) => { setInputValue(e.target.value); }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') { setInputOpen(false); return; }
+                                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                        if (inputValue.trim()) {
+                                            void doEvalRef.current?.(inputValue);
+                                        }
+                                        setInputValue('');
+                                        setInputOpen(false);
+                                    }
+                                }}
+                                style={popupTextareaStyle}
+                                placeholder="Paste multi-line code here..."
+                                spellCheck={false}
+                            />
+                            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => { setInputOpen(false); }}
+                                    style={toolBtnStyle}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (inputValue.trim()) {
+                                            void doEvalRef.current?.(inputValue);
+                                        }
+                                        setInputValue('');
+                                        setInputOpen(false);
+                                    }}
+                                    style={{ ...toolBtnStyle, border: '1px solid #5af78e', color: '#5af78e' }}
+                                >
+                                    Send (Ctrl+Enter)
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Copy Output button + popup */}
+                <div style={{ position: 'relative' }}>
+                    <button
+                        onClick={() => {
+                            if (!outputOpen) {
+                                setOutputText(outputBufferRef.current.join('\n'));
+                            }
+                            setOutputOpen((v) => !v);
+                            setInputOpen(false);
+                        }}
+                        style={{ ...toolBtnStyle, color: outputOpen ? '#5af78e' : '#888888' }}
+                    >
+                        Copy Output
+                    </button>
+                    {outputOpen && (
+                        <div style={popupStyle}>
+                            <span style={{ color: '#686868', fontSize: 10 }}>
+                                REPL output — select to copy or use Copy All
+                            </span>
+                            <textarea
+                                readOnly
+                                rows={10}
+                                value={outputText}
+                                onKeyDown={(e) => { if (e.key === 'Escape') setOutputOpen(false); }}
+                                style={{ ...popupTextareaStyle, color: '#5af78e' }}
+                                spellCheck={false}
+                            />
+                            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => {
+                                        outputBufferRef.current = [];
+                                        setOutputText('');
+                                    }}
+                                    style={toolBtnStyle}
+                                >
+                                    Clear
+                                </button>
+                                <CopyButton text={outputText} label="Copy All" />
+                                <button
+                                    onClick={() => { setOutputOpen(false); }}
+                                    style={toolBtnStyle}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
             <KeyManagement
                 keyPair={repl.keyPair}
                 onGenerate={repl.generateKeyPair}
