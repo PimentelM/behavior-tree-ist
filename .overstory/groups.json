@@ -381,5 +381,15 @@
 		"status": "active",
 		"createdAt": "2026-03-17T04:10:50.918Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-4b2f84e9",
+		"name": "security-audit",
+		"memberIssueIds": [
+			"behavior-tree-ist-f4cc"
+		],
+		"status": "active",
+		"createdAt": "2026-03-17T04:49:57.808Z",
+		"completedAt": null
 	}
 ]
