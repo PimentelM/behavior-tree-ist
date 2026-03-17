@@ -341,5 +341,25 @@
 		"status": "active",
 		"createdAt": "2026-03-17T01:29:34.995Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-41b33a10",
+		"name": "completion-overlay",
+		"memberIssueIds": [
+			"behavior-tree-ist-2219"
+		],
+		"status": "active",
+		"createdAt": "2026-03-17T03:04:24.089Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-5f60c981",
+		"name": "repl-textarea-buttons",
+		"memberIssueIds": [
+			"behavior-tree-ist-104d"
+		],
+		"status": "active",
+		"createdAt": "2026-03-17T03:05:41.086Z",
+		"completedAt": null
 	}
 ]
