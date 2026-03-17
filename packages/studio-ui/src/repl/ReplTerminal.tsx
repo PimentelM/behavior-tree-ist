@@ -406,17 +406,19 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                 if (completions.length === 0) return;
 
                 // Re-check after async gap — discard if buffer changed.
-                const currentState = rlInternal.state;
-                if (currentState?.buffer() !== prefix) return;
+                // Use the pre-await rlState reference: xterm-readline may create a new
+                // state object during the async gap, so re-fetching rlInternal.state
+                // could silently discard valid completions.
+                if (rlState.buffer() !== prefix) return;
 
                 if (completions.length === 1) {
-                    currentState.update(applyCompletion(prefix, completions[0] as string));
+                    rlState.update(applyCompletion(prefix, completions[0] as string));
                 } else {
                     // Multiple matches: apply longest common prefix.
                     const lcp = longestCommonPrefix(completions);
                     const completed = applyCompletion(prefix, lcp);
                     if (completed !== prefix) {
-                        currentState.update(completed);
+                        rlState.update(completed);
                     } else {
                         // LCP didn't narrow further — display candidate list below the
                         // current prompt line (bash/Frida double-tab style), then restore
@@ -434,7 +436,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                         const candidatesStr = completions.join('  ');
                         term.write(`\r\n${GRAY}${candidatesStr}${RESET}\r\n`);
                         term.write('\x1b[2A\r');
-                        currentState.refresh();
+                        rlState.refresh();
                     }
                 }
             } catch (err) {
