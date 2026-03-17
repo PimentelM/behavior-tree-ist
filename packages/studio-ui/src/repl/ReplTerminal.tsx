@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { Readline } from 'xterm-readline';
 import '@xterm/xterm/css/xterm.css';
 import { replTheme } from './repl-theme';
-import { highlightJs } from './js-syntax';
+import { highlightJs, highlightJsHtml } from './js-syntax';
 import { useRepl } from './use-repl';
 import type { ReplResult, UseReplReturn } from './use-repl';
 import { CompletionOverlay } from './CompletionOverlay';
@@ -311,6 +311,7 @@ type CompletionState = {
 export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const termRef = useRef<Terminal | null>(null);
+    const rlRef = useRef<Readline | null>(null);
 
     // replRef allows the stable terminal effect to access current repl without closure staling.
     const replRef = useRef<UseReplReturn | null>(null);
@@ -327,6 +328,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
     // ---- Textarea button state ----
     const doEvalRef = useRef<((code: string) => Promise<void>) | null>(null);
+    const inputPreRef = useRef<HTMLPreElement>(null);
     const outputBufferRef = useRef<string[]>([]);
 
     const [inputOpen, setInputOpen] = useState(false);
@@ -356,6 +358,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         term.loadAddon(fitAddon);
         term.loadAddon(rl);
         term.open(containerRef.current);
+        rlRef.current = rl;
 
         fitAddon.fit();
         term.focus();
@@ -517,6 +520,11 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         async function doEval(code: string) {
             if (!code.trim()) return;
 
+            if (/^clear\(\)?$/.test(code.trim())) {
+                term.clear();
+                return;
+            }
+
             const r = replRef.current;
             if (!r) {
                 writeln(rl, `${RED}REPL not ready${RESET}`);
@@ -569,8 +577,20 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             ro.disconnect();
             term.dispose();
             termRef.current = null;
+            rlRef.current = null;
         };
     }, []); // intentionally empty — terminal created once; handlers use refs
+
+    // ---- handshake status feedback ----
+    useEffect(() => {
+        const rl = rlRef.current;
+        if (!rl) return;
+        if (repl.handshakeStatus === 'established') {
+            writeln(rl, `${GRAY}E2E session established${RESET}`);
+        } else if (typeof repl.handshakeStatus === 'object' && 'error' in repl.handshakeStatus) {
+            writeln(rl, `${RED}E2E handshake failed: ${repl.handshakeStatus.error}${RESET}`);
+        }
+    }, [repl.handshakeStatus]);
 
     const toolBtnStyle: React.CSSProperties = {
         background: 'transparent',
@@ -664,24 +684,62 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                                 <span style={{ color: '#686868', fontSize: 10 }}>
                                     Paste multi-line code — Ctrl+Enter to send
                                 </span>
-                                <textarea
-                                    autoFocus
-                                    rows={14}
-                                    value={inputValue}
-                                    onChange={(e) => { setInputValue(e.target.value); }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                                            if (inputValue.trim()) {
-                                                void doEvalRef.current?.(inputValue);
+                                <div style={{ position: 'relative' }}>
+                                    <pre
+                                        ref={inputPreRef}
+                                        aria-hidden
+                                        style={{
+                                            ...popupTextareaStyle,
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            margin: 0,
+                                            overflow: 'auto',
+                                            whiteSpace: 'pre-wrap',
+                                            wordWrap: 'break-word',
+                                            pointerEvents: 'none',
+                                            color: '#e0e0e0',
+                                            resize: 'none',
+                                        }}
+                                        // eslint-disable-next-line react/no-danger
+                                        dangerouslySetInnerHTML={{ __html: highlightJsHtml(inputValue) + '\n' }}
+                                    />
+                                    <textarea
+                                        autoFocus
+                                        rows={14}
+                                        value={inputValue}
+                                        onChange={(e) => { setInputValue(e.target.value); }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                                if (inputValue.trim()) {
+                                                    void doEvalRef.current?.(inputValue);
+                                                }
+                                                setInputValue('');
+                                                setInputOpen(false);
                                             }
-                                            setInputValue('');
-                                            setInputOpen(false);
-                                        }
-                                    }}
-                                    style={popupTextareaStyle}
-                                    placeholder="Paste multi-line code here..."
-                                    spellCheck={false}
-                                />
+                                        }}
+                                        onScroll={(e) => {
+                                            if (inputPreRef.current) {
+                                                inputPreRef.current.scrollTop = e.currentTarget.scrollTop;
+                                                inputPreRef.current.scrollLeft = e.currentTarget.scrollLeft;
+                                            }
+                                        }}
+                                        style={{
+                                            ...popupTextareaStyle,
+                                            position: 'relative',
+                                            zIndex: 1,
+                                            background: 'transparent',
+                                            color: 'transparent',
+                                            caretColor: '#e0e0e0',
+                                            whiteSpace: 'pre-wrap',
+                                            wordWrap: 'break-word',
+                                        }}
+                                        placeholder="Paste multi-line code here..."
+                                        spellCheck={false}
+                                    />
+                                </div>
                                 <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                                     <button
                                         onClick={() => { setInputOpen(false); }}
