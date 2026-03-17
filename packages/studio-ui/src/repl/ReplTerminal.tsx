@@ -260,6 +260,7 @@ function applyCompletion(prefix: string, candidate: string): string {
 type RlState = {
     buffer(): string;
     update(t: string): void;
+    refresh(): void;
     moveCursorBack(n: number): void;
     moveCursorForward(n: number): void;
     editBackspace(n: number): void;
@@ -409,6 +410,14 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     const completed = applyCompletion(prefix, lcp);
                     if (completed !== prefix) {
                         currentState.update(completed);
+                    } else {
+                        // LCP didn't narrow further — display candidate list below the
+                        // current prompt line (bash/Frida double-tab style), then restore
+                        // the readline prompt by moving the cursor back up and refreshing.
+                        const candidatesStr = completions.join('  ');
+                        rl.write(`\r\n${GRAY}${candidatesStr}${RESET}\r\n`);
+                        rl.write('\x1b[2A\r');
+                        currentState.refresh();
                     }
                 }
             } catch (err) {
