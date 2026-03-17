@@ -1,0 +1,46 @@
+{
+    "name": "@bt-studio/studio-mcp",
+    "version": "0.1.0",
+    "description": "MCP server for BT Studio — provides eval/completions tool access to connected agents with E2E encryption",
+    "type": "module",
+    "bin": {
+        "bt-studio-mcp": "./dist/index.js"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "lint": "eslint src",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@bt-studio/studio-plugins": "workspace:*",
+        "@modelcontextprotocol/sdk": "^1.17.0",
+        "@trpc/client": "^11.0.0",
+        "zod": "^3.24.0"
+    },
+    "devDependencies": {
+        "@bt-studio/studio-server": "workspace:*",
+        "@types/node": "^22.15.30",
+        "eslint": "^9.0.0",
+        "tsup": "^8.0.0",
+        "typescript": "^5.7.0",
+        "vitest": "^3.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "keywords": [
+        "behaviour-tree",
+        "behavior-tree",
+        "mcp",
+        "studio",
+        "repl"
+    ],
+    "author": "",
+    "license": "MIT"
+}
