@@ -147,10 +147,13 @@ export interface UseReplOptions {
     sessionId: string | null;
 }
 
+export type HandshakeStatus = 'idle' | 'connecting' | 'established' | { error: string };
+
 export interface UseReplReturn {
     /** Session established (handshake complete) */
     ready: boolean;
     keyPair: ReplKeyPair | null;
+    handshakeStatus: HandshakeStatus;
     generateKeyPair: () => ReplKeyPair;
     importPrivateKey: (input: string) => void;
     establishSession: (headerToken: string) => void;
@@ -161,6 +164,7 @@ export interface UseReplReturn {
 export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn {
     const [keyPair, setKeyPair] = useState<ReplKeyPair | null>(() => loadDefaultKeyPair());
     const [sessionKeys, setSessionKeys] = useState<{ c2s: Uint8Array; s2c: Uint8Array } | null>(null);
+    const [handshakeStatus, setHandshakeStatus] = useState<HandshakeStatus>('idle');
 
     const handleGenerateKeyPair = useCallback((): ReplKeyPair => {
         const kp = generateKeyPair();
@@ -187,14 +191,25 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         if (!clientId || !sessionId || sessionKeys) return;
         if (!keyPair) return;
         let cancelled = false;
+        setHandshakeStatus('connecting');
         const initSession = async () => {
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                 const res = await (trpc as any).repl.handshake.query({ clientId, sessionId });
                 if (cancelled) return;
                 const { headerToken } = res as { headerToken: string };
-                const keys = openHandshake(headerToken, keyPair.secretKeyBytes);
+                // openHandshake can throw on decrypt failure — treat as definitive
+                let keys: { c2s: Uint8Array; s2c: Uint8Array };
+                try {
+                    keys = openHandshake(headerToken, keyPair.secretKeyBytes);
+                } catch (decryptErr) {
+                    if (!cancelled) {
+                        setHandshakeStatus({ error: decryptErr instanceof Error ? decryptErr.message : String(decryptErr) });
+                    }
+                    return;
+                }
                 setSessionKeys(keys);
+                setHandshakeStatus('established');
             } catch {
                 // Agent may not have connected yet — retry after a short delay
                 if (!cancelled) {
@@ -249,6 +264,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
     return {
         ready: sessionKeys !== null,
         keyPair,
+        handshakeStatus,
         generateKeyPair: handleGenerateKeyPair,
         importPrivateKey: handleImportPrivateKey,
         establishSession,

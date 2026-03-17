@@ -269,3 +269,44 @@ export function highlightJs(src: string): string {
     out += RESET;
     return out;
 }
+
+// ---- HTML syntax highlighting (for textarea overlay) ----
+
+/** CSS colours for HTML syntax highlighting in textarea overlay. */
+const HTML_COLOURS: Record<TokenKind, string | null> = {
+    keyword: '#c678dd', // magenta
+    number:  '#56b6c2', // cyan
+    comment: '#686868', // gray
+    string:  '#5af78e', // green
+    regex:   '#e5c07b', // yellow
+    punct:   '#e0e0e0', // bright white
+    other:   null,      // inherit
+};
+
+function escapeHtml(s: string): string {
+    return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+/**
+ * Apply syntax highlighting to a JavaScript snippet and return an HTML string
+ * with inline-styled `<span>` elements. Intended for use with
+ * `dangerouslySetInnerHTML` in textarea overlay components.
+ */
+export function highlightJsHtml(src: string): string {
+    if (!src) return '';
+    const tokens = tokenise(src);
+    let out = '';
+    for (const tok of tokens) {
+        const colour = HTML_COLOURS[tok.kind];
+        const escaped = escapeHtml(tok.value);
+        if (colour) {
+            out += `<span style="color:${colour}">${escaped}</span>`;
+        } else {
+            out += escaped;
+        }
+    }
+    return out;
+}
