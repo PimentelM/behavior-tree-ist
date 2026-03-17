@@ -420,10 +420,20 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     } else {
                         // LCP didn't narrow further — display candidate list below the
                         // current prompt line (bash/Frida double-tab style), then restore
-                        // the readline prompt by moving the cursor back up and refreshing.
+                        // the readline prompt.
+                        //
+                        // IMPORTANT: use term.write() (direct terminal write) NOT rl.write()
+                        // for the candidates.  rl.write() routes through xterm-readline's
+                        // state machine and updates layout.cursor/end, so the subsequent
+                        // clearOldRows() inside refresh() sees extra rows and tries to erase
+                        // them — putting the cursor in the wrong place and duplicating the
+                        // prompt.  term.write() bypasses readline's layout state entirely, so
+                        // readline still thinks cursor is at row 0 of the prompt.  Moving the
+                        // terminal cursor back up with term.write('\x1b[2A\r') then lets
+                        // refresh() clear and redraw the single prompt line cleanly.
                         const candidatesStr = completions.join('  ');
-                        rl.write(`\r\n${GRAY}${candidatesStr}${RESET}\r\n`);
-                        rl.write('\x1b[2A\r');
+                        term.write(`\r\n${GRAY}${candidatesStr}${RESET}\r\n`);
+                        term.write('\x1b[2A\r');
                         currentState.refresh();
                     }
                 }
