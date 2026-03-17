@@ -203,6 +203,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
                 try {
                     keys = openHandshake(headerToken, keyPair.secretKeyBytes);
                 } catch (decryptErr) {
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- cancelled is a closure variable; TS narrowing treats it as false here (checked above), but guard is retained for safety if code is refactored to add async boundaries
                     if (!cancelled) {
                         setHandshakeStatus({ error: decryptErr instanceof Error ? decryptErr.message : String(decryptErr) });
                     }
