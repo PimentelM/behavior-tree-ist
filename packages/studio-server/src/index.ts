@@ -231,6 +231,12 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
                     setupLogger.warn('Attempted to send plugin message to unknown client', { clientId });
                 },
             },
+            eventDispatcher,
+            resolveConnection: (connectionId) => {
+                const conn = agentConnectionRegistry.getByConnectionId(connectionId);
+                if (!conn) return undefined;
+                return { clientId: conn.clientId, sessionId: conn.sessionId };
+            },
         });
         // Repositories
         const clientRepository = new ClientRepository(knex);

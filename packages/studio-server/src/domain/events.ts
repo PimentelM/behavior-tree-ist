@@ -20,10 +20,20 @@ export const CatalogChanged = z.object({
 });
 export type CatalogChanged = z.infer<typeof CatalogChanged>;
 
+export const ReplActivity = z.object({
+    clientId: z.string(),
+    sessionId: z.string(),
+    encryptedRequest: z.string(),
+    encryptedResponse: z.string(),
+    timestamp: z.number(),
+});
+export type ReplActivity = z.infer<typeof ReplActivity>;
+
 export const AgentEventMap = {
     AgentConnected,
     AgentDisconnected,
     CatalogChanged,
+    ReplActivity,
 } as const;
 export type AgentEventMap = SchemaMapType<typeof AgentEventMap>;
 export type AgentEventName = keyof AgentEventMap;

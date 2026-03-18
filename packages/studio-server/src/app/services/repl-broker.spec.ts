@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ReplBroker } from './repl-broker';
-import { type CommandSenderInterface } from '../interfaces';
+import { type CommandSenderInterface, type DomainEventDispatcherInterface } from '../interfaces';
+import { type AgentEvent } from '../../domain/events';
 
 class FakeCommandSender implements CommandSenderInterface {
     public readonly sent: Array<{ clientId: string; message: object }> = [];
@@ -17,10 +18,21 @@ type SentPluginMessage = {
     payload: string;
 };
 
-function makeTestBroker() {
+function makeTestBroker(opts?: { resolveConnection?: (id: string) => { clientId: string; sessionId: string } | undefined }) {
     const sender = new FakeCommandSender();
-    const broker = new ReplBroker({ commandSender: sender });
-    return { sender, broker };
+    const dispatchedEvents: AgentEvent[] = [];
+    const eventDispatcher: DomainEventDispatcherInterface = {
+        dispatchEvent: async () => {},
+        dispatchAgentEvent: async (event) => { dispatchedEvents.push(event); },
+        dispatchServerEvent: async () => {},
+        on: () => {},
+    };
+    const broker = new ReplBroker({
+        commandSender: sender,
+        eventDispatcher,
+        resolveConnection: opts?.resolveConnection ?? (() => undefined),
+    });
+    return { sender, broker, dispatchedEvents };
 }
 
 function doHandshake(broker: ReplBroker, connectionId: string, headerToken = 'fake-header-token'): void {
@@ -37,7 +49,7 @@ describe('ReplBroker', () => {
     });
 
     it('relays encrypted payload to agent and resolves with raw agent response', async () => {
-        const { sender, broker } = makeTestBroker();
+        const { sender, broker } = makeTestBroker({ resolveConnection: () => undefined });
         doHandshake(broker, 'conn-1');
 
         const relayPromise = broker.relay('conn-1', 'encrypted-eval-payload');
@@ -146,5 +158,39 @@ describe('ReplBroker', () => {
 
         expect(broker.getHandshakeToken('conn-1')).toBeUndefined();
         expect(broker.getHandshakeToken('conn-2')).toBeUndefined();
+    });
+
+    it('emits ReplActivity event after successful relay', async () => {
+        const { sender, broker, dispatchedEvents } = makeTestBroker({
+            resolveConnection: () => ({ clientId: 'c1', sessionId: 's1' }),
+        });
+        doHandshake(broker, 'conn-1');
+
+        const relayPromise = broker.relay('conn-1', 'enc-request');
+        const msg = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
+        broker.handleAgentMessage('conn-1', msg.correlationId, 'enc-response');
+        await relayPromise;
+
+        expect(dispatchedEvents).toHaveLength(1);
+        expect(dispatchedEvents[0]?.name).toBe('ReplActivity');
+        expect(dispatchedEvents[0]?.body).toMatchObject({
+            clientId: 'c1',
+            sessionId: 's1',
+            encryptedRequest: 'enc-request',
+            encryptedResponse: 'enc-response',
+        });
+        expect(typeof dispatchedEvents[0]?.body.timestamp).toBe('number');
+    });
+
+    it('does not emit ReplActivity when resolveConnection returns undefined', async () => {
+        const { sender, broker, dispatchedEvents } = makeTestBroker({ resolveConnection: () => undefined });
+        doHandshake(broker, 'conn-1');
+
+        const relayPromise = broker.relay('conn-1', 'payload');
+        const msg = (sender.sent[0] as (typeof sender.sent)[number]).message as SentPluginMessage;
+        broker.handleAgentMessage('conn-1', msg.correlationId, 'response');
+        await relayPromise;
+
+        expect(dispatchedEvents).toHaveLength(0);
     });
 });
