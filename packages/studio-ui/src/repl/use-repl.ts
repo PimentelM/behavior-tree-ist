@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import nacl from 'tweetnacl';
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha2';
@@ -155,6 +155,8 @@ export interface UseReplReturn {
     keyPair: ReplKeyPair | null;
     handshakeStatus: HandshakeStatus;
     sessionKeys: { c2s: Uint8Array; s2c: Uint8Array } | null;
+    /** Encrypted payloads sent by this UI instance via sendEval (for self-eval filtering in monitor). */
+    sentEncryptedPayloads: Set<string>;
     generateKeyPair: () => ReplKeyPair;
     importPrivateKey: (input: string) => void;
     establishSession: (headerToken: string) => void;
@@ -166,6 +168,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
     const [keyPair, setKeyPair] = useState<ReplKeyPair | null>(() => loadDefaultKeyPair());
     const [sessionKeys, setSessionKeys] = useState<{ c2s: Uint8Array; s2c: Uint8Array } | null>(null);
     const [handshakeStatus, setHandshakeStatus] = useState<HandshakeStatus>('idle');
+    const sentEncryptedPayloadsRef = useRef(new Set<string>());
 
     const handleGenerateKeyPair = useCallback((): ReplKeyPair => {
         const kp = generateKeyPair();
@@ -234,6 +237,9 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         const box = nacl.secretbox(plaintext, nonce, sessionKeys.s2c);
         const encryptedPayload = encodeEnvelope(nonce, box);
 
+        // Track this payload so the monitor can filter out self-initiated evals.
+        sentEncryptedPayloadsRef.current.add(encryptedPayload);
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const response = await (trpc as any).repl.eval.mutate({ clientId, sessionId, encryptedPayload });
 
@@ -268,6 +274,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         keyPair,
         handshakeStatus,
         sessionKeys,
+        sentEncryptedPayloads: sentEncryptedPayloadsRef.current,
         generateKeyPair: handleGenerateKeyPair,
         importPrivateKey: handleImportPrivateKey,
         establishSession,

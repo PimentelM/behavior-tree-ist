@@ -354,6 +354,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         clientId,
         sessionId,
         sessionKeys: repl.sessionKeys,
+        selfSentPayloads: repl.sentEncryptedPayloads,
     });
 
     // Auto-scroll monitor on new entries

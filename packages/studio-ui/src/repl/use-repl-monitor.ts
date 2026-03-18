@@ -15,6 +15,8 @@ export interface UseReplMonitorOptions {
     sessionId: string | null;
     sessionKeys: { c2s: Uint8Array; s2c: Uint8Array } | null;
     subscribe: WsSubscribe;
+    /** Payloads sent by the local UI — matching entries are excluded from the monitor. */
+    selfSentPayloads: Set<string>;
 }
 
 export interface UseReplMonitorReturn {
@@ -27,10 +29,13 @@ export function useReplMonitor({
     clientId,
     sessionId,
     sessionKeys,
+    selfSentPayloads,
 }: UseReplMonitorOptions): UseReplMonitorReturn {
     const [activities, setActivities] = useState<ReplActivityEntry[]>([]);
     const sessionKeysRef = useRef(sessionKeys);
     sessionKeysRef.current = sessionKeys;
+    const selfSentPayloadsRef = useRef(selfSentPayloads);
+    selfSentPayloadsRef.current = selfSentPayloads;
 
     useEffect(() => {
         if (!clientId || !sessionId) return;
@@ -52,6 +57,9 @@ export function useReplMonitor({
                 typeof encryptedResponse !== 'string' ||
                 typeof timestamp !== 'number'
             ) return;
+
+            // Skip evals that this UI instance initiated — only show external activity.
+            if (selfSentPayloadsRef.current.has(encryptedRequest)) return;
 
             try {
                 const { nonce: reqNonce, ciphertext: reqCt } = decodeEnvelope(encryptedRequest);
