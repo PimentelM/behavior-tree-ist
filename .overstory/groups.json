@@ -461,5 +461,15 @@
 		"status": "active",
 		"createdAt": "2026-03-18T05:46:45.782Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-02274df8",
+		"name": "monitor-filter",
+		"memberIssueIds": [
+			"behavior-tree-ist-3ec7"
+		],
+		"status": "active",
+		"createdAt": "2026-03-18T05:54:33.136Z",
+		"completedAt": null
 	}
 ]
