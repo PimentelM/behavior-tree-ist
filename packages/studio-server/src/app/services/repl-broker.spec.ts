@@ -22,10 +22,10 @@ function makeTestBroker(opts?: { resolveConnection?: (id: string) => { clientId:
     const sender = new FakeCommandSender();
     const dispatchedEvents: AgentEvent[] = [];
     const eventDispatcher: DomainEventDispatcherInterface = {
-        dispatchEvent: async () => {},
-        dispatchAgentEvent: async (event) => { dispatchedEvents.push(event); },
-        dispatchServerEvent: async () => {},
-        on: () => {},
+        dispatchEvent: () => Promise.resolve(),
+        dispatchAgentEvent: (event) => { dispatchedEvents.push(event); return Promise.resolve(); },
+        dispatchServerEvent: () => Promise.resolve(),
+        on: () => () => {},
     };
     const broker = new ReplBroker({
         commandSender: sender,
@@ -172,14 +172,17 @@ describe('ReplBroker', () => {
         await relayPromise;
 
         expect(dispatchedEvents).toHaveLength(1);
-        expect(dispatchedEvents[0]?.name).toBe('ReplActivity');
-        expect(dispatchedEvents[0]?.body).toMatchObject({
+        const event = dispatchedEvents[0];
+        expect(event?.name).toBe('ReplActivity');
+        expect(event?.body).toMatchObject({
             clientId: 'c1',
             sessionId: 's1',
             encryptedRequest: 'enc-request',
             encryptedResponse: 'enc-response',
         });
-        expect(typeof dispatchedEvents[0]?.body.timestamp).toBe('number');
+        if (event?.name === 'ReplActivity') {
+            expect(typeof event.body.timestamp).toBe('number');
+        }
     });
 
     it('does not emit ReplActivity when resolveConnection returns undefined', async () => {
