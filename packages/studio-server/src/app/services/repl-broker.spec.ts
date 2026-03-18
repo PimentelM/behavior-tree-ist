@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { ReplBroker } from './repl-broker';
-import { type CommandSenderInterface, type DomainEventDispatcherInterface } from '../interfaces';
+import { type CommandSenderInterface } from '../interfaces';
 import { type AgentEvent } from '../../domain/events';
+import { EventDispatcher } from '../../infra/events/event-dispatcher';
+import { createLogger } from '../../infra/logging';
 
 class FakeCommandSender implements CommandSenderInterface {
     public readonly sent: Array<{ clientId: string; message: object }> = [];
@@ -20,13 +22,13 @@ type SentPluginMessage = {
 
 function makeTestBroker(opts?: { resolveConnection?: (id: string) => { clientId: string; sessionId: string } | undefined }) {
     const sender = new FakeCommandSender();
+    const eventDispatcher = new EventDispatcher(null, createLogger('test'));
     const dispatchedEvents: AgentEvent[] = [];
-    const eventDispatcher: DomainEventDispatcherInterface = {
-        dispatchEvent: () => Promise.resolve(),
-        dispatchAgentEvent: (event) => { dispatchedEvents.push(event); return Promise.resolve(); },
-        dispatchServerEvent: () => Promise.resolve(),
-        on: () => () => {},
-    };
+
+    eventDispatcher.on('Agent', 'ReplActivity', async (de) => {
+        dispatchedEvents.push(de.event as AgentEvent);
+    });
+
     const broker = new ReplBroker({
         commandSender: sender,
         eventDispatcher,
