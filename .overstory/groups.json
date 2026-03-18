@@ -441,5 +441,15 @@
 		"status": "active",
 		"createdAt": "2026-03-18T05:00:38.090Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-fa08e2e7",
+		"name": "ts-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-f062"
+		],
+		"status": "active",
+		"createdAt": "2026-03-18T05:39:02.988Z",
+		"completedAt": null
 	}
 ]

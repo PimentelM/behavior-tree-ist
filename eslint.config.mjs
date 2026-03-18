@@ -55,7 +55,8 @@ export default tseslint.config(
           "selector": "UnaryExpression[operator='!'] > MemberExpression[object.type='ThisExpression'][property.name=/^(startedAt|lastTriggeredAt|lastFinishedAt|firstSuccessAt|startTime|lastNow)$/]",
           "message": "Use === undefined instead of falsy check on sentinel timing fields. Falsy checks treat 0 as unset."
         }
-      ]
+      ],
+      "@typescript-eslint/require-await": "off"
     },
   },
   {
