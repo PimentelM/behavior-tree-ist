@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from '../../infra/logging';
-import { type CommandSenderInterface } from '../interfaces';
+import { type CommandSenderInterface, type DomainEventDispatcherInterface } from '../interfaces';
 
 const PLUGIN_MESSAGE_T = 7;
 const REPL_PLUGIN_ID = 'repl';
@@ -23,6 +23,8 @@ export interface ReplBrokerInterface {
 
 export interface ReplBrokerConfig {
     commandSender: CommandSenderInterface;
+    eventDispatcher: DomainEventDispatcherInterface;
+    resolveConnection: (connectionId: string) => { clientId: string; sessionId: string } | undefined;
 }
 
 export class ReplBroker implements ReplBrokerInterface {
@@ -30,9 +32,13 @@ export class ReplBroker implements ReplBrokerInterface {
     private readonly pending = new Map<string, PendingEntry>();
     private readonly handshakeTokens = new Map<string, string>();
     private readonly commandSender: CommandSenderInterface;
+    private readonly eventDispatcher: DomainEventDispatcherInterface;
+    private readonly resolveConnection: (connectionId: string) => { clientId: string; sessionId: string } | undefined;
 
     constructor(config: ReplBrokerConfig) {
         this.commandSender = config.commandSender;
+        this.eventDispatcher = config.eventDispatcher;
+        this.resolveConnection = config.resolveConnection;
     }
 
     relay(connectionId: string, encryptedPayload: string, timeoutMs = DEFAULT_EVAL_TIMEOUT_MS): Promise<string> {
@@ -71,6 +77,19 @@ export class ReplBroker implements ReplBrokerInterface {
         }).then((raw) => {
             if (typeof raw !== 'string') {
                 throw new Error('Expected encrypted string response from agent');
+            }
+            const conn = this.resolveConnection(connectionId);
+            if (conn) {
+                void this.eventDispatcher.dispatchAgentEvent({
+                    name: 'ReplActivity',
+                    body: {
+                        clientId: conn.clientId,
+                        sessionId: conn.sessionId,
+                        encryptedRequest: encryptedPayload,
+                        encryptedResponse: raw,
+                        timestamp: Date.now(),
+                    },
+                });
             }
             return raw;
         });

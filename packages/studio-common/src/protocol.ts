@@ -4,6 +4,7 @@ export const UiMessageType = {
     AgentOnline: 'agent.online',
     AgentOffline: 'agent.offline',
     CatalogChanged: 'catalog.changed',
+    ReplActivity: 'repl.activity',
 } as const;
 
 export type UiMessageType = typeof UiMessageType[keyof typeof UiMessageType];
@@ -12,6 +13,7 @@ export const UiMessageTypeSchema = z.union([
     z.literal(UiMessageType.AgentOnline),
     z.literal(UiMessageType.AgentOffline),
     z.literal(UiMessageType.CatalogChanged),
+    z.literal(UiMessageType.ReplActivity),
 ]);
 
 // UI -> Server
@@ -39,6 +41,14 @@ export const UiInboundMessageSchema = z.union([
         t: z.literal(UiMessageType.CatalogChanged),
         clientId: z.string(),
         sessionId: z.string(),
+    }).strict(),
+    z.object({
+        t: z.literal(UiMessageType.ReplActivity),
+        clientId: z.string(),
+        sessionId: z.string(),
+        encryptedRequest: z.string(),
+        encryptedResponse: z.string(),
+        timestamp: z.number(),
     }).strict(),
 ]);
 

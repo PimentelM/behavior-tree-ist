@@ -50,4 +50,17 @@ export function registerLocalDomainEventHandlers({
         runtimeSettings.maxTicksPerTree = maxTicksPerTree;
         commandBroker.updateTimeoutMs(commandTimeoutMs);
     });
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    eventDispatcher.on('Agent', 'ReplActivity', async ({ event }) => {
+        const { clientId, sessionId, encryptedRequest, encryptedResponse, timestamp } = event.body;
+        uiWsServer.broadcast({
+            t: UiMessageType.ReplActivity,
+            clientId,
+            sessionId,
+            encryptedRequest,
+            encryptedResponse,
+            timestamp,
+        });
+    });
 }
