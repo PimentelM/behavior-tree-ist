@@ -98,7 +98,7 @@ export function defineStudioServerE2ETests(config: StudioServerE2ETransportConfi
             });
 
             agent.start();
-            // eslint-disable-next-line @typescript-eslint/require-await
+             
             await waitFor(async () => agent.isConnected);
             await delay(50);
             agent.tick();
