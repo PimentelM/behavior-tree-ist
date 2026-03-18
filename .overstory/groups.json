@@ -471,5 +471,15 @@
 		"status": "active",
 		"createdAt": "2026-03-18T05:54:33.136Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-3f3c0a1b",
+		"name": "repl-footer",
+		"memberIssueIds": [
+			"behavior-tree-ist-3182"
+		],
+		"status": "active",
+		"createdAt": "2026-03-18T06:19:27.779Z",
+		"completedAt": null
 	}
 ]
