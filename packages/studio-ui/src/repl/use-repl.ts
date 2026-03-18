@@ -23,7 +23,7 @@ function jsonToBytes(obj: unknown): Uint8Array {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-function bytesToJson<T = unknown>(bytes: Uint8Array): T {
+export function bytesToJson<T = unknown>(bytes: Uint8Array): T {
     return JSON.parse(new TextDecoder().decode(bytes)) as T;
 }
 
@@ -34,7 +34,7 @@ function encodeEnvelope(nonce: Uint8Array, ciphertext: Uint8Array): string {
     return base64urlEncode(out);
 }
 
-function decodeEnvelope(packed: string): { nonce: Uint8Array; ciphertext: Uint8Array } {
+export function decodeEnvelope(packed: string): { nonce: Uint8Array; ciphertext: Uint8Array } {
     const bytes = base64urlDecode(packed);
     const nonce = bytes.slice(0, nacl.secretbox.nonceLength);
     const ciphertext = bytes.slice(nacl.secretbox.nonceLength);
@@ -154,6 +154,7 @@ export interface UseReplReturn {
     ready: boolean;
     keyPair: ReplKeyPair | null;
     handshakeStatus: HandshakeStatus;
+    sessionKeys: { c2s: Uint8Array; s2c: Uint8Array } | null;
     generateKeyPair: () => ReplKeyPair;
     importPrivateKey: (input: string) => void;
     establishSession: (headerToken: string) => void;
@@ -266,6 +267,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         ready: sessionKeys !== null,
         keyPair,
         handshakeStatus,
+        sessionKeys,
         generateKeyPair: handleGenerateKeyPair,
         importPrivateKey: handleImportPrivateKey,
         establishSession,

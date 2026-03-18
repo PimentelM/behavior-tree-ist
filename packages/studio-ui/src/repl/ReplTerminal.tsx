@@ -7,7 +7,10 @@ import { replTheme } from './repl-theme';
 import { highlightJs, highlightJsHtml } from './js-syntax';
 import { useRepl } from './use-repl';
 import type { ReplResult, UseReplReturn } from './use-repl';
+import { useReplMonitor } from './use-repl-monitor';
+import type { ReplActivityEntry } from './use-repl-monitor';
 import { CompletionOverlay } from './CompletionOverlay';
+import { useUiWebSocket } from '../use-ui-websocket';
 
 // ---- ANSI colour helpers ----
 const RESET = '\x1b[0m';
@@ -292,6 +295,29 @@ function wordBoundaryRight(text: string, pos: number): number {
     return i;
 }
 
+// ---- Monitor Entry ----
+
+function MonitorEntry({ entry }: { entry: ReplActivityEntry }) {
+    const ts = new Date(entry.timestamp).toLocaleTimeString();
+    return (
+        <div style={{ marginBottom: 8, fontFamily: 'Menlo, Consolas, monospace', fontSize: 12 }}>
+            <div>
+                <span style={{ color: '#686868' }}>[{ts}]</span>
+                <span style={{ color: '#888888' }}> {'>'} </span>
+                <span dangerouslySetInnerHTML={{ __html: highlightJsHtml(entry.code) }} />
+            </div>
+            {entry.result.consoleOutput?.map((line, j) => (
+                <div key={j} style={{ paddingLeft: 16, color: '#56b6c2' }}>
+                    {'\u2192'} {line}
+                </div>
+            ))}
+            <div style={{ paddingLeft: 16, color: entry.result.kind === 'error' ? '#ff5c57' : '#5af78e' }}>
+                {'\u2190'} {entry.result.text}
+            </div>
+        </div>
+    );
+}
+
 // ---- REPL Terminal ----
 
 interface ReplTerminalProps {
@@ -312,12 +338,35 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const termRef = useRef<Terminal | null>(null);
     const rlRef = useRef<Readline | null>(null);
+    const fitAddonRef = useRef<FitAddon | null>(null);
+    const monitorBottomRef = useRef<HTMLDivElement>(null);
 
     // replRef allows the stable terminal effect to access current repl without closure staling.
     const replRef = useRef<UseReplReturn | null>(null);
 
     const repl = useRepl({ clientId, sessionId });
     replRef.current = repl;
+
+    const [monitorMode, setMonitorMode] = useState(false);
+    const subscribe = useUiWebSocket();
+    const monitor = useReplMonitor({
+        subscribe,
+        clientId,
+        sessionId,
+        sessionKeys: repl.sessionKeys,
+    });
+
+    // Auto-scroll monitor on new entries
+    useEffect(() => {
+        monitorBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [monitor.activities.length]);
+
+    // Refit xterm when switching back to interactive mode
+    useEffect(() => {
+        if (!monitorMode && fitAddonRef.current) {
+            fitAddonRef.current.fit();
+        }
+    }, [monitorMode]);
 
     // Completion overlay state — bridged from the one-time useEffect via refs.
     const [completionState, setCompletionState] = useState<CompletionState | null>(null);
@@ -359,6 +408,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         term.loadAddon(rl);
         term.open(containerRef.current);
         rlRef.current = rl;
+        fitAddonRef.current = fitAddon;
 
         fitAddon.fit();
         term.focus();
@@ -578,6 +628,7 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
             term.dispose();
             termRef.current = null;
             rlRef.current = null;
+            fitAddonRef.current = null;
         };
     }, []); // intentionally empty — terminal created once; handlers use refs
 
@@ -636,7 +687,32 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a' }}>
-            <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+            {/* Mode toggle bar */}
+            <div style={{ display: 'flex', borderBottom: '1px solid #222222', background: '#111111' }}>
+                <button
+                    onClick={() => { setMonitorMode(false); }}
+                    style={{ padding: '4px 12px', border: 'none', background: 'transparent', cursor: 'pointer', color: !monitorMode ? '#5af78e' : '#686868', fontSize: 12, fontFamily: 'Menlo, Consolas, monospace' }}
+                >
+                    Interactive
+                </button>
+                <button
+                    onClick={() => { setMonitorMode(true); }}
+                    style={{ padding: '4px 12px', border: 'none', background: 'transparent', cursor: 'pointer', color: monitorMode ? '#5af78e' : '#686868', fontSize: 12, fontFamily: 'Menlo, Consolas, monospace' }}
+                >
+                    Monitor
+                </button>
+                {monitorMode && (
+                    <button
+                        onClick={monitor.clearActivities}
+                        style={{ padding: '4px 12px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#686868', fontSize: 12, fontFamily: 'Menlo, Consolas, monospace', marginLeft: 'auto' }}
+                    >
+                        Clear
+                    </button>
+                )}
+            </div>
+
+            {/* xterm terminal — hidden in monitor mode */}
+            <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', display: monitorMode ? 'none' : 'flex' }}>
                 {completionState && (
                     <CompletionOverlay
                         candidates={completionState.candidates}
@@ -651,6 +727,19 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                         onDismiss={() => { setCompletionState(null); }}
                     />
                 )}
+            </div>
+
+            {/* Monitor view — hidden in interactive mode */}
+            <div style={{ display: monitorMode ? 'flex' : 'none', flex: 1, minHeight: 0, overflow: 'hidden', flexDirection: 'column', background: '#0a0a0a' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
+                    {monitor.activities.length === 0 && (
+                        <div style={{ color: '#686868', fontSize: 11, fontFamily: 'Menlo, Consolas, monospace' }}>No activity yet. Waiting for eval traffic...</div>
+                    )}
+                    {monitor.activities.map((entry, i) => (
+                        <MonitorEntry key={i} entry={entry} />
+                    ))}
+                    <div ref={monitorBottomRef} />
+                </div>
             </div>
 
             {/* ---- Textarea utility toolbar ---- */}
