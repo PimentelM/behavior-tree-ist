@@ -451,5 +451,15 @@
 		"status": "active",
 		"createdAt": "2026-03-18T05:39:02.988Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-b688499d",
+		"name": "real-deps-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-82fe"
+		],
+		"status": "active",
+		"createdAt": "2026-03-18T05:46:45.782Z",
+		"completedAt": null
 	}
 ]
