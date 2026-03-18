@@ -328,9 +328,9 @@
 			"behavior-tree-ist-915e",
 			"behavior-tree-ist-872b"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T00:50:26.262Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T06:11:29.831Z"
 	},
 	{
 		"id": "group-e9c19fbe",
@@ -338,9 +338,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-f547"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T01:29:34.995Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T06:11:29.988Z"
 	},
 	{
 		"id": "group-41b33a10",
@@ -348,9 +348,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-2219"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T03:04:24.089Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T06:11:30.135Z"
 	},
 	{
 		"id": "group-5f60c981",
@@ -358,9 +358,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-104d"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T03:05:41.086Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T06:11:30.286Z"
 	},
 	{
 		"id": "group-b3c7d282",
@@ -368,9 +368,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-a8ca"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T03:40:52.913Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T06:11:30.441Z"
 	},
 	{
 		"id": "group-1744dff9",
@@ -378,9 +378,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-0547"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T04:10:50.918Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T06:11:30.615Z"
 	},
 	{
 		"id": "group-4b2f84e9",
@@ -388,9 +388,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-f4cc"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T04:49:57.808Z",
-		"completedAt": null
+		"completedAt": "2026-03-17T06:11:30.785Z"
 	},
 	{
 		"id": "group-55436881",
@@ -398,8 +398,48 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-eae7"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T05:21:29.371Z",
+		"completedAt": "2026-03-17T06:11:30.964Z"
+	},
+	{
+		"id": "group-2759c1bc",
+		"name": "repl-mirroring-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-07e2"
+		],
+		"status": "active",
+		"createdAt": "2026-03-17T06:19:11.917Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-3d937eb3",
+		"name": "repl-mirror-plan",
+		"memberIssueIds": [
+			"behavior-tree-ist-e389"
+		],
+		"status": "active",
+		"createdAt": "2026-03-18T04:25:43.751Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-5f666ff9",
+		"name": "repl-mirror-feedback",
+		"memberIssueIds": [
+			"behavior-tree-ist-8aa7"
+		],
+		"status": "active",
+		"createdAt": "2026-03-18T04:52:00.886Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-5b819c9c",
+		"name": "repl-mirror-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-5386"
+		],
+		"status": "active",
+		"createdAt": "2026-03-18T05:00:38.090Z",
 		"completedAt": null
 	}
 ]
