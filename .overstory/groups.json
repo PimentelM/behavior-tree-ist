@@ -481,5 +481,15 @@
 		"status": "completed",
 		"createdAt": "2026-03-18T06:19:27.779Z",
 		"completedAt": "2026-03-19T10:31:12.489Z"
+	},
+	{
+		"id": "group-7fba7da2",
+		"name": "npm-publish-prep",
+		"memberIssueIds": [
+			"behavior-tree-ist-3da6"
+		],
+		"status": "active",
+		"createdAt": "2026-03-19T11:43:46.411Z",
+		"completedAt": null
 	}
 ]
