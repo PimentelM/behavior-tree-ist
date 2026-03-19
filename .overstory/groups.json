@@ -531,5 +531,15 @@
 		"status": "active",
 		"createdAt": "2026-03-19T12:51:17.942Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-a21cceb9",
+		"name": "npm-patch",
+		"memberIssueIds": [
+			"behavior-tree-ist-d8b5"
+		],
+		"status": "active",
+		"createdAt": "2026-03-19T13:22:25.110Z",
+		"completedAt": null
 	}
 ]
