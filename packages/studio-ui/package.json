@@ -1,6 +1,7 @@
 {
     "name": "@bt-studio/studio-ui",
     "version": "0.1.0",
+    "description": "Behavior Tree Studio UI",
     "type": "module",
     "files": [
         "dist"
@@ -12,9 +13,9 @@
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
-        "@bt-studio/core": "workspace:*",
-        "@bt-studio/react": "workspace:*",
-        "@bt-studio/studio-common": "workspace:*",
+        "@bt-studio/core": "^0.1.0",
+        "@bt-studio/react": "^0.1.0",
+        "@bt-studio/studio-common": "^0.1.0",
         "@noble/hashes": "^1.6.1",
         "@trpc/client": "^11.11.0",
         "@trpc/server": "11.11.0",
@@ -32,5 +33,19 @@
         "@vitejs/plugin-react": "^4.3.1",
         "typescript": "^5.5.3",
         "vite": "^5.3.4"
+    },
+    "author": "",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/PimentelM/behavior-tree-ist.git",
+        "directory": "packages/studio-ui"
+    },
+    "homepage": "https://github.com/PimentelM/behavior-tree-ist/tree/main/packages/studio-ui",
+    "publishConfig": {
+        "access": "public"
+    },
+    "engines": {
+        "node": ">=18.0.0"
     }
 }
