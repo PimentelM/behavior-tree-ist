@@ -18,7 +18,7 @@
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
-        "@bt-studio/studio-plugins": "workspace:*",
+        "@bt-studio/studio-plugins": "^0.1.0",
         "@modelcontextprotocol/sdk": "^1.17.0",
         "@trpc/client": "^11.0.0",
         "zod": "^3.24.0"
@@ -42,5 +42,14 @@
         "repl"
     ],
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/PimentelM/behavior-tree-ist.git",
+        "directory": "packages/studio-mcp"
+    },
+    "homepage": "https://github.com/PimentelM/behavior-tree-ist/tree/main/packages/studio-mcp",
+    "publishConfig": {
+        "access": "public"
+    }
 }

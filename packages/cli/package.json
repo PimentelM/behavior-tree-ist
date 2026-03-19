@@ -17,11 +17,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@bt-studio/core": "workspace:*",
-    "@bt-studio/studio-plugins": "workspace:*",
-    "@bt-studio/studio-server": "workspace:^",
-    "@bt-studio/studio-transport": "workspace:^",
-    "@bt-studio/studio-ui": "workspace:^",
+    "@bt-studio/core": "^0.1.0",
+    "@bt-studio/studio-plugins": "^0.1.0",
+    "@bt-studio/studio-server": "^0.1.0",
+    "@bt-studio/studio-transport": "^0.1.0",
+    "@bt-studio/studio-ui": "^0.1.0",
     "citty": "^0.1.6",
     "ws": "^8.19.0"
   },
@@ -35,5 +35,16 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PimentelM/behavior-tree-ist.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/PimentelM/behavior-tree-ist/tree/main/packages/cli",
+  "publishConfig": {
+    "access": "public"
   }
 }

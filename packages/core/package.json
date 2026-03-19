@@ -69,6 +69,15 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PimentelM/behavior-tree-ist.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/PimentelM/behavior-tree-ist/tree/main/packages/core",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
