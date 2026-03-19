@@ -29,7 +29,7 @@
     "lint": "eslint src"
   },
   "peerDependencies": {
-    "@bt-studio/core": "workspace:*",
+    "@bt-studio/core": "^0.1.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
@@ -59,6 +59,15 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PimentelM/behavior-tree-ist.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/PimentelM/behavior-tree-ist/tree/main/packages/react",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18.0.0"
   }

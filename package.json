@@ -17,8 +17,8 @@
     "dev:server": "yarn workspace @bt-studio/studio-server dev",
     "dev:ui": "yarn workspace @bt-studio/studio-ui dev",
     "dev": "concurrently -n server,ui \"yarn dev:server\" \"yarn dev:ui\"",
-    "publish:all": "yarn build && yarn workspaces foreach -Atv --include '@bt-studio/core' --include '@bt-studio/cli' --include '@bt-studio/studio-plugins' --include '@bt-studio/studio-transport' --include '@bt-studio/studio-mcp' npm publish --access public",
-    "publish:dry": "yarn build && yarn workspaces foreach -Atv --include '@bt-studio/core' --include '@bt-studio/cli' --include '@bt-studio/studio-plugins' --include '@bt-studio/studio-transport' --include '@bt-studio/studio-mcp' npm publish --access public --dry-run"
+    "publish:all": "yarn build && for pkg in packages/*/; do (cd \"$pkg\" && npm publish --access public); done",
+    "publish:dry": "yarn build && for pkg in packages/*/; do (cd \"$pkg\" && npm publish --access public --dry-run); done"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
