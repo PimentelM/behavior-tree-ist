@@ -37,6 +37,15 @@
     ],
     "author": "",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/PimentelM/behavior-tree-ist.git",
+        "directory": "packages/studio-plugins"
+    },
+    "homepage": "https://github.com/PimentelM/behavior-tree-ist/tree/main/packages/studio-plugins",
+    "publishConfig": {
+        "access": "public"
+    },
     "engines": {
         "node": ">=18.0.0"
     },
@@ -45,7 +54,7 @@
         "tweetnacl": "^1.0.3"
     },
     "peerDependencies": {
-        "@bt-studio/core": "workspace:*"
+        "@bt-studio/core": "^0.1.0"
     },
     "devDependencies": {
         "@bt-studio/core": "workspace:*",
