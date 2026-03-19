@@ -491,5 +491,15 @@
 		"status": "active",
 		"createdAt": "2026-03-19T11:43:46.411Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-8d5a89d3",
+		"name": "publish-scripts",
+		"memberIssueIds": [
+			"behavior-tree-ist-6338"
+		],
+		"status": "active",
+		"createdAt": "2026-03-19T12:01:11.247Z",
+		"completedAt": null
 	}
 ]
