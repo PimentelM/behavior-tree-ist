@@ -18,7 +18,8 @@
     "dev:ui": "yarn workspace @bt-studio/studio-ui dev",
     "dev": "concurrently -n server,ui \"yarn dev:server\" \"yarn dev:ui\"",
     "publish:all": "yarn build && bash -c 'for pkg in packages/*/; do (cd \"$pkg\" && npm publish --access public); done'",
-    "publish:dry": "yarn build && bash -c 'for pkg in packages/*/; do (cd \"$pkg\" && npm publish --access public --dry-run); done'"
+    "publish:dry": "yarn build && bash -c 'for pkg in packages/*/; do (cd \"$pkg\" && npm publish --access public --dry-run); done'",
+    "npm:patch": "bash -c 'for pkg in packages/*/package.json; do (cd \"$(dirname \"$pkg\")\" && npm version patch --no-git-tag-version); done && git add packages/*/package.json && git commit -m \"chore: bump all packages patch version\"'"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
