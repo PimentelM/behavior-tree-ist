@@ -1,6 +1,6 @@
 {
   "name": "@bt-studio/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React debugger component for bt-studio",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

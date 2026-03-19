@@ -1,6 +1,6 @@
 {
     "name": "@bt-studio/studio-plugins",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Plugin package for BT Studio — ships ReplPlugin (NaCl E2E encrypted JavaScript eval) and other first-party plugins",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
