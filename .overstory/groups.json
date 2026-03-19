@@ -408,9 +408,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-07e2"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-17T06:19:11.917Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:11.398Z"
 	},
 	{
 		"id": "group-3d937eb3",
@@ -418,9 +418,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-e389"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-18T04:25:43.751Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:11.557Z"
 	},
 	{
 		"id": "group-5f666ff9",
@@ -428,9 +428,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-8aa7"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-18T04:52:00.886Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:11.721Z"
 	},
 	{
 		"id": "group-5b819c9c",
@@ -438,9 +438,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-5386"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-18T05:00:38.090Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:11.867Z"
 	},
 	{
 		"id": "group-fa08e2e7",
@@ -448,9 +448,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-f062"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-18T05:39:02.988Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:12.023Z"
 	},
 	{
 		"id": "group-b688499d",
@@ -458,9 +458,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-82fe"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-18T05:46:45.782Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:12.174Z"
 	},
 	{
 		"id": "group-02274df8",
@@ -468,9 +468,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-3ec7"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-18T05:54:33.136Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:12.321Z"
 	},
 	{
 		"id": "group-3f3c0a1b",
@@ -478,8 +478,8 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-3182"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-18T06:19:27.779Z",
-		"completedAt": null
+		"completedAt": "2026-03-19T10:31:12.489Z"
 	}
 ]
