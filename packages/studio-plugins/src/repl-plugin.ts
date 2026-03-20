@@ -292,7 +292,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 // ReplPlugin
 // ---------------------------------------------------------------------------
 
-const EVAL_TIMEOUT_MS = 15_000;
+const EVAL_TIMEOUT_MS = 60_000;
 
 export class ReplPlugin implements StudioPlugin {
     readonly pluginId = 'repl';

@@ -16,6 +16,8 @@
         "@bt-studio/core": "^0.1.0",
         "@bt-studio/react": "^0.1.0",
         "@bt-studio/studio-common": "^0.1.0",
+        "@noble/ciphers": "^1.0.0",
+        "@noble/curves": "^1.0.0",
         "@noble/hashes": "^1.6.1",
         "@trpc/client": "^11.11.0",
         "@trpc/server": "11.11.0",
@@ -23,7 +25,6 @@
         "@xterm/xterm": "^5.5.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
-        "tweetnacl": "^1.0.3",
         "xterm-readline": "^1.1.2"
     },
     "devDependencies": {

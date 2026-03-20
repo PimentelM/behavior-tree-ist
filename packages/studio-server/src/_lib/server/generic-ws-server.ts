@@ -47,7 +47,7 @@ export class GenericWebSocketServer<TReceive, TSend, TConnection extends Connect
             try {
                 const options: ServerOptions = {
                     noServer: true,
-                    maxPayload: 1024 * 1024,
+                    maxPayload: 100 * 1024 * 1024,
                     verifyClient: (_, callback) => {
                         if (this.clients.size >= serverConfig.maxConnections) {
                             callback(false, TRY_AGAIN_LATER_CODE, 'Too many connections');

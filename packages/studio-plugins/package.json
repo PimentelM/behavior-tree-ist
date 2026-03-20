@@ -50,8 +50,9 @@
         "node": ">=18.0.0"
     },
     "dependencies": {
-        "@noble/hashes": "^1.6.1",
-        "tweetnacl": "^1.0.3"
+        "@noble/ciphers": "^1.0.0",
+        "@noble/curves": "^1.0.0",
+        "@noble/hashes": "^1.6.1"
     },
     "peerDependencies": {
         "@bt-studio/core": "^0.1.0"
