@@ -1,6 +1,6 @@
 {
     "name": "@bt-studio/studio-transport",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Studio transport protocol and abstraction for bt-studio",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",

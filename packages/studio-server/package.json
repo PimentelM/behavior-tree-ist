@@ -1,6 +1,6 @@
 {
   "name": "@bt-studio/studio-server",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Behavior Tree Studio server",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
