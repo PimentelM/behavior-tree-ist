@@ -4,7 +4,7 @@ import { type CommandSenderInterface, type DomainEventDispatcherInterface } from
 
 const PLUGIN_MESSAGE_T = 7;
 const REPL_PLUGIN_ID = 'repl';
-export const DEFAULT_EVAL_TIMEOUT_MS = 15_000;
+export const DEFAULT_EVAL_TIMEOUT_MS = 60_000;
 export const DEFAULT_COMPLETIONS_TIMEOUT_MS = 5_000;
 
 type PendingEntry = {

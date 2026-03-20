@@ -407,7 +407,7 @@ describe('ReplPlugin eval round-trip', () => {
         const encrypted = uiEncrypt({ type: 'eval', code: 'await new Promise(() => {})' }, uiKeys.s2c);
         const evalPromise = plugin.handleInbound('corr-timeout', encrypted);
 
-        vi.advanceTimersByTime(15_001);
+        vi.advanceTimersByTime(60_001);
         await evalPromise;
 
         const result = uiDecrypt<{ type: string; text: string }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);

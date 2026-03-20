@@ -1,21 +1,37 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import nacl from 'tweetnacl';
+import { x25519 } from '@noble/curves/ed25519';
+import { xsalsa20poly1305, hsalsa } from '@noble/ciphers/salsa';
+import { u32 } from '@noble/ciphers/utils';
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha2';
 import { trpc } from '../trpc';
 
-// ---- crypto helpers (browser-safe subset of Frostmod crypto.ts) ----
+/** Salsa20 "expand 32-byte k" sigma constant. */
+const SIGMA = new Uint32Array([0x61707865, 0x3320646e, 0x79622d32, 0x6b206574]);
+
+// ---- NaCl constants ----
+
+const SECRETBOX_NONCE_BYTES = 24;
+const BOX_OVERHEAD_BYTES = 16;
+
+// ---- crypto helpers (browser-safe, pure-JS noble crypto) ----
 
 function base64urlEncode(bytes: Uint8Array): string {
-    const bin = btoa(String.fromCharCode(...bytes));
-    return bin.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const CHUNK = 8192;
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+        bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    return btoa(bin).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
 function base64urlDecode(s: string): Uint8Array {
     const pad = s.length % 4 === 2 ? '==' : s.length % 4 === 3 ? '=' : s.length % 4 === 1 ? '===' : '';
     const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
     const bin = atob(b64);
-    return new Uint8Array(bin.split('').map((c) => c.charCodeAt(0)));
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
 }
 
 function jsonToBytes(obj: unknown): Uint8Array {
@@ -36,8 +52,8 @@ function encodeEnvelope(nonce: Uint8Array, ciphertext: Uint8Array): string {
 
 export function decodeEnvelope(packed: string): { nonce: Uint8Array; ciphertext: Uint8Array } {
     const bytes = base64urlDecode(packed);
-    const nonce = bytes.slice(0, nacl.secretbox.nonceLength);
-    const ciphertext = bytes.slice(nacl.secretbox.nonceLength);
+    const nonce = bytes.slice(0, SECRETBOX_NONCE_BYTES);
+    const ciphertext = bytes.slice(SECRETBOX_NONCE_BYTES);
     return { nonce, ciphertext };
 }
 
@@ -46,6 +62,36 @@ function deriveDirectionalKeys(seed: Uint8Array): { c2s: Uint8Array; s2c: Uint8A
     const c2s = hkdf(sha256, seed, salt, new TextEncoder().encode('c2s'), 32);
     const s2c = hkdf(sha256, seed, salt, new TextEncoder().encode('s2c'), 32);
     return { c2s: new Uint8Array(c2s), s2c: new Uint8Array(s2c) };
+}
+
+function secretboxEncrypt(plaintext: Uint8Array, nonce: Uint8Array, key: Uint8Array): Uint8Array {
+    return xsalsa20poly1305(key, nonce).encrypt(plaintext);
+}
+
+function secretboxDecrypt(ciphertext: Uint8Array, nonce: Uint8Array, key: Uint8Array): Uint8Array | null {
+    try {
+        return xsalsa20poly1305(key, nonce).decrypt(ciphertext);
+    } catch {
+        return null;
+    }
+}
+
+function boxBeforeNm(theirPublicKey: Uint8Array, mySecretKey: Uint8Array): Uint8Array {
+    const dh = x25519.getSharedSecret(mySecretKey, theirPublicKey);
+    // Copy to fresh aligned buffer so u32 view is safe
+    const aligned = new Uint8Array(32);
+    aligned.set(dh);
+    const outU32 = new Uint32Array(8);
+    hsalsa(SIGMA, u32(aligned), new Uint32Array(4), outU32);
+    return new Uint8Array(outU32.buffer);
+}
+
+function boxOpen(data: Uint8Array, nonce: Uint8Array, theirPub: Uint8Array, myPriv: Uint8Array): Uint8Array | null {
+    try {
+        return xsalsa20poly1305(boxBeforeNm(theirPub, myPriv), nonce).decrypt(data);
+    } catch {
+        return null;
+    }
 }
 
 // ---- demo keypair (deterministic, for out-of-the-box REPL experience) ----
@@ -70,9 +116,9 @@ export interface ReplKeyPair {
 }
 
 function keyPairFromSecret(sk: Uint8Array): ReplKeyPair {
-    const kp = nacl.box.keyPair.fromSecretKey(sk);
+    const pk = x25519.getPublicKey(sk);
     return {
-        publicKeyB64: base64urlEncode(kp.publicKey),
+        publicKeyB64: base64urlEncode(pk),
         privateKeyB64: base64urlEncode(sk),
         secretKeyBytes: sk,
     };
@@ -131,11 +177,11 @@ export interface ReplResult {
 
 function openHandshake(headerToken: string, secretKey: Uint8Array): { c2s: Uint8Array; s2c: Uint8Array } {
     const bytes = base64urlDecode(headerToken);
-    if (bytes.length < 1 + 32 + 24 + nacl.box.overheadLength) throw new Error('Header token too short');
+    if (bytes.length < 1 + 32 + 24 + BOX_OVERHEAD_BYTES) throw new Error('Header token too short');
     const ephPub = bytes.slice(1, 1 + 32);
     const nonce = bytes.slice(1 + 32, 1 + 32 + 24);
     const box = bytes.slice(1 + 32 + 24);
-    const seed = nacl.box.open(box, nonce, ephPub, secretKey);
+    const seed = boxOpen(box, nonce, ephPub, secretKey);
     if (!seed) throw new Error('Failed to decrypt handshake');
     return deriveDirectionalKeys(seed);
 }
@@ -232,9 +278,9 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
 
         // Encrypt payload with s2c key (UI → agent direction)
         const plaintext = jsonToBytes({ type: 'eval', code });
-        const nonce = new Uint8Array(nacl.secretbox.nonceLength);
+        const nonce = new Uint8Array(SECRETBOX_NONCE_BYTES);
         crypto.getRandomValues(nonce);
-        const box = nacl.secretbox(plaintext, nonce, sessionKeys.s2c);
+        const box = secretboxEncrypt(plaintext, nonce, sessionKeys.s2c);
         const encryptedPayload = encodeEnvelope(nonce, box);
 
         // Track this payload so the monitor can filter out self-initiated evals.
@@ -245,7 +291,7 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
 
         // Decrypt response with c2s key (agent → UI direction)
         const { nonce: rNonce, ciphertext } = decodeEnvelope((response as { encryptedPayload: string }).encryptedPayload);
-        const decrypted = nacl.secretbox.open(ciphertext, rNonce, sessionKeys.c2s);
+        const decrypted = secretboxDecrypt(ciphertext, rNonce, sessionKeys.c2s);
         if (!decrypted) throw new Error('Failed to decrypt eval response');
         return bytesToJson<ReplResult>(decrypted);
     }, [clientId, sessionId, sessionKeys]);
@@ -255,16 +301,16 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         if (!sessionKeys) return [];
 
         const plaintext = jsonToBytes({ type: 'completions', prefix, maxResults });
-        const nonce = new Uint8Array(nacl.secretbox.nonceLength);
+        const nonce = new Uint8Array(SECRETBOX_NONCE_BYTES);
         crypto.getRandomValues(nonce);
-        const box = nacl.secretbox(plaintext, nonce, sessionKeys.s2c);
+        const box = secretboxEncrypt(plaintext, nonce, sessionKeys.s2c);
         const encryptedPayload = encodeEnvelope(nonce, box);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const response = await (trpc as any).repl.completions.mutate({ clientId, sessionId, encryptedPayload });
 
         const { nonce: rNonce, ciphertext } = decodeEnvelope((response as { encryptedPayload: string }).encryptedPayload);
-        const decrypted = nacl.secretbox.open(ciphertext, rNonce, sessionKeys.c2s);
+        const decrypted = secretboxDecrypt(ciphertext, rNonce, sessionKeys.c2s);
         if (!decrypted) throw new Error('Failed to decrypt completions response');
         return bytesToJson<{ completions: string[] }>(decrypted).completions;
     }, [clientId, sessionId, sessionKeys]);
