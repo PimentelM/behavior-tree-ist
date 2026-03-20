@@ -561,5 +561,25 @@
 		"status": "active",
 		"createdAt": "2026-03-20T22:21:00.394Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-06c1465e",
+		"name": "whi-28-plan",
+		"memberIssueIds": [
+			"behavior-tree-ist-a40c"
+		],
+		"status": "active",
+		"createdAt": "2026-03-20T22:47:25.781Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-7d67de8f",
+		"name": "whi-28-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-72b6"
+		],
+		"status": "active",
+		"createdAt": "2026-03-20T22:58:04.412Z",
+		"completedAt": null
 	}
 ]
