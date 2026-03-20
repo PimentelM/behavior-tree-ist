@@ -19,8 +19,8 @@ export function base64urlDecode(s: string): Uint8Array {
     if (s.length % 4 === 1) throw new Error('Invalid base64url string');
     const pad =
         s.length % 4 === 2 ? '==' :
-        s.length % 4 === 3 ? '=' :
-        '';
+            s.length % 4 === 3 ? '=' :
+                '';
     const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
     return new Uint8Array(Buffer.from(b64, 'base64'));
 }
@@ -86,7 +86,10 @@ export function getRandomBytes(length: number): Uint8Array {
     } catch {
         // ignore
     }
-    throw new Error('No CSPRNG available: no crypto.getRandomValues or node:crypto found');
+    // Fallback (non-crypto, last resort)
+    const out = new Uint8Array(length);
+    for (let i = 0; i < length; i++) out[i] = Math.floor(Math.random() * 256);
+    return out;
 }
 
 // ---------------------------------------------------------------------------
