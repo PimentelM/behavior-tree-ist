@@ -12,6 +12,7 @@ import {
     secretboxEncrypt,
 } from './repl-crypto';
 import {
+    findLastTopLevelStatementBreak,
     getPropertyNamesDeep,
     isProbablyExpression,
     resolvePath,
@@ -131,6 +132,33 @@ describe('isProbablyExpression', () => {
 });
 
 // ---------------------------------------------------------------------------
+// findLastTopLevelStatementBreak
+// ---------------------------------------------------------------------------
+describe('findLastTopLevelStatementBreak', () => {
+    it('finds newline as separator', () => {
+        const code = 'let x = 1\nx + 1';
+        expect(findLastTopLevelStatementBreak(code)).toBe(code.indexOf('\n'));
+    });
+
+    it('semicolon takes priority over newline', () => {
+        const code = 'let x = 1;\nx + 1';
+        expect(findLastTopLevelStatementBreak(code)).toBe(code.indexOf(';'));
+    });
+
+    it('ignores newlines inside template literals', () => {
+        expect(findLastTopLevelStatementBreak('`a\nb`')).toBe(-1);
+    });
+
+    it('ignores newlines inside brackets', () => {
+        expect(findLastTopLevelStatementBreak('foo(\n1,\n2)')).toBe(-1);
+    });
+
+    it('returns -1 when no separators', () => {
+        expect(findLastTopLevelStatementBreak('x + 1')).toBe(-1);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // rewriteTopLevelDeclarations
 // ---------------------------------------------------------------------------
 describe('rewriteTopLevelDeclarations', () => {
@@ -157,6 +185,21 @@ describe('rewriteTopLevelDeclarations', () => {
     it('handles multi-line code', () => {
         const result = rewriteTopLevelDeclarations('let a = 1\nconsole.log(a)');
         expect(result).toBe('globalThis.a = 1\nconsole.log(a)');
+    });
+
+    it('rewrites multi-line declaration spanning brackets', () => {
+        const code = 'const x = foo(\n  1, 2\n)';
+        expect(rewriteTopLevelDeclarations(code)).toBe('globalThis.x = foo(\n  1, 2\n)');
+    });
+
+    it('rewrites multi-line object literal', () => {
+        const code = 'const cfg = {\n  a: 1,\n  b: 2\n}';
+        expect(rewriteTopLevelDeclarations(code)).toBe('globalThis.cfg = {\n  a: 1,\n  b: 2\n}');
+    });
+
+    it('falls back for multi-line destructuring', () => {
+        const code = 'const { a, b } = foo(\n  1\n)';
+        expect(rewriteTopLevelDeclarations(code)).toBe(code);
     });
 });
 
@@ -304,6 +347,33 @@ describe('ReplPlugin eval round-trip', () => {
         expect(result.type).toBe('completions');
         expect(result.completions).toContain('PI');
         expect(result.completions).toContain('abs');
+    });
+
+    it('returns last expression for newline-separated multi-statement code', async () => {
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
+
+        const encrypted = uiEncrypt({ type: 'eval', code: 'let x = 1\nx + 1' }, uiKeys.s2c);
+        await plugin.handleInbound('corr-nl1', encrypted);
+
+        const result = uiDecrypt<{ type: string; text: string }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
+        expect(result.type).toBe('result');
+        expect(result.text).toBe('2');
+
+        delete (globalThis as Record<string, unknown>)['x'];
+    });
+
+    it('handles multiple newline-separated declarations', async () => {
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
+
+        const encrypted = uiEncrypt({ type: 'eval', code: 'let _rtX = {}\nlet _rtY = [1,2,3]\n_rtY.length' }, uiKeys.s2c);
+        await plugin.handleInbound('corr-nl2', encrypted);
+
+        const result = uiDecrypt<{ type: string; text: string }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
+        expect(result.type).toBe('result');
+        expect(result.text).toBe('3');
+
+        delete (globalThis as Record<string, unknown>)['_rtX'];
+        delete (globalThis as Record<string, unknown>)['_rtY'];
     });
 
     it('silently drops messages before handshake', async () => {

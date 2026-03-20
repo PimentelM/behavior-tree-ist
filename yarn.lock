@@ -233,11 +233,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@bt-studio/cli@workspace:packages/cli"
   dependencies:
-    "@bt-studio/core": "workspace:*"
-    "@bt-studio/studio-plugins": "workspace:*"
-    "@bt-studio/studio-server": "workspace:^"
-    "@bt-studio/studio-transport": "workspace:^"
-    "@bt-studio/studio-ui": "workspace:^"
+    "@bt-studio/core": "npm:^0.1.0"
+    "@bt-studio/studio-plugins": "npm:^0.1.0"
+    "@bt-studio/studio-server": "npm:^0.1.0"
+    "@bt-studio/studio-transport": "npm:^0.1.0"
+    "@bt-studio/studio-ui": "npm:^0.1.0"
     "@types/node": "npm:^22.15.30"
     "@types/ws": "npm:^8.18.1"
     citty: "npm:^0.1.6"
@@ -251,7 +251,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/core@workspace:*, @bt-studio/core@workspace:packages/core":
+"@bt-studio/core@npm:^0.1.0, @bt-studio/core@workspace:*, @bt-studio/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@bt-studio/core@workspace:packages/core"
   dependencies:
@@ -262,7 +262,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/react@workspace:*, @bt-studio/react@workspace:packages/react":
+"@bt-studio/react@npm:^0.1.0, @bt-studio/react@workspace:packages/react":
   version: 0.0.0-use.local
   resolution: "@bt-studio/react@workspace:packages/react"
   dependencies:
@@ -280,17 +280,17 @@ __metadata:
     tsup: "npm:^8.0.0"
     typescript: "npm:^5.7.0"
   peerDependencies:
-    "@bt-studio/core": "workspace:*"
+    "@bt-studio/core": ^0.1.0
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-common@workspace:*, @bt-studio/studio-common@workspace:^, @bt-studio/studio-common@workspace:packages/studio-common":
+"@bt-studio/studio-common@npm:^0.1.0, @bt-studio/studio-common@workspace:packages/studio-common":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-common@workspace:packages/studio-common"
   dependencies:
-    "@bt-studio/core": "workspace:*"
+    "@bt-studio/core": "npm:^0.1.0"
     eslint: "npm:^9.0.0"
     tsup: "npm:^8.0.0"
     typescript: "npm:^5.7.0"
@@ -303,7 +303,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-mcp@workspace:packages/studio-mcp"
   dependencies:
-    "@bt-studio/studio-plugins": "workspace:*"
+    "@bt-studio/studio-plugins": "npm:^0.1.0"
     "@bt-studio/studio-server": "workspace:*"
     "@modelcontextprotocol/sdk": "npm:^1.17.0"
     "@trpc/client": "npm:^11.0.0"
@@ -318,7 +318,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-plugins@workspace:*, @bt-studio/studio-plugins@workspace:^, @bt-studio/studio-plugins@workspace:packages/studio-plugins":
+"@bt-studio/studio-plugins@npm:^0.1.0, @bt-studio/studio-plugins@workspace:packages/studio-plugins":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-plugins@workspace:packages/studio-plugins"
   dependencies:
@@ -330,18 +330,18 @@ __metadata:
     typescript: "npm:^5.7.0"
     vitest: "npm:^3.0.0"
   peerDependencies:
-    "@bt-studio/core": "workspace:*"
+    "@bt-studio/core": ^0.1.0
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-server@workspace:*, @bt-studio/studio-server@workspace:^, @bt-studio/studio-server@workspace:packages/studio-server":
+"@bt-studio/studio-server@npm:^0.1.0, @bt-studio/studio-server@workspace:*, @bt-studio/studio-server@workspace:packages/studio-server":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-server@workspace:packages/studio-server"
   dependencies:
-    "@bt-studio/core": "workspace:*"
-    "@bt-studio/studio-common": "workspace:^"
-    "@bt-studio/studio-plugins": "workspace:^"
-    "@bt-studio/studio-transport": "workspace:^"
+    "@bt-studio/core": "npm:^0.1.0"
+    "@bt-studio/studio-common": "npm:^0.1.0"
+    "@bt-studio/studio-plugins": "npm:^0.1.0"
+    "@bt-studio/studio-transport": "npm:^0.1.0"
     "@trpc/client": "npm:^11.11.0"
     "@trpc/server": "npm:^11.0.0"
     "@types/better-sqlite3": "npm:^7.6.13"
@@ -366,7 +366,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-transport@workspace:^, @bt-studio/studio-transport@workspace:packages/studio-transport":
+"@bt-studio/studio-transport@npm:^0.1.0, @bt-studio/studio-transport@workspace:packages/studio-transport":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-transport@workspace:packages/studio-transport"
   dependencies:
@@ -376,7 +376,7 @@ __metadata:
     typescript: "npm:^5.7.0"
     vitest: "npm:^3.0.0"
   peerDependencies:
-    "@bt-studio/core": "workspace:*"
+    "@bt-studio/core": ^0.1.0
     ws: ^8.0.0
   peerDependenciesMeta:
     ws:
@@ -384,13 +384,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bt-studio/studio-ui@workspace:^, @bt-studio/studio-ui@workspace:packages/studio-ui":
+"@bt-studio/studio-ui@npm:^0.1.0, @bt-studio/studio-ui@workspace:packages/studio-ui":
   version: 0.0.0-use.local
   resolution: "@bt-studio/studio-ui@workspace:packages/studio-ui"
   dependencies:
-    "@bt-studio/core": "workspace:*"
-    "@bt-studio/react": "workspace:*"
-    "@bt-studio/studio-common": "workspace:*"
+    "@bt-studio/core": "npm:^0.1.0"
+    "@bt-studio/react": "npm:^0.1.0"
+    "@bt-studio/studio-common": "npm:^0.1.0"
     "@bt-studio/studio-server": "workspace:*"
     "@noble/hashes": "npm:^1.6.1"
     "@trpc/client": "npm:^11.11.0"

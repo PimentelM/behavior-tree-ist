@@ -177,6 +177,20 @@ describe('REPL E2E', () => {
         expect(result).toMatchObject({ kind: 'result', text: 'async result' });
     });
 
+    it('returns last expression for newline-separated statements', async () => {
+        const result = await evalCode('let a = [1,2,3]\na.length');
+
+        expect(result).toMatchObject({ kind: 'result', text: '3' });
+    });
+
+    it('persists variables from multi-line declarations', async () => {
+        await evalCode('const obj = {\n  x: 10\n}');
+
+        const result = await evalCode('obj.x');
+
+        expect(result).toMatchObject({ kind: 'result', text: '10' });
+    });
+
     it('rejects eval for disconnected agent', async () => {
         agent.destroy();
         await delay(200);

@@ -17,6 +17,7 @@ export {
     getPropertyNamesDeep,
     resolvePath,
     isProbablyExpression,
+    findLastTopLevelStatementBreak,
     rewriteTopLevelDeclarations,
 } from './repl-plugin';
 

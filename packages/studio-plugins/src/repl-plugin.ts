@@ -127,15 +127,17 @@ export function isProbablyExpression(sourceCode: string): boolean {
 }
 
 /**
- * Finds the index of the last semicolon at depth 0 (not inside brackets or strings).
- * Returns -1 if none found.
+ * Finds the index of the last top-level statement break (semicolon or newline)
+ * at depth 0 (not inside brackets or strings).
+ * Semicolons take priority over newlines. Returns -1 if neither found.
  */
-export function findLastTopLevelSemicolon(code: string): number {
+export function findLastTopLevelStatementBreak(code: string): number {
     let depth = 0;
     let inString = false;
     let stringChar = '';
     let escaped = false;
     let lastSemi = -1;
+    let lastNewline = -1;
 
     for (let i = 0; i < code.length; i++) {
         const ch = code[i] as string;
@@ -157,49 +159,117 @@ export function findLastTopLevelSemicolon(code: string): number {
             depth--;
         } else if (ch === ';' && depth === 0) {
             lastSemi = i;
+        } else if (ch === '\n' && depth === 0) {
+            lastNewline = i;
         }
     }
 
-    return lastSemi;
+    return lastSemi >= 0 ? lastSemi : lastNewline;
 }
 
 export function rewriteTopLevelDeclarations(sourceCode: string): string {
     try {
         const lines = sourceCode.split(/\n/);
         const out: string[] = [];
-        for (const line of lines) {
-            const m = line.match(/^\s*(let|const|var)\s+(.+);?\s*$/);
+        let i = 0;
+
+        while (i < lines.length) {
+            const line = lines[i] as string;
+            const m = line.match(/^\s*(let|const|var)\s+/);
+
             if (!m) {
                 out.push(line);
+                i++;
                 continue;
             }
-            const decl = m[2] as string;
-            const parts = decl.split(',').map((s) => s.trim()).filter(Boolean);
-            const assigns: string[] = [];
-            for (const part of parts) {
-                const eqIdx = part.indexOf('=');
-                if (eqIdx >= 0) {
-                    const name = part.slice(0, eqIdx).trim();
-                    const expr = part.slice(eqIdx + 1).trim();
-                    if (/^[A-Za-z_$][\w$]*$/.test(name)) {
-                        assigns.push(`globalThis.${name} = ${expr}`);
-                    } else {
-                        // Destructuring — fall back to original
-                        assigns.length = 0;
-                        break;
+
+            // Track bracket depth to detect multi-line declarations
+            let depth = 0;
+            let inStr = false;
+            let strChar = '';
+            let esc = false;
+
+            const scanChars = (text: string) => {
+                for (const ch of text) {
+                    if (esc) { esc = false; continue; }
+                    if (inStr) {
+                        if (ch === '\\') esc = true;
+                        else if (ch === strChar) inStr = false;
+                        continue;
                     }
-                } else {
-                    const name = part.trim();
-                    if (/^[A-Za-z_$][\w$]*$/.test(name)) {
-                        assigns.push(`globalThis.${name} = undefined`);
+                    if (ch === '"' || ch === "'" || ch === '`') { inStr = true; strChar = ch; }
+                    else if (ch === '(' || ch === '[' || ch === '{') depth++;
+                    else if (ch === ')' || ch === ']' || ch === '}') depth--;
+                }
+            };
+
+            scanChars(line.slice(m[0].length));
+
+            if (depth <= 0) {
+                // Single-line declaration — use comma-splitting logic
+                const singleM = line.match(/^\s*(let|const|var)\s+(.+);?\s*$/);
+                if (!singleM) {
+                    out.push(line);
+                    i++;
+                    continue;
+                }
+                const decl = singleM[2] as string;
+                const parts = decl.split(',').map((s) => s.trim()).filter(Boolean);
+                const assigns: string[] = [];
+                for (const part of parts) {
+                    const eqIdx = part.indexOf('=');
+                    if (eqIdx >= 0) {
+                        const name = part.slice(0, eqIdx).trim();
+                        const expr = part.slice(eqIdx + 1).trim();
+                        if (/^[A-Za-z_$][\w$]*$/.test(name)) {
+                            assigns.push(`globalThis.${name} = ${expr}`);
+                        } else {
+                            assigns.length = 0;
+                            break;
+                        }
                     } else {
-                        assigns.length = 0;
-                        break;
+                        const name = part.trim();
+                        if (/^[A-Za-z_$][\w$]*$/.test(name)) {
+                            assigns.push(`globalThis.${name} = undefined`);
+                        } else {
+                            assigns.length = 0;
+                            break;
+                        }
                     }
                 }
+                out.push(assigns.length > 0 ? assigns.join('; ') : line);
+                i++;
+                continue;
             }
-            out.push(assigns.length > 0 ? assigns.join('; ') : line);
+
+            // Multi-line declaration — collect lines until brackets balance
+            const declLines: string[] = [line];
+            while (depth > 0 && i + 1 < lines.length) {
+                i++;
+                const next = lines[i] as string;
+                declLines.push(next);
+                scanChars(next);
+            }
+
+            const fullDecl = declLines.join('\n');
+            const afterKeyword = fullDecl.slice(m[0].length).replace(/;\s*$/, '');
+            const eqIdx = afterKeyword.indexOf('=');
+
+            if (eqIdx >= 0) {
+                const name = afterKeyword.slice(0, eqIdx).trim();
+                const expr = afterKeyword.slice(eqIdx + 1).trim();
+                if (/^[A-Za-z_$][\w$]*$/.test(name)) {
+                    out.push(`globalThis.${name} = ${expr}`);
+                } else {
+                    out.push(fullDecl);
+                }
+            } else {
+                out.push(fullDecl);
+            }
+
+            i++;
         }
+
         return out.join('\n');
     } catch {
         return sourceCode;
@@ -312,10 +382,10 @@ export class ReplPlugin implements StudioPlugin {
                 body = `const console = arguments[0]; return (async () => ( ${code} ))();`;
             } else {
                 const rewritten = rewriteTopLevelDeclarations(code);
-                const lastSemi = findLastTopLevelSemicolon(rewritten);
-                if (lastSemi >= 0) {
-                    const prefix = rewritten.slice(0, lastSemi);
-                    const lastPart = rewritten.slice(lastSemi + 1).trim();
+                const lastBreak = findLastTopLevelStatementBreak(rewritten);
+                if (lastBreak >= 0) {
+                    const prefix = rewritten.slice(0, lastBreak);
+                    const lastPart = rewritten.slice(lastBreak + 1).trim();
                     let stmtBody: string;
                     try {
                         // eslint-disable-next-line @typescript-eslint/no-implied-eval
