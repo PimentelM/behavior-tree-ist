@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import nacl from 'tweetnacl';
 import {
     bytesToJson,
     decodeEnvelope,
     decodeHeaderToken,
     deriveDirectionalKeys,
     encodeEnvelope,
+    generateEphemeralKeyPair,
     jsonToBytes,
     openSessionSeed,
     secretboxDecrypt,
@@ -208,7 +208,7 @@ describe('rewriteTopLevelDeclarations', () => {
 // ---------------------------------------------------------------------------
 
 function makeUiKeyPair() {
-    return nacl.box.keyPair();
+    return generateEphemeralKeyPair();
 }
 
 function makePlugin(publicKey: Uint8Array) {

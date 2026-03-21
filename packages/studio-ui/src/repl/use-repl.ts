@@ -26,7 +26,8 @@ function base64urlEncode(bytes: Uint8Array): string {
 }
 
 function base64urlDecode(s: string): Uint8Array {
-    const pad = s.length % 4 === 2 ? '==' : s.length % 4 === 3 ? '=' : s.length % 4 === 1 ? '===' : '';
+    if (s.length % 4 === 1) throw new Error('Invalid base64url string');
+    const pad = s.length % 4 === 2 ? '==' : s.length % 4 === 3 ? '=' : '';
     const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
     const bin = atob(b64);
     const out = new Uint8Array(bin.length);
@@ -52,6 +53,7 @@ function encodeEnvelope(nonce: Uint8Array, ciphertext: Uint8Array): string {
 
 export function decodeEnvelope(packed: string): { nonce: Uint8Array; ciphertext: Uint8Array } {
     const bytes = base64urlDecode(packed);
+    if (bytes.length < SECRETBOX_NONCE_BYTES + 16) throw new Error('Envelope too short');
     const nonce = bytes.slice(0, SECRETBOX_NONCE_BYTES);
     const ciphertext = bytes.slice(SECRETBOX_NONCE_BYTES);
     return { nonce, ciphertext };

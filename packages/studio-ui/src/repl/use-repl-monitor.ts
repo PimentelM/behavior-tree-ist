@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import nacl from 'tweetnacl';
+import { xsalsa20poly1305 } from '@noble/ciphers/salsa';
 import { decodeEnvelope, bytesToJson } from './use-repl';
 import type { ReplResult } from './use-repl';
 import type { WsSubscribe, WsEvent } from '../use-ui-websocket';
@@ -63,13 +63,13 @@ export function useReplMonitor({
 
             try {
                 const { nonce: reqNonce, ciphertext: reqCt } = decodeEnvelope(encryptedRequest);
-                const reqPlain = nacl.secretbox.open(reqCt, reqNonce, keys.s2c);
-                if (!reqPlain) return;
+                let reqPlain: Uint8Array;
+                try { reqPlain = xsalsa20poly1305(keys.s2c, reqNonce).decrypt(reqCt); } catch { return; }
                 const req = bytesToJson<{ code: string }>(reqPlain);
 
                 const { nonce: resNonce, ciphertext: resCt } = decodeEnvelope(encryptedResponse);
-                const resPlain = nacl.secretbox.open(resCt, resNonce, keys.c2s);
-                if (!resPlain) return;
+                let resPlain: Uint8Array;
+                try { resPlain = xsalsa20poly1305(keys.c2s, resNonce).decrypt(resCt); } catch { return; }
                 const res = bytesToJson<ReplResult>(resPlain);
 
                 setActivities((prev) => [...prev, { code: req.code, result: res, timestamp }]);

@@ -12,7 +12,7 @@
  *   5. UI encrypts requests with s2c key; agent decrypts with s2c key.
  *   6. Agent encrypts responses with c2s key; UI decrypts with c2s key.
  */
-import nacl from 'tweetnacl';
+import { x25519 } from '@noble/curves/ed25519';
 import {
     base64urlDecode,
     bytesToJson,
@@ -20,6 +20,7 @@ import {
     deriveDirectionalKeys,
     encodeEnvelope,
     jsonToBytes,
+    openSessionSeed,
     secretboxDecrypt,
     secretboxEncrypt,
     type DirectionalKeys,
@@ -49,11 +50,11 @@ export class ReplClient {
     private _sessionKeys: DirectionalKeys | null = null;
 
     constructor(privateKey: Uint8Array) {
-        if (privateKey.length !== nacl.box.secretKeyLength) {
+        if (privateKey.length !== 32) {
             throw new Error('Private key must be 32 bytes');
         }
         this._secretKey = privateKey;
-        this._publicKey = nacl.box.keyPair.fromSecretKey(privateKey).publicKey;
+        this._publicKey = x25519.getPublicKey(privateKey);
     }
 
     /** The UI's long-term NaCl box public key (32 bytes). */
@@ -78,14 +79,18 @@ export class ReplClient {
      */
     completeHandshake(agentHeaderToken: string): void {
         const bytes = base64urlDecode(agentHeaderToken);
-        if (bytes.length < 1 + 32 + 24 + nacl.box.overheadLength) {
+        if (bytes.length < 1 + 32 + 24 + 16) {
             throw new Error('Header token too short');
         }
         const ephPub = bytes.slice(1, 1 + 32);
         const nonce = bytes.slice(1 + 32, 1 + 32 + 24);
         const box = bytes.slice(1 + 32 + 24);
-        const seed = nacl.box.open(box, nonce, ephPub, this._secretKey);
-        if (!seed) throw new Error('Failed to decrypt handshake');
+        let seed: Uint8Array;
+        try {
+            seed = openSessionSeed({ nonce, box }, ephPub, this._secretKey);
+        } catch {
+            throw new Error('Failed to decrypt handshake');
+        }
         this._sessionKeys = deriveDirectionalKeys(seed);
     }
 
