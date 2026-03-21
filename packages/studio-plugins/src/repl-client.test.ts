@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import nacl from 'tweetnacl';
+import { generateEphemeralKeyPair } from './repl-crypto';
 import { ReplPlugin } from './repl-plugin';
 import { ReplClient } from './repl-client';
 import type { PluginSender } from '@bt-studio/core';
@@ -9,7 +9,7 @@ import type { PluginSender } from '@bt-studio/core';
 // ---------------------------------------------------------------------------
 
 function makeUiKeyPair() {
-    return nacl.box.keyPair();
+    return generateEphemeralKeyPair();
 }
 
 /** Build a ReplPlugin attached to a sender; return the sent messages array. */

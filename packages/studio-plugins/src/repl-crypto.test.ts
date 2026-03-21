@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import nacl from 'tweetnacl';
 import {
     base64urlDecode,
     base64urlEncode,
@@ -70,7 +69,7 @@ describe('generateEphemeralKeyPair', () => {
 describe('session seed seal / open', () => {
     it('round-trips a session seed with a valid keypair', () => {
         const agentKp = generateEphemeralKeyPair();
-        const uiKp = nacl.box.keyPair();
+        const uiKp = generateEphemeralKeyPair();
 
         const seed = getRandomBytes(32);
         const { nonce, box } = sealSessionSeed(seed, uiKp.publicKey, agentKp.secretKey);
@@ -81,7 +80,7 @@ describe('session seed seal / open', () => {
 
     it('throws on tampered box', () => {
         const agentKp = generateEphemeralKeyPair();
-        const uiKp = nacl.box.keyPair();
+        const uiKp = generateEphemeralKeyPair();
         const seed = getRandomBytes(32);
         const { nonce, box } = sealSessionSeed(seed, uiKp.publicKey, agentKp.secretKey);
         box[0] = (box[0] as number) ^ 0xff;
@@ -136,8 +135,8 @@ describe('secretbox encrypt / decrypt', () => {
 
 describe('envelope encode / decode', () => {
     it('round-trips nonce + ciphertext', () => {
-        const nonce = getRandomBytes(nacl.secretbox.nonceLength);
-        const box = getRandomBytes(nacl.secretbox.overheadLength + 10);
+        const nonce = getRandomBytes(24);
+        const box = getRandomBytes(16 + 10);
         const encoded = encodeEnvelope(nonce, box);
         const { nonce: n2, ciphertext: c2 } = decodeEnvelope(encoded);
         expect(n2).toEqual(nonce);
@@ -152,7 +151,7 @@ describe('envelope encode / decode', () => {
 describe('headerToken encode / decode', () => {
     it('round-trips all fields', () => {
         const kp = generateEphemeralKeyPair();
-        const nonce = getRandomBytes(nacl.box.nonceLength);
+        const nonce = getRandomBytes(24);
         const ciphertext = getRandomBytes(48);
 
         const token = encodeHeaderToken({
@@ -183,7 +182,7 @@ describe('jsonToBytes / bytesToJson', () => {
 
 describe('full handshake integration', () => {
     it('agent and UI derive identical session keys', () => {
-        const uiKeyPair = nacl.box.keyPair();
+        const uiKeyPair = generateEphemeralKeyPair();
         const agentEphemeral = generateEphemeralKeyPair();
         const sessionSeed = getRandomBytes(32);
 
