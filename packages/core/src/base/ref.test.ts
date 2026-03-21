@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ref, readonlyRef, derivedRef } from "./ref";
+import { ref, readonlyRef, derivedRef, proxyRef } from "./ref";
 import { BTNode } from "./node";
 import { NodeResult, type RefChangeEvent } from "./types";
 import { Action } from "./action";
@@ -300,6 +300,76 @@ describe("Ref", () => {
 
             source.value = 20;
             expect(ro.value).toBe(20);
+        });
+    });
+
+    describe("ProxyRef", () => {
+        it("delegates get/set to external getter/setter", () => {
+            let store = 0;
+            const p = proxyRef(() => store, (v) => { store = v; }, "proxied");
+
+            expect(p.value).toBe(0);
+            expect(p.name).toBe("proxied");
+
+            p.value = 42;
+            expect(store).toBe(42);
+            expect(p.value).toBe(42);
+        });
+
+        it("emits RefChangeEvent during tick", () => {
+            let store = 0;
+            const p = proxyRef(() => store, (v) => { store = v; }, "proxied");
+            const node = Action.from("set", () => {
+                p.value = 7;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 3, now: 30 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(store).toBe(7);
+            expect(ctx.refEvents).toHaveLength(1);
+            expect(ctx.refEvents[0] as RefChangeEvent).toEqual({
+                tickId: 3,
+                timestamp: 30,
+                refName: "proxied",
+                nodeId: node.id,
+                newValue: 7,
+                isAsync: false,
+            });
+        });
+
+        it("skips event and setter when value equals current", () => {
+            let setCalls = 0;
+            let store = 5;
+            const p = proxyRef(() => store, (v) => { store = v; setCalls++; }, "p");
+            const node = Action.from("noop", () => {
+                p.value = 5;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(setCalls).toBe(0);
+            expect(ctx.refEvents).toHaveLength(0);
+        });
+
+        it("unnamed proxy ref produces no event during tick", () => {
+            let store = 0;
+            const p = proxyRef(() => store, (v) => { store = v; });
+
+            const node = Action.from("set", () => {
+                p.value = 99;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext();
+
+            BTNode.Tick(node, ctx);
+
+            expect(store).toBe(99);
+            expect(p.name).toBeUndefined();
+            expect(ctx.refEvents).toHaveLength(0);
         });
     });
 
