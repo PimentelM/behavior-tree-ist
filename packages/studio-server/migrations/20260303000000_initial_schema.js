@@ -38,7 +38,7 @@ export async function up(knex) {
 
     await knex.schema.createTable('serverSettings', (table) => {
         table.integer('id').primary().defaultTo(1);
-        table.integer('maxTicksPerTree').defaultTo(1000);
+        table.integer('maxTicksPerTree').defaultTo(100000);
         table.integer('commandTimeoutMs').defaultTo(5000);
         table.double('updatedAt').notNullable();
     });
@@ -51,7 +51,7 @@ export async function up(knex) {
     // Insert default settings row
     await knex('serverSettings').insert({
         id: 1,
-        maxTicksPerTree: 1000,
+        maxTicksPerTree: 100000,
         commandTimeoutMs: 5000,
         updatedAt: Date.now(),
     });

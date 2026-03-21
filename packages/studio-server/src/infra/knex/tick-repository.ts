@@ -11,13 +11,6 @@ interface TickBoundsRow {
     count: string;
 }
 
-interface CountRow {
-    cnt: number | string;
-}
-
-interface TickIdRow {
-    tickId: number;
-}
 
 export class TickRepository extends BaseKnexRepository implements TickRepositoryInterface {
     async insertBatch(
@@ -121,34 +114,17 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         treeId: string,
         maxTicks: number
     ): Promise<void> {
-        await this.executeTransactionally(async () => {
-            const count = (await this.withTransaction(
-                this.knex('ticks')
-                    .where({ clientId, sessionId, treeId })
-                    .count('* as cnt')
-            )) as CountRow[];
+        const keepSubquery = this.knex('ticks')
+            .where({ clientId, sessionId, treeId })
+            .orderBy('tickId', 'desc')
+            .limit(maxTicks)
+            .select('tickId');
 
-            const total = Number(count[0]?.cnt);
-            if (total <= maxTicks) return;
-
-            const toDelete = total - maxTicks;
-            const oldest = (await this.withTransaction(
-                this.knex('ticks')
-                    .where({ clientId, sessionId, treeId })
-                    .orderBy('tickId', 'asc')
-                    .limit(toDelete)
-                    .select('tickId')
-            )) as TickIdRow[];
-
-            const tickIds = oldest.map((r) => r.tickId);
-            if (tickIds.length > 0) {
-                await this.withTransaction(
-                    this.knex('ticks')
-                        .where({ clientId, sessionId, treeId })
-                        .whereIn('tickId', tickIds)
-                        .delete()
-                );
-            }
-        });
+        await this.withTransaction(
+            this.knex('ticks')
+                .where({ clientId, sessionId, treeId })
+                .whereNotIn('tickId', keepSubquery)
+                .delete()
+        );
     }
 }
