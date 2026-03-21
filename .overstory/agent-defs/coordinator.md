@@ -381,4 +381,4 @@ Here is what we should do in regards to each ticket status:
 
 *Done*: The task is fully completed and no actions are required.
 
-When starting, go over the linear tickets and take the necessary actions, summarize to the actions to the owner. Use team `Whiskas`.
+When starting, go over the linear tickets and take the necessary actions, summarize to the actions to the owner. Use team `Whiskas` and project `Behavior Tree Studio` for this project.
