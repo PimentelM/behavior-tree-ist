@@ -1,9 +1,12 @@
 import { AmbientContext } from "./ambient-context";
 import type { RefChangeEvent } from "./types";
 import { pushRefEvent } from "./ref-event";
+import { ProxyRef } from "./ref";
 
 export type MultiRef<T extends Record<string, unknown>> = T &
-    ("name" extends keyof T ? unknown : { readonly name: string });
+    ("name" extends keyof T ? unknown : { readonly name: string }) & {
+        extractRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
+    };
 
 function emitRefChange(refName: string, newValue: unknown): void {
     const ctx = AmbientContext.getTickContext();
@@ -55,10 +58,26 @@ export function multiRef<T extends Record<string, unknown>>(
         });
     }
 
+    Object.defineProperty(obj, "extractRef", {
+        enumerable: false,
+        configurable: true,
+        writable: false,
+        value<K extends keyof T & string>(key: K): ProxyRef<T[K]> {
+            return new ProxyRef(
+                () => storage[key] as T[K],
+                (v: T[K]) => { (obj as Record<string, unknown>)[key] = v; },
+            );
+        },
+    });
+
     return obj;
 }
 
-export function patchRef<T extends object>(name: string, instance: T): T {
+type WithExtractRef<T extends object> = T & {
+    extractRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
+};
+
+export function patchRef<T extends object>(name: string, instance: T): WithExtractRef<T> {
     for (const key of Object.keys(instance)) {
         const desc = Object.getOwnPropertyDescriptor(instance, key);
         if (!desc || !("value" in desc) || !desc.writable) continue;
@@ -79,5 +98,17 @@ export function patchRef<T extends object>(name: string, instance: T): T {
         });
     }
 
-    return instance;
+    Object.defineProperty(instance, "extractRef", {
+        enumerable: false,
+        configurable: true,
+        writable: false,
+        value<K extends keyof T & string>(key: K): ProxyRef<T[K]> {
+            return new ProxyRef(
+                () => (instance as Record<string, unknown>)[key] as T[K],
+                (v: T[K]) => { (instance as Record<string, unknown>)[key] = v; },
+            );
+        },
+    });
+
+    return instance as WithExtractRef<T>;
 }
