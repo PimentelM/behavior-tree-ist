@@ -37,6 +37,29 @@ describe('base64url', () => {
         expect(() => base64urlDecode('a')).toThrow('Invalid base64url string');
         expect(() => base64urlDecode('aaaaa')).toThrow('Invalid base64url string');
     });
+
+    it('round-trips empty array', () => {
+        const empty = new Uint8Array(0);
+        expect(base64urlDecode(base64urlEncode(empty))).toEqual(empty);
+    });
+
+    it('round-trips 8192-byte payload', () => {
+        const bytes = getRandomBytes(8192);
+        expect(base64urlDecode(base64urlEncode(bytes))).toEqual(bytes);
+    });
+
+    it('round-trips 100KB payload', () => {
+        // Use fill+map to avoid getRandomValues 65536-byte quota limit
+        const bytes = new Uint8Array(100 * 1024).map((_, i) => i % 256);
+        expect(base64urlDecode(base64urlEncode(bytes))).toEqual(bytes);
+    });
+
+    it('round-trips all 256 single-byte values', () => {
+        for (let i = 0; i < 256; i++) {
+            const b = new Uint8Array([i]);
+            expect(base64urlDecode(base64urlEncode(b))).toEqual(b);
+        }
+    });
 });
 
 describe('getRandomBytes', () => {
@@ -121,11 +144,32 @@ describe('secretbox encrypt / decrypt', () => {
         expect(secretboxDecrypt(nonce, box, key)).toEqual(plain);
     });
 
+    it('round-trips empty plaintext', () => {
+        const key = getRandomBytes(32);
+        const plain = new Uint8Array(0);
+        const { nonce, box } = secretboxEncrypt(plain, key);
+        expect(secretboxDecrypt(nonce, box, key)).toEqual(plain);
+    });
+
     it('throws on tampered ciphertext', () => {
         const key = getRandomBytes(32);
         const { nonce, box } = secretboxEncrypt(new Uint8Array([1, 2, 3]), key);
         box[0] = (box[0] as number) ^ 0xff;
         expect(() => secretboxDecrypt(nonce, box, key)).toThrow('Decryption failed');
+    });
+
+    it('throws on wrong 32-byte key', () => {
+        const key = getRandomBytes(32);
+        const wrongKey = getRandomBytes(32);
+        const { nonce, box } = secretboxEncrypt(new Uint8Array([1, 2, 3]), key);
+        expect(() => secretboxDecrypt(nonce, box, wrongKey)).toThrow('Decryption failed');
+    });
+
+    it('throws on wrong nonce with correct key', () => {
+        const key = getRandomBytes(32);
+        const { box } = secretboxEncrypt(new Uint8Array([1, 2, 3]), key);
+        const wrongNonce = getRandomBytes(24);
+        expect(() => secretboxDecrypt(wrongNonce, box, key)).toThrow('Decryption failed');
     });
 
     it('throws on wrong key length', () => {
@@ -171,12 +215,56 @@ describe('headerToken encode / decode', () => {
     it('throws on too-short token', () => {
         expect(() => decodeHeaderToken(base64urlEncode(new Uint8Array(10)))).toThrow('Token too short');
     });
+
+    it('throws on wrong pubkey length', () => {
+        expect(() =>
+            encodeHeaderToken({
+                version: 1,
+                clientEphemeralPublicKey: getRandomBytes(16),
+                nonce: getRandomBytes(24),
+                ciphertext: getRandomBytes(48),
+            }),
+        ).toThrow('Invalid c_pub len');
+    });
+
+    it('throws on wrong nonce length', () => {
+        expect(() =>
+            encodeHeaderToken({
+                version: 1,
+                clientEphemeralPublicKey: getRandomBytes(32),
+                nonce: getRandomBytes(12),
+                ciphertext: getRandomBytes(48),
+            }),
+        ).toThrow('Invalid nonce len');
+    });
 });
 
 describe('jsonToBytes / bytesToJson', () => {
     it('round-trips a plain object', () => {
         const obj = { type: 'eval', code: 'const x = 1' };
         expect(bytesToJson(jsonToBytes(obj))).toEqual(obj);
+    });
+});
+
+describe('full pipeline large payload', () => {
+    it('seal → derive → encrypt → envelope → decrypt with 100KB plaintext', () => {
+        const agentKp = generateEphemeralKeyPair();
+        const uiKp = generateEphemeralKeyPair();
+        const sessionSeed = getRandomBytes(32);
+
+        const { nonce, box } = sealSessionSeed(sessionSeed, uiKp.publicKey, agentKp.secretKey);
+        const recoveredSeed = openSessionSeed({ nonce, box }, agentKp.publicKey, uiKp.secretKey);
+        const keys = deriveDirectionalKeys(recoveredSeed);
+
+        // Use fill+map to avoid getRandomValues 65536-byte quota limit
+        const plaintext = new Uint8Array(100 * 1024).map((_, i) => i % 256);
+        const encrypted = secretboxEncrypt(plaintext, keys.c2s);
+        const envelope = encodeEnvelope(encrypted.nonce, encrypted.box);
+
+        const { nonce: envNonce, ciphertext } = decodeEnvelope(envelope);
+        const decrypted = secretboxDecrypt(envNonce, ciphertext, keys.c2s);
+
+        expect(decrypted).toEqual(plaintext);
     });
 });
 

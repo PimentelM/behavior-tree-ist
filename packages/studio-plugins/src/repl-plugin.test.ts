@@ -248,6 +248,31 @@ describe('ReplPlugin handshake', () => {
 
         await expect(plugin.handleInbound('x', 'payload')).resolves.toBeUndefined();
     });
+
+    it('onConnected sends fresh handshake with new ephemeral keys', () => {
+        const uiKp = makeUiKeyPair();
+        const plugin = makePlugin(uiKp.publicKey);
+        const { sender, sent } = makeTestSender();
+
+        plugin.attach(sender);
+        const firstToken = ((sent[0] as (typeof sent)[number]).payload as { type: string; headerToken: string }).headerToken;
+
+        plugin.onConnected();
+        const secondToken = ((sent[1] as (typeof sent)[number]).payload as { type: string; headerToken: string }).headerToken;
+
+        expect(sent).toHaveLength(2);
+        expect(secondToken).not.toBe(firstToken);
+        // Both tokens must be decodeable and contain valid session keys
+        const firstKeys = extractSessionKeysFromHandshake(
+            (sent[0] as (typeof sent)[number]).payload as { type: string; headerToken: string },
+            uiKp.secretKey,
+        );
+        const secondKeys = extractSessionKeysFromHandshake(
+            (sent[1] as (typeof sent)[number]).payload as { type: string; headerToken: string },
+            uiKp.secretKey,
+        );
+        expect(firstKeys.c2s).not.toEqual(secondKeys.c2s);
+    });
 });
 
 // ---------------------------------------------------------------------------

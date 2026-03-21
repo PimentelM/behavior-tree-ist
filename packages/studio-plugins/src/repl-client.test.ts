@@ -181,6 +181,30 @@ describe('ReplClient completions round-trip', () => {
 // Error on pre-handshake usage
 // ---------------------------------------------------------------------------
 
+describe('ReplClient post-resetSession errors', () => {
+    it('encryptEval throws after resetSession', () => {
+        const uiKp = makeUiKeyPair();
+        const client = new ReplClient(uiKp.secretKey);
+        const { sent } = attachPlugin(uiKp.publicKey);
+
+        client.completeHandshake(extractHandshakeToken(sent));
+        client.resetSession();
+
+        expect(() => client.encryptEval('1')).toThrow('handshake not complete');
+    });
+
+    it('encryptCompletions throws after resetSession', () => {
+        const uiKp = makeUiKeyPair();
+        const client = new ReplClient(uiKp.secretKey);
+        const { sent } = attachPlugin(uiKp.publicKey);
+
+        client.completeHandshake(extractHandshakeToken(sent));
+        client.resetSession();
+
+        expect(() => client.encryptCompletions('x')).toThrow('handshake not complete');
+    });
+});
+
 describe('ReplClient pre-handshake errors', () => {
     it('encryptEval throws before handshake', () => {
         const uiKp = makeUiKeyPair();
