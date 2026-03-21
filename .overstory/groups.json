@@ -581,5 +581,26 @@
 		"status": "active",
 		"createdAt": "2026-03-20T22:58:04.412Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-9da98dd7",
+		"name": "code-review",
+		"memberIssueIds": [
+			"behavior-tree-ist-82c6",
+			"behavior-tree-ist-6ce5"
+		],
+		"status": "active",
+		"createdAt": "2026-03-20T23:43:56.078Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-44fa9787",
+		"name": "review-fixes",
+		"memberIssueIds": [
+			"behavior-tree-ist-5d9d"
+		],
+		"status": "active",
+		"createdAt": "2026-03-20T23:52:44.098Z",
+		"completedAt": null
 	}
 ]
