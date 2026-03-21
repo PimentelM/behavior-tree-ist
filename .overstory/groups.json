@@ -668,5 +668,25 @@
 		"status": "active",
 		"createdAt": "2026-03-21T22:33:57.431Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-2ff93b54",
+		"name": "edge-result-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-3398"
+		],
+		"status": "active",
+		"createdAt": "2026-03-21T23:24:55.390Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-35abfd58",
+		"name": "subtree-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-50b8"
+		],
+		"status": "active",
+		"createdAt": "2026-03-21T23:30:26.471Z",
+		"completedAt": null
 	}
 ]
