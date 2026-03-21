@@ -45,30 +45,80 @@ describe("SubTree Decorator", () => {
         expect(subTree.getDisplayState?.()).toBeUndefined();
     });
 
-    it("forwards .decorate calls to the child node and keeps SubTree in place", () => {
+    it(".decorate() wraps SubTree from outside, returning new outer decorator", () => {
         const action = new StubAction(NodeResult.Succeeded);
         const subTree = new SubTree(action);
 
-        // When applying a decorator to a SubTree
         const decorated = subTree.decorate([Inverter]);
 
-        // Then it should return the same subTree instance
-        expect(decorated).toBe(subTree);
+        // decorate() returns the outer Inverter, not the SubTree
+        expect(decorated).toBeInstanceOf(Inverter);
+        expect((decorated as unknown as Decorator).child).toBe(subTree);
+        expect(subTree.child).toBe(action);
 
-        // And the child of the subTree should now be an Inverter
-        expect(subTree.child).toBeInstanceOf(Inverter);
-        expect((subTree.child as unknown as Decorator).child).toBe(action);
-
-        // Verify the behavior is correctly applied (child should now return Failed)
-        const result = BTNode.Tick(subTree, {
-            tickId: 1,
-            now: Date.now(),
-            events: [],
-            refEvents: [],
-            isStateTraceEnabled: false,
-            trace: () => { }
-        });
-
+        // Inverter wraps SubTree: result should be inverted
+        const result = BTNode.Tick(decorated, createTickContext());
         expect(result).toBe(NodeResult.Failed);
+    });
+
+    it("stacks multiple decorators outside SubTree", () => {
+        const action = new StubAction(NodeResult.Succeeded);
+        const subTree = new SubTree(action);
+
+        const decorated = subTree.decorate([Inverter], [Inverter]);
+
+        // Two inverters: Inverter → Inverter → SubTree → action
+        expect(decorated).toBeInstanceOf(Inverter);
+        const result = BTNode.Tick(decorated, createTickContext());
+        expect(result).toBe(NodeResult.Succeeded);
+    });
+
+    it("addTags stores tags on SubTree, not on child", () => {
+        const action = new StubAction(NodeResult.Succeeded);
+        const subTree = new SubTree(action);
+
+        subTree.addTags(["combat", "priority"]);
+
+        expect(subTree.tags).toContain("combat");
+        expect(subTree.tags).toContain("priority");
+        expect(action.tags).toHaveLength(0);
+    });
+
+    it("tags getter returns own tags (not empty array)", () => {
+        const subTree = new SubTree(new StubAction(NodeResult.Succeeded));
+
+        expect(subTree.tags).toEqual([]);
+
+        subTree.addTags(["foo"]);
+
+        expect(subTree.tags).toEqual(["foo"]);
+    });
+
+    it("setActivity stores activity on SubTree, not on child", () => {
+        const action = new StubAction(NodeResult.Succeeded);
+        const subTree = new SubTree(action);
+
+        subTree.setActivity("patrolling");
+
+        expect(subTree.activity).toBe("patrolling");
+        expect(action.activity).toBeUndefined();
+    });
+
+    it("activity getter returns own activity (not undefined by default after set)", () => {
+        const subTree = new SubTree(new StubAction(NodeResult.Succeeded));
+
+        expect(subTree.activity).toBeUndefined();
+
+        subTree.setActivity(true);
+
+        expect(subTree.activity).toBe(true);
+    });
+
+    it("setActivity normalizes whitespace-only string to undefined", () => {
+        const subTree = new SubTree(new StubAction(NodeResult.Succeeded));
+
+        subTree.setActivity("   ");
+
+        expect(subTree.activity).toBeUndefined();
     });
 });
