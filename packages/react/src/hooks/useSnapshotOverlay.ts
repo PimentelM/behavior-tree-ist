@@ -251,7 +251,18 @@ export function useSnapshotOverlay(
 
     const edges = baseEdges.map((baseEdge) => {
       const targetNodeId = parseInt(baseEdge.target, 10);
-      const childResult = nodeResultById.get(targetNodeId) ?? null;
+      const representedNodeIds = representedNodeIdsByHostNodeId.get(targetNodeId);
+      // When stacked decorators exist, the outermost decorator (representedNodeIds[1]) may
+      // short-circuit child execution and be the only node with a result in the snapshot.
+      let childResult: NodeResult | null = null;
+      if (representedNodeIds !== undefined && representedNodeIds.length > 1) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const outermostDecoratorId = representedNodeIds[1]!;
+        childResult = nodeResultById.get(outermostDecoratorId) ?? null;
+      }
+      if (childResult === null) {
+        childResult = nodeResultById.get(targetNodeId) ?? null;
+      }
       const nextAnimated = childResult === NodeResult.Running;
       const nextIsOnActivityPathEdge = highlightedHostEdgeIds.has(baseEdge.id);
 
