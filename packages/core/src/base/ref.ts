@@ -75,3 +75,47 @@ export function readonlyRef<T>(source: Ref<T>): ReadonlyRef<T> {
 export function derivedRef<T>(compute: () => T, name?: string): DerivedRef<T> {
     return new DerivedRef(compute, name);
 }
+
+export class ProxyRef<T> implements ReadonlyRef<T> {
+    public readonly name: string | undefined;
+    private readonly _getter: () => T;
+    private readonly _setter: (v: T) => void;
+
+    constructor(getter: () => T, setter: (v: T) => void, name?: string) {
+        this._getter = getter;
+        this._setter = setter;
+        this.name = name;
+    }
+
+    get value(): T {
+        return this._getter();
+    }
+
+    set value(newValue: T) {
+        this.set(newValue);
+    }
+
+    set(newValue: T, ctx?: TickContext, mutationNodeId?: number): void {
+        if (this._getter() === newValue) return;
+        this._setter(newValue);
+
+        const effectiveCtx = ctx ?? AmbientContext.getTickContext();
+        if (!effectiveCtx || !effectiveCtx.isStateTraceEnabled || this.name === undefined) return;
+
+        const nodeId = mutationNodeId ?? AmbientContext.getCurrentMutationNodeId();
+        const event: RefChangeEvent = {
+            tickId: effectiveCtx.tickId,
+            timestamp: effectiveCtx.now,
+            refName: this.name,
+            nodeId,
+            newValue: newValue as unknown,
+            isAsync: false,
+        };
+
+        pushRefEvent(effectiveCtx, event);
+    }
+}
+
+export function proxyRef<T>(getter: () => T, setter: (v: T) => void, name?: string): ProxyRef<T> {
+    return new ProxyRef(getter, setter, name);
+}
