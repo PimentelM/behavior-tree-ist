@@ -624,5 +624,29 @@
 		"status": "active",
 		"createdAt": "2026-03-21T03:19:11.236Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-db3c2835",
+		"name": "whi-21-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-9070"
+		],
+		"status": "active",
+		"createdAt": "2026-03-21T03:54:16.129Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-7519316d",
+		"name": "codebase-exploration",
+		"memberIssueIds": [
+			"behavior-tree-ist-3cbd",
+			"behavior-tree-ist-3ad4",
+			"behavior-tree-ist-0b53",
+			"behavior-tree-ist-d751",
+			"behavior-tree-ist-9b91"
+		],
+		"status": "active",
+		"createdAt": "2026-03-21T04:05:48.791Z",
+		"completedAt": null
 	}
 ]
