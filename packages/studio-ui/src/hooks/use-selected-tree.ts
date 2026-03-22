@@ -22,7 +22,7 @@ export function useSelectedTree(selection: StudioSelection | null) {
             setTree((result.serializedTree as SerializableNode | null) ?? null);
         }).catch((err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-selected-tree] fetch error', err);
+            console.error('[use-selected-tree] fetch error', err);
         });
     }, [selection?.clientId, selection?.sessionId, selection?.treeId]);
 

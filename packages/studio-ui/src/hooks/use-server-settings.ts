@@ -10,7 +10,7 @@ export function useServerSettings() {
             setServerSettings({ maxTicksPerTree: result.maxTicksPerTree });
         }).catch((_err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-server-settings] fetch error', _err);
+            console.error('[use-server-settings] fetch error', _err);
         });
     }, []);
 
@@ -19,7 +19,7 @@ export function useServerSettings() {
             setServerSettings({ maxTicksPerTree: result.maxTicksPerTree });
         }).catch((_err: unknown) => {
             // eslint-disable-next-line no-console
-            console.log('[use-server-settings] update error', _err);
+            console.error('[use-server-settings] update error', _err);
         });
     }, []);
 
