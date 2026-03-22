@@ -8,6 +8,7 @@ domains:
   - server-retention
   - ui
   - repl
+  - profiler
 governance:
   max_entries: 100
   warn_entries: 150

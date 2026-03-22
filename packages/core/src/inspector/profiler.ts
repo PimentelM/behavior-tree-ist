@@ -963,8 +963,8 @@ export class Profiler {
             return new Map<number, number[]>();
         }
         const sortedEvents = timedEvents
-            .map((event) => ({ ...event }))
-            .sort((a, b) => (a.startedAt - b.startedAt) || (b.finishedAt - a.finishedAt));
+            .map((event, i) => ({ ...event, _i: i }))
+            .sort((a, b) => (a.startedAt - b.startedAt) || (b.finishedAt - a.finishedAt) || (b._i - a._i));
 
         const stack: TimedEvent[] = [];
         for (const event of sortedEvents) {
