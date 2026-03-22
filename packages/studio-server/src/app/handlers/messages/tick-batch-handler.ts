@@ -15,7 +15,6 @@ interface TickBatchHandlerDeps {
     byteMetricsService: ByteMetricsServiceInterface;
 }
 
-const BYTES_PER_TICK_ESTIMATE = 512;
 const PRUNE_INTERVAL_BATCHES = 10;
 
 export class TickBatchHandler extends BaseHandler {
@@ -37,8 +36,8 @@ export class TickBatchHandler extends BaseHandler {
 
         const { clientId, sessionId } = connection;
 
-        // Record byte metrics — rough estimate avoids re-serializing the whole message
-        const bytes = message.ticks.length * BYTES_PER_TICK_ESTIMATE;
+        // Record byte metrics from transport wire size
+        const bytes = client.lastRawByteSize;
         const lastTick = message.ticks[message.ticks.length - 1];
         if (lastTick !== undefined) {
             this.deps.byteMetricsService.record(clientId, sessionId, message.treeId, lastTick.tickId, bytes);
