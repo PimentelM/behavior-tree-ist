@@ -2,6 +2,7 @@ import knex, { type Knex } from 'knex';
 import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import type Database from 'better-sqlite3';
 import { type StudioServerConfig } from '../../configuration';
 
 function findMigrationsDir(): string {
@@ -20,11 +21,19 @@ export function createKnexInstance(config: Knex.Config): Knex {
     return knex(config);
 }
 
+const walPool = {
+    afterCreate: (conn: Database.Database, done: (err: Error | null, conn: Database.Database) => void) => {
+        conn.pragma('journal_mode = WAL');
+        done(null, conn);
+    },
+};
+
 export function createSqliteFileKnexInstance(filename: string): Knex {
     return createKnexInstance({
         client: 'better-sqlite3',
         connection: { filename },
         useNullAsDefault: true,
+        pool: walPool,
     });
 }
 
@@ -51,5 +60,6 @@ export function createKnexFromConfig(config: StudioServerConfig): Knex {
         connection: { filename: config.sqlite.path },
         useNullAsDefault: true,
         migrations,
+        pool: walPool,
     });
 }
