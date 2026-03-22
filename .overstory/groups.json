@@ -746,9 +746,9 @@
 			"behavior-tree-ist-aac1",
 			"behavior-tree-ist-0fd4"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T00:55:43.289Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T03:02:17.657Z"
 	},
 	{
 		"id": "group-7f8329df",
@@ -756,9 +756,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-829d"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T01:02:33.708Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T03:02:17.791Z"
 	},
 	{
 		"id": "group-6559e1c0",
@@ -766,9 +766,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-3c2c"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T01:54:27.539Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T03:02:17.916Z"
 	},
 	{
 		"id": "group-296e3a04",
@@ -776,9 +776,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-ca09"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T02:08:40.525Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T03:02:18.050Z"
 	},
 	{
 		"id": "group-a89a5b09",
@@ -786,8 +786,58 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-36fa"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T02:12:36.799Z",
+		"completedAt": "2026-03-22T03:02:18.187Z"
+	},
+	{
+		"id": "group-03c4a823",
+		"name": "ci-check",
+		"memberIssueIds": [
+			"behavior-tree-ist-d30b"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T03:05:07.337Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-a137d9d0",
+		"name": "tick-memo-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-fab1"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T03:10:57.269Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-afaafa6b",
+		"name": "memo-reply",
+		"memberIssueIds": [
+			"behavior-tree-ist-8132"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T03:30:32.269Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-0c430663",
+		"name": "memo-final",
+		"memberIssueIds": [
+			"behavior-tree-ist-a2ea"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T03:43:06.520Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-e0b73fb5",
+		"name": "tick-memo-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-6f00"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T03:49:28.157Z",
 		"completedAt": null
 	}
 ]
