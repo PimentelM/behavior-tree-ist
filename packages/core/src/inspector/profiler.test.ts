@@ -161,6 +161,21 @@ describe("Profiler", () => {
         expect(node.selfCpuP99).toBe(100);
     });
 
+    it("computes zero self cpu time for parent when child has identical timestamps (child-first trace order)", () => {
+        // BT traces children before parents; identical timestamps must not confuse parent/child assignment
+        const profiler = new Profiler();
+        profiler.ingestTick(1, makeEvents(1, [
+            { nodeId: 2, start: 0, end: 9 }, // child — appears first in trace
+            { nodeId: 1, start: 0, end: 9 }, // parent — appears last in trace
+        ]));
+
+        const root = profiler.getNodeData(1) as NodeProfilingData;
+        const child = profiler.getNodeData(2) as NodeProfilingData;
+        expect(root.totalSelfCpuTime).toBe(0);
+        expect(root.maxSelfCpuTime).toBe(0);
+        expect(child.totalSelfCpuTime).toBe(9);
+    });
+
     it("computes self cpu percentiles independently from cpu percentiles", () => {
         const profiler = new Profiler();
         profiler.ingestTick(1, makeEvents(1, [{ nodeId: 1, start: 0, end: 100 }, { nodeId: 2, start: 0, end: 99 }]));
