@@ -1,6 +1,8 @@
 import type { TransportData, TransportFactory } from "@bt-studio/core";
 import { WsBrowserTransportBase } from "./ws-base";
 
+const textEncoder = new TextEncoder();
+
 /**
  * Browser WebSocket transport that sends and receives binary
  * (Uint8Array) data using the native WebSocket API.
@@ -24,7 +26,7 @@ export class WsBrowserBinaryTransport extends WsBrowserTransportBase {
         }
         const bytes =
             typeof data === "string"
-                ? new TextEncoder().encode(data)
+                ? textEncoder.encode(data)
                 : data;
         this.ws.send(bytes);
     }
@@ -38,7 +40,7 @@ export class WsBrowserBinaryTransport extends WsBrowserTransportBase {
             if (event.data instanceof ArrayBuffer) {
                 handler(new Uint8Array(event.data));
             } else if (typeof event.data === "string") {
-                handler(new TextEncoder().encode(event.data));
+                handler(textEncoder.encode(event.data));
             }
         };
 

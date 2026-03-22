@@ -1,6 +1,8 @@
 import type { TransportData, TransportFactory } from "@bt-studio/core";
 import { WsBrowserTransportBase } from "./ws-base";
 
+const textDecoder = new TextDecoder();
+
 /**
  * Browser WebSocket transport that sends and receives string-only
  * data using the native WebSocket API.
@@ -21,7 +23,7 @@ export class WsBrowserStringTransport extends WsBrowserTransportBase {
         const str =
             typeof data === "string"
                 ? data
-                : new TextDecoder().decode(data);
+                : textDecoder.decode(data);
         this.ws.send(str);
     }
 
@@ -34,7 +36,7 @@ export class WsBrowserStringTransport extends WsBrowserTransportBase {
             if (typeof event.data === "string") {
                 handler(event.data);
             } else if (event.data instanceof ArrayBuffer) {
-                handler(new TextDecoder().decode(event.data));
+                handler(textDecoder.decode(event.data));
             }
         };
 
