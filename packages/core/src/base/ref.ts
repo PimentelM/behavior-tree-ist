@@ -3,12 +3,20 @@ import { AmbientContext } from "./ambient-context";
 import { type RefChangeEvent } from "./types";
 import { pushRefEvent } from "./ref-event";
 
-export interface ReadonlyRef<T> {
+export interface ReadonlyRefLike<T> {
     readonly value: T;
     readonly name: string | undefined;
 }
 
-export class Ref<T> implements ReadonlyRef<T> {
+export interface RefLike<T> extends ReadonlyRefLike<T> {
+    value: T;
+    set(newValue: T, ctx?: TickContext, mutationNodeId?: number): void;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ReadonlyRef<T> extends ReadonlyRefLike<T> {}
+
+export class Ref<T> implements RefLike<T> {
     private _value: T;
     public readonly name: string | undefined;
 
@@ -76,7 +84,7 @@ export function derivedRef<T>(compute: () => T, name?: string): DerivedRef<T> {
     return new DerivedRef(compute, name);
 }
 
-export class ProxyRef<T> implements ReadonlyRef<T> {
+export class ProxyRef<T> implements RefLike<T> {
     public readonly name: string | undefined;
     private readonly _getter: () => T;
     private readonly _setter: (v: T) => void;

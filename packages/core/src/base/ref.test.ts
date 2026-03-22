@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { ref, readonlyRef, derivedRef, proxyRef } from "./ref";
+import { describe, it, expect, expectTypeOf } from "vitest";
+import { ref, readonlyRef, derivedRef, proxyRef, type RefLike, type ReadonlyRefLike } from "./ref";
 import { BTNode } from "./node";
 import { NodeResult, type RefChangeEvent } from "./types";
 import { Action } from "./action";
@@ -370,6 +370,40 @@ describe("Ref", () => {
             expect(store).toBe(99);
             expect(p.name).toBeUndefined();
             expect(ctx.refEvents).toHaveLength(0);
+        });
+    });
+
+    describe("RefLike / ReadonlyRefLike assignability", () => {
+        it("Ref satisfies RefLike", () => {
+            expectTypeOf(ref(0)).toExtend<RefLike<number>>();
+        });
+
+        it("Ref satisfies ReadonlyRefLike", () => {
+            expectTypeOf(ref(0)).toExtend<ReadonlyRefLike<number>>();
+        });
+
+        it("ProxyRef satisfies RefLike", () => {
+            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<RefLike<number>>();
+        });
+
+        it("ProxyRef satisfies ReadonlyRefLike", () => {
+            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<ReadonlyRefLike<number>>();
+        });
+
+        it("DerivedRef satisfies ReadonlyRefLike", () => {
+            expectTypeOf(derivedRef(() => 0)).toExtend<ReadonlyRefLike<number>>();
+        });
+
+        it("readonlyRef result satisfies ReadonlyRefLike", () => {
+            expectTypeOf(readonlyRef(ref(0))).toExtend<ReadonlyRefLike<number>>();
+        });
+
+        it("RefLike satisfies ReadonlyRefLike structurally", () => {
+            expectTypeOf<RefLike<number>>().toExtend<ReadonlyRefLike<number>>();
+        });
+
+        it("ref with string type satisfies RefLike<string>", () => {
+            expectTypeOf(ref("hello")).toExtend<RefLike<string>>();
         });
     });
 
