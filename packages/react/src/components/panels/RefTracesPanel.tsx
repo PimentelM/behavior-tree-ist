@@ -35,7 +35,10 @@ function RefTracesPanelInner({
 
   const latestStates = useMemo(() => {
     const latestByRef = new Map<string, RefChangeEvent>();
-    for (const event of events) {
+    const eventsUpToTick = viewedTickId !== null
+      ? events.filter((event) => event.tickId <= viewedTickId)
+      : events;
+    for (const event of eventsUpToTick) {
       latestByRef.set(formatRefName(event.refName), event);
     }
 
