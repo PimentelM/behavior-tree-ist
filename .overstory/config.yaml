@@ -4,10 +4,10 @@
 project:
   name: behavior-tree-ist
   root: /home/pimentel/repos/behavior-tree-ist
-  canonicalBranch: main
+  canonicalBranch: development
   qualityGates:
     - name: Tests
-      command: yarn test
+      command: yarn check
       description: all tests must pass
     - name: Lint
       command: yarn lint
