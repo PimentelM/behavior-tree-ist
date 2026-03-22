@@ -4,18 +4,14 @@ import { type TRPCClient } from '@trpc/client';
 
 export class SessionManager {
     private readonly _privateKey: Uint8Array;
+    readonly publicKey: Uint8Array;
     private readonly _sessions = new Map<string, ReplClient>();
     private readonly _trpc: TRPCClient<AppRouter>;
 
     constructor(privateKey: Uint8Array, trpc: TRPCClient<AppRouter>) {
         this._privateKey = privateKey;
+        this.publicKey = new ReplClient(privateKey).publicKey;
         this._trpc = trpc;
-    }
-
-    /** The MCP's public key — agents must be configured with this key. */
-    get publicKey(): Uint8Array {
-        // Derive from private key via a throw-away ReplClient
-        return new ReplClient(this._privateKey).publicKey;
     }
 
     private _sessionKey(clientId: string, sessionId: string): string {
