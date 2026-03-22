@@ -114,17 +114,27 @@ export class TickRepository extends BaseKnexRepository implements TickRepository
         treeId: string,
         maxTicks: number
     ): Promise<void> {
-        const keepSubquery = this.knex('ticks')
-            .where({ clientId, sessionId, treeId })
-            .orderBy('tickId', 'desc')
-            .limit(maxTicks)
-            .select('tickId');
+        await this.executeTransactionally(async () => {
+            const [{ count }] = (await this.withTransaction(
+                this.knex('ticks')
+                    .where({ clientId, sessionId, treeId })
+                    .count({ count: '*' })
+            )) as [{ count: string | number }];
 
-        await this.withTransaction(
-            this.knex('ticks')
+            if (Number(count) <= maxTicks) return;
+
+            const keepSubquery = this.knex('ticks')
                 .where({ clientId, sessionId, treeId })
-                .whereNotIn('tickId', keepSubquery)
-                .delete()
-        );
+                .orderBy('tickId', 'desc')
+                .limit(maxTicks)
+                .select('tickId');
+
+            await this.withTransaction(
+                this.knex('ticks')
+                    .where({ clientId, sessionId, treeId })
+                    .whereNotIn('tickId', keepSubquery)
+                    .delete()
+            );
+        });
     }
 }
