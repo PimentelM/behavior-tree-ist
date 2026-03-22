@@ -1,5 +1,6 @@
 import { BTNode, type TickContext, type TickTraceEvent, type SerializableNode, type TickRecord, type TickRuntime } from "./base";
 import { type RefChangeEvent } from "./base/types";
+import { _setTickIdentityGetter } from "./base/tick-memo";
 import { serializeTree } from "./serialization/serializer";
 import { type OffFunction } from "./types";
 
@@ -9,6 +10,10 @@ type PublicTickContext = {
 
 export class BehaviourTree {
     private static NEXT_TREE_ID = 1;
+
+    public static setTickIdentity(getter: (() => string | number) | null): void {
+        _setTickIdentityGetter(getter);
+    }
 
     public readonly treeId: number = BehaviourTree.NEXT_TREE_ID++;
     private currentTickId: number = 1;
