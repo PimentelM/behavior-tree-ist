@@ -30,7 +30,7 @@ describe('treeIndexToFlowElements', () => {
           id: 2,
           defaultName: 'SubTree',
           name: 'Combat',
-          nodeFlags: NodeFlags.Decorator | NodeFlags.SubTree,
+          nodeFlags: NodeFlags.SubTree,
           children: [
             {
               id: 3,
@@ -70,7 +70,7 @@ describe('treeIndexToFlowElements', () => {
   });
 
   it('maps SubTree and IfThenElse nodes to dedicated visual kinds', () => {
-    expect(getNodeVisualKind(NodeFlags.Decorator | NodeFlags.SubTree, 'SubTree')).toBe('subTree');
+    expect(getNodeVisualKind(NodeFlags.SubTree, 'SubTree')).toBe('subTree');
     expect(getNodeVisualKind(NodeFlags.Composite, 'IfThenElse')).toBe('ifThenElse');
   });
 });

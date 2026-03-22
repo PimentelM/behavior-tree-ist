@@ -8,7 +8,7 @@ import { UtilityFallback } from "../nodes/composite/utility-fallback";
 import { UtilitySequence } from "../nodes/composite/utility-sequence";
 import { type UtilityScorer } from "../base/utility";
 import { Utility } from "../nodes/decorators/utility";
-import { SubTree, type SubTreeMetadata } from "../nodes/decorators/sub-tree";
+import { SubTree, type SubTreeMetadata } from "../base/sub-tree";
 import * as Decorators from "../nodes/decorators";
 import { type AnyDecoratorSpec } from "../base/node";
 import { type Ref, type ReadonlyRef } from "../base/ref";
