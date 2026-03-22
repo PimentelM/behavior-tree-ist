@@ -24,7 +24,7 @@ const loggerMiddleware = t.middleware(async ({ path, type, next }) => {
             path,
             type,
             duration,
-            error: error instanceof Error ? error.message : String(error),
+            error: error instanceof Error ? error.toString() : String(error),
         });
         throw error;
     }
