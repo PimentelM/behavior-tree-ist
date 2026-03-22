@@ -24,7 +24,9 @@ Agent ──────> Server ──────> UI
 | `react` | Standalone `BehaviourTreeDebugger` React component |
 | `studio-transport` | Transport implementations for agent-to-server connections |
 | `studio-common` | Shared schemas and protocol definitions |
-| `studio-cli` | CLI to launch the studio (TBD) |
+| `cli` | CLI (`bt-studio`) to launch the studio server + UI |
+| `studio-plugins` | First-party plugins; ships `ReplPlugin` (NaCl E2E encrypted JS eval) |
+| `studio-mcp` | MCP server (`bt-studio-mcp`) for AI agent access to connected trees |
 
 ## Transports
 

@@ -7,11 +7,13 @@ Behavior Tree Studio — code-first, dependency-free Behavior Tree library for T
 - **core** — code-first behavior tree library focused on UX
 - **react** — react implementation of studio-ui component
 - **studio** — facade package published to npm (bundles cli + server + ui + demos) (TBD)
-- **studio-cli** — CLI to launch studio server + ui (TBD)
+- **cli** — CLI (`bt-studio`) to launch studio server + ui
 - **studio-ui** — React UI for real-time execution traces, time travel, cpu profiling. Binds the react component to the server
 - **studio-server** — WebSocket/HTTP/TCP server bridging agents ↔ UI
 - **studio-transport** — library of TCP/WebSocket transports for Node + browser
 - **studio-common** — shared Zod schemas and protocol definitions across studio packages
+- **studio-plugins** — first-party plugins; ships ReplPlugin (NaCl E2E encrypted JS eval)
+- **studio-mcp** — MCP server exposing eval/completions to AI agents via E2E-encrypted REPL
 
 ## Commands
 

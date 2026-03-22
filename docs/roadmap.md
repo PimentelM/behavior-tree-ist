@@ -5,8 +5,9 @@ Planned features and their current status.
 | Feature | Status |
 |---|---|
 | React Visualization Component | Done |
-| Studio Application | Planned |
-| AI-Ready Integrations | Planned |
+| Studio Application | Done |
+| AI-Ready Integrations (Phase 1 — MCP) | Done |
+| AI-Ready Integrations (Phase 2–4) | Planned |
 
 ---
 
@@ -23,10 +24,12 @@ Planned features and their current status.
 
 ## Studio Application
 
-`@bt-studio/studio` - A standalone debugging app built on the React visualization component.
+`@bt-studio/studio-ui` + `@bt-studio/cli` - Standalone debugging app (`bt-studio` CLI) that launches the server and browser UI.
 
-- Connect to running behavior trees via WebSocket or other transports
-- Tick recording and playback
+- Connect to running behavior trees via WebSocket or TCP transports
+- Real-time execution trace visualization with time-travel debugging
+- CPU profiling with flame graphs
+- Tick retention (configurable, default 100k ticks per tree)
 - Node search and filtering by name, tag, or flag
 - **Depends on**: React Visualization Component
 

@@ -100,6 +100,13 @@ const root = (
 | `@bt-studio/core/inspector` | `TreeInspector`, `TreeIndex`, `TickStore`, `Profiler`, and related types |
 | `@bt-studio/core/activity` | Standalone activity projection from `SerializableNode` + `TickRecord` |
 | `@bt-studio/react` | React debugger component with tree visualization and time-travel |
+| `@bt-studio/cli` | CLI (`bt-studio`) to launch studio server + UI |
+| `@bt-studio/studio-server` | WebSocket/HTTP/TCP bridge between agents and UI with tick persistence |
+| `@bt-studio/studio-ui` | Browser app for real-time trace visualization, time-travel, profiling |
+| `@bt-studio/studio-transport` | TCP and WebSocket transports for agent-to-server connections |
+| `@bt-studio/studio-common` | Shared Zod schemas and protocol definitions |
+| `@bt-studio/studio-plugins` | First-party plugins; ships `ReplPlugin` (NaCl E2E encrypted JS eval) |
+| `@bt-studio/studio-mcp` | MCP server — AI agent access to connected trees via REPL |
 
 ## Documentation
 
@@ -128,8 +135,6 @@ npm install @bt-studio/react
 See [docs/react-debugger.md](docs/react-debugger.md) for the full API reference.
 
 ## Roadmap
-
-- **Studio App** (`@bt-studio/studio`) - Standalone debugging UI with recording and playback
 
 See [docs/roadmap.md](docs/roadmap.md) for details.
 
