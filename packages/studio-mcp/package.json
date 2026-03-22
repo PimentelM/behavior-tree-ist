@@ -1,6 +1,6 @@
 {
     "name": "@bt-studio/studio-mcp",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "MCP server for BT Studio — provides eval/completions tool access to connected agents with E2E encryption",
     "type": "module",
     "bin": {

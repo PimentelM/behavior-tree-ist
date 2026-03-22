@@ -1,6 +1,6 @@
 {
   "name": "@bt-studio/cli",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "CLI for Behavior Tree Studio",
   "type": "module",
   "bin": {
