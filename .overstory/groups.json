@@ -728,5 +728,15 @@
 		"status": "active",
 		"createdAt": "2026-03-22T00:21:16.690Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-2d493908",
+		"name": "fix-imports",
+		"memberIssueIds": [
+			"behavior-tree-ist-1de8"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T00:31:49.118Z",
+		"completedAt": null
 	}
 ]
