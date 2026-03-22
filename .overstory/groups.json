@@ -749,5 +749,15 @@
 		"status": "active",
 		"createdAt": "2026-03-22T00:55:43.289Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-7f8329df",
+		"name": "reflike-interfaces",
+		"memberIssueIds": [
+			"behavior-tree-ist-829d"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T01:02:33.708Z",
+		"completedAt": null
 	}
 ]
