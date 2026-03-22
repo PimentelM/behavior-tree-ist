@@ -769,5 +769,25 @@
 		"status": "active",
 		"createdAt": "2026-03-22T01:54:27.539Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-296e3a04",
+		"name": "ref-tt-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-ca09"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T02:08:40.525Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-a89a5b09",
+		"name": "profiler-self-time",
+		"memberIssueIds": [
+			"behavior-tree-ist-36fa"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T02:12:36.799Z",
+		"completedAt": null
 	}
 ]
