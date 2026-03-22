@@ -108,6 +108,7 @@ export function getFlagLabels(nodeFlags: number): FlagLabel[] {
 
 export function getPrimaryCategoryLabel(nodeFlags: number): string {
   if (hasFlag(nodeFlags, NodeFlags.Composite)) return 'Composite';
+  if (hasFlag(nodeFlags, NodeFlags.SubTree)) return 'SubTree';
   if (hasFlag(nodeFlags, NodeFlags.Decorator)) return 'Decorator';
   if (hasFlag(nodeFlags, NodeFlags.Leaf)) return 'Leaf';
   return 'Node';

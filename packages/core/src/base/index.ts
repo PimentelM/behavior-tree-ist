@@ -4,6 +4,7 @@ export * from './action';
 export * from './async-action';
 export * from './cancellation';
 export * from './decorator';
+export * from './sub-tree';
 export * from './types';
 export * from './utility';
 export * from './ref';

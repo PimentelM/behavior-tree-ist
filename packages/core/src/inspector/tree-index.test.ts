@@ -44,7 +44,7 @@ function makeTree(): SerializableNode {
             },
             {
                 id: 6,
-                nodeFlags: NodeFlags.Decorator | NodeFlags.Stateful | NodeFlags.SubTree,
+                nodeFlags: NodeFlags.Stateful | NodeFlags.SubTree,
                 defaultName: "Throttle",
                 name: "",
                 children: [
