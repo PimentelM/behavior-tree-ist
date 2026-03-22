@@ -10,3 +10,4 @@ export * from './utility';
 export * from './ref';
 export * from './multi-ref';
 export * from './condition';
+export { tickMemo } from './tick-memo';
