@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { BTNode, type Decorator, NodeFlags, NodeResult } from "../../base";
-import { createTickContext, StubAction } from "../../test-helpers";
+import { BTNode, type Decorator, NodeFlags, NodeResult } from ".";
+import { createTickContext, StubAction } from "../test-helpers";
 import { SubTree } from "./sub-tree";
 import { Inverter } from "../nodes/decorators/inverter";
 
