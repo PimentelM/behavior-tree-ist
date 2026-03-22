@@ -24,7 +24,7 @@ export abstract class BaseHandler implements MessageHandler {
 
     protected handleError(error: unknown, message: OutboundMessage, client: MessageConnectionInterface): void {
         this.logger.error(`Error handling message type ${message.t} from client ${client.id}`, {
-            error: error instanceof Error ? error.message : String(error),
+            error: error instanceof Error ? error.toString() : String(error),
         });
     }
 }
