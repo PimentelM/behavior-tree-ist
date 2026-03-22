@@ -6,7 +6,7 @@ import { createRawTcpServer } from './infra/tcp/raw-tcp-server';
 import { createKnexFromConfig } from './infra/knex/knex-factory';
 import { MessageRouter } from './infra/message-router';
 import { EventDispatcher } from './infra/events/event-dispatcher';
-import { createLogger } from './infra/logging';
+import { createLogger, setLogLevel } from './infra/logging';
 import { AgentConnectionRegistry } from './app/services/agent-connection-registry';
 import { UiConnectionRegistry } from './app/services/ui-connection-registry';
 import { CommandBroker } from './app/services/command-broker';
@@ -44,6 +44,7 @@ export interface StudioServerOptions {
     commandTimeoutMs?: number;
     maxTicksPerTree?: number;
     maxConnections?: number;
+    logLevel?: 'debug' | 'info' | 'warn' | 'error';
     runMigrationsOnStartup?: boolean;
     /** Directory containing static files (e.g. built UI) to serve via Express */
     staticDir?: string;
@@ -78,7 +79,7 @@ function optionsToConfig(options?: StudioServerOptions): StudioServerConfig {
         commandTimeoutMs: options?.commandTimeoutMs ?? 5000,
         maxTicksPerTree: options?.maxTicksPerTree ?? 100_000,
         maxConnections: options?.maxConnections ?? 1000,
-        logLevel: 'info',
+        logLevel: options?.logLevel ?? 'info',
         migrations: {
             runOnStartup: options?.runMigrationsOnStartup ?? true,
         },
@@ -186,6 +187,7 @@ interface InitResult {
 }
 
 async function initializeService({ config, staticDir }: { config: StudioServerConfig; staticDir?: string }): Promise<InitResult> {
+    setLogLevel(config.logLevel);
     const setupLogger = createLogger('setup');
     setupLogger.info('Starting studio server');
 
