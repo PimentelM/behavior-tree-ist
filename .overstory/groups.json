@@ -759,5 +759,15 @@
 		"status": "active",
 		"createdAt": "2026-03-22T01:02:33.708Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-6559e1c0",
+		"name": "byte-metrics-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-3c2c"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T01:54:27.539Z",
+		"completedAt": null
 	}
 ]
