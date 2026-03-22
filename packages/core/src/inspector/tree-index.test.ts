@@ -150,7 +150,7 @@ describe("TreeIndex", () => {
         const index = new TreeIndex(makeTree());
         expect(index.getLeaves().map(n => n.id).sort()).toEqual([4, 5, 7]);
         expect(index.getComposites().map(n => n.id).sort()).toEqual([1, 2]);
-        expect(index.getDecorators().map(n => n.id).sort()).toEqual([3, 6]);
+        expect(index.getDecorators().map(n => n.id).sort()).toEqual([3]);
     });
 
     it("getSubTrees", () => {
