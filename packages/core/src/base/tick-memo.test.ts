@@ -179,7 +179,7 @@ describe("BehaviourTree.setTickIdentity", () => {
 
     it("setTickIdentity(null) reverts to per-tree scoping", () => {
         let calls = 0;
-        let frame = 0;
+        const frame = 0;
         const memo = tickMemo(() => ++calls);
 
         BehaviourTree.setTickIdentity(() => frame);
