@@ -2,6 +2,8 @@ import type { TransportData, TransportFactory } from "@bt-studio/core";
 import { encodeFrame, FrameDecoder } from "../shared/length-framing";
 import { TcpTransportBase } from "./tcp-base";
 
+const textEncoder = new TextEncoder();
+
 /**
  * TCP transport that sends and receives binary (Uint8Array) data
  * using length-based framing over a raw Node.js socket.
@@ -21,7 +23,7 @@ export class TcpBinaryTransport extends TcpTransportBase {
         }
         const bytes =
             typeof data === "string"
-                ? new TextEncoder().encode(data)
+                ? textEncoder.encode(data)
                 : data;
         this.socket.write(encodeFrame(bytes));
     }

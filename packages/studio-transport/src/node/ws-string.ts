@@ -39,7 +39,7 @@ export class WsNodeStringTransport extends WsNodeTransportBase {
             } else if (Buffer.isBuffer(raw)) {
                 handler(raw.toString("utf-8"));
             } else if (raw instanceof ArrayBuffer) {
-                handler(new TextDecoder().decode(raw));
+                handler(textDecoder.decode(raw));
             } else if (Array.isArray(raw)) {
                 handler(Buffer.concat(raw).toString("utf-8"));
             }
