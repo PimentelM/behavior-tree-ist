@@ -130,6 +130,46 @@ describe("Subtree Builder Factory", () => {
         expect(tickNode(node)).toBe(NodeResult.Succeeded);
     });
 
+    it("accepts bare function for precondition", () => {
+        let conditionCalled = false;
+        const node = action({
+            precondition: () => { conditionCalled = true; return false; },
+            execute: () => NodeResult.Succeeded,
+        });
+
+        const result = tickNode(node);
+
+        expect(conditionCalled).toBe(true);
+        expect(result).toBe(NodeResult.Failed);
+    });
+
+    it("accepts bare function for succeedIf", () => {
+        const node = action({
+            succeedIf: () => true,
+            execute: () => NodeResult.Failed,
+        });
+
+        expect(tickNode(node)).toBe(NodeResult.Succeeded);
+    });
+
+    it("accepts bare function for failIf", () => {
+        const node = action({
+            failIf: () => true,
+            execute: () => NodeResult.Succeeded,
+        });
+
+        expect(tickNode(node)).toBe(NodeResult.Failed);
+    });
+
+    it("object form still works for precondition", () => {
+        const node = action({
+            precondition: { name: "Check", condition: () => false },
+            execute: () => NodeResult.Succeeded,
+        });
+
+        expect(tickNode(node)).toBe(NodeResult.Failed);
+    });
+
     it("applies nonAbortable via NodeProps", () => {
         const child = new StubAction(NodeResult.Running);
         const node = applyDecorators(child, { nonAbortable: true });
