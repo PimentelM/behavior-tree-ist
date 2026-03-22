@@ -859,5 +859,20 @@
 		"status": "active",
 		"createdAt": "2026-03-22T17:55:04.529Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-38c3f89c",
+		"name": "perf-fixes-batch",
+		"memberIssueIds": [
+			"behavior-tree-ist-9205",
+			"behavior-tree-ist-0056",
+			"behavior-tree-ist-83e6",
+			"behavior-tree-ist-ba85",
+			"behavior-tree-ist-f16b",
+			"behavior-tree-ist-146d"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T18:03:37.741Z",
+		"completedAt": null
 	}
 ]
