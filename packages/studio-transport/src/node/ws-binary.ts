@@ -2,6 +2,8 @@ import WebSocket from "ws";
 import type { TransportData, TransportFactory } from "@bt-studio/core";
 import { WsNodeTransportBase } from "./ws-base";
 
+const textEncoder = new TextEncoder();
+
 /**
  * WebSocket transport for Node.js that sends and receives binary
  * (Uint8Array) data using the `ws` library.
@@ -25,7 +27,7 @@ export class WsNodeBinaryTransport extends WsNodeTransportBase {
         }
         const bytes =
             typeof data === "string"
-                ? new TextEncoder().encode(data)
+                ? textEncoder.encode(data)
                 : data;
         this.ws.send(bytes);
     }
