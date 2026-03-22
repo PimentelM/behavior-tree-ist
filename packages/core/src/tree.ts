@@ -144,14 +144,13 @@ export class BehaviourTree {
         this.runtime.isTickRunning = true;
         try {
             BTNode.Tick(this.root, ctx);
+            this.currentTickId++;
+            const tickRecord = { tickId, timestamp: now, events, refEvents };
+            this.emitTickRecord(tickRecord);
+            return tickRecord;
         } finally {
             this.runtime.isTickRunning = false;
         }
-
-        this.currentTickId++;
-        const tickRecord = { tickId, timestamp: now, events, refEvents };
-        this.emitTickRecord(tickRecord);
-        return tickRecord;
     }
 
 
