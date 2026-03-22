@@ -839,5 +839,15 @@
 		"status": "active",
 		"createdAt": "2026-03-22T03:49:28.157Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-d99c401e",
+		"name": "lint-fix-memo",
+		"memberIssueIds": [
+			"behavior-tree-ist-c67e"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T04:11:06.291Z",
+		"completedAt": null
 	}
 ]
