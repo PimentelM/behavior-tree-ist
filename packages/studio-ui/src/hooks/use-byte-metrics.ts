@@ -22,8 +22,7 @@ export function useByteMetrics(
 
         const cancelRef: { current: boolean } = { current: false };
 
-        type ByteMetricsQueryFn = (input: { clientId: string; sessionId: string; treeId: string }) => Promise<ByteMetricsResult>;
-        const queryFn = (trpc as unknown as { byteMetrics: { query: { query: ByteMetricsQueryFn } } }).byteMetrics.query.query;
+        const queryFn = trpc.byteMetrics.query.query;
 
         const fetchData = async () => {
             const sel = selectionRef.current;

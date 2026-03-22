@@ -15,11 +15,10 @@ export function useSelectedTree(selection: StudioSelection | null) {
         }
 
         const { clientId, sessionId, treeId } = selection;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
-        ((trpc.trees.getById.query as any)({ clientId, sessionId, treeId }) as Promise<Record<string, unknown>>).then((result) => {
+        trpc.trees.getById.query({ clientId, sessionId, treeId }).then((result) => {
             const cur = selectionRef.current;
             if (cur?.clientId !== clientId || cur.sessionId !== sessionId || cur.treeId !== treeId) return;
-            setTree((result.serializedTree as SerializableNode | null) ?? null);
+            setTree((result?.serializedTree as SerializableNode | undefined) ?? null);
         }).catch((err: unknown) => {
             // eslint-disable-next-line no-console
             console.error('[use-selected-tree] fetch error', err);
