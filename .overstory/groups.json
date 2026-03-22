@@ -655,9 +655,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-757e"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-21T22:26:36.584Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:43.155Z"
 	},
 	{
 		"id": "group-227967ea",
@@ -665,9 +665,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-5cd4"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-21T22:33:57.431Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:43.339Z"
 	},
 	{
 		"id": "group-2ff93b54",
@@ -675,9 +675,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-3398"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-21T23:24:55.390Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:43.505Z"
 	},
 	{
 		"id": "group-35abfd58",
@@ -685,9 +685,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-50b8"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-21T23:30:26.471Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:43.702Z"
 	},
 	{
 		"id": "group-34b2b281",
@@ -695,9 +695,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-59a6"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-21T23:46:46.692Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:43.867Z"
 	},
 	{
 		"id": "group-286fffa3",
@@ -705,9 +705,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-cfa2"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-21T23:57:55.860Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:44.035Z"
 	},
 	{
 		"id": "group-1d75eaf4",
@@ -715,9 +715,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-a504"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T00:15:41.283Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:44.236Z"
 	},
 	{
 		"id": "group-56e287d2",
@@ -725,9 +725,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-60c4"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T00:21:16.690Z",
-		"completedAt": null
+		"completedAt": "2026-03-22T00:52:44.403Z"
 	},
 	{
 		"id": "group-2d493908",
@@ -735,8 +735,19 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-1de8"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T00:31:49.118Z",
+		"completedAt": "2026-03-22T00:52:44.571Z"
+	},
+	{
+		"id": "group-ee09f22e",
+		"name": "docs-and-bugfix",
+		"memberIssueIds": [
+			"behavior-tree-ist-aac1",
+			"behavior-tree-ist-0fd4"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T00:55:43.289Z",
 		"completedAt": null
 	}
 ]
