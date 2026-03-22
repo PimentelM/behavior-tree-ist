@@ -15,7 +15,12 @@ interface TickBatchHandlerDeps {
     byteMetricsService: ByteMetricsServiceInterface;
 }
 
+const BYTES_PER_TICK_ESTIMATE = 512;
+const PRUNE_INTERVAL_BATCHES = 10;
+
 export class TickBatchHandler extends BaseHandler {
+    private batchCount = 0;
+
     constructor(private deps: TickBatchHandlerDeps, priority = 100) {
         super(priority, 'tick-batch-handler');
     }
@@ -32,8 +37,8 @@ export class TickBatchHandler extends BaseHandler {
 
         const { clientId, sessionId } = connection;
 
-        // Record byte metrics before persisting
-        const bytes = Buffer.byteLength(JSON.stringify(message));
+        // Record byte metrics — rough estimate avoids re-serializing the whole message
+        const bytes = message.ticks.length * BYTES_PER_TICK_ESTIMATE;
         const lastTick = message.ticks[message.ticks.length - 1];
         if (lastTick !== undefined) {
             this.deps.byteMetricsService.record(clientId, sessionId, message.treeId, lastTick.tickId, bytes);
@@ -41,13 +46,16 @@ export class TickBatchHandler extends BaseHandler {
 
         await this.deps.tickRepository.insertBatch(clientId, sessionId, message.treeId, message.ticks);
 
-        // Prune old ticks
-        await this.deps.tickRepository.pruneToLimit(
-            clientId,
-            sessionId,
-            message.treeId,
-            this.deps.runtimeSettings.maxTicksPerTree
-        );
+        // Prune periodically (every N batches) to avoid blocking on every insert
+        this.batchCount++;
+        if (this.batchCount % PRUNE_INTERVAL_BATCHES === 0) {
+            await this.deps.tickRepository.pruneToLimit(
+                clientId,
+                sessionId,
+                message.treeId,
+                this.deps.runtimeSettings.maxTicksPerTree
+            );
+        }
 
         this.logger.debug('Tick batch processed', {
             clientId,
