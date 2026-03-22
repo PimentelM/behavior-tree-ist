@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TickRecord } from '@bt-studio/core';
 import type { StudioSelection } from '@bt-studio/react';
-import { trpc } from '../trpc';
+import { trpc, asProcedure } from '../trpc';
 
 export interface TickPollerReturn {
     /**
@@ -43,16 +43,13 @@ export function useTickPoller(
 
         fetchingRef.current = true;
 
-        const queryFn = trpc.ticks.query.query as unknown as (params: {
-            clientId: string; sessionId: string; treeId: string; afterTickId: number; limit: number;
-        }) => Promise<TickRecord[]>;
-        void queryFn({
+        void asProcedure<{ clientId: string; sessionId: string; treeId: string; afterTickId?: number; limit?: number }, TickRecord[]>(trpc.ticks.query.query)({
             clientId: sel.clientId,
             sessionId: sel.sessionId,
             treeId: sel.treeId,
             afterTickId: afterTickIdRef.current,
             limit: 100,
-        }).then((newTicks: TickRecord[]) => {
+        }).then((newTicks) => {
             fetchingRef.current = false;
             if (selectionRef.current !== sel) return;
             if (newTicks.length === 0) return;
@@ -87,11 +84,7 @@ export function useTickPoller(
 
         void (async () => {
             try {
-                type BoundsResult = { minTickId: number; maxTickId: number; totalCount: number } | null;
-                const boundsQueryFn = trpc.ticks.bounds.query as unknown as (params: {
-                    clientId: string; sessionId: string; treeId: string;
-                }) => Promise<BoundsResult>;
-                const bounds = await boundsQueryFn({
+                const bounds = await trpc.ticks.bounds.query({
                     clientId: sel.clientId,
                     sessionId: sel.sessionId,
                     treeId: sel.treeId,
@@ -104,11 +97,7 @@ export function useTickPoller(
                     const cap = ringBufferSizeRef.current;
                     const fromTickId = Math.max(0, maxTickId - cap + 1);
 
-                    const rangeQueryFn = (trpc.ticks as unknown as { range: { query: (params: {
-                        clientId: string; sessionId: string; treeId: string;
-                        fromTickId: number; toTickId: number; limit: number;
-                    }) => Promise<TickRecord[]> } }).range.query;
-                    const seedTicks: TickRecord[] = await rangeQueryFn({
+                    const seedTicks = await asProcedure<{ clientId: string; sessionId: string; treeId: string; fromTickId: number; toTickId: number; limit?: number }, TickRecord[]>(trpc.ticks.range.query)({
                         clientId: sel.clientId,
                         sessionId: sel.sessionId,
                         treeId: sel.treeId,
