@@ -698,5 +698,35 @@
 		"status": "active",
 		"createdAt": "2026-03-21T23:46:46.692Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-286fffa3",
+		"name": "subtree-composite-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-cfa2"
+		],
+		"status": "active",
+		"createdAt": "2026-03-21T23:57:55.860Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-1d75eaf4",
+		"name": "subtree-reclass",
+		"memberIssueIds": [
+			"behavior-tree-ist-a504"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T00:15:41.283Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-56e287d2",
+		"name": "server-fixes",
+		"memberIssueIds": [
+			"behavior-tree-ist-60c4"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T00:21:16.690Z",
+		"completedAt": null
 	}
 ]
