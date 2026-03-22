@@ -849,5 +849,15 @@
 		"status": "active",
 		"createdAt": "2026-03-22T04:11:06.291Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-8c3c72df",
+		"name": "wal-mode",
+		"memberIssueIds": [
+			"behavior-tree-ist-ad9f"
+		],
+		"status": "active",
+		"createdAt": "2026-03-22T17:55:04.529Z",
+		"completedAt": null
 	}
 ]
