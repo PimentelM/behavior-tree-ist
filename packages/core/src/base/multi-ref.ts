@@ -5,7 +5,7 @@ import { ProxyRef } from "./ref";
 
 export type MultiRef<T extends Record<string, unknown>> = T &
     ("name" extends keyof T ? unknown : { readonly name: string }) & {
-        extractRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
+        getRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
     };
 
 function emitRefChange(refName: string, newValue: unknown): void {
@@ -58,7 +58,7 @@ export function multiRef<T extends Record<string, unknown>>(
         });
     }
 
-    Object.defineProperty(obj, "extractRef", {
+    Object.defineProperty(obj, "getRef", {
         enumerable: false,
         configurable: true,
         writable: false,
@@ -73,11 +73,11 @@ export function multiRef<T extends Record<string, unknown>>(
     return obj;
 }
 
-type WithExtractRef<T extends object> = T & {
-    extractRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
+type WithGetRef<T extends object> = T & {
+    getRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
 };
 
-export function patchRef<T extends object>(name: string, instance: T): WithExtractRef<T> {
+export function patchRef<T extends object>(name: string, instance: T): WithGetRef<T> {
     for (const key of Object.keys(instance)) {
         const desc = Object.getOwnPropertyDescriptor(instance, key);
         if (!desc || !("value" in desc) || !desc.writable) continue;
@@ -98,7 +98,7 @@ export function patchRef<T extends object>(name: string, instance: T): WithExtra
         });
     }
 
-    Object.defineProperty(instance, "extractRef", {
+    Object.defineProperty(instance, "getRef", {
         enumerable: false,
         configurable: true,
         writable: false,
@@ -110,5 +110,5 @@ export function patchRef<T extends object>(name: string, instance: T): WithExtra
         },
     });
 
-    return instance as WithExtractRef<T>;
+    return instance as WithGetRef<T>;
 }

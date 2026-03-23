@@ -1,5 +1,5 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { ref, readonlyRef, derivedRef, proxyRef, type RefLike, type ReadonlyRefLike } from "./ref";
+import { ref, readonlyRef, derivedRef, proxyRef, type Ref, type ReadonlyRef } from "./ref";
 import { BTNode } from "./node";
 import { NodeResult, type RefChangeEvent } from "./types";
 import { Action } from "./action";
@@ -31,14 +31,6 @@ describe("Ref", () => {
             const r = ref(0);
             r.set(10);
             expect(r.value).toBe(10);
-        });
-
-        it(".asReadonly() returns same object typed as ReadonlyRef", () => {
-            const r = ref(5, "x");
-            const ro = r.asReadonly();
-            expect(ro).toBe(r);
-            expect(ro.value).toBe(5);
-            expect(ro.name).toBe("x");
         });
 
         it("works with object values", () => {
@@ -373,37 +365,37 @@ describe("Ref", () => {
         });
     });
 
-    describe("RefLike / ReadonlyRefLike assignability", () => {
-        it("Ref satisfies RefLike", () => {
-            expectTypeOf(ref(0)).toExtend<RefLike<number>>();
+    describe("Ref / ReadonlyRef assignability", () => {
+        it("ref() result satisfies Ref", () => {
+            expectTypeOf(ref(0)).toExtend<Ref<number>>();
         });
 
-        it("Ref satisfies ReadonlyRefLike", () => {
-            expectTypeOf(ref(0)).toExtend<ReadonlyRefLike<number>>();
+        it("ref() result satisfies ReadonlyRef", () => {
+            expectTypeOf(ref(0)).toExtend<ReadonlyRef<number>>();
         });
 
-        it("ProxyRef satisfies RefLike", () => {
-            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<RefLike<number>>();
+        it("ProxyRef satisfies Ref", () => {
+            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<Ref<number>>();
         });
 
-        it("ProxyRef satisfies ReadonlyRefLike", () => {
-            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<ReadonlyRefLike<number>>();
+        it("ProxyRef satisfies ReadonlyRef", () => {
+            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<ReadonlyRef<number>>();
         });
 
-        it("DerivedRef satisfies ReadonlyRefLike", () => {
-            expectTypeOf(derivedRef(() => 0)).toExtend<ReadonlyRefLike<number>>();
+        it("DerivedRef satisfies ReadonlyRef", () => {
+            expectTypeOf(derivedRef(() => 0)).toExtend<ReadonlyRef<number>>();
         });
 
-        it("readonlyRef result satisfies ReadonlyRefLike", () => {
-            expectTypeOf(readonlyRef(ref(0))).toExtend<ReadonlyRefLike<number>>();
+        it("readonlyRef result satisfies ReadonlyRef", () => {
+            expectTypeOf(readonlyRef(ref(0))).toExtend<ReadonlyRef<number>>();
         });
 
-        it("RefLike satisfies ReadonlyRefLike structurally", () => {
-            expectTypeOf<RefLike<number>>().toExtend<ReadonlyRefLike<number>>();
+        it("Ref satisfies ReadonlyRef structurally", () => {
+            expectTypeOf<Ref<number>>().toExtend<ReadonlyRef<number>>();
         });
 
-        it("ref with string type satisfies RefLike<string>", () => {
-            expectTypeOf(ref("hello")).toExtend<RefLike<string>>();
+        it("ref with string type satisfies Ref<string>", () => {
+            expectTypeOf(ref("hello")).toExtend<Ref<string>>();
         });
     });
 
