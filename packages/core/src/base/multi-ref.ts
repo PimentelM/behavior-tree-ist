@@ -1,11 +1,11 @@
 import { AmbientContext } from "./ambient-context";
 import type { RefChangeEvent } from "./types";
 import { pushRefEvent } from "./ref-event";
-import { ProxyRef } from "./ref";
+import { type Ref, ProxyRef } from "./ref";
 
 export type MultiRef<T extends Record<string, unknown>> = T &
     ("name" extends keyof T ? unknown : { readonly name: string }) & {
-        getRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
+        getRef<K extends keyof T & string>(key: K): Ref<T[K]>;
     };
 
 function emitRefChange(refName: string, newValue: unknown): void {
@@ -74,7 +74,7 @@ export function multiRef<T extends Record<string, unknown>>(
 }
 
 type WithGetRef<T extends object> = T & {
-    getRef<K extends keyof T & string>(key: K): ProxyRef<T[K]>;
+    getRef<K extends keyof T & string>(key: K): Ref<T[K]>;
 };
 
 export function patchRef<T extends object>(name: string, instance: T): WithGetRef<T> {
