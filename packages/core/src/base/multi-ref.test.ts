@@ -387,11 +387,11 @@ describe("patchRef", () => {
     });
 });
 
-describe("extractRef on multiRef", () => {
+describe("getRef on multiRef", () => {
     it("returns an unnamed ProxyRef", () => {
         const bb = multiRef("bb", { health: 100 });
 
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         expect(proxy).toBeInstanceOf(ProxyRef);
         expect(proxy.name).toBeUndefined();
@@ -400,14 +400,14 @@ describe("extractRef on multiRef", () => {
     it("reads current value through multiRef", () => {
         const bb = multiRef("bb", { health: 100 });
 
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         expect(proxy.value).toBe(100);
     });
 
     it("reflects mutations made to multiRef", () => {
         const bb = multiRef("bb", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         bb.health = 50;
 
@@ -416,7 +416,7 @@ describe("extractRef on multiRef", () => {
 
     it("writing via ProxyRef updates the multiRef field", () => {
         const bb = multiRef("bb", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         proxy.value = 75;
 
@@ -425,7 +425,7 @@ describe("extractRef on multiRef", () => {
 
     it("writing via ProxyRef emits RefChangeEvent with multiRef name, not proxy name", () => {
         const bb = multiRef("stats", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
         const node = Action.from("heal", () => {
             proxy.value = 80;
             return NodeResult.Succeeded;
@@ -447,7 +447,7 @@ describe("extractRef on multiRef", () => {
 
     it("no-op write via ProxyRef emits no event", () => {
         const bb = multiRef("bb", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
         const node = Action.from("noop", () => {
             proxy.value = 100;
             return NodeResult.Succeeded;
@@ -459,17 +459,17 @@ describe("extractRef on multiRef", () => {
         expect(ctx.refEvents).toHaveLength(0);
     });
 
-    it("extractRef is non-enumerable", () => {
+    it("getRef is non-enumerable", () => {
         const bb = multiRef("bb", { health: 100 });
-        expect(Object.keys(bb)).not.toContain("extractRef");
+        expect(Object.keys(bb)).not.toContain("getRef");
     });
 });
 
-describe("extractRef on patchRef", () => {
+describe("getRef on patchRef", () => {
     it("returns an unnamed ProxyRef", () => {
         const state = patchRef("agent", new AgentState());
 
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         expect(proxy).toBeInstanceOf(ProxyRef);
         expect(proxy.name).toBeUndefined();
@@ -478,14 +478,14 @@ describe("extractRef on patchRef", () => {
     it("reads current value through patchRef", () => {
         const state = patchRef("agent", new AgentState());
 
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         expect(proxy.value).toBe(100);
     });
 
     it("reflects mutations made to patchRef instance", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         state.health = 50;
 
@@ -494,7 +494,7 @@ describe("extractRef on patchRef", () => {
 
     it("writing via ProxyRef updates the patchRef field", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         proxy.value = 75;
 
@@ -503,7 +503,7 @@ describe("extractRef on patchRef", () => {
 
     it("writing via ProxyRef emits RefChangeEvent with patchRef name", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
         const node = Action.from("heal", () => {
             proxy.value = 80;
             return NodeResult.Succeeded;
@@ -525,7 +525,7 @@ describe("extractRef on patchRef", () => {
 
     it("no-op write via ProxyRef emits no event", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
         const node = Action.from("noop", () => {
             proxy.value = 100;
             return NodeResult.Succeeded;
@@ -537,8 +537,8 @@ describe("extractRef on patchRef", () => {
         expect(ctx.refEvents).toHaveLength(0);
     });
 
-    it("extractRef is non-enumerable on patchRef", () => {
+    it("getRef is non-enumerable on patchRef", () => {
         const state = patchRef("agent", new AgentState());
-        expect(Object.keys(state)).not.toContain("extractRef");
+        expect(Object.keys(state)).not.toContain("getRef");
     });
 });
