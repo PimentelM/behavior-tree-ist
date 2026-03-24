@@ -796,9 +796,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-d30b"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:05:07.337Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:52.749Z"
 	},
 	{
 		"id": "group-a137d9d0",
@@ -806,9 +806,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-fab1"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:10:57.269Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:52.886Z"
 	},
 	{
 		"id": "group-afaafa6b",
@@ -816,9 +816,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-8132"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:30:32.269Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.028Z"
 	},
 	{
 		"id": "group-0c430663",
@@ -826,9 +826,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-a2ea"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:43:06.520Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.249Z"
 	},
 	{
 		"id": "group-e0b73fb5",
@@ -836,9 +836,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-6f00"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:49:28.157Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.387Z"
 	},
 	{
 		"id": "group-d99c401e",
@@ -846,9 +846,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-c67e"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T04:11:06.291Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.529Z"
 	},
 	{
 		"id": "group-8c3c72df",
@@ -856,9 +856,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-ad9f"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T17:55:04.529Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.667Z"
 	},
 	{
 		"id": "group-38c3f89c",
@@ -871,8 +871,28 @@
 			"behavior-tree-ist-f16b",
 			"behavior-tree-ist-146d"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T18:03:37.741Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:54.087Z"
+	},
+	{
+		"id": "group-f335510e",
+		"name": "nodeprops-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-6f3d"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-24T00:24:51.841Z",
+		"completedAt": "2026-03-24T02:22:54.226Z"
+	},
+	{
+		"id": "group-5223e7c7",
+		"name": "repl-completions",
+		"memberIssueIds": [
+			"behavior-tree-ist-46e1"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-24T01:19:36.214Z",
+		"completedAt": "2026-03-24T02:22:54.363Z"
 	}
 ]
