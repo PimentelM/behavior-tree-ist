@@ -89,6 +89,21 @@ export function getPropertyNamesDeep(target: unknown): string[] {
     return Array.from(props.values());
 }
 
+/**
+ * Extracts the completable fragment from a REPL input string.
+ * Walks backwards from the end to find the last uninterrupted identifier/dot chain.
+ * e.g. 'doSomething(myObj.' → 'myObj.'
+ *      'x + Math.P'        → 'Math.P'
+ *      'Math.'             → 'Math.'
+ */
+export function extractCompletableFragment(input: string): string {
+    let i = input.length - 1;
+    while (i >= 0 && /[a-zA-Z0-9_$.]/.test(input[i] as string)) {
+        i--;
+    }
+    return input.slice(i + 1);
+}
+
 export function resolvePath(root: unknown, pathSegments: string[]): unknown {
     let current = root;
     for (const seg of pathSegments) {
@@ -435,13 +450,16 @@ export class ReplPlugin implements StudioPlugin {
             let baseObject: unknown = globalThis;
             let needle = prefix;
 
-            const lastDot = prefix.lastIndexOf('.');
+            const fragment = extractCompletableFragment(prefix);
+            const lastDot = fragment.lastIndexOf('.');
             if (lastDot >= 0) {
-                const objectPath = prefix.slice(0, lastDot);
-                needle = prefix.slice(lastDot + 1);
+                const objectPath = fragment.slice(0, lastDot);
+                needle = fragment.slice(lastDot + 1);
                 const segments = objectPath.split('.').filter(Boolean);
                 if (segments[0] === 'globalThis') segments.shift();
                 baseObject = resolvePath(globalThis, segments);
+            } else {
+                needle = fragment;
             }
 
             const candidates = baseObject ? getPropertyNamesDeep(baseObject) : [];
