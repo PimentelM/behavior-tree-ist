@@ -894,5 +894,36 @@
 		"status": "completed",
 		"createdAt": "2026-03-24T01:19:36.214Z",
 		"completedAt": "2026-03-24T02:22:54.363Z"
+	},
+	{
+		"id": "group-2ad24c1f",
+		"name": "dec-tsx-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-5095"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-24T02:26:19.630Z",
+		"completedAt": "2026-03-26T23:55:57.111Z"
+	},
+	{
+		"id": "group-2556fcfe",
+		"name": "dec-tsx-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-29e1"
+		],
+		"status": "active",
+		"createdAt": "2026-03-27T00:09:24.668Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-c39fb27e",
+		"name": "linear-pending-ai",
+		"memberIssueIds": [
+			"behavior-tree-ist-4568",
+			"behavior-tree-ist-cf34"
+		],
+		"status": "active",
+		"createdAt": "2026-03-27T00:26:47.789Z",
+		"completedAt": null
 	}
 ]
