@@ -352,6 +352,196 @@ describe('RefTracesPanel', () => {
     fireEvent.click(groupHeader as Element);
     expect(container.querySelector('.bt-ref-traces__group-children')).toBeTruthy();
   });
+
+  it('disclosure triangle has expanded class when open and loses it when collapsed', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'npc.health', newValue: 90 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    const toggle = container.querySelector('.bt-ref-traces__group-toggle');
+    expect(toggle?.classList.contains('bt-ref-traces__group-toggle--expanded')).toBe(true);
+
+    fireEvent.click(container.querySelector('.bt-ref-traces__group-header') as Element);
+
+    expect(toggle?.classList.contains('bt-ref-traces__group-toggle--expanded')).toBe(false);
+  });
+
+  it('count badge shows correct member count for group', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'player.health', newValue: 100 }),
+      makeRefEvent({ tickId: 2, refName: 'player.mana', newValue: 50 }),
+      makeRefEvent({ tickId: 3, refName: 'player.stamina', newValue: 30 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    expect(container.querySelector('.bt-ref-traces__group-count')?.textContent).toBe('(3)');
+  });
+
+  it('ungrouped refs appear before grouped refs in the state list', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'group.member', newValue: 1 }),
+      makeRefEvent({ tickId: 2, refName: 'standalone', newValue: 2 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    const stateList = container.querySelector('.bt-ref-traces__state-list');
+    expect(stateList?.firstElementChild?.classList.contains('bt-ref-traces__group')).toBe(false);
+    expect(container.querySelector('.bt-ref-traces__group')).toBeTruthy();
+  });
+
+  it('single-child group renders with group header and count badge showing 1', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'solo.only', newValue: 'x' }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    expect(container.querySelector('.bt-ref-traces__group-header')).toBeTruthy();
+    expect(container.querySelector('.bt-ref-traces__group-count')?.textContent).toBe('(1)');
+  });
+
+  it('deeply nested dot names use only first dot segment as prefix and rest as suffix', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'a.b.c.d', newValue: 1 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    expect(screen.getByText('a')).toBeTruthy();
+    expect(container.querySelector('.bt-ref-traces__state-name')?.textContent).toBe('b.c.d');
+  });
+
+  it('special characters in ref name prefix do not break grouping', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'ai-npc.health', newValue: 75 }),
+      makeRefEvent({ tickId: 2, refName: 'ai-npc.ammo', newValue: 30 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    expect(screen.getByText('ai-npc')).toBeTruthy();
+    expect(container.querySelector('.bt-ref-traces__group-count')?.textContent).toBe('(2)');
+
+    const names = Array.from(container.querySelectorAll('.bt-ref-traces__state-name')).map((el) => el.textContent);
+    expect(names).toContain('health');
+    expect(names).toContain('ammo');
+  });
+
+  it('collapse state persists when viewedTickId changes for time travel', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'monster.hp', newValue: 100 }),
+      makeRefEvent({ tickId: 3, refName: 'monster.hp', newValue: 80 }),
+    ];
+
+    const { container, rerender } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    fireEvent.click(container.querySelector('.bt-ref-traces__group-header') as Element);
+    expect(container.querySelector('.bt-ref-traces__group-children')).toBeNull();
+
+    rerender(
+      <RefTracesPanel events={events} viewedTickId={3} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    expect(container.querySelector('.bt-ref-traces__group-children')).toBeNull();
+  });
+
+  it('time-travel viewedTickId filters latest states to events at or before that tick', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'counter', newValue: 10 }),
+      makeRefEvent({ tickId: 5, refName: 'counter', newValue: 20 }),
+      makeRefEvent({ tickId: 10, refName: 'counter', newValue: 30 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={5} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    const stateEntry = container.querySelector('.bt-ref-traces__state-entry');
+    expect(stateEntry?.querySelector('.bt-ref-traces__value')?.textContent).toBe('20');
+  });
+
+  it('stale dot indicates whether event tick is behind viewedTickId', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 3, refName: 'hp', newValue: 50 }),
+      makeRefEvent({ tickId: 5, refName: 'mp', newValue: 20 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={5} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    expect(container.querySelectorAll('.bt-ref-traces__stale-dot--stale').length).toBe(1);
+    expect(container.querySelectorAll('.bt-ref-traces__stale-dot--fresh').length).toBe(1);
+  });
+
+  it('multiple groups collapse and expand independently', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'enemy.health', newValue: 100 }),
+      makeRefEvent({ tickId: 2, refName: 'player.health', newValue: 80 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    const headers = container.querySelectorAll('.bt-ref-traces__group-header');
+    expect(headers.length).toBe(2);
+
+    fireEvent.click(headers[0]);
+    expect(container.querySelectorAll('.bt-ref-traces__group-children').length).toBe(1);
+
+    fireEvent.click(headers[0]);
+    expect(container.querySelectorAll('.bt-ref-traces__group-children').length).toBe(2);
+  });
+
+  it('state entry with no nodeId calls onGoToTick but not onFocusActorNode', () => {
+    const onGoToTick = vi.fn();
+    const onFocusActorNode = vi.fn();
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 5, refName: 'flag', nodeId: undefined }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={onGoToTick} onFocusActorNode={onFocusActorNode} />,
+    );
+
+    fireEvent.click(container.querySelector('.bt-ref-traces__state-entry') as Element);
+
+    expect(onGoToTick).toHaveBeenCalledWith(5);
+    expect(onFocusActorNode).not.toHaveBeenCalled();
+  });
+
+  it('displayValue takes precedence over newValue in state entry display', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'flag', newValue: 42, displayValue: 'custom display' }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel events={events} viewedTickId={null} onGoToTick={vi.fn()} onFocusActorNode={vi.fn()} />,
+    );
+
+    const stateEntry = container.querySelector('.bt-ref-traces__state-entry');
+    expect(stateEntry?.textContent).toContain('custom display');
+    expect(stateEntry?.textContent).not.toContain('42');
+  });
 });
 
 describe('PerformanceView', () => {
