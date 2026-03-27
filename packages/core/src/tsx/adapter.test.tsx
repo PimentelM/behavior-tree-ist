@@ -5,7 +5,7 @@ import { ConditionNode } from "../base/condition";
 import { Action } from "../base";
 import { Decorator } from "../base/decorator";
 import { AlwaysFailPolicy } from "../nodes/composite/parallel";
- 
+
 import { BT } from "./index"; // This will be the alias we use for JSX factory -> JSXFactory: "BT.createElement"
 import { type NodeProps } from "../builder";
 import { UtilityFallback } from "../nodes/composite/utility-fallback";
@@ -14,6 +14,13 @@ import { createNodeTicker, tickNode, StubAction } from "../test-helpers";
 import { Utility } from "../nodes/decorators/utility";
 import { SubTree } from "../nodes/decorators/sub-tree";
 import { NonAbortable } from "../nodes/decorators/non-abortable";
+import { Inverter } from "../nodes/decorators/inverter";
+import { Retry } from "../nodes/decorators/retry";
+import { Repeat } from "../nodes/decorators/repeat";
+import { Cooldown } from "../nodes/decorators/cooldown";
+import { Precondition } from "../nodes/decorators/precondition";
+import { OnEnter } from "../nodes/decorators/on-enter";
+import { OnTicked } from "../nodes/decorators/on-ticked";
  
 
 
@@ -452,5 +459,130 @@ describe("TSX Adapter", () => {
                 <action execute={() => NodeResult.Succeeded} />
             </sub-tree>;
         }).toThrow("<sub-tree> must have exactly one child node");
+    });
+
+    describe("decorator intrinsic elements", () => {
+        it("zero-arg: inverter wraps child and inverts result", () => {
+            const node = (
+                <inverter>
+                    <action execute={() => NodeResult.Succeeded} />
+                </inverter>
+            );
+
+            expect(node).toBeInstanceOf(Inverter);
+            expect(tickNode(node)).toBe(NodeResult.Failed);
+        });
+
+        it("numeric: retry with maxRetries prop", () => {
+            let calls = 0;
+            const node = (
+                <retry maxRetries={2}>
+                    <action execute={() => { calls++; return NodeResult.Failed; }} />
+                </retry>
+            );
+
+            expect(node).toBeInstanceOf(Retry);
+            tickNode(node);
+            expect(calls).toBe(3); // initial + 2 retries
+        });
+
+        it("numeric: repeat with times prop", () => {
+            let calls = 0;
+            const node = (
+                <repeat times={3}>
+                    <action execute={() => { calls++; return NodeResult.Succeeded; }} />
+                </repeat>
+            );
+
+            expect(node).toBeInstanceOf(Repeat);
+            const ticker = createNodeTicker();
+            ticker.tick(node);
+            expect(calls).toBe(3);
+        });
+
+        it("numeric: cooldown prop — no double-wrap", () => {
+            const node = (
+                <cooldown cooldown={1000}>
+                    <action execute={() => NodeResult.Succeeded} />
+                </cooldown>
+            );
+
+            expect(node).toBeInstanceOf(Cooldown);
+            // After first tick succeeds, cooldown kicks in — second tick returns Failure
+            const ticker = createNodeTicker();
+            expect(ticker.tick(node)).toBe(NodeResult.Succeeded);
+            expect(ticker.tick(node)).toBe(NodeResult.Failed);
+        });
+
+        it("condition: precondition wraps child with condition check", () => {
+            let gateOpen = false;
+            const node = (
+                <precondition name="GateCheck" condition={() => gateOpen}>
+                    <action execute={() => NodeResult.Succeeded} />
+                </precondition>
+            );
+
+            expect(node).toBeInstanceOf(Precondition);
+            expect(node.name).toBe("GateCheck");
+
+            expect(tickNode(node)).toBe(NodeResult.Failed);
+            gateOpen = true;
+            expect(tickNode(node)).toBe(NodeResult.Succeeded);
+        });
+
+        it("lifecycle hook: on-enter fires cb on entry", () => {
+            let entered = false;
+            const node = (
+                <on-enter cb={() => { entered = true; }}>
+                    <action execute={() => NodeResult.Succeeded} />
+                </on-enter>
+            );
+
+            expect(node).toBeInstanceOf(OnEnter);
+            tickNode(node);
+            expect(entered).toBe(true);
+        });
+
+        it("lifecycle hook: on-ticked fires cb with result", () => {
+            let lastResult: NodeResult | null = null;
+            const node = (
+                <on-ticked cb={(result) => { lastResult = result; }}>
+                    <action execute={() => NodeResult.Succeeded} />
+                </on-ticked>
+            );
+
+            expect(node).toBeInstanceOf(OnTicked);
+            tickNode(node);
+            expect(lastResult).toBe(NodeResult.Succeeded);
+        });
+
+        it("NodeProps applied on decorator elements — inverter stacks on retry", () => {
+            // <retry maxRetries={0} inverter> — Retry fails (exhausted), outer Inverter makes it Succeeded
+            const node = (
+                <retry maxRetries={0} inverter>
+                    <action execute={() => NodeResult.Failed} />
+                </retry>
+            );
+
+            expect(node).toBeInstanceOf(Inverter);
+            expect(node.getChildren?.()?.[0]).toBeInstanceOf(Retry);
+            expect(tickNode(node)).toBe(NodeResult.Succeeded);
+        });
+
+        it("throws when decorator element has zero children", () => {
+            expect(() => {
+                // @ts-expect-error - intentionally wrong for test
+                (<inverter />);
+            }).toThrow("<inverter> must have exactly one child node");
+        });
+
+        it("throws when decorator element has more than one child", () => {
+            expect(() => {
+                <inverter>
+                    <action execute={() => NodeResult.Succeeded} />
+                    <action execute={() => NodeResult.Succeeded} />
+                </inverter>;
+            }).toThrow("<inverter> must have exactly one child node");
+        });
     });
 });
