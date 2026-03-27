@@ -326,6 +326,32 @@ describe('RefTracesPanel', () => {
     expect(onGoToTick).toHaveBeenCalledWith(7);
     expect(onFocusActorNode).toHaveBeenCalledWith(99);
   });
+
+  it('collapses and expands a group when its header button is clicked', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'combat.target', newValue: 'goblin' }),
+      makeRefEvent({ tickId: 2, refName: 'combat.weapon', newValue: 'sword' }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel
+        events={events}
+        viewedTickId={null}
+        onGoToTick={vi.fn()}
+        onFocusActorNode={vi.fn()}
+      />,
+    );
+
+    const groupHeader = container.querySelector('.bt-ref-traces__group-header');
+    expect(groupHeader).toBeTruthy();
+    expect(container.querySelector('.bt-ref-traces__group-children')).toBeTruthy();
+
+    fireEvent.click(groupHeader as Element);
+    expect(container.querySelector('.bt-ref-traces__group-children')).toBeNull();
+
+    fireEvent.click(groupHeader as Element);
+    expect(container.querySelector('.bt-ref-traces__group-children')).toBeTruthy();
+  });
 });
 
 describe('PerformanceView', () => {
