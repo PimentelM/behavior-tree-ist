@@ -933,8 +933,19 @@
 			"behavior-tree-ist-1b08",
 			"behavior-tree-ist-f6ef"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-27T01:18:59.120Z",
+		"completedAt": "2026-03-27T01:59:37.907Z"
+	},
+	{
+		"id": "group-617b2287",
+		"name": "adversarial-qa",
+		"memberIssueIds": [
+			"behavior-tree-ist-fd96",
+			"behavior-tree-ist-9d1e"
+		],
+		"status": "active",
+		"createdAt": "2026-03-27T02:08:47.848Z",
 		"completedAt": null
 	}
 ]
