@@ -43,6 +43,37 @@ describe('StudioCommandTypeSchema', () => {
     });
 });
 
+describe('RefChangeEventSchema', () => {
+    it('parses event with newValue (no displayValue)', () => {
+        const event = {
+            tickId: 1,
+            timestamp: 100,
+            refName: 'counter',
+            nodeId: 5,
+            newValue: 42,
+            isAsync: false,
+        };
+        const parsed = TickRecordSchema.parse({ tickId: 1, timestamp: 100, events: [], refEvents: [event] });
+        const refEvent = parsed.refEvents[0]!;
+        expect(refEvent.newValue).toBe(42);
+        expect(refEvent.displayValue).toBeUndefined();
+    });
+
+    it('parses event with displayValue (no newValue)', () => {
+        const event = {
+            tickId: 2,
+            timestamp: 200,
+            refName: 'enemy',
+            isAsync: false,
+            displayValue: 'Orc (hp: 200)',
+        };
+        const parsed = TickRecordSchema.parse({ tickId: 2, timestamp: 200, events: [], refEvents: [event] });
+        const refEvent = parsed.refEvents[0]!;
+        expect(refEvent.displayValue).toBe('Orc (hp: 200)');
+        expect(refEvent.newValue).toBeUndefined();
+    });
+});
+
 describe('TickRecordSchema', () => {
     it('parses a minimal tick record', () => {
         const record = {

@@ -64,12 +64,24 @@ export type NodeHistoryEvent = TickTraceEvent & {
     timestamp: number;
 };
 
+export interface Displayable {
+    toDisplayString(): string;
+}
+
+export function isDisplayable(value: unknown): value is Displayable {
+    return value !== null
+        && typeof value === "object"
+        && "toDisplayString" in value
+        && typeof (value as Displayable).toDisplayString === "function";
+}
+
 export type RefChangeEvent = {
     tickId: number;
     timestamp: number;
     refName: string | undefined;
     nodeId?: number;
-    newValue: unknown;
+    newValue?: unknown;
+    displayValue?: string;
     isAsync: boolean;
 };
 
