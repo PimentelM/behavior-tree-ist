@@ -250,6 +250,82 @@ describe('RefTracesPanel', () => {
     expect(onGoToTick).toHaveBeenCalledWith(5);
     expect(onFocusActorNode).toHaveBeenCalledWith(42);
   });
+
+  it('groups refs with dot-notation prefix under a group header in last known states', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'player.health', newValue: 100 }),
+      makeRefEvent({ tickId: 2, refName: 'player.mana', newValue: 50 }),
+      makeRefEvent({ tickId: 3, refName: 'simpleRef', newValue: 42 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel
+        events={events}
+        viewedTickId={null}
+        onGoToTick={vi.fn()}
+        onFocusActorNode={vi.fn()}
+      />,
+    );
+
+    // Group header "player" should be visible
+    expect(screen.getByText('player')).toBeTruthy();
+
+    // Suffixes shown in group entries (not full names)
+    const stateList = container.querySelector('.bt-ref-traces__state-list');
+    expect(stateList).toBeTruthy();
+    const stateNames = Array.from(
+      (stateList as Element).querySelectorAll('.bt-ref-traces__state-name'),
+    ).map((el) => el.textContent);
+    expect(stateNames).toContain('health');
+    expect(stateNames).toContain('mana');
+    expect(stateNames).toContain('simpleRef');
+    expect(stateNames).not.toContain('player.health');
+    expect(stateNames).not.toContain('player.mana');
+  });
+
+  it('shows ungrouped refs without a group header', () => {
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 1, refName: 'alpha', newValue: 1 }),
+      makeRefEvent({ tickId: 2, refName: 'beta', newValue: 2 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel
+        events={events}
+        viewedTickId={null}
+        onGoToTick={vi.fn()}
+        onFocusActorNode={vi.fn()}
+      />,
+    );
+
+    expect(container.querySelector('.bt-ref-traces__group-header')).toBeNull();
+    expect(container.querySelector('.bt-ref-traces__group')).toBeNull();
+  });
+
+  it('calls onGoToTick and onFocusActorNode when clicking a grouped state entry', () => {
+    const onGoToTick = vi.fn();
+    const onFocusActorNode = vi.fn();
+
+    const events: RefChangeEvent[] = [
+      makeRefEvent({ tickId: 7, nodeId: 99, refName: 'enemy.health', newValue: 80 }),
+    ];
+
+    const { container } = render(
+      <RefTracesPanel
+        events={events}
+        viewedTickId={null}
+        onGoToTick={onGoToTick}
+        onFocusActorNode={onFocusActorNode}
+      />,
+    );
+
+    const stateEntry = container.querySelector('.bt-ref-traces__state-entry');
+    expect(stateEntry).toBeTruthy();
+    fireEvent.click(stateEntry as Element);
+
+    expect(onGoToTick).toHaveBeenCalledWith(7);
+    expect(onFocusActorNode).toHaveBeenCalledWith(99);
+  });
 });
 
 describe('PerformanceView', () => {

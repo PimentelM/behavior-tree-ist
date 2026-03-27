@@ -2022,6 +2022,22 @@
   grid-column: 2 / 4;
 }
 
+.bt-ref-traces__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bt-ref-traces__group-header {
+  font-family: var(--bt-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--bt-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 2px 2px;
+}
+
 .bt-ref-traces__empty {
   color: var(--bt-text-muted);
   font-size: 12px;

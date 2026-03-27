@@ -51,6 +51,27 @@ function RefTracesPanelInner({
       }));
   }, [events, viewedTickId]);
 
+  const groupedLatestStates = useMemo(() => {
+    const groupMap = new Map<string | null, typeof latestStates>();
+    for (const entry of latestStates) {
+      const prefix = getRefPrefix(entry.refName);
+      const existing = groupMap.get(prefix);
+      if (existing) {
+        existing.push(entry);
+      } else {
+        groupMap.set(prefix, [entry]);
+      }
+    }
+    // Ungrouped (null prefix) first, then sorted groups
+    const result: Array<{ prefix: string | null; entries: typeof latestStates }> = [];
+    const ungrouped = groupMap.get(null);
+    if (ungrouped) result.push({ prefix: null, entries: ungrouped });
+    for (const [prefix, entries] of groupMap) {
+      if (prefix !== null) result.push({ prefix, entries });
+    }
+    return result;
+  }, [latestStates]);
+
   const visibleEvents = useMemo(() => {
     let filtered = events;
 
@@ -108,26 +129,35 @@ function RefTracesPanelInner({
           <div className="bt-ref-traces__empty">No refs have been mutated yet</div>
         ) : (
           <div className="bt-ref-traces__state-list">
-            {latestStates.map(({ refName, event, isStale }) => (
-              <button
-                key={`latest-${refName}`}
-                type="button"
-                className="bt-ref-traces__state-entry"
-                onClick={() => {
-                  onGoToTick(event.tickId);
-                  if (event.nodeId !== undefined) {
-                    onFocusActorNode(event.nodeId);
-                  }
-                }}
-              >
-                <span
-                  className={`bt-ref-traces__stale-dot ${isStale ? 'bt-ref-traces__stale-dot--stale' : 'bt-ref-traces__stale-dot--fresh'}`}
-                  aria-label={isStale ? 'stale' : 'fresh'}
-                />
-                <span className="bt-ref-traces__state-name">{refName}</span>
-                <span className="bt-ref-traces__tick">tick #{event.tickId}</span>
-                <span className="bt-ref-traces__value">{formatEventValue(event)}</span>
-              </button>
+            {groupedLatestStates.map(({ prefix, entries }) => (
+              <div key={prefix ?? '__ungrouped__'} className={prefix !== null ? 'bt-ref-traces__group' : undefined}>
+                {prefix !== null && (
+                  <div className="bt-ref-traces__group-header">{prefix}</div>
+                )}
+                {entries.map(({ refName, event, isStale }) => (
+                  <button
+                    key={`latest-${refName}`}
+                    type="button"
+                    className="bt-ref-traces__state-entry"
+                    onClick={() => {
+                      onGoToTick(event.tickId);
+                      if (event.nodeId !== undefined) {
+                        onFocusActorNode(event.nodeId);
+                      }
+                    }}
+                  >
+                    <span
+                      className={`bt-ref-traces__stale-dot ${isStale ? 'bt-ref-traces__stale-dot--stale' : 'bt-ref-traces__stale-dot--fresh'}`}
+                      aria-label={isStale ? 'stale' : 'fresh'}
+                    />
+                    <span className="bt-ref-traces__state-name">
+                      {prefix !== null ? getRefSuffix(refName) : refName}
+                    </span>
+                    <span className="bt-ref-traces__tick">tick #{event.tickId}</span>
+                    <span className="bt-ref-traces__value">{formatEventValue(event)}</span>
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
         )}
@@ -210,6 +240,16 @@ function formatEventValue(event: RefChangeEvent): string {
 
 function formatRefName(refName: string | undefined): string {
   return refName ?? '(unnamed)';
+}
+
+function getRefPrefix(refName: string): string | null {
+  const dotIndex = refName.indexOf('.');
+  return dotIndex === -1 ? null : refName.slice(0, dotIndex);
+}
+
+function getRefSuffix(refName: string): string {
+  const dotIndex = refName.indexOf('.');
+  return dotIndex === -1 ? refName : refName.slice(dotIndex + 1);
 }
 
 const RefTraceEntry = memo(RefTraceEntryInner);
