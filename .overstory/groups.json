@@ -911,9 +911,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-29e1"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-27T00:09:24.668Z",
-		"completedAt": null
+		"completedAt": "2026-03-27T00:31:16.384Z"
 	},
 	{
 		"id": "group-c39fb27e",
@@ -922,8 +922,19 @@
 			"behavior-tree-ist-4568",
 			"behavior-tree-ist-cf34"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-27T00:26:47.789Z",
+		"completedAt": "2026-03-27T00:31:16.573Z"
+	},
+	{
+		"id": "group-a5e7c8b8",
+		"name": "ref-display-features",
+		"memberIssueIds": [
+			"behavior-tree-ist-1b08",
+			"behavior-tree-ist-f6ef"
+		],
+		"status": "active",
+		"createdAt": "2026-03-27T01:18:59.120Z",
 		"completedAt": null
 	}
 ]
