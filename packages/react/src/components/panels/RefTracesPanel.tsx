@@ -205,7 +205,7 @@ function formatRefValue(value: unknown): string {
 
 function formatEventValue(event: RefChangeEvent): string {
   if (event.displayValue !== undefined) return event.displayValue;
-  return formatEventValue(event);
+  return formatRefValue(event.newValue);
 }
 
 function formatRefName(refName: string | undefined): string {
