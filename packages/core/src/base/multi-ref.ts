@@ -1,5 +1,5 @@
 import { AmbientContext } from "./ambient-context";
-import type { RefChangeEvent } from "./types";
+import { type RefChangeEvent, isDisplayable } from "./types";
 import { pushRefEvent } from "./ref-event";
 import { type Ref, ProxyRef } from "./ref";
 
@@ -18,7 +18,9 @@ function emitRefChange(refName: string, newValue: unknown): void {
         timestamp: ctx.now,
         refName,
         nodeId,
-        newValue,
+        ...(isDisplayable(newValue)
+            ? { displayValue: newValue.toDisplayString() }
+            : { newValue }),
         isAsync: false,
     };
 

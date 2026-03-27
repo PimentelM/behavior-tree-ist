@@ -77,6 +77,7 @@ export const RefChangeEventSchema: z.ZodType<RefChangeEvent, z.ZodTypeDef, unkno
         refName: z.string().optional(),
         nodeId: z.number().int().optional(),
         newValue: z.unknown().optional(),
+        displayValue: z.string().optional(),
         isAsync: z.boolean(),
     })
     .strict()
@@ -86,6 +87,7 @@ export const RefChangeEventSchema: z.ZodType<RefChangeEvent, z.ZodTypeDef, unkno
         refName: value.refName,
         nodeId: value.nodeId,
         newValue: value.newValue,
+        displayValue: value.displayValue,
         isAsync: value.isAsync,
     }));
 

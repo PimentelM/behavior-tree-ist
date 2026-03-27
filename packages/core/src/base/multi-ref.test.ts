@@ -465,6 +465,86 @@ describe("getRef on multiRef", () => {
     });
 });
 
+class DisplayableItem {
+    constructor(public label: string, public qty: number) {}
+    toDisplayString(): string { return `${this.label} x${this.qty}`; }
+}
+
+describe("Displayable in multiRef", () => {
+    it("Displayable field value emits displayValue, no newValue", () => {
+        const bb = multiRef("inv", { item: new DisplayableItem("Sword", 1) as DisplayableItem });
+        const node = Action.from("swap", () => {
+            bb.item = new DisplayableItem("Shield", 2);
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.displayValue).toBe("Shield x2");
+        expect(event.newValue).toBeUndefined();
+    });
+
+    it("primitive field value emits newValue, no displayValue", () => {
+        const bb = multiRef("bb", { count: 0 });
+        const node = Action.from("inc", () => {
+            bb.count = 5;
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.newValue).toBe(5);
+        expect(event.displayValue).toBeUndefined();
+    });
+});
+
+describe("Displayable in patchRef", () => {
+    class DisplayableState {
+        target: DisplayableItem = new DisplayableItem("None", 0);
+        hp = 100;
+
+        toDisplayString(): string { return `hp:${this.hp}`; }
+    }
+
+    it("Displayable field value emits displayValue, no newValue", () => {
+        const state = patchRef("agent", new DisplayableState());
+        const node = Action.from("equip", () => {
+            state.target = new DisplayableItem("Bow", 1);
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.displayValue).toBe("Bow x1");
+        expect(event.newValue).toBeUndefined();
+    });
+
+    it("primitive field value emits newValue, no displayValue", () => {
+        const state = patchRef("agent", new DisplayableState());
+        const node = Action.from("hit", () => {
+            state.hp = 50;
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.newValue).toBe(50);
+        expect(event.displayValue).toBeUndefined();
+    });
+});
+
 describe("getRef on patchRef", () => {
     it("returns an unnamed ProxyRef", () => {
         const state = patchRef("agent", new AgentState());

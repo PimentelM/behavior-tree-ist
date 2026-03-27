@@ -399,6 +399,63 @@ describe("Ref", () => {
         });
     });
 
+    describe("Displayable", () => {
+        class DisplayableEntity {
+            constructor(public entityName: string, public hp: number) {}
+            toDisplayString(): string { return `${this.entityName} (hp: ${this.hp})`; }
+        }
+
+        it("ValueRef with Displayable value emits displayValue, no newValue", () => {
+            const entity = new DisplayableEntity("Goblin", 50);
+            const r = ref(entity, "enemy");
+            const node = Action.from("update", () => {
+                r.value = new DisplayableEntity("Orc", 200);
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 1, now: 10 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            const event = ctx.refEvents[0] as RefChangeEvent;
+            expect(event.displayValue).toBe("Orc (hp: 200)");
+            expect(event.newValue).toBeUndefined();
+        });
+
+        it("ValueRef with non-Displayable value emits newValue, no displayValue", () => {
+            const r = ref(0, "counter");
+            const node = Action.from("inc", () => {
+                r.value = 42;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 1, now: 0 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            const event = ctx.refEvents[0] as RefChangeEvent;
+            expect(event.newValue).toBe(42);
+            expect(event.displayValue).toBeUndefined();
+        });
+
+        it("ProxyRef with Displayable value emits displayValue, no newValue", () => {
+            let store: DisplayableEntity = new DisplayableEntity("Elf", 80);
+            const p = proxyRef(() => store, (v) => { store = v; }, "ally");
+            const node = Action.from("update", () => {
+                p.value = new DisplayableEntity("Dwarf", 150);
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 2, now: 20 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            const event = ctx.refEvents[0] as RefChangeEvent;
+            expect(event.displayValue).toBe("Dwarf (hp: 150)");
+            expect(event.newValue).toBeUndefined();
+        });
+    });
+
     describe("DerivedRef", () => {
         it(".value recomputes from source refs on each access", () => {
             const a = ref(2, "a");

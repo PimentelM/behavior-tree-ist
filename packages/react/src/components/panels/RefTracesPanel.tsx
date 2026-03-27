@@ -126,7 +126,7 @@ function RefTracesPanelInner({
                 />
                 <span className="bt-ref-traces__state-name">{refName}</span>
                 <span className="bt-ref-traces__tick">tick #{event.tickId}</span>
-                <span className="bt-ref-traces__value">{formatRefValue(event.newValue)}</span>
+                <span className="bt-ref-traces__value">{formatEventValue(event)}</span>
               </button>
             ))}
           </div>
@@ -185,7 +185,7 @@ function RefTraceEntryInner({ event, onGoToTick, onFocusActorNode }: RefTraceEnt
         )}
       </div>
       <div className="bt-ref-traces__value">
-        {formatRefValue(event.newValue)}
+        {formatEventValue(event)}
       </div>
     </button>
   );
@@ -201,6 +201,11 @@ function formatRefValue(value: unknown): string {
     // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return String(value);
   }
+}
+
+function formatEventValue(event: RefChangeEvent): string {
+  if (event.displayValue !== undefined) return event.displayValue;
+  return formatEventValue(event);
 }
 
 function formatRefName(refName: string | undefined): string {

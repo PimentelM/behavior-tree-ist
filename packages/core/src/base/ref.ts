@@ -1,6 +1,6 @@
 import { type TickContext } from "./node";
 import { AmbientContext } from "./ambient-context";
-import { type RefChangeEvent } from "./types";
+import { type RefChangeEvent, isDisplayable } from "./types";
 import { pushRefEvent } from "./ref-event";
 
 export interface ReadonlyRef<T> {
@@ -43,7 +43,9 @@ export class ValueRef<T> implements Ref<T> {
             timestamp: effectiveCtx.now,
             refName: this.name,
             nodeId,
-            newValue: newValue as unknown,
+            ...(isDisplayable(newValue)
+                ? { displayValue: newValue.toDisplayString() }
+                : { newValue: newValue as unknown }),
             isAsync: false,
         };
 
@@ -113,7 +115,9 @@ export class ProxyRef<T> implements Ref<T> {
             timestamp: effectiveCtx.now,
             refName: this.name,
             nodeId,
-            newValue: newValue as unknown,
+            ...(isDisplayable(newValue)
+                ? { displayValue: newValue.toDisplayString() }
+                : { newValue: newValue as unknown }),
             isAsync: false,
         };
 
