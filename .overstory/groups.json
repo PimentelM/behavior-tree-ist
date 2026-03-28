@@ -796,9 +796,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-d30b"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:05:07.337Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:52.749Z"
 	},
 	{
 		"id": "group-a137d9d0",
@@ -806,9 +806,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-fab1"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:10:57.269Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:52.886Z"
 	},
 	{
 		"id": "group-afaafa6b",
@@ -816,9 +816,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-8132"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:30:32.269Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.028Z"
 	},
 	{
 		"id": "group-0c430663",
@@ -826,9 +826,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-a2ea"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:43:06.520Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.249Z"
 	},
 	{
 		"id": "group-e0b73fb5",
@@ -836,9 +836,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-6f00"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T03:49:28.157Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.387Z"
 	},
 	{
 		"id": "group-d99c401e",
@@ -846,9 +846,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-c67e"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T04:11:06.291Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.529Z"
 	},
 	{
 		"id": "group-8c3c72df",
@@ -856,9 +856,9 @@
 		"memberIssueIds": [
 			"behavior-tree-ist-ad9f"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T17:55:04.529Z",
-		"completedAt": null
+		"completedAt": "2026-03-24T02:22:53.667Z"
 	},
 	{
 		"id": "group-38c3f89c",
@@ -871,8 +871,141 @@
 			"behavior-tree-ist-f16b",
 			"behavior-tree-ist-146d"
 		],
-		"status": "active",
+		"status": "completed",
 		"createdAt": "2026-03-22T18:03:37.741Z",
+		"completedAt": "2026-03-24T02:22:54.087Z"
+	},
+	{
+		"id": "group-f335510e",
+		"name": "nodeprops-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-6f3d"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-24T00:24:51.841Z",
+		"completedAt": "2026-03-24T02:22:54.226Z"
+	},
+	{
+		"id": "group-5223e7c7",
+		"name": "repl-completions",
+		"memberIssueIds": [
+			"behavior-tree-ist-46e1"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-24T01:19:36.214Z",
+		"completedAt": "2026-03-24T02:22:54.363Z"
+	},
+	{
+		"id": "group-2ad24c1f",
+		"name": "dec-tsx-research",
+		"memberIssueIds": [
+			"behavior-tree-ist-5095"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-24T02:26:19.630Z",
+		"completedAt": "2026-03-26T23:55:57.111Z"
+	},
+	{
+		"id": "group-2556fcfe",
+		"name": "dec-tsx-impl",
+		"memberIssueIds": [
+			"behavior-tree-ist-29e1"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-27T00:09:24.668Z",
+		"completedAt": "2026-03-27T00:31:16.384Z"
+	},
+	{
+		"id": "group-c39fb27e",
+		"name": "linear-pending-ai",
+		"memberIssueIds": [
+			"behavior-tree-ist-4568",
+			"behavior-tree-ist-cf34"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-27T00:26:47.789Z",
+		"completedAt": "2026-03-27T00:31:16.573Z"
+	},
+	{
+		"id": "group-a5e7c8b8",
+		"name": "ref-display-features",
+		"memberIssueIds": [
+			"behavior-tree-ist-1b08",
+			"behavior-tree-ist-f6ef"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-27T01:18:59.120Z",
+		"completedAt": "2026-03-27T01:59:37.907Z"
+	},
+	{
+		"id": "group-617b2287",
+		"name": "adversarial-qa",
+		"memberIssueIds": [
+			"behavior-tree-ist-fd96",
+			"behavior-tree-ist-9d1e"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-27T02:08:47.848Z",
+		"completedAt": "2026-03-28T01:26:20.066Z"
+	},
+	{
+		"id": "group-19fcf534",
+		"name": "playwright-qa",
+		"memberIssueIds": [
+			"behavior-tree-ist-ad30"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-27T02:59:30.240Z",
+		"completedAt": "2026-03-28T01:26:20.167Z"
+	},
+	{
+		"id": "group-90bd856c",
+		"name": "lint-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-0a18"
+		],
+		"status": "completed",
+		"createdAt": "2026-03-28T01:06:24.086Z",
+		"completedAt": "2026-03-28T01:26:20.273Z"
+	},
+	{
+		"id": "group-2d8bd261",
+		"name": "ts-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-8167"
+		],
+		"status": "active",
+		"createdAt": "2026-03-28T01:32:20.332Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-8ceb07f0",
+		"name": "quality-gate-doc",
+		"memberIssueIds": [
+			"behavior-tree-ist-e406"
+		],
+		"status": "active",
+		"createdAt": "2026-03-28T01:35:04.534Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-832a8b20",
+		"name": "react-ts-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-72c3"
+		],
+		"status": "active",
+		"createdAt": "2026-03-28T01:48:51.564Z",
+		"completedAt": null
+	},
+	{
+		"id": "group-24d3cfac",
+		"name": "retry-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-3858"
+		],
+		"status": "active",
+		"createdAt": "2026-03-28T02:05:06.210Z",
 		"completedAt": null
 	}
 ]

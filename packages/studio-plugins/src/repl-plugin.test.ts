@@ -12,6 +12,7 @@ import {
     secretboxEncrypt,
 } from './repl-crypto';
 import {
+    extractCompletableFragment,
     findLastTopLevelStatementBreak,
     getPropertyNamesDeep,
     isProbablyExpression,
@@ -101,6 +102,40 @@ describe('resolvePath', () => {
 
     it('skips empty segments', () => {
         expect(resolvePath({ a: { b: 1 } }, ['', 'a', '', 'b'])).toBe(1);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// extractCompletableFragment
+// ---------------------------------------------------------------------------
+describe('extractCompletableFragment', () => {
+    it('returns full input when no separator', () => {
+        expect(extractCompletableFragment('Math.P')).toBe('Math.P');
+        expect(extractCompletableFragment('foo')).toBe('foo');
+        expect(extractCompletableFragment('Math.')).toBe('Math.');
+    });
+
+    it('extracts fragment after opening paren', () => {
+        expect(extractCompletableFragment('doSomething(myObj.')).toBe('myObj.');
+        expect(extractCompletableFragment('fn(foo.bar.')).toBe('foo.bar.');
+    });
+
+    it('extracts fragment after comma', () => {
+        expect(extractCompletableFragment('fn(a, myObj.')).toBe('myObj.');
+    });
+
+    it('extracts fragment after operator', () => {
+        expect(extractCompletableFragment('x + Math.')).toBe('Math.');
+        expect(extractCompletableFragment('x = foo.')).toBe('foo.');
+    });
+
+    it('returns empty string for trailing separator', () => {
+        expect(extractCompletableFragment('fn(')).toBe('');
+        expect(extractCompletableFragment('x + ')).toBe('');
+    });
+
+    it('returns empty string for empty input', () => {
+        expect(extractCompletableFragment('')).toBe('');
     });
 });
 
@@ -372,6 +407,38 @@ describe('ReplPlugin eval round-trip', () => {
         expect(result.type).toBe('completions');
         expect(result.completions).toContain('PI');
         expect(result.completions).toContain('abs');
+    });
+
+    it('completes inside function args (nested expression context)', async () => {
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
+
+        const encrypted = uiEncrypt({ type: 'completions', prefix: 'doSomething(Math.' }, uiKeys.s2c);
+        await plugin.handleInbound('corr-nested', encrypted);
+
+        const result = uiDecrypt<{ type: string; completions: string[] }>((sent[1] as (typeof sent)[number]).payload as string, uiKeys.c2s);
+        expect(result.type).toBe('completions');
+        expect(result.completions).toContain('PI');
+        expect(result.completions).toContain('abs');
+    });
+
+    it('completes Object.assign globalThis enum properties', async () => {
+        const { plugin, sent, uiKeys } = setupPluginWithSession();
+
+        const assignEnc = uiEncrypt(
+            { type: 'eval', code: 'Object.assign(globalThis, { _TestEnum: { Alpha: 1, Beta: 2 } })' },
+            uiKeys.s2c,
+        );
+        await plugin.handleInbound('corr-assign', assignEnc);
+
+        const completionsEnc = uiEncrypt({ type: 'completions', prefix: '_TestEnum.' }, uiKeys.s2c);
+        await plugin.handleInbound('corr-enum-completions', completionsEnc);
+
+        const result = uiDecrypt<{ type: string; completions: string[] }>((sent[2] as (typeof sent)[number]).payload as string, uiKeys.c2s);
+        expect(result.type).toBe('completions');
+        expect(result.completions).toContain('Alpha');
+        expect(result.completions).toContain('Beta');
+
+        delete (globalThis as Record<string, unknown>)['_TestEnum'];
     });
 
     it('returns last expression for newline-separated multi-statement code', async () => {

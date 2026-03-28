@@ -25,9 +25,9 @@ export interface NodeProps {
     decorate?: AnyDecoratorSpec | readonly AnyDecoratorSpec[];
 
     // Condition decorators
-    precondition?: { name?: string, condition: (ctx: TickContext) => boolean };
-    succeedIf?: { name?: string, condition: (ctx: TickContext) => boolean };
-    failIf?: { name?: string, condition: (ctx: TickContext) => boolean };
+    precondition?: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean };
+    succeedIf?: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean };
+    failIf?: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean };
 
     // Behavior modifiers
     forceSuccess?: boolean;
@@ -73,6 +73,15 @@ export interface NodeProps {
 
 export interface SubTreeProps extends NodeProps, SubTreeMetadata {}
 
+function normalizeConditionProp(
+    prop: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean }
+): { name?: string, condition: (ctx: TickContext) => boolean } {
+    if (typeof prop === "function") {
+        return { condition: prop };
+    }
+    return prop;
+}
+
 export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     let current = node;
 
@@ -101,10 +110,18 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     if (props.retry !== undefined) current = current.decorate([Decorators.Retry, props.retry]);
 
     // 3. Guards / Condition overrides
-    if (props.precondition) current = current.decorate([Decorators.Precondition, props.precondition.name ?? "Precondition", props.precondition.condition]);
+    if (props.precondition) {
+        const p = normalizeConditionProp(props.precondition);
+        current = current.decorate([Decorators.Precondition, p.name ?? "Precondition", p.condition]);
+    }
     // After the precondition, we have the succeedIf and failIf decorators which are also guards but with different semantics
-    if (props.succeedIf) current = current.decorate([Decorators.SucceedIf, props.succeedIf.name ?? "SucceedIf", props.succeedIf.condition]);
-    else if (props.failIf) current = current.decorate([Decorators.FailIf, props.failIf.name ?? "FailIf", props.failIf.condition]);
+    if (props.succeedIf) {
+        const p = normalizeConditionProp(props.succeedIf);
+        current = current.decorate([Decorators.SucceedIf, p.name ?? "SucceedIf", p.condition]);
+    } else if (props.failIf) {
+        const p = normalizeConditionProp(props.failIf);
+        current = current.decorate([Decorators.FailIf, p.name ?? "FailIf", p.condition]);
+    }
 
     // 4. Timing
     if (props.requireSustainedSuccess !== undefined) current = current.decorate([Decorators.RequireSustainedSuccess, props.requireSustainedSuccess]);

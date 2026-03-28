@@ -18,6 +18,16 @@ function RefTracesPanelInner({
 }: RefTracesPanelProps) {
   const [selectedRefName, setSelectedRefName] = useState<string>(ALL_REFS_FILTER);
   const [scope, setScope] = useState<'all' | 'current'>('all');
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
+
+  const toggleGroup = useCallback((prefix: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(prefix)) next.delete(prefix);
+      else next.add(prefix);
+      return next;
+    });
+  }, []);
 
   const knownRefNames = useMemo(() => {
     const names = new Set<string>();
@@ -50,6 +60,27 @@ function RefTracesPanelInner({
         isStale: viewedTickId !== null && event.tickId < viewedTickId,
       }));
   }, [events, viewedTickId]);
+
+  const groupedLatestStates = useMemo(() => {
+    const groupMap = new Map<string | null, typeof latestStates>();
+    for (const entry of latestStates) {
+      const prefix = getRefPrefix(entry.refName);
+      const existing = groupMap.get(prefix);
+      if (existing) {
+        existing.push(entry);
+      } else {
+        groupMap.set(prefix, [entry]);
+      }
+    }
+    // Ungrouped (null prefix) first, then sorted groups
+    const result: Array<{ prefix: string | null; entries: typeof latestStates }> = [];
+    const ungrouped = groupMap.get(null);
+    if (ungrouped) result.push({ prefix: null, entries: ungrouped });
+    for (const [prefix, entries] of groupMap) {
+      if (prefix !== null) result.push({ prefix, entries });
+    }
+    return result;
+  }, [latestStates]);
 
   const visibleEvents = useMemo(() => {
     let filtered = events;
@@ -108,26 +139,47 @@ function RefTracesPanelInner({
           <div className="bt-ref-traces__empty">No refs have been mutated yet</div>
         ) : (
           <div className="bt-ref-traces__state-list">
-            {latestStates.map(({ refName, event, isStale }) => (
-              <button
-                key={`latest-${refName}`}
-                type="button"
-                className="bt-ref-traces__state-entry"
-                onClick={() => {
-                  onGoToTick(event.tickId);
-                  if (event.nodeId !== undefined) {
-                    onFocusActorNode(event.nodeId);
-                  }
-                }}
-              >
-                <span
-                  className={`bt-ref-traces__stale-dot ${isStale ? 'bt-ref-traces__stale-dot--stale' : 'bt-ref-traces__stale-dot--fresh'}`}
-                  aria-label={isStale ? 'stale' : 'fresh'}
-                />
-                <span className="bt-ref-traces__state-name">{refName}</span>
-                <span className="bt-ref-traces__tick">tick #{event.tickId}</span>
-                <span className="bt-ref-traces__value">{formatRefValue(event.newValue)}</span>
-              </button>
+            {groupedLatestStates.map(({ prefix, entries }) => (
+              <div key={prefix ?? '__ungrouped__'} className={prefix !== null ? 'bt-ref-traces__group' : undefined}>
+                {prefix !== null && (
+                  <button
+                    type="button"
+                    className="bt-ref-traces__group-header"
+                    onClick={() => { toggleGroup(prefix); }}
+                  >
+                    <span className={`bt-ref-traces__group-toggle ${!collapsedGroups.has(prefix) ? 'bt-ref-traces__group-toggle--expanded' : ''}`}>▶</span>
+                    <span>{prefix}</span>
+                    <span className="bt-ref-traces__group-count">({entries.length})</span>
+                  </button>
+                )}
+                {(prefix === null || !collapsedGroups.has(prefix)) && (
+                  <div className={prefix !== null ? 'bt-ref-traces__group-children' : undefined}>
+                    {entries.map(({ refName, event, isStale }) => (
+                      <button
+                        key={`latest-${refName}`}
+                        type="button"
+                        className="bt-ref-traces__state-entry"
+                        onClick={() => {
+                          onGoToTick(event.tickId);
+                          if (event.nodeId !== undefined) {
+                            onFocusActorNode(event.nodeId);
+                          }
+                        }}
+                      >
+                        <span
+                          className={`bt-ref-traces__stale-dot ${isStale ? 'bt-ref-traces__stale-dot--stale' : 'bt-ref-traces__stale-dot--fresh'}`}
+                          aria-label={isStale ? 'stale' : 'fresh'}
+                        />
+                        <span className="bt-ref-traces__state-name">
+                          {prefix !== null ? getRefSuffix(refName) : refName}
+                        </span>
+                        <span className="bt-ref-traces__tick">tick #{event.tickId}</span>
+                        <span className="bt-ref-traces__value">{formatEventValue(event)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}
@@ -185,7 +237,7 @@ function RefTraceEntryInner({ event, onGoToTick, onFocusActorNode }: RefTraceEnt
         )}
       </div>
       <div className="bt-ref-traces__value">
-        {formatRefValue(event.newValue)}
+        {formatEventValue(event)}
       </div>
     </button>
   );
@@ -203,8 +255,23 @@ function formatRefValue(value: unknown): string {
   }
 }
 
+function formatEventValue(event: RefChangeEvent): string {
+  if (event.displayValue !== undefined) return event.displayValue;
+  return formatRefValue(event.newValue);
+}
+
 function formatRefName(refName: string | undefined): string {
   return refName ?? '(unnamed)';
+}
+
+function getRefPrefix(refName: string): string | null {
+  const dotIndex = refName.indexOf('.');
+  return dotIndex === -1 ? null : refName.slice(0, dotIndex);
+}
+
+function getRefSuffix(refName: string): string {
+  const dotIndex = refName.indexOf('.');
+  return dotIndex === -1 ? refName : refName.slice(dotIndex + 1);
 }
 
 const RefTraceEntry = memo(RefTraceEntryInner);

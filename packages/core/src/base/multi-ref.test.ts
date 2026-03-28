@@ -387,11 +387,11 @@ describe("patchRef", () => {
     });
 });
 
-describe("extractRef on multiRef", () => {
+describe("getRef on multiRef", () => {
     it("returns an unnamed ProxyRef", () => {
         const bb = multiRef("bb", { health: 100 });
 
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         expect(proxy).toBeInstanceOf(ProxyRef);
         expect(proxy.name).toBeUndefined();
@@ -400,14 +400,14 @@ describe("extractRef on multiRef", () => {
     it("reads current value through multiRef", () => {
         const bb = multiRef("bb", { health: 100 });
 
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         expect(proxy.value).toBe(100);
     });
 
     it("reflects mutations made to multiRef", () => {
         const bb = multiRef("bb", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         bb.health = 50;
 
@@ -416,7 +416,7 @@ describe("extractRef on multiRef", () => {
 
     it("writing via ProxyRef updates the multiRef field", () => {
         const bb = multiRef("bb", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
 
         proxy.value = 75;
 
@@ -425,7 +425,7 @@ describe("extractRef on multiRef", () => {
 
     it("writing via ProxyRef emits RefChangeEvent with multiRef name, not proxy name", () => {
         const bb = multiRef("stats", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
         const node = Action.from("heal", () => {
             proxy.value = 80;
             return NodeResult.Succeeded;
@@ -447,7 +447,7 @@ describe("extractRef on multiRef", () => {
 
     it("no-op write via ProxyRef emits no event", () => {
         const bb = multiRef("bb", { health: 100 });
-        const proxy = bb.extractRef("health");
+        const proxy = bb.getRef("health");
         const node = Action.from("noop", () => {
             proxy.value = 100;
             return NodeResult.Succeeded;
@@ -459,17 +459,97 @@ describe("extractRef on multiRef", () => {
         expect(ctx.refEvents).toHaveLength(0);
     });
 
-    it("extractRef is non-enumerable", () => {
+    it("getRef is non-enumerable", () => {
         const bb = multiRef("bb", { health: 100 });
-        expect(Object.keys(bb)).not.toContain("extractRef");
+        expect(Object.keys(bb)).not.toContain("getRef");
     });
 });
 
-describe("extractRef on patchRef", () => {
+class DisplayableItem {
+    constructor(public label: string, public qty: number) {}
+    toDisplayString(): string { return `${this.label} x${this.qty}`; }
+}
+
+describe("Displayable in multiRef", () => {
+    it("Displayable field value emits displayValue, no newValue", () => {
+        const bb = multiRef("inv", { item: new DisplayableItem("Sword", 1) });
+        const node = Action.from("swap", () => {
+            bb.item = new DisplayableItem("Shield", 2);
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.displayValue).toBe("Shield x2");
+        expect(event.newValue).toBeUndefined();
+    });
+
+    it("primitive field value emits newValue, no displayValue", () => {
+        const bb = multiRef("bb", { count: 0 });
+        const node = Action.from("inc", () => {
+            bb.count = 5;
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.newValue).toBe(5);
+        expect(event.displayValue).toBeUndefined();
+    });
+});
+
+describe("Displayable in patchRef", () => {
+    class DisplayableState {
+        target: DisplayableItem = new DisplayableItem("None", 0);
+        hp = 100;
+
+        toDisplayString(): string { return `hp:${this.hp}`; }
+    }
+
+    it("Displayable field value emits displayValue, no newValue", () => {
+        const state = patchRef("agent", new DisplayableState());
+        const node = Action.from("equip", () => {
+            state.target = new DisplayableItem("Bow", 1);
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.displayValue).toBe("Bow x1");
+        expect(event.newValue).toBeUndefined();
+    });
+
+    it("primitive field value emits newValue, no displayValue", () => {
+        const state = patchRef("agent", new DisplayableState());
+        const node = Action.from("hit", () => {
+            state.hp = 50;
+            return NodeResult.Succeeded;
+        });
+        const ctx = createTickContext({ tickId: 1, now: 0 });
+
+        BTNode.Tick(node, ctx);
+
+        expect(ctx.refEvents).toHaveLength(1);
+        const event = ctx.refEvents[0] as RefChangeEvent;
+        expect(event.newValue).toBe(50);
+        expect(event.displayValue).toBeUndefined();
+    });
+});
+
+describe("getRef on patchRef", () => {
     it("returns an unnamed ProxyRef", () => {
         const state = patchRef("agent", new AgentState());
 
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         expect(proxy).toBeInstanceOf(ProxyRef);
         expect(proxy.name).toBeUndefined();
@@ -478,14 +558,14 @@ describe("extractRef on patchRef", () => {
     it("reads current value through patchRef", () => {
         const state = patchRef("agent", new AgentState());
 
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         expect(proxy.value).toBe(100);
     });
 
     it("reflects mutations made to patchRef instance", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         state.health = 50;
 
@@ -494,7 +574,7 @@ describe("extractRef on patchRef", () => {
 
     it("writing via ProxyRef updates the patchRef field", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
 
         proxy.value = 75;
 
@@ -503,7 +583,7 @@ describe("extractRef on patchRef", () => {
 
     it("writing via ProxyRef emits RefChangeEvent with patchRef name", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
         const node = Action.from("heal", () => {
             proxy.value = 80;
             return NodeResult.Succeeded;
@@ -525,7 +605,7 @@ describe("extractRef on patchRef", () => {
 
     it("no-op write via ProxyRef emits no event", () => {
         const state = patchRef("agent", new AgentState());
-        const proxy = state.extractRef("health");
+        const proxy = state.getRef("health");
         const node = Action.from("noop", () => {
             proxy.value = 100;
             return NodeResult.Succeeded;
@@ -537,8 +617,8 @@ describe("extractRef on patchRef", () => {
         expect(ctx.refEvents).toHaveLength(0);
     });
 
-    it("extractRef is non-enumerable on patchRef", () => {
+    it("getRef is non-enumerable on patchRef", () => {
         const state = patchRef("agent", new AgentState());
-        expect(Object.keys(state)).not.toContain("extractRef");
+        expect(Object.keys(state)).not.toContain("getRef");
     });
 });

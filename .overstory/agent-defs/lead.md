@@ -57,6 +57,8 @@ Your task-specific context (task ID, spec path, hierarchy depth, agent name, whe
 - **Do not spawn more workers than needed.** Start with the minimum. You can always spawn more later. Target 2-5 builders per lead.
 - **Review before merge for complex tasks.** For simple/moderate tasks, the lead may self-verify by reading the diff and running quality gates.
 - **Never create issues in worktrees.** Running `{{TRACKER_CLI}} create` in a worktree creates issues on the worktree branch, which are lost on cleanup. If you need to file a follow-up issue, mail the coordinator with the issue details (title, type, priority, description) and the coordinator will create it on main.
+- **NEVER trust builder self-reported quality gates.** Always independently verify by running `yarn install && yarn check` on the builder branch/worktree. Builders have repeatedly claimed quality gates passed while introducing errors.
+- **Canonical quality gate: `yarn install && yarn check`.** When writing specs or dispatch mails, always instruct builders to use this single command, not individual yarn test/lint/typecheck runs.
 
 ## communication-protocol
 
@@ -238,10 +240,11 @@ Review is a quality investment. For complex, multi-file changes, spawn a reviewe
 12. **On receiving `worker_done` from a builder, decide whether to spawn a reviewer or self-verify based on task complexity.**
 
     **Self-verification (simple/moderate tasks):**
-    1. Read the builder's diff: `git diff main..<builder-branch>`
-    2. Check the diff matches the spec
-    3. Run quality gates: {{QUALITY_GATE_INLINE}}
-    4. If everything passes, send merge_ready directly
+    1. Run `yarn install && yarn check` on the builder's worktree — this is non-negotiable, even for trivial changes. Do NOT trust the builder's self-reported quality gate results.
+    2. If `yarn install && yarn check` fails, send the error output back to the builder for fixes. Do NOT proceed to merge_ready.
+    3. Read the builder's diff: `git diff main..<builder-branch>`
+    4. Check the diff matches the spec
+    5. If everything passes, send merge_ready directly
 
     **Reviewer verification (complex tasks):**
     Spawn a reviewer agent as before. Required when:
@@ -256,10 +259,10 @@ Review is a quality investment. For complex, multi-file changes, spawn a reviewe
       --parent $OVERSTORY_AGENT_NAME --depth <current+1>
     ov mail send --to review-<builder-name> \
       --subject "Review: <builder-task>" \
-      --body "Review the changes on branch <builder-branch>. Spec: .overstory/specs/<builder-task-id>.md. Run quality gates and report PASS or FAIL." \
+      --body "FIRST: run 'yarn install && yarn check' on the builder worktree. If it fails, report FAIL immediately with the error output — do not proceed to code review. Only if quality gates pass, review changes on branch <builder-branch> against spec: .overstory/specs/<builder-task-id>.md." \
       --type dispatch
     ```
-    The reviewer validates against the builder's spec and runs the project's quality gates ({{QUALITY_GATE_INLINE}}).
+    The reviewer's FIRST action is `yarn install && yarn check`. If it fails, the reviewer reports FAIL immediately without code review. Only on passing gates does the reviewer validate against the builder's spec.
 13. **Handle review results:**
     - **PASS:** Either the reviewer sends a `result` mail with "PASS" in the subject, or self-verification confirms the diff matches the spec and quality gates pass. Immediately signal `merge_ready` for that builder's branch -- do not wait for other builders to finish:
       ```bash
@@ -295,7 +298,7 @@ Good decomposition follows these principles:
 
 1. **Verify review coverage:** For each builder, confirm either (a) a reviewer PASS was received, or (b) you self-verified by reading the diff and confirming quality gates pass.
 2. Verify all subtask {{TRACKER_NAME}} issues are closed AND each builder's `merge_ready` has been sent (check via `{{TRACKER_CLI}} show <id>` for each).
-3. Run integration tests if applicable: {{QUALITY_GATE_INLINE}}.
+3. Run `yarn install && yarn check` from the worktree root. This is the canonical quality gate — do not substitute individual commands.
 4. **Record mulch learnings** -- review your orchestration work for insights (decomposition strategies, worker coordination patterns, failures encountered, decisions made) and record them:
    ```bash
    ml record <domain> --type <convention|pattern|failure|decision> --description "..." \

@@ -1,5 +1,5 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
-import { ref, readonlyRef, derivedRef, proxyRef, type RefLike, type ReadonlyRefLike } from "./ref";
+import { ref, readonlyRef, derivedRef, proxyRef, type Ref, type ReadonlyRef } from "./ref";
 import { BTNode } from "./node";
 import { NodeResult, type RefChangeEvent } from "./types";
 import { Action } from "./action";
@@ -31,14 +31,6 @@ describe("Ref", () => {
             const r = ref(0);
             r.set(10);
             expect(r.value).toBe(10);
-        });
-
-        it(".asReadonly() returns same object typed as ReadonlyRef", () => {
-            const r = ref(5, "x");
-            const ro = r.asReadonly();
-            expect(ro).toBe(r);
-            expect(ro.value).toBe(5);
-            expect(ro.name).toBe("x");
         });
 
         it("works with object values", () => {
@@ -373,37 +365,94 @@ describe("Ref", () => {
         });
     });
 
-    describe("RefLike / ReadonlyRefLike assignability", () => {
-        it("Ref satisfies RefLike", () => {
-            expectTypeOf(ref(0)).toExtend<RefLike<number>>();
+    describe("Ref / ReadonlyRef assignability", () => {
+        it("ref() result satisfies Ref", () => {
+            expectTypeOf(ref(0)).toExtend<Ref<number>>();
         });
 
-        it("Ref satisfies ReadonlyRefLike", () => {
-            expectTypeOf(ref(0)).toExtend<ReadonlyRefLike<number>>();
+        it("ref() result satisfies ReadonlyRef", () => {
+            expectTypeOf(ref(0)).toExtend<ReadonlyRef<number>>();
         });
 
-        it("ProxyRef satisfies RefLike", () => {
-            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<RefLike<number>>();
+        it("ProxyRef satisfies Ref", () => {
+            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<Ref<number>>();
         });
 
-        it("ProxyRef satisfies ReadonlyRefLike", () => {
-            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<ReadonlyRefLike<number>>();
+        it("ProxyRef satisfies ReadonlyRef", () => {
+            expectTypeOf(proxyRef(() => 0, () => {})).toExtend<ReadonlyRef<number>>();
         });
 
-        it("DerivedRef satisfies ReadonlyRefLike", () => {
-            expectTypeOf(derivedRef(() => 0)).toExtend<ReadonlyRefLike<number>>();
+        it("DerivedRef satisfies ReadonlyRef", () => {
+            expectTypeOf(derivedRef(() => 0)).toExtend<ReadonlyRef<number>>();
         });
 
-        it("readonlyRef result satisfies ReadonlyRefLike", () => {
-            expectTypeOf(readonlyRef(ref(0))).toExtend<ReadonlyRefLike<number>>();
+        it("readonlyRef result satisfies ReadonlyRef", () => {
+            expectTypeOf(readonlyRef(ref(0))).toExtend<ReadonlyRef<number>>();
         });
 
-        it("RefLike satisfies ReadonlyRefLike structurally", () => {
-            expectTypeOf<RefLike<number>>().toExtend<ReadonlyRefLike<number>>();
+        it("Ref satisfies ReadonlyRef structurally", () => {
+            expectTypeOf<Ref<number>>().toExtend<ReadonlyRef<number>>();
         });
 
-        it("ref with string type satisfies RefLike<string>", () => {
-            expectTypeOf(ref("hello")).toExtend<RefLike<string>>();
+        it("ref with string type satisfies Ref<string>", () => {
+            expectTypeOf(ref("hello")).toExtend<Ref<string>>();
+        });
+    });
+
+    describe("Displayable", () => {
+        class DisplayableEntity {
+            constructor(public entityName: string, public hp: number) {}
+            toDisplayString(): string { return `${this.entityName} (hp: ${this.hp})`; }
+        }
+
+        it("ValueRef with Displayable value emits displayValue, no newValue", () => {
+            const entity = new DisplayableEntity("Goblin", 50);
+            const r = ref(entity, "enemy");
+            const node = Action.from("update", () => {
+                r.value = new DisplayableEntity("Orc", 200);
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 1, now: 10 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            const event = ctx.refEvents[0] as RefChangeEvent;
+            expect(event.displayValue).toBe("Orc (hp: 200)");
+            expect(event.newValue).toBeUndefined();
+        });
+
+        it("ValueRef with non-Displayable value emits newValue, no displayValue", () => {
+            const r = ref(0, "counter");
+            const node = Action.from("inc", () => {
+                r.value = 42;
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 1, now: 0 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            const event = ctx.refEvents[0] as RefChangeEvent;
+            expect(event.newValue).toBe(42);
+            expect(event.displayValue).toBeUndefined();
+        });
+
+        it("ProxyRef with Displayable value emits displayValue, no newValue", () => {
+            let store: DisplayableEntity = new DisplayableEntity("Elf", 80);
+            const p = proxyRef(() => store, (v) => { store = v; }, "ally");
+            const node = Action.from("update", () => {
+                p.value = new DisplayableEntity("Dwarf", 150);
+                return NodeResult.Succeeded;
+            });
+            const ctx = createTickContext({ tickId: 2, now: 20 });
+
+            BTNode.Tick(node, ctx);
+
+            expect(ctx.refEvents).toHaveLength(1);
+            const event = ctx.refEvents[0] as RefChangeEvent;
+            expect(event.displayValue).toBe("Dwarf (hp: 150)");
+            expect(event.newValue).toBeUndefined();
         });
     });
 
