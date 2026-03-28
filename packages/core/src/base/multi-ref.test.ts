@@ -472,7 +472,7 @@ class DisplayableItem {
 
 describe("Displayable in multiRef", () => {
     it("Displayable field value emits displayValue, no newValue", () => {
-        const bb = multiRef("inv", { item: new DisplayableItem("Sword", 1) as DisplayableItem });
+        const bb = multiRef("inv", { item: new DisplayableItem("Sword", 1) });
         const node = Action.from("swap", () => {
             bb.item = new DisplayableItem("Shield", 2);
             return NodeResult.Succeeded;
