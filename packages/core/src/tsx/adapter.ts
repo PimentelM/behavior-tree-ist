@@ -61,8 +61,7 @@ const DECORATOR_REGISTRY: Record<string, DecoratorEntry> = {
     "on-running":           dec((p, c) => new Decorators.OnRunning(c, p.cb as (ctx: TickContext) => void), "cb"),
     "on-success-or-running": dec((p, c) => new Decorators.OnSuccessOrRunning(c, p.cb as (ctx: TickContext) => void), "cb"),
     "on-failed-or-running": dec((p, c) => new Decorators.OnFailedOrRunning(c, p.cb as (ctx: TickContext) => void), "cb"),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    "on-finished":          dec((p, c) => new Decorators.OnFinished(c, p.cb as any), "cb"),
+    "on-finished":          dec((p, c) => new Decorators.OnFinished(c, p.cb as (result: NodeResult & ('Succeeded' | 'Failed'), ctx: TickContext) => void), "cb"),
     "on-abort":             dec((p, c) => new Decorators.OnAbort(c, p.cb as (ctx: TickContext) => void), "cb"),
 };
 
@@ -90,8 +89,8 @@ export function createElement(
         if (flatChildren.length !== 1) {
             throw new Error(`<${type}> must have exactly one child node, but got ${flatChildren.length}.`);
         }
-        const entry = DECORATOR_REGISTRY[type]!;
-        const inner = entry.build(safeProps, flatChildren[0]!);
+        const entry = DECORATOR_REGISTRY[type] as DecoratorEntry;
+        const inner = entry.build(safeProps, flatChildren[0] as BTNode);
         // Strip own props to avoid double-wrapping when prop names overlap NodeProps
         const nodeProps = entry.ownProps.length > 0
             ? Object.fromEntries(Object.entries(safeProps).filter(([k]) => !(entry.ownProps as string[]).includes(k)))

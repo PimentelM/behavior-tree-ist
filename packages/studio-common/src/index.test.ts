@@ -54,7 +54,8 @@ describe('RefChangeEventSchema', () => {
             isAsync: false,
         };
         const parsed = TickRecordSchema.parse({ tickId: 1, timestamp: 100, events: [], refEvents: [event] });
-        const refEvent = parsed.refEvents[0]!;
+        const refEvent = parsed.refEvents[0];
+        if (!refEvent) throw new Error("refEvent expected");
         expect(refEvent.newValue).toBe(42);
         expect(refEvent.displayValue).toBeUndefined();
     });
@@ -68,7 +69,8 @@ describe('RefChangeEventSchema', () => {
             displayValue: 'Orc (hp: 200)',
         };
         const parsed = TickRecordSchema.parse({ tickId: 2, timestamp: 200, events: [], refEvents: [event] });
-        const refEvent = parsed.refEvents[0]!;
+        const refEvent = parsed.refEvents[0];
+        if (!refEvent) throw new Error("refEvent expected");
         expect(refEvent.displayValue).toBe('Orc (hp: 200)');
         expect(refEvent.newValue).toBeUndefined();
     });

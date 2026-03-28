@@ -142,7 +142,7 @@ export function createNpcDemoTree(): BehaviourTree {
                                 stats.luck = 5 + Math.floor(t / 200) % 6
                                 const questNames = ['patrol', 'gather', 'escort', 'hunt']
                                 const questIdx = Math.floor(t / 50) % questNames.length
-                                quest.name = questNames[questIdx]!
+                                quest.name = questNames[questIdx] ?? 'patrol'
                                 quest.progress = (t % 50) / 50
                                 quest.stage = 1 + Math.floor(t / 200)
                                 charStatus.set(new CharacterStatus(level.value, currentActivity.value), ctx)

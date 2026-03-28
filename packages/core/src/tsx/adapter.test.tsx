@@ -565,7 +565,7 @@ describe("TSX Adapter", () => {
             );
 
             expect(node).toBeInstanceOf(Inverter);
-            expect(node.getChildren?.()?.[0]).toBeInstanceOf(Retry);
+            expect(node.getChildren?.()[0]).toBeInstanceOf(Retry);
             expect(tickNode(node)).toBe(NodeResult.Succeeded);
         });
 
