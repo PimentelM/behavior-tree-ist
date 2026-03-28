@@ -505,10 +505,10 @@ describe('RefTracesPanel', () => {
     const headers = container.querySelectorAll('.bt-ref-traces__group-header');
     expect(headers.length).toBe(2);
 
-    fireEvent.click(headers[0]);
+    fireEvent.click(headers[0] as Element);
     expect(container.querySelectorAll('.bt-ref-traces__group-children').length).toBe(1);
 
-    fireEvent.click(headers[0]);
+    fireEvent.click(headers[0] as Element);
     expect(container.querySelectorAll('.bt-ref-traces__group-children').length).toBe(2);
   });
 
