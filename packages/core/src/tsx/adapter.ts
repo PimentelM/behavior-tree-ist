@@ -145,6 +145,16 @@ export function createElement(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.subTree(safeProps as unknown as any, flatChildren[0] as BTNode);
         }
+        case "wrap": {
+            if (flatChildren.length !== 1) {
+                throw new Error(`<wrap> must have exactly one child node, but got ${flatChildren.length}.`);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            return Builder.applyDecorators(flatChildren[0] as BTNode, safeProps as any);
+        }
+        case "section":
+        case "group":
+            return flatChildren;
         case "action":
             // Action requires an execute prop
             if (typeof safeProps.execute !== "function") {
@@ -241,6 +251,11 @@ declare global {
             "display-state": Builder.NodeProps & { display: () => SerializableState };
             "display-note": Builder.NodeProps & { text: string };
             "display-progress": Builder.NodeProps & { progress: () => { progress: number; label?: string } };
+
+            // Transparent elements — produce no BT node
+            "wrap": Builder.NodeProps & { children?: Element };
+            "section": { desc?: string; children?: Element | Element[] };
+            "group": { desc?: string; children?: Element | Element[] }; // alias for section
 
             // Decorator intrinsic elements — zero-arg (child only)
             "inverter":                   DecoratorProps;
