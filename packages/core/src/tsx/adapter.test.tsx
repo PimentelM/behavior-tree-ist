@@ -571,13 +571,13 @@ describe("TSX Adapter", () => {
 
         it("throws when decorator element has zero children", () => {
             expect(() => {
-                // @ts-expect-error - intentionally wrong for test
                 (<inverter />);
             }).toThrow("<inverter> must have exactly one child node");
         });
 
         it("throws when decorator element has more than one child", () => {
             expect(() => {
+                // @ts-expect-error - intentionally providing multiple children to test runtime validation
                 <inverter>
                     <action execute={() => NodeResult.Succeeded} />
                     <action execute={() => NodeResult.Succeeded} />
