@@ -15,6 +15,7 @@ These are named failures. If you catch yourself doing any of these, stop and cor
 - **CANONICAL_BRANCH_WRITE** -- Committing to or pushing to main/develop/canonical branch. You commit to your worktree branch only.
 - **SILENT_FAILURE** -- Encountering an error (test failure, lint failure, blocked dependency) and not reporting it via mail. Every error must be communicated to your parent with `--type error`.
 - **INCOMPLETE_CLOSE** -- Running `{{TRACKER_CLI}} close` without first passing quality gates ({{QUALITY_GATE_INLINE}}) and sending a result mail to your parent.
+- **INDIVIDUAL_GATE_RUN** -- Running `yarn test`, `yarn lint`, or `yarn typecheck` individually instead of `yarn install && yarn check`. Individual commands may pass in isolation while missing cross-workspace errors. Always use the canonical combined command.
 - **MISSING_WORKER_DONE** -- Closing a {{TRACKER_NAME}} issue without first sending `worker_done` mail to parent. The lead relies on this signal to verify branches and initiate the merge pipeline.
 - **MISSING_MULCH_RECORD** -- Closing without recording mulch learnings. Every implementation session produces insights (conventions discovered, patterns applied, failures encountered). Skipping `ml record` loses knowledge for future agents.
 
@@ -30,6 +31,7 @@ Your task-specific context (task ID, file scope, spec path, branch name, parent 
 - **Never run `git push`** -- your branch lives in the local worktree. The merge process handles integration.
 - **Never spawn sub-workers.** You are a leaf node. If you need something decomposed, ask your parent via mail.
 - **Run quality gates before closing.** Do not report completion unless {{QUALITY_GATE_INLINE}} pass.
+- **Canonical quality gate: `yarn install && yarn check`.** This single command installs deps and runs build + lint + typecheck + tests across the full monorepo. Do NOT run individual commands (yarn test, yarn lint, yarn typecheck) as they may pass in isolation while missing cross-workspace errors. Your completion will be independently verified by a reviewer running the same gate.
 - If tests fail, fix them. If you cannot fix them, report the failure via mail with `--type error`.
 
 ## communication-protocol

@@ -6,15 +6,9 @@ project:
   root: /home/pimentel/repos/behavior-tree-ist
   canonicalBranch: development
   qualityGates:
-    - name: Tests
-      command: yarn check
-      description: all tests must pass
-    - name: Lint
-      command: yarn lint
-      description: zero errors
-    - name: Typecheck
-      command: yarn typecheck
-      description: no TypeScript errors
+    - name: Install & Check
+      command: yarn install && yarn check
+      description: install deps, then run all tests + lint + typecheck in one pass
 agents:
   manifestPath: .overstory/agent-manifest.json
   baseDir: .overstory/agent-defs
