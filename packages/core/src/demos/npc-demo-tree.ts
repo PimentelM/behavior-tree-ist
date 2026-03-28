@@ -1,12 +1,13 @@
 /// <reference lib="dom" />
 import {
-    BehaviourTree, NodeResult, ref,
+    BehaviourTree, NodeResult, ref, multiRef,
     action, asyncAction, condition,
     parallel, sequence, selector,
     ifThenElse, sequenceWithMemory, selectorWithMemory,
     utilityFallback, utilitySequence, utility,
     alwaysRunning, alwaysSuccess, alwaysFailure,
     sleep, displayState, displayNote, displayProgress, subTree,
+    type Displayable,
 } from '../index.js'
 
 type Item = { id: number; x: number; y: number; type: string; collected: boolean }
@@ -35,6 +36,11 @@ function stepToward(fx: number, fy: number, tx: number, ty: number, spd: number)
     const d = dist(fx, fy, tx, ty)
     if (d <= spd) return { x: tx, y: ty }
     return { x: fx + ((tx - fx) / d) * spd, y: fy + ((ty - fy) / d) * spd }
+}
+
+class CharacterStatus implements Displayable {
+    constructor(public level: number, public activity: string) {}
+    toDisplayString(): string { return `Lv.${this.level} ${this.activity}` }
 }
 
 export function createNpcDemoTree(): BehaviourTree {
@@ -97,6 +103,13 @@ export function createNpcDemoTree(): BehaviourTree {
     const isFleeing = ref(false, 'is-fleeing')
     const isNearBase = ref(true, 'is-near-base')
 
+    // Grouped refs (multiRef creates dotted names for UI grouping)
+    const stats = multiRef('stats', { str: 10, agi: 12, wis: 8, luck: 5 })
+    const quest = multiRef('quest', { name: 'patrol', progress: 0, stage: 1 })
+
+    // Displayable ref (UI shows toDisplayString() instead of raw JSON)
+    const charStatus = ref<CharacterStatus>(new CharacterStatus(1, 'idle'), 'char-status')
+
     return new BehaviourTree(
         subTree({ name: 'NPC Adventurer Demo', namespace: 'npc', id: 'npc-adventure-bt' },
             parallel({
@@ -118,6 +131,24 @@ export function createNpcDemoTree(): BehaviourTree {
                                 timeOfDay.set((timeOfDay.value + 0.2) % 100, ctx)
                                 return NodeResult.Succeeded
                             },
+                        }),
+                        action({
+                            name: 'UpdateDemoRefs',
+                            execute: (ctx) => {
+                                const t = tickCount.value
+                                stats.str = 10 + Math.floor(t / 100) % 5
+                                stats.agi = 12 + Math.floor(t / 80) % 4
+                                stats.wis = 8 + Math.floor(t / 120) % 3
+                                stats.luck = 5 + Math.floor(t / 200) % 6
+                                const questNames = ['patrol', 'gather', 'escort', 'hunt']
+                                const questIdx = Math.floor(t / 50) % questNames.length
+                                quest.name = questNames[questIdx]!
+                                quest.progress = (t % 50) / 50
+                                quest.stage = 1 + Math.floor(t / 200)
+                                charStatus.set(new CharacterStatus(level.value, currentActivity.value), ctx)
+                                return NodeResult.Succeeded
+                            },
+                            throttle: 5,
                         }),
                         action({
                             name: 'UpdateWeather',
