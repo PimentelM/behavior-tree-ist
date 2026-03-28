@@ -957,5 +957,15 @@
 		"status": "active",
 		"createdAt": "2026-03-27T02:59:30.240Z",
 		"completedAt": null
+	},
+	{
+		"id": "group-90bd856c",
+		"name": "lint-fix",
+		"memberIssueIds": [
+			"behavior-tree-ist-0a18"
+		],
+		"status": "active",
+		"createdAt": "2026-03-28T01:06:24.086Z",
+		"completedAt": null
 	}
 ]
