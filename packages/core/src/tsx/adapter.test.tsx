@@ -482,8 +482,10 @@ describe("TSX Adapter", () => {
             );
 
             expect(node).toBeInstanceOf(Retry);
-            tickNode(node);
-            expect(calls).toBe(3); // initial + 2 retries
+            const ticker = createNodeTicker();
+            expect(ticker.tick(node)).toBe(NodeResult.Running);
+            expect(ticker.tick(node)).toBe(NodeResult.Failed);
+            expect(calls).toBe(2);
         });
 
         it("numeric: repeat with times prop", () => {
@@ -496,7 +498,9 @@ describe("TSX Adapter", () => {
 
             expect(node).toBeInstanceOf(Repeat);
             const ticker = createNodeTicker();
-            ticker.tick(node);
+            expect(ticker.tick(node)).toBe(NodeResult.Running);
+            expect(ticker.tick(node)).toBe(NodeResult.Running);
+            expect(ticker.tick(node)).toBe(NodeResult.Succeeded);
             expect(calls).toBe(3);
         });
 
