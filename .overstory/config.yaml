@@ -3,7 +3,7 @@
 
 project:
   name: behavior-tree-ist
-  root: /home/pimentel/repos/behavior-tree-ist
+  root: /Users/pimentel/Projects/behavior-tree-ist
   canonicalBranch: development
   qualityGates:
     - name: Install & Check
@@ -14,7 +14,7 @@ agents:
   baseDir: .overstory/agent-defs
   maxConcurrent: 25
   staggerDelayMs: 2000
-  maxDepth: 3
+  maxDepth: 2
   maxSessionsPerRun: 0
   maxAgentsPerLead: 5
 worktrees:
@@ -40,6 +40,9 @@ watchdog:
   staleThresholdMs: 300000
   zombieThresholdMs: 600000
   nudgeIntervalMs: 60000
+  rpcTimeoutMs: 5000
+  triageTimeoutMs: 30000
+  maxEscalationLevel: 3
 coordinator:
   exitTriggers:
     allAgentsDone: false
