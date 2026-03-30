@@ -149,8 +149,12 @@ export function createElement(
             if (flatChildren.length !== 1) {
                 throw new Error(`<wrap> must have exactly one child node, but got ${flatChildren.length}.`);
             }
+            const wrapChild = flatChildren[0] as BTNode;
+            if (safeProps.name !== undefined) {
+                wrapChild.name = safeProps.name as string;
+            }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            return Builder.applyDecorators(flatChildren[0] as BTNode, safeProps as any);
+            return Builder.applyDecorators(wrapChild, safeProps as any);
         }
         case "section":
         case "group":
