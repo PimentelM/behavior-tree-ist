@@ -625,6 +625,29 @@ describe("TSX Adapter", () => {
                 </wrap>;
             }).toThrow("<wrap> must have exactly one child node");
         });
+
+        it("forwards name prop to child node", () => {
+            const node = (
+                <wrap name="Foo">
+                    <action execute={() => NodeResult.Succeeded} />
+                </wrap>
+            );
+
+            expect(node.name).toBe("Foo");
+            expect(tickNode(node)).toBe(NodeResult.Succeeded);
+        });
+
+        it("forwards name prop to child when decorators also applied", () => {
+            const node = (
+                <wrap name="Bar" inverter>
+                    <action execute={() => NodeResult.Succeeded} />
+                </wrap>
+            );
+
+            expect(node).toBeInstanceOf(Inverter);
+            expect(node.getChildren?.()[0]?.name).toBe("Bar");
+            expect(tickNode(node)).toBe(NodeResult.Failed);
+        });
     });
 
     describe("<section>", () => {
