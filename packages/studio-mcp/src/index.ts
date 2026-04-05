@@ -10,6 +10,7 @@ import {
     handleListAgents,
     handleEval,
     handleCompletions,
+    handleQueryLogs,
 } from './tools';
 
 async function main(): Promise<void> {
@@ -65,6 +66,21 @@ async function main(): Promise<void> {
             },
         },
         (args) => handleEval(trpc, sessions, config, args),
+    );
+
+    server.registerTool(
+        'query_logs',
+        {
+            description: 'Query historical logs stored by the bt-studio server.',
+            inputSchema: {
+                clientId: z.string().describe('Agent client ID. Required.'),
+                sessionId: z.string().optional().describe('Optional session ID to narrow results.'),
+                minLevel: z.number().optional().describe('Optional minimum log level (0=error ... 4=trace).'),
+                beforeId: z.number().optional().describe('Optional pagination cursor for older results.'),
+                limit: z.number().optional().describe('Optional page size. Defaults to 100, max 500.'),
+            },
+        },
+        (args) => handleQueryLogs(trpc, args),
     );
 
     server.registerTool(

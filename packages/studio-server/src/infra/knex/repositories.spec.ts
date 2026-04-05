@@ -8,6 +8,7 @@ import { SessionRepository } from './session-repository';
 import { TreeRepository } from './tree-repository';
 import { SettingsRepository } from './settings-repository';
 import { TickRepository } from './tick-repository';
+import { LogRepository } from './log-repository';
 
 describe('Knex repositories', () => {
     let knex: Knex;
@@ -244,5 +245,102 @@ describe('TickRepository', () => {
 
         const otherBounds = await tickRepository.getTickBounds('other', S, T);
         expect(otherBounds?.totalCount).toBe(3);
+    });
+});
+
+describe('LogRepository', () => {
+    let knex: Knex;
+    let logRepository: LogRepository;
+
+    beforeEach(async () => {
+        knex = createSqliteMemoryKnexInstance({
+            directory: path.join(__dirname, '../../../migrations'),
+            extension: 'js',
+        });
+        await knex.migrate.latest();
+        logRepository = new LogRepository(knex);
+    });
+
+    afterEach(async () => {
+        await knex.destroy();
+    });
+
+    async function insert(
+        clientId: string,
+        sessionId: string,
+        timestamp: number,
+        level: number,
+        event: string,
+        message: string,
+    ) {
+        await logRepository.insert(clientId, sessionId, { timestamp, level, event, message });
+    }
+
+    it('returns newest-first logs for a client', async () => {
+        await insert('client-1', 'session-1', 10, 2, 'Old', 'old');
+        await insert('client-1', 'session-1', 20, 2, 'New', 'new');
+
+        const page = await logRepository.query({ clientId: 'client-1', limit: 10 });
+
+        expect(page.items.map((item: { event: string }) => item.event)).toEqual(['New', 'Old']);
+    });
+
+    it('narrows by sessionId and minLevel', async () => {
+        await insert('client-1', 'session-1', 10, 4, 'Trace', 'trace');
+        await insert('client-1', 'session-1', 11, 1, 'Warn', 'warn');
+        await insert('client-1', 'session-2', 12, 0, 'Error', 'error');
+
+        const page = await logRepository.query({
+            clientId: 'client-1',
+            sessionId: 'session-1',
+            minLevel: 1,
+            limit: 10,
+        });
+
+        expect(page.items.map((item: { event: string }) => item.event)).toEqual(['Warn']);
+    });
+
+    it('supports beforeId pagination cursor', async () => {
+        await insert('client-1', 'session-1', 10, 2, 'One', 'one');
+        await insert('client-1', 'session-1', 20, 2, 'Two', 'two');
+        await insert('client-1', 'session-1', 30, 2, 'Three', 'three');
+
+        const first = await logRepository.query({ clientId: 'client-1', limit: 2 });
+        if (first.nextCursor === null) {
+            throw new Error('Expected a pagination cursor for the first page');
+        }
+        const second = await logRepository.query({
+            clientId: 'client-1',
+            beforeId: first.nextCursor,
+            limit: 2,
+        });
+
+        expect(first.items.map((item: { event: string }) => item.event)).toEqual(['Three', 'Two']);
+        expect(second.items.map((item: { event: string }) => item.event)).toEqual(['One']);
+        expect(second.nextCursor).toBeNull();
+    });
+
+    it('returns null nextCursor when the page exhausts results', async () => {
+        await insert('client-1', 'session-1', 10, 2, 'One', 'one');
+        await insert('client-1', 'session-1', 20, 2, 'Two', 'two');
+
+        const page = await logRepository.query({ clientId: 'client-1', limit: 10 });
+
+        expect(page.nextCursor).toBeNull();
+    });
+
+    it('prunes oldest rows per client only', async () => {
+        await insert('client-1', 'session-1', 10, 2, 'One', 'one');
+        await insert('client-1', 'session-1', 20, 2, 'Two', 'two');
+        await insert('client-1', 'session-1', 30, 2, 'Three', 'three');
+        await insert('client-2', 'session-1', 40, 2, 'Other', 'other');
+
+        await logRepository.pruneToLimit('client-1', 2);
+
+        const clientOne = await logRepository.query({ clientId: 'client-1', limit: 10 });
+        const clientTwo = await logRepository.query({ clientId: 'client-2', limit: 10 });
+
+        expect(clientOne.items.map((item: { event: string }) => item.event)).toEqual(['Three', 'Two']);
+        expect(clientTwo.items.map((item: { event: string }) => item.event)).toEqual(['Other']);
     });
 });

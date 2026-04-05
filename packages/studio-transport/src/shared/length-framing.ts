@@ -7,7 +7,10 @@
  */
 
 const HEADER_SIZE = 4;
-const textEncoder = new TextEncoder();
+let _textEncoder: TextEncoder | undefined;
+function getTextEncoder(): TextEncoder {
+    return (_textEncoder ??= new TextEncoder());
+}
 
 /**
  * Encodes a payload into a length-prefixed frame.
@@ -24,7 +27,7 @@ export function encodeFrame(data: Uint8Array): Uint8Array {
  * Encodes a string payload into a length-prefixed frame (UTF-8).
  */
 export function encodeStringFrame(data: string): Uint8Array {
-    const encoded = textEncoder.encode(data);
+    const encoded = getTextEncoder().encode(data);
     return encodeFrame(encoded);
 }
 

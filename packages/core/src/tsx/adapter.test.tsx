@@ -589,4 +589,149 @@ describe("TSX Adapter", () => {
             }).toThrow("<inverter> must have exactly one child node");
         });
     });
+
+    describe("<wrap>", () => {
+        it("forwards NodeProps to child via applyDecorators, returns decorated child", () => {
+            const node = (
+                <wrap inverter>
+                    <action execute={() => NodeResult.Succeeded} />
+                </wrap>
+            );
+
+            expect(node).toBeInstanceOf(Inverter);
+            expect(tickNode(node)).toBe(NodeResult.Failed);
+        });
+
+        it("returns child unchanged when no NodeProps provided", () => {
+            const child = <action name="Bare" execute={() => NodeResult.Succeeded} />;
+            const node = <wrap>{child}</wrap>;
+
+            expect(node).toBe(child);
+            expect(tickNode(node)).toBe(NodeResult.Succeeded);
+        });
+
+        it("throws when wrap has zero children", () => {
+            expect(() => {
+                (<wrap />);
+            }).toThrow("<wrap> must have exactly one child node");
+        });
+
+        it("throws when wrap has more than one child", () => {
+            expect(() => {
+                // @ts-expect-error - intentionally providing multiple children to test runtime validation
+                <wrap>
+                    <action execute={() => NodeResult.Succeeded} />
+                    <action execute={() => NodeResult.Succeeded} />
+                </wrap>;
+            }).toThrow("<wrap> must have exactly one child node");
+        });
+
+        it("forwards name prop to child node", () => {
+            const node = (
+                <wrap name="Foo">
+                    <action execute={() => NodeResult.Succeeded} />
+                </wrap>
+            );
+
+            expect(node.name).toBe("Foo");
+            expect(tickNode(node)).toBe(NodeResult.Succeeded);
+        });
+
+        it("forwards name prop to child when decorators also applied", () => {
+            const node = (
+                <wrap name="Bar" inverter>
+                    <action execute={() => NodeResult.Succeeded} />
+                </wrap>
+            );
+
+            expect(node).toBeInstanceOf(Inverter);
+            expect(node.getChildren?.()[0]?.name).toBe("Bar");
+            expect(tickNode(node)).toBe(NodeResult.Failed);
+        });
+    });
+
+    describe("<section>", () => {
+        it("returns children as flat array", () => {
+            const nodes = (
+                <section desc="Attack phase">
+                    <action name="A" execute={() => NodeResult.Succeeded} />
+                    <action name="B" execute={() => NodeResult.Succeeded} />
+                </section>
+            ) as unknown as BTNode[];
+
+            expect(Array.isArray(nodes)).toBe(true);
+            expect(nodes.length).toBe(2);
+            expect(nodes[0]?.name).toBe("A");
+            expect(nodes[1]?.name).toBe("B");
+        });
+
+        it("works without desc prop", () => {
+            const nodes = (
+                <section>
+                    <action name="X" execute={() => NodeResult.Succeeded} />
+                </section>
+            ) as unknown as BTNode[];
+
+            expect(Array.isArray(nodes)).toBe(true);
+            expect(nodes[0]?.name).toBe("X");
+        });
+
+        it("flattens nested sections into parent sequence", () => {
+            const tree = (
+                <sequence name="Root">
+                    <section desc="Group A">
+                        <action name="A1" execute={() => NodeResult.Succeeded} />
+                        <action name="A2" execute={() => NodeResult.Succeeded} />
+                    </section>
+                    <action name="B" execute={() => NodeResult.Succeeded} />
+                </sequence>
+            );
+
+            const children = tree.getChildren?.() ?? [];
+            expect(children.length).toBe(3);
+            expect(children[0]?.name).toBe("A1");
+            expect(children[1]?.name).toBe("A2");
+            expect(children[2]?.name).toBe("B");
+        });
+
+        it("returns empty array when no children", () => {
+            const nodes = (<section />) as unknown as BTNode[];
+            expect(Array.isArray(nodes)).toBe(true);
+            expect(nodes.length).toBe(0);
+        });
+    });
+
+    describe("<group> (alias for section)", () => {
+        it("returns children as flat array", () => {
+            const nodes = (
+                <group desc="Movement phase">
+                    <action name="A" execute={() => NodeResult.Succeeded} />
+                    <action name="B" execute={() => NodeResult.Succeeded} />
+                </group>
+            ) as unknown as BTNode[];
+
+            expect(Array.isArray(nodes)).toBe(true);
+            expect(nodes.length).toBe(2);
+            expect(nodes[0]?.name).toBe("A");
+            expect(nodes[1]?.name).toBe("B");
+        });
+
+        it("flattens into parent composite", () => {
+            const tree = (
+                <sequence name="Root">
+                    <group>
+                        <action name="G1" execute={() => NodeResult.Succeeded} />
+                        <action name="G2" execute={() => NodeResult.Succeeded} />
+                    </group>
+                    <action name="C" execute={() => NodeResult.Succeeded} />
+                </sequence>
+            );
+
+            const children = tree.getChildren?.() ?? [];
+            expect(children.length).toBe(3);
+            expect(children[0]?.name).toBe("G1");
+            expect(children[1]?.name).toBe("G2");
+            expect(children[2]?.name).toBe("C");
+        });
+    });
 });

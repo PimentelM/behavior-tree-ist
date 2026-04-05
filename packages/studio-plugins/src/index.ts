@@ -11,6 +11,14 @@ export type {
     ReplPluginConfig,
 } from './repl-types';
 
+export type {
+    LogsPluginPayload,
+} from './logs-types';
+
+export {
+    LogsPlugin,
+} from './logs-plugin';
+
 export {
     ReplPlugin,
     toDisplayString,

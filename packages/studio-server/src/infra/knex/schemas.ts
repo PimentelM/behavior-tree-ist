@@ -4,6 +4,7 @@ declare module 'knex/types/tables' {
         sessions: DbSession;
         trees: DbTree;
         ticks: DbTick;
+        logs: DbLog;
         serverSettings: DbSettings;
     }
 }
@@ -37,6 +38,16 @@ export interface DbTick {
     tickId: number;
     timestamp: number;
     payloadJson: string;
+}
+
+export interface DbLog {
+    id?: number;
+    clientId: string;
+    sessionId: string;
+    timestamp: number;
+    level: number;
+    event: string;
+    message: string;
 }
 
 export interface DbSettings {
