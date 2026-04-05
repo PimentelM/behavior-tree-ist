@@ -33,3 +33,17 @@ export const SettingsRecord = z.object({
     updatedAt: z.number(),
 });
 export type SettingsRecord = z.infer<typeof SettingsRecord>;
+
+export const LogLevelSchema = z.number().int().min(0).max(4);
+export type LogLevel = z.infer<typeof LogLevelSchema>;
+
+export const LogRecord = z.object({
+    id: z.number().int(),
+    clientId: z.string(),
+    sessionId: z.string(),
+    timestamp: z.number(),
+    level: LogLevelSchema,
+    event: z.string(),
+    message: z.string(),
+});
+export type LogRecord = z.infer<typeof LogRecord>;

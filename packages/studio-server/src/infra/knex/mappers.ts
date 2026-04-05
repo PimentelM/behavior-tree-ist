@@ -7,12 +7,14 @@ import type {
 import type { TickRecord } from '@bt-studio/core';
 import type {
     DbClient,
+    DbLog,
     DbSession,
     DbTree,
     DbTick,
     DbSettings,
 } from './schemas';
 import { SerializableNodeSchema, TickRecordSchema } from '../../domain/core-schemas';
+import { LogRecord } from '@bt-studio/studio-common';
 
 export function mapDbClientToDomain(dbClient: DbClient): ClientRecord {
     return dbClient;
@@ -78,6 +80,33 @@ export function mapDbSettingsToDomain(dbSettings: DbSettings): SettingsRecord {
 
 export function mapSettingsToDb(settings: SettingsRecord): DbSettings {
     return settings;
+}
+
+export function mapDbLogToDomain(dbLog: DbLog): LogRecord {
+    return LogRecord.parse({
+        id: dbLog.id,
+        clientId: dbLog.clientId,
+        sessionId: dbLog.sessionId,
+        timestamp: dbLog.timestamp,
+        level: dbLog.level,
+        event: dbLog.event,
+        message: dbLog.message,
+    });
+}
+
+export function mapLogToDb(params: {
+    clientId: string;
+    sessionId: string;
+    log: Omit<LogRecord, 'id' | 'clientId' | 'sessionId'>;
+}): DbLog {
+    return {
+        clientId: params.clientId,
+        sessionId: params.sessionId,
+        timestamp: params.log.timestamp,
+        level: params.log.level,
+        event: params.log.event,
+        message: params.log.message,
+    };
 }
 
 function parseJson(raw: string, label: string): unknown {

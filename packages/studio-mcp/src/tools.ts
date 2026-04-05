@@ -1,6 +1,7 @@
 import { base64urlEncode } from '@bt-studio/studio-plugins';
 import type { AppRouter } from '@bt-studio/studio-server';
 import { type TRPCClient } from '@trpc/client';
+import { LogQueryPage } from '@bt-studio/studio-common';
 import { type CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { type SessionManager } from './session-manager';
 import type { McpConfig } from './config';
@@ -21,10 +22,20 @@ export interface CompletionsArgs {
     maxResults?: number;
 }
 
+export interface QueryLogsArgs {
+    clientId: string;
+    sessionId?: string;
+    minLevel?: number;
+    beforeId?: number;
+    limit?: number;
+}
+
 type AgentIdentity = {
     clientId: string;
     sessionId: string;
 };
+
+const LOG_LEVEL_NAMES = ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'] as const;
 
 /** Resolve an agent from (optional) clientId/sessionId. Auto-selects if exactly one agent is online. */
 async function resolveAgent(
@@ -266,4 +277,38 @@ export async function handleCompletions(
     };
 
     return completionsWithRetry(false);
+}
+
+export async function handleQueryLogs(
+    trpc: TRPCClient<AppRouter>,
+    args: QueryLogsArgs,
+): Promise<CallToolResult> {
+    try {
+        const page = LogQueryPage.parse(await trpc.logs.query.query(args));
+        if (page.items.length === 0) {
+            return textResult('No logs found.');
+        }
+
+        const lines = page.items.map((item: {
+            timestamp: number;
+            level: number;
+            event: string;
+            message: string;
+        }) => {
+            const iso = new Date(item.timestamp).toISOString();
+            return `${iso} [${formatLogLevel(item.level)}] ${item.event}: ${item.message}`;
+        });
+
+        if (page.nextCursor !== null) {
+            lines.push('', `nextCursor=${page.nextCursor}`);
+        }
+
+        return textResult(lines.join('\n'));
+    } catch (err) {
+        return errorResult(`query_logs failed: ${String(err)}`);
+    }
+}
+
+function formatLogLevel(level: number): string {
+    return LOG_LEVEL_NAMES[level] ?? String(level);
 }

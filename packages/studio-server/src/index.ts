@@ -16,6 +16,7 @@ import { ClientRepository } from './infra/knex/client-repository';
 import { SessionRepository } from './infra/knex/session-repository';
 import { TreeRepository } from './infra/knex/tree-repository';
 import { TickRepository } from './infra/knex/tick-repository';
+import { LogRepository } from './infra/knex/log-repository';
 import { SettingsRepository } from './infra/knex/settings-repository';
 import { registerMessageHandlers, createDisconnectHandler, type RuntimeSettingsRef } from './app/handlers/messages';
 import { createAppRouter } from './app/handlers/trpc';
@@ -245,6 +246,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
         const sessionRepository = new SessionRepository(knex);
         const treeRepository = new TreeRepository(knex);
         const tickRepository = new TickRepository(knex);
+        const logRepository = new LogRepository(knex);
         const settingsRepository = new SettingsRepository(knex);
 
         // Load current settings once at startup to seed the runtime cache
@@ -289,6 +291,7 @@ async function initializeService({ config, staticDir }: { config: StudioServerCo
             sessionRepository,
             treeRepository,
             tickRepository,
+            logRepository,
             settingsRepository,
             config,
         };

@@ -60,6 +60,9 @@ export function registerMessageHandlers({ messageRouter, ...deps }: AppDependenc
         MessageType.PluginMessage,
         new PluginMessageHandler({
             replBroker: deps.replBroker,
+            agentConnectionRegistry: deps.agentConnectionRegistry,
+            logRepository: deps.logRepository,
+            maxLogsPerClient: 10_000,
         })
     );
 }

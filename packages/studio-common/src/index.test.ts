@@ -8,8 +8,8 @@ import {
     SerializableNodeSchema,
     TreeStatusesSchema,
 } from './core-schemas';
-import { ClientRecord, SessionRecord, SettingsRecord } from './records';
-import { ServerSettings, TickBounds } from './types';
+import { ClientRecord, SessionRecord, SettingsRecord, LogLevelSchema, LogRecord } from './records';
+import { ServerSettings, TickBounds, LogQuery, LogQueryPage } from './types';
 import { UiInboundMessageSchema, UiOutboundMessageSchema } from './protocol';
 
 // MessageType numeric values from @bt-studio/core (kept as literals to avoid requiring built dist)
@@ -205,6 +205,56 @@ describe('SettingsRecord', () => {
 
     it('rejects non-integer values', () => {
         expect(() => SettingsRecord.parse({ id: 1.5, maxTicksPerTree: 100000, commandTimeoutMs: 5000, updatedAt: 0 })).toThrow();
+    });
+});
+
+describe('Log schemas', () => {
+    it('parses log level', () => {
+        expect(LogLevelSchema.parse(0)).toBe(0);
+        expect(LogLevelSchema.parse(4)).toBe(4);
+    });
+
+    it('parses log record', () => {
+        const record = LogRecord.parse({
+            id: 1,
+            clientId: 'client-1',
+            sessionId: 'session-1',
+            timestamp: 123,
+            level: 2,
+            event: 'Boot',
+            message: 'Ready',
+        });
+
+        expect(record.message).toBe('Ready');
+    });
+
+    it('parses log query', () => {
+        const query = LogQuery.parse({
+            clientId: 'client-1',
+            sessionId: 'session-1',
+            minLevel: 1,
+            beforeId: 99,
+            limit: 100,
+        });
+
+        expect(query.clientId).toBe('client-1');
+    });
+
+    it('parses log query page', () => {
+        const page = LogQueryPage.parse({
+            items: [{
+                id: 3,
+                clientId: 'client-1',
+                sessionId: 'session-1',
+                timestamp: 1000,
+                level: 2,
+                event: 'Boot',
+                message: 'Ready',
+            }],
+            nextCursor: 3,
+        });
+
+        expect(page.items[0]?.event).toBe('Boot');
     });
 });
 

@@ -1,5 +1,5 @@
 import { type SerializableNode, type TickRecord } from '@bt-studio/core';
-import type { TickBounds } from '@bt-studio/studio-common';
+import type { TickBounds, LogQuery, LogQueryPage, LogRecord } from '@bt-studio/studio-common';
 import type { ClientRecord, SessionRecord, TreeRecord, SettingsRecord } from './records';
 
 // ── Repository interfaces ──
@@ -37,4 +37,10 @@ export interface TickRepositoryInterface {
 export interface SettingsRepositoryInterface {
     get(): Promise<SettingsRecord>;
     update(settings: Partial<Pick<SettingsRecord, 'maxTicksPerTree' | 'commandTimeoutMs'>>): Promise<void>;
+}
+
+export interface LogRepositoryInterface {
+    insert(clientId: string, sessionId: string, log: Omit<LogRecord, 'id' | 'clientId' | 'sessionId'>): Promise<void>;
+    query(input: LogQuery & { limit: number }): Promise<LogQueryPage>;
+    pruneToLimit(clientId: string, maxLogs: number): Promise<void>;
 }
