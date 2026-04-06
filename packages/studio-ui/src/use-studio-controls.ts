@@ -185,6 +185,26 @@ export function useStudioControls(): UseStudioControlsResult {
         }
     }, [clients, loadingClients, selection, onSelectionChange]);
 
+    // Auto-switch to newest online session when current session goes offline.
+    // sessions is scoped to expandedClientId (=== sel.clientId when selection active, via onSelectionChange L170-171).
+    useEffect(() => {
+        const sel = selectionRef.current;
+        if (!sel) return;
+
+        const currentSession = sessions.find((s) => s.sessionId === sel.sessionId);
+        if (currentSession?.online) return;
+
+        const newest = sessions
+            .filter((s) => s.clientId === sel.clientId && s.online)
+            .sort((a, b) => {
+                const diff = b.startedAt - a.startedAt;
+                return diff !== 0 ? diff : b.sessionId.localeCompare(a.sessionId);
+            })[0];
+
+        if (!newest) return;
+        onSelectionChange({ ...sel, sessionId: newest.sessionId });
+    }, [sessions, onSelectionChange]);
+
     const studioControls: StudioControls = useMemo(() => ({
         clients,
         sessions,

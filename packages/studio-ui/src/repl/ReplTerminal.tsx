@@ -374,6 +374,27 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
         }
     }, [monitorMode]);
 
+    // --- Session reattach tracking ---
+    const prevSessionRef = useRef(sessionId);
+    const [reattaching, setReattaching] = useState(false);
+
+    useEffect(() => {
+        if (prevSessionRef.current && sessionId && prevSessionRef.current !== sessionId) {
+            setReattaching(true);
+            if (rlRef.current) {
+                writeln(rlRef.current, `\r\n${GRAY}--- Reattached to session ${sessionId.slice(0, 8)}... ---${RESET}`);
+            }
+        }
+        prevSessionRef.current = sessionId;
+    }, [sessionId]);
+
+    useEffect(() => {
+        if (!reattaching) return;
+        if (repl.handshakeStatus === 'established' || (typeof repl.handshakeStatus === 'object' && 'error' in repl.handshakeStatus)) {
+            setReattaching(false);
+        }
+    }, [reattaching, repl.handshakeStatus]);
+
     // Completion overlay state — bridged from the one-time useEffect via refs.
     const [completionState, setCompletionState] = useState<CompletionState | null>(null);
     const completionStateRef = useRef<CompletionState | null>(null);
@@ -716,6 +737,20 @@ export function ReplTerminal({ clientId, sessionId }: ReplTerminalProps) {
                     </button>
                 )}
             </div>
+
+            {/* Reconnecting banner */}
+            {reattaching && repl.handshakeStatus === 'connecting' && (
+                <div style={{
+                    padding: '4px 10px',
+                    background: '#1a1a00',
+                    color: '#f1fa8c',
+                    fontSize: 11,
+                    fontFamily: 'Menlo, Consolas, monospace',
+                    borderBottom: '1px solid #333333',
+                }}>
+                    Reconnecting to new session...
+                </div>
+            )}
 
             {/* xterm terminal — hidden in monitor mode */}
             <div ref={containerRef} style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative', display: monitorMode ? 'none' : 'flex' }}>

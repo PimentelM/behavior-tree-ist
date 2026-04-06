@@ -237,6 +237,17 @@ export function useRepl({ clientId, sessionId }: UseReplOptions): UseReplReturn 
         setSessionKeys(keys);
     }, [keyPair]);
 
+    // Reset encrypted session when the target session changes (e.g. auto-reattach).
+    const prevSessionIdRef = useRef(sessionId);
+    useEffect(() => {
+        if (prevSessionIdRef.current !== sessionId) {
+            prevSessionIdRef.current = sessionId;
+            setSessionKeys(null);
+            setHandshakeStatus(sessionId ? 'connecting' : 'idle');
+            sentEncryptedPayloadsRef.current = new Set();
+        }
+    }, [sessionId]);
+
     // Automatically initiate handshake when agent is connected.
     // Polls until the agent has sent its headerToken (repl.handshake.query).
     useEffect(() => {
