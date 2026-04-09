@@ -290,6 +290,7 @@ export interface TickContext {
     events: TickTraceEvent[];
     refEvents: RefChangeEvent[];
     isStateTraceEnabled: boolean;
+    isDebugEnabled: boolean;
     trace: (node: BTNode, result: NodeResult, startedAt?: number, finishedAt?: number) => void;
     getTime?: () => number;
     runtime?: TickRuntime;
