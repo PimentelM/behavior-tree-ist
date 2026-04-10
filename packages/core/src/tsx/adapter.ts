@@ -4,7 +4,7 @@ import * as Builder from "../builder";
 import { type ParallelPolicy } from "../nodes/composite/parallel";
 import { Utility as UtilityNode } from "../nodes/decorators/utility";
 import * as Decorators from "../nodes/decorators";
-import { Gizmos } from "../nodes/gizmos";
+import { DebugNode } from "../nodes/debug";
 
 export function Fragment(_props: unknown, ...children: BTNode[]): BTNode[] {
     return children;
@@ -148,12 +148,12 @@ export function createElement(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.subTree(safeProps as unknown as any, flatChildren[0] as BTNode);
         }
-        case "gizmos": {
-            if (flatChildren.length === 0) throw new Error("<gizmos> requires at least one child");
-            const gizmosNode = new Gizmos(flatChildren);
-            if (safeProps.name) gizmosNode.name = safeProps.name as string;
+        case "debug": {
+            if (flatChildren.length === 0) throw new Error("<debug> requires at least one child");
+            const debugNode = new DebugNode(flatChildren);
+            if (safeProps.name) debugNode.name = safeProps.name as string;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            return Builder.applyDecorators(gizmosNode, safeProps as any);
+            return Builder.applyDecorators(debugNode, safeProps as any);
         }
         case "wrap": {
             if (flatChildren.length !== 1) {
@@ -255,7 +255,7 @@ declare global {
             "utility-sequence": DefaultCompositeProps;
             "utility-node": Builder.NodeProps & { scorer: UtilityScorer; children?: Element | Element[] };
             "sub-tree": Builder.SubTreeProps & { children?: Element | Element[] };
-            "gizmos": DefaultCompositeProps;
+            "debug": DefaultCompositeProps;
             "action": Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
             "async-action": Builder.NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | undefined> };
             "condition": Builder.NodeProps & { eval: (ctx: TickContext) => boolean };

@@ -31,6 +31,7 @@ export interface ThemeOverrides {
   colorFailed?: string;
   colorRunning?: string;
   colorIdle?: string;
+  colorSkipped?: string;
   bgPrimary?: string;
   bgSecondary?: string;
   bgTertiary?: string;
@@ -48,7 +49,7 @@ export type ThemeMode = 'light' | 'dark';
 
 export type LayoutDirection = 'TB' | 'LR';
 
-export type NodeVisualKind = 'sequence' | 'fallback' | 'parallel' | 'action' | 'condition' | 'subTree' | 'ifThenElse' | 'displayNote' | 'displayProgress' | 'node';
+export type NodeVisualKind = 'sequence' | 'fallback' | 'parallel' | 'action' | 'condition' | 'subTree' | 'ifThenElse' | 'displayNote' | 'displayProgress' | 'debug' | 'node';
 
 export interface NodeDecoratorData {
   nodeId: number;

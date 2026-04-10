@@ -3,20 +3,20 @@ import { ConditionNode } from "../base/condition";
 import { BTNode, type TickContext } from "../base/node";
 import { NodeResult, NodeFlags } from "../base/types";
 
-class GizmosGate extends ConditionNode {
-    public override readonly defaultName = "GizmosGate";
+class DebugGate extends ConditionNode {
+    public override readonly defaultName = "DebugGate";
 
     constructor() {
-        super("GizmosGate", (ctx) => ctx.isDebugEnabled);
+        super("DebugGate", (ctx) => ctx.isDebugEnabled);
     }
 }
 
-export class Gizmos extends Composite {
-    public override readonly defaultName = "Gizmos";
-    private readonly gate: GizmosGate;
+export class DebugNode extends Composite {
+    public override readonly defaultName = "Debug";
+    private readonly gate: DebugGate;
 
     constructor(children: BTNode[]) {
-        const gate = new GizmosGate();
+        const gate = new DebugGate();
         super();
         this.gate = gate;
         this.addFlags(NodeFlags.Debug);

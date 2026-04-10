@@ -28,7 +28,7 @@ export const NodeFlags = {
     Async: 1 << 17,  // 0x20000 — asynchronous/promise-based node
     Display: 1 << 18,  // 0x40000 — node whose purpose is merely display related
     SubTree: 1 << 19,  // 0x80000 — explicit subtree boundary marker for tooling
-    Debug: 1 << 20,    // 0x100000 — debug/gizmos node (e.g. GizmosNode)
+    Debug: 1 << 20,    // 0x100000 — debug node (e.g. DebugNode)
 } as const;
 export type NodeFlags = number;
 

@@ -301,6 +301,22 @@ function NodeGlyph({ kind, isAsyncAction }: { kind: NodeVisualKind; isAsyncActio
       return <span className="bt-node__glyph-letter bt-node__glyph-letter--note">N</span>;
     case 'displayProgress':
       return <span className="bt-node__glyph-letter bt-node__glyph-letter--progress">%</span>;
+    case 'debug':
+      return (
+        <svg viewBox="0 0 16 16" className="bt-node__glyph-icon">
+          <circle cx="8" cy="4.5" r="1.5" />
+          <path d="M6 4 4.5 2.5" />
+          <path d="M10 4 11.5 2.5" />
+          <ellipse cx="8" cy="10" rx="3" ry="3.5" />
+          <path d="M8 6.5v7" />
+          <path d="M5 8.5 3 7.5" />
+          <path d="M11 8.5 13 7.5" />
+          <path d="M5 10.5 3 11" />
+          <path d="M11 10.5 13 11" />
+          <path d="M5.5 12.5 4 14" />
+          <path d="M10.5 12.5 12 14" />
+        </svg>
+      );
     case 'node':
     default:
       return (

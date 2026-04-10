@@ -7,6 +7,7 @@ export const DARK_THEME: Required<ThemeOverrides> = {
   colorFailed: '#f14c4c',
   colorRunning: '#cca700',
   colorIdle: '#8b8b8b',
+  colorSkipped: '#e2e2e2',
   bgPrimary: '#1e1e1e',
   bgSecondary: '#252526',
   bgTertiary: '#2d2d30',
@@ -25,6 +26,7 @@ export const LIGHT_THEME: Required<ThemeOverrides> = {
   colorFailed: '#b91c1c',
   colorRunning: '#b45309',
   colorIdle: '#78716c',
+  colorSkipped: '#44403c',
   bgPrimary: '#faf9f7',
   bgSecondary: '#f3f2ee',
   bgTertiary: '#eae8e3',
@@ -44,6 +46,7 @@ export const RESULT_COLORS: Record<string, string> = {
   [NodeResult.Succeeded]: DEFAULT_THEME.colorSucceeded,
   [NodeResult.Failed]: DEFAULT_THEME.colorFailed,
   [NodeResult.Running]: DEFAULT_THEME.colorRunning,
+  [NodeResult.Skipped]: DEFAULT_THEME.colorSkipped,
 };
 
 export function getResultColor(result: NodeResult | null | undefined, theme?: Required<ThemeOverrides>): string {
@@ -53,6 +56,7 @@ export function getResultColor(result: NodeResult | null | undefined, theme?: Re
     case NodeResult.Succeeded: return resolved ? resolved.colorSucceeded : 'var(--bt-color-succeeded)';
     case NodeResult.Failed: return resolved ? resolved.colorFailed : 'var(--bt-color-failed)';
     case NodeResult.Running: return resolved ? resolved.colorRunning : 'var(--bt-color-running)';
+    case NodeResult.Skipped: return resolved ? resolved.colorSkipped : 'var(--bt-color-skipped)';
     default: return resolved ? resolved.colorIdle : 'var(--bt-color-idle)';
   }
 }
@@ -94,6 +98,7 @@ const FLAG_DEFINITIONS: Array<{ flag: number; label: string; category: 'primary'
   { flag: NodeFlags.Async, label: 'Async', category: 'secondary' },
   { flag: NodeFlags.Display, label: 'Display', category: 'secondary' },
   { flag: NodeFlags.SubTree, label: 'SubTree', category: 'secondary' },
+  { flag: NodeFlags.Debug, label: 'Debug', category: 'secondary' },
 ];
 
 export function getFlagLabels(nodeFlags: number): FlagLabel[] {
@@ -115,6 +120,7 @@ export function getPrimaryCategoryLabel(nodeFlags: number): string {
 }
 
 export function getNodeVisualKind(nodeFlags: number, defaultName?: string): NodeVisualKind {
+  if (hasFlag(nodeFlags, NodeFlags.Debug)) return 'debug';
   if (hasFlag(nodeFlags, NodeFlags.SubTree)) return 'subTree';
   if (defaultName === 'IfThenElse') return 'ifThenElse';
   if (defaultName === 'DisplayNote') return 'displayNote';
