@@ -28,6 +28,7 @@ export interface NodeProps {
     precondition?: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean };
     succeedIf?: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean };
     failIf?: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean };
+    skipIf?: ((ctx: TickContext) => boolean) | { name?: string, condition: (ctx: TickContext) => boolean };
 
     // Behavior modifiers
     forceSuccess?: boolean;
@@ -38,6 +39,7 @@ export interface NodeProps {
     keepRunningUntilFailure?: boolean;
     runOnce?: boolean;
     nonAbortable?: boolean;
+    skipOnFail?: boolean;
 
     // Retry / Repeat
     repeat?: number; // max iterations, or -1 for infinite
@@ -101,6 +103,8 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     if (props.runningIsFailure) current = current.decorate([Decorators.RunningIsFailure]);
     else if (props.runningIsSuccess) current = current.decorate([Decorators.RunningIsSuccess]);
 
+    if (props.skipOnFail) current = current.decorate([Decorators.SkipOnFail]);
+
     // 2. Control Flow modifiers
     if (props.keepRunningUntilFailure) current = current.decorate([Decorators.KeepRunningUntilFailure]);
     if (props.runOnce) current = current.decorate([Decorators.RunOnce]);
@@ -121,6 +125,10 @@ export function applyDecorators(node: BTNode, props: NodeProps): BTNode {
     } else if (props.failIf) {
         const p = normalizeConditionProp(props.failIf);
         current = current.decorate([Decorators.FailIf, p.name ?? "FailIf", p.condition]);
+    }
+    if (props.skipIf) {
+        const p = normalizeConditionProp(props.skipIf);
+        current = current.decorate([Decorators.SkipIf, p.name ?? "SkipIf", p.condition]);
     }
 
     // 4. Timing

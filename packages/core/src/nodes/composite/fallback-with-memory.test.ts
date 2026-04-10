@@ -144,4 +144,38 @@ describe("FallbackWithMemory", () => {
 
         expect(() => BTNode.Tick(sel, createTickContext())).toThrow("has no nodes");
     });
+
+    describe("SKIPPED handling", () => {
+        it("skips over SKIPPED child and continues", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Failed);
+            const sel = FallbackWithMemory.from([child1, child2]);
+
+            const result = BTNode.Tick(sel, createTickContext());
+
+            expect(result).toBe(NodeResult.Failed);
+            expect(child1.tickCount).toBe(1);
+            expect(child2.tickCount).toBe(1);
+        });
+
+        it("returns SKIPPED when all children return SKIPPED", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Skipped);
+            const sel = FallbackWithMemory.from([child1, child2]);
+
+            const result = BTNode.Tick(sel, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+        });
+
+        it("Skipped does not update the running child index", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Failed);
+            const sel = FallbackWithMemory.from([child1, child2]);
+
+            BTNode.Tick(sel, createTickContext());
+
+            expect(sel.runningChildIndex).toBeUndefined();
+        });
+    });
 });

@@ -25,14 +25,19 @@ export class Fallback extends Composite {
             throw new Error(`Fallback node ${this.displayName} has no nodes`);
         }
 
+        let allSkipped = true;
+
         for (const [i, node] of this.nodes.entries()) {
             const status = BTNode.Tick(node, ctx);
+            if (status === NodeResult.Skipped) continue;
+            allSkipped = false;
             if (status === NodeResult.Succeeded || status === NodeResult.Running) {
                 this.abortChildrenFrom(i + 1, ctx);
                 return status;
             }
         }
 
+        if (allSkipped) return NodeResult.Skipped;
         return NodeResult.Failed;
     }
 }

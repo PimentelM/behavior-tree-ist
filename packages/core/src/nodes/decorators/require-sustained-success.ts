@@ -38,6 +38,10 @@ export class RequireSustainedSuccess extends Decorator {
 
         const result = BTNode.Tick(this.child, ctx);
 
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         if (result === NodeResult.Succeeded) {
             if (this.firstSuccessAt === undefined) {
                 this.firstSuccessAt = this.lastNow;

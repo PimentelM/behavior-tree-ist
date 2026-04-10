@@ -94,4 +94,40 @@ describe("Fallback", () => {
 
         expect(selector.nodes).toHaveLength(1);
     });
+
+    describe("SKIPPED handling", () => {
+        it("skips over SKIPPED child and continues", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Failed);
+            const selector = Fallback.from([child1, child2]);
+
+            const result = BTNode.Tick(selector, createTickContext());
+
+            expect(result).toBe(NodeResult.Failed);
+            expect(child1.tickCount).toBe(1);
+            expect(child2.tickCount).toBe(1);
+        });
+
+        it("returns SKIPPED when all children return SKIPPED", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Skipped);
+            const selector = Fallback.from([child1, child2]);
+
+            const result = BTNode.Tick(selector, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+        });
+
+        it("does not stop the fallback when a child is Skipped (unlike Succeeded)", () => {
+            const child1 = new StubAction(NodeResult.Failed);
+            const child2 = new StubAction(NodeResult.Skipped);
+            const child3 = new StubAction(NodeResult.Succeeded);
+            const selector = Fallback.from([child1, child2, child3]);
+
+            const result = BTNode.Tick(selector, createTickContext());
+
+            expect(result).toBe(NodeResult.Succeeded);
+            expect(child3.tickCount).toBe(1);
+        });
+    });
 });

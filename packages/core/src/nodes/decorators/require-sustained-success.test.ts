@@ -74,4 +74,21 @@ describe("RequireSustainedSuccess", () => {
 
         expect((events[events.length - 1] as TickTraceEvent).result).toBe(NodeResult.Failed); // duration not met yet
     });
+
+    it("passes through Skipped without resetting firstSuccessAt timer", () => {
+        const child = new StubAction(NodeResult.Succeeded);
+        const requireSustainedSuccess = new RequireSustainedSuccess(child, 100);
+        const tree = new BehaviourTree(requireSustainedSuccess).enableStateTrace();
+
+        tree.tick({ now: 0 }); // first success, timer starts
+
+        child.nextResult = NodeResult.Skipped;
+        const { events: skippedEvents } = tree.tick({ now: 50 }); // Skipped, timer NOT reset
+        expect((skippedEvents[skippedEvents.length - 1] as TickTraceEvent).result).toBe(NodeResult.Skipped);
+
+        child.nextResult = NodeResult.Succeeded;
+        const { events: finalEvents } = tree.tick({ now: 100 }); // timer from t=0 still running
+
+        expect((finalEvents[finalEvents.length - 1] as TickTraceEvent).result).toBe(NodeResult.Succeeded);
+    });
 });

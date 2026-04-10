@@ -828,6 +828,10 @@
   color: color-mix(in srgb, #facc15 72%, var(--bt-text-primary));
 }
 
+.bt-node__glyph--debug {
+  color: color-mix(in srgb, #6b7280 65%, var(--bt-text-primary));
+}
+
 .bt-node__name {
   font-size: 12px;
   font-weight: 700;

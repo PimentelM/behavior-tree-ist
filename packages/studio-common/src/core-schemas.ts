@@ -63,6 +63,7 @@ export const TickTraceEventSchema: z.ZodType<TickTraceEvent> = z
             z.literal(NodeResult.Succeeded),
             z.literal(NodeResult.Failed),
             z.literal(NodeResult.Running),
+            z.literal(NodeResult.Skipped),
         ]),
         state: SerializableValueSchema.optional(),
         startedAt: z.number().optional(),

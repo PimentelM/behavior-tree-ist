@@ -145,4 +145,38 @@ describe("SequenceWithMemory", () => {
 
         expect(() => BTNode.Tick(seq, createTickContext())).toThrow("has no nodes");
     });
+
+    describe("SKIPPED handling", () => {
+        it("skips over SKIPPED child and continues", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const seq = SequenceWithMemory.from([child1, child2]);
+
+            const result = BTNode.Tick(seq, createTickContext());
+
+            expect(result).toBe(NodeResult.Succeeded);
+            expect(child1.tickCount).toBe(1);
+            expect(child2.tickCount).toBe(1);
+        });
+
+        it("returns SKIPPED when all children return SKIPPED", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Skipped);
+            const seq = SequenceWithMemory.from([child1, child2]);
+
+            const result = BTNode.Tick(seq, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+        });
+
+        it("Skipped does not update the running child index", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const seq = SequenceWithMemory.from([child1, child2]);
+
+            BTNode.Tick(seq, createTickContext());
+
+            expect(seq.runningChildIndex).toBeUndefined();
+        });
+    });
 });

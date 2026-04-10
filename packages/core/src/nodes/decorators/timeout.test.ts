@@ -134,4 +134,13 @@ describe("Timeout", () => {
 
         expect(timeout.nodeFlags & NodeFlags.TimeBased).toBeTruthy();
     });
+
+    it("passes through Skipped from child", () => {
+        const child = new StubAction(NodeResult.Skipped);
+        const timeout = new Timeout(child, 1000);
+
+        const result = BTNode.Tick(timeout, createTickContext({ now: 100 }));
+
+        expect(result).toBe(NodeResult.Skipped);
+    });
 });

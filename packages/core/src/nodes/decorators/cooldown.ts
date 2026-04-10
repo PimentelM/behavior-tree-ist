@@ -46,6 +46,10 @@ export class Cooldown extends Decorator {
 
         const result = BTNode.Tick(this.child, ctx);
 
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         // Cooldown starts only when the child finishes (Success or Failed)
         if (result === NodeResult.Succeeded || result === NodeResult.Failed) {
             this.lastFinishedAt = this.lastNow;

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SucceedIf } from "./succeed-if";
+import * as succeedIfModule from "./succeed-if";
 import { BTNode } from "../../base/node";
 import { NodeResult } from "../../base/types";
 import { createTickContext, StubAction } from "../../test-helpers";
@@ -47,5 +48,19 @@ describe("SucceedIf decorator", () => {
 
         expect(result).toBe(NodeResult.Succeeded);
         expect(child.abortCount).toBe(1);
+    });
+
+    it("SkipIf is not exported from succeed-if module", () => {
+        expect("SkipIf" in succeedIfModule).toBe(false);
+    });
+
+    it("returns Succeeded (not Skipped) when condition is true", () => {
+        const child = new StubAction(NodeResult.Failed);
+        const decorator = new SucceedIf(child, "check", () => true);
+
+        const result = BTNode.Tick(decorator, createTickContext());
+
+        expect(result).toBe(NodeResult.Succeeded);
+        expect(result).not.toBe(NodeResult.Skipped);
     });
 });

@@ -31,4 +31,13 @@ describe("ForceFailure", () => {
 
         expect(result).toBe(NodeResult.Running);
     });
+
+    it("passes through Skipped without forcing to Failed", () => {
+        const child = new StubAction(NodeResult.Skipped);
+        const decorator = new ForceFailure(child);
+
+        const result = BTNode.Tick(decorator, createTickContext());
+
+        expect(result).toBe(NodeResult.Skipped);
+    });
 });

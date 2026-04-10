@@ -38,6 +38,10 @@ export class Retry extends Decorator {
 
         const result = BTNode.Tick(this.child, ctx);
 
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         if (result === NodeResult.Failed) {
             this.failedCount++;
             if (this.maxRetries !== -1 && this.failedCount >= this.maxRetries) {

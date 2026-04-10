@@ -59,4 +59,17 @@ describe("RunOnce", () => {
         BTNode.Tick(runOnce, createTickContext()); // re-ticks
         expect(child.tickCount).toBe(2); // no longer cached
     });
+
+    it("passes through Skipped without storing as completedResult, ticks child again next tick", () => {
+        const child = new StubAction([NodeResult.Skipped, NodeResult.Succeeded]);
+        const runOnce = new RunOnce(child);
+
+        const r1 = BTNode.Tick(runOnce, createTickContext());
+        expect(r1).toBe(NodeResult.Skipped);
+        expect(runOnce.getDisplayState()).toBeNull();
+
+        const r2 = BTNode.Tick(runOnce, createTickContext());
+        expect(r2).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(2);
+    });
 });

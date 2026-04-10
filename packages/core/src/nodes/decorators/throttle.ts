@@ -45,11 +45,16 @@ export class Throttle extends Decorator {
             return NodeResult.Failed;
         }
 
+        const result = BTNode.Tick(this.child, ctx);
+
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         if (!this.wasRunning) {
             this.startThrottle();
         }
 
-        const result = BTNode.Tick(this.child, ctx);
         return result;
     }
 }

@@ -12,6 +12,9 @@ export class RunningIsFailure extends Decorator {
 
     protected override onTick(ctx: TickContext): NodeResult {
         const status = BTNode.Tick(this.child, ctx);
+        if (status === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
         if (status === NodeResult.Running) {
             BTNode.Abort(this.child, ctx);
             return NodeResult.Failed;

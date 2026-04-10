@@ -133,4 +133,18 @@ describe("CacheResult", () => {
 
         expect(node.getDisplayState()).toEqual({ remaining: 70, cachedResult: NodeResult.Succeeded });
     });
+
+    it("does not cache Skipped; ticks child again on next tick", () => {
+        const child = new StubAction([NodeResult.Skipped, NodeResult.Succeeded]);
+        const node = new CacheResult(child, 100);
+        const { tick } = createNodeTicker();
+
+        const r1 = tick(node, { now: 0 });
+        expect(r1).toBe(NodeResult.Skipped);
+        expect(node.getDisplayState()).toEqual({ remaining: 0, cachedResult: undefined });
+
+        const r2 = tick(node, { now: 10 });
+        expect(r2).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(2);
+    });
 });

@@ -13,6 +13,10 @@ export class KeepRunningUntilFailure extends Decorator {
     protected override onTick(ctx: TickContext): NodeResult {
         const result = BTNode.Tick(this.child, ctx);
 
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         if (result === NodeResult.Failed) {
             return NodeResult.Succeeded;
         }

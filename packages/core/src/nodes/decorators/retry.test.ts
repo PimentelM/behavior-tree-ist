@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Retry } from "./retry";
 import { NodeResult } from "../../base";
-import { StubAction, tickNode } from "../../test-helpers";
+import { StubAction, tickNode, createNodeTicker } from "../../test-helpers";
 
 describe("Retry", () => {
     it("returns Failed immediately if maxRetries reached before tick", () => {
@@ -57,5 +57,17 @@ describe("Retry", () => {
         }
 
         expect(child.tickCount).toBe(10);
+    });
+
+    it("passes through Skipped without incrementing failure count", () => {
+        const child = new StubAction([NodeResult.Failed, NodeResult.Skipped]);
+        const retry = new Retry(child, 3);
+        const { tick } = createNodeTicker();
+
+        tick(retry); // failure count = 1, returns Running
+
+        const result = tick(retry); // Skipped
+
+        expect(result).toBe(NodeResult.Skipped);
     });
 });

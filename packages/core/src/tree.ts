@@ -21,6 +21,8 @@ export class BehaviourTree {
     private stateTraceEnabled: boolean = false;
     private profilingEnabled: boolean = false;
     private profilingTimeProvider: (() => number) | undefined;
+    private debugEnabled: boolean = false;
+    private debugGetter: (() => boolean) | undefined;
 
     private runtime: TickRuntime = {
         treeId: this.treeId,
@@ -66,6 +68,21 @@ export class BehaviourTree {
         return this;
     }
 
+    public enableDebug(): this {
+        this.debugEnabled = true;
+        return this;
+    }
+
+    public disableDebug(): this {
+        this.debugEnabled = false;
+        return this;
+    }
+
+    public setIsDebugGetter(getter: () => boolean): this {
+        this.debugGetter = getter;
+        return this;
+    }
+
     public validate(): string[] {
         const errors: string[] = [];
         const queue: BTNode[] = [this.root];
@@ -100,12 +117,15 @@ export class BehaviourTree {
         const now = pCtx.now ?? Date.now();
         const tickId = this.currentTickId;
 
+        const isDebugEnabled = this.debugGetter ? this.debugGetter() : this.debugEnabled;
+
         const ctx: TickContext = {
             tickId,
             now,
             events,
             refEvents,
             isStateTraceEnabled: this.stateTraceEnabled,
+            isDebugEnabled,
             runtime: this.runtime,
             trace: (node, result, startedAt, finishedAt) => {
                 const event: TickTraceEvent = {

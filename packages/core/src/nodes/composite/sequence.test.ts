@@ -90,4 +90,40 @@ describe("Sequence", () => {
 
         expect(sequence.nodes).toHaveLength(1);
     });
+
+    describe("SKIPPED handling", () => {
+        it("skips over SKIPPED child and continues", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const sequence = Sequence.from([child1, child2]);
+
+            const result = BTNode.Tick(sequence, createTickContext());
+
+            expect(result).toBe(NodeResult.Succeeded);
+            expect(child1.tickCount).toBe(1);
+            expect(child2.tickCount).toBe(1);
+        });
+
+        it("returns SKIPPED when all children return SKIPPED", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Skipped);
+            const sequence = Sequence.from([child1, child2]);
+
+            const result = BTNode.Tick(sequence, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+        });
+
+        it("does not abort subsequent children when a child is Skipped (unlike Failed)", () => {
+            const child1 = new StubAction(NodeResult.Succeeded);
+            const child2 = new StubAction(NodeResult.Skipped);
+            const child3 = new StubAction(NodeResult.Succeeded);
+            const sequence = Sequence.from([child1, child2, child3]);
+
+            const result = BTNode.Tick(sequence, createTickContext());
+
+            expect(result).toBe(NodeResult.Succeeded);
+            expect(child3.tickCount).toBe(1);
+        });
+    });
 });

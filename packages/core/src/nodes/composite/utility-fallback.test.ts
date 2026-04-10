@@ -116,6 +116,38 @@ describe("UtilityFallback", () => {
         expect(fallback.getDisplayState()).toEqual([15, 25, 5]);
     });
 
+    describe("SKIPPED handling", () => {
+        it("skips over SKIPPED child and continues in score-sorted order", () => {
+            const order: number[] = [];
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Succeeded);
+
+            const fallback = UtilityFallback.from([
+                new Utility(new OnTicked(child1, () => order.push(1)), () => 20),
+                new Utility(new OnTicked(child2, () => order.push(2)), () => 10),
+            ]);
+
+            const result = tickNode(fallback);
+
+            expect(result).toBe(NodeResult.Succeeded);
+            expect(order).toEqual([1, 2]);
+        });
+
+        it("returns SKIPPED when all children return SKIPPED", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Skipped);
+
+            const fallback = UtilityFallback.from([
+                new Utility(child1, () => 20),
+                new Utility(child2, () => 10),
+            ]);
+
+            const result = tickNode(fallback);
+
+            expect(result).toBe(NodeResult.Skipped);
+        });
+    });
+
     describe("mutation protection", () => {
         it("addNode throws if child is not Utility", () => {
             const fallback = new UtilityFallback();

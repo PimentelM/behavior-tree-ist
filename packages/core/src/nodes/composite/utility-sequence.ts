@@ -92,11 +92,15 @@ export class UtilitySequence extends Composite {
 
         let finalResult: NodeResult = NodeResult.Succeeded;
         let newRunningIndex: number | undefined = undefined;
+        let allSkipped = true;
 
         for (const entry of this.scoreBuffer) {
             const index = entry.index;
             const node = this.nodes[index] as BTNode;
             const result = BTNode.Tick(node, ctx);
+
+            if (result === NodeResult.Skipped) continue;
+            allSkipped = false;
 
             if (result === NodeResult.Failed || result === NodeResult.Running) {
                 finalResult = result;
@@ -106,6 +110,8 @@ export class UtilitySequence extends Composite {
                 break;
             }
         }
+
+        if (allSkipped) finalResult = NodeResult.Skipped;
 
         // Only abort the previously running node if it's no longer the actively running node
         if (this.currentlyRunningIndex !== undefined && this.currentlyRunningIndex !== newRunningIndex) {

@@ -38,6 +38,10 @@ export class Repeat extends Decorator {
 
         const result = BTNode.Tick(this.child, ctx);
 
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         if (result === NodeResult.Succeeded) {
             this.successfulCount++;
             if (this.times !== -1 && this.successfulCount >= this.times) {

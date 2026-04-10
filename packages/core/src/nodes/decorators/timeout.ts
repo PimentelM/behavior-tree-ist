@@ -54,6 +54,11 @@ export class Timeout extends Decorator {
         }
 
         const result = BTNode.Tick(this.child, ctx);
+
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         return result;
     }
 }

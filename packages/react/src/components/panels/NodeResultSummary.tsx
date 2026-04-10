@@ -6,7 +6,7 @@ interface NodeResultSummaryProps {
   resultSummary: Map<string, number>;
 }
 
-const RESULT_ORDER = [NodeResult.Succeeded, NodeResult.Failed, NodeResult.Running] as const;
+const RESULT_ORDER = [NodeResult.Succeeded, NodeResult.Failed, NodeResult.Running, NodeResult.Skipped] as const;
 
 function NodeResultSummaryInner({ resultSummary }: NodeResultSummaryProps) {
   let total = 0;

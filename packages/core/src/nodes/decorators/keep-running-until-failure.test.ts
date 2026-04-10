@@ -74,4 +74,15 @@ describe("KeepRunningUntilFailure", () => {
         // Third tick: child fails, return Succeeded
         expect(BTNode.Tick(untilFail, ctx)).toBe(NodeResult.Succeeded);
     });
+
+    it("passes through Skipped without counting as success or failure", () => {
+        const child = new StubAction([NodeResult.Running, NodeResult.Skipped]);
+        const untilFail = new KeepRunningUntilFailure(child);
+
+        BTNode.Tick(untilFail, createTickContext()); // Running
+
+        const result = BTNode.Tick(untilFail, createTickContext()); // Skipped
+
+        expect(result).toBe(NodeResult.Skipped);
+    });
 });

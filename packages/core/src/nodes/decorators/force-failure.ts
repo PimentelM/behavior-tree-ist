@@ -15,6 +15,9 @@ export class ForceFailure extends Decorator {
         if (status === NodeResult.Running) {
             return status;
         }
+        if (status === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
         return NodeResult.Failed;
     }
 }
