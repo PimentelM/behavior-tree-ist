@@ -308,4 +308,61 @@ describe("Parallel", () => {
 
         expect(parallel.nodes).toHaveLength(1);
     });
+
+    describe("SKIPPED handling", () => {
+        it("skips over SKIPPED child and continues with RequireAllSuccess", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const parallel = Parallel.from("test", [child1, child2]);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            expect(result).toBe(NodeResult.Succeeded);
+            expect(child1.tickCount).toBe(1);
+            expect(child2.tickCount).toBe(1);
+        });
+
+        it("returns SKIPPED when all children return SKIPPED", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Skipped);
+            const parallel = Parallel.from("test", [child1, child2]);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+        });
+
+        it("Skipped children are not counted in success/failure/running tallies with RequireAllSuccess", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const child3 = new StubAction(NodeResult.Succeeded);
+            const parallel = Parallel.from("test", [child1, child2, child3]);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            // Skipped doesn't count as failure so RequireAllSuccess should succeed
+            expect(result).toBe(NodeResult.Succeeded);
+        });
+
+        it("Skipped children are not counted in tallies with RequireOneSuccess", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Failed);
+            const parallel = Parallel.from("test", [child1, child2], RequireOneSuccess);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            // Only child2 counts — no successes, no running → Failed
+            expect(result).toBe(NodeResult.Failed);
+        });
+
+        it("RequireOneSuccess succeeds when one non-Skipped child succeeds", () => {
+            const child1 = new StubAction(NodeResult.Skipped);
+            const child2 = new StubAction(NodeResult.Succeeded);
+            const parallel = Parallel.from("test", [child1, child2], RequireOneSuccess);
+
+            const result = BTNode.Tick(parallel, createTickContext());
+
+            expect(result).toBe(NodeResult.Succeeded);
+        });
+    });
 });

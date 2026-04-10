@@ -40,4 +40,16 @@ describe("Delay", () => {
         const result100 = BTNode.Tick(delay, ctx100);
         expect(result100).toBe(NodeResult.Running); // Delay started over
     });
+
+    it("passes through Skipped from child after delay expires", () => {
+        const child = new StubAction(NodeResult.Skipped);
+        const delay = new Delay(child, 100);
+
+        BTNode.Tick(delay, createTickContext({ now: 0 })); // Running (delay not done)
+
+        const result = BTNode.Tick(delay, createTickContext({ now: 100 })); // delay done, child returns Skipped
+
+        expect(result).toBe(NodeResult.Skipped);
+        expect(child.tickCount).toBe(1);
+    });
 });

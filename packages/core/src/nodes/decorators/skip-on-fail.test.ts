@@ -1,40 +1,40 @@
 import { describe, it, expect } from "vitest";
-import { ForceSuccess } from "./force-success";
+import { SkipOnFail } from "./skip-on-fail";
 import { BTNode } from "../../base/node";
 import { NodeResult } from "../../base/types";
 import { createTickContext, StubAction } from "../../test-helpers";
 
-describe("ForceSuccess", () => {
-    it("converts Failed to Succeeded", () => {
+describe("SkipOnFail decorator", () => {
+    it("returns Skipped when child returns Failed", () => {
         const child = new StubAction(NodeResult.Failed);
-        const decorator = new ForceSuccess(child);
+        const decorator = new SkipOnFail(child);
 
         const result = BTNode.Tick(decorator, createTickContext());
 
-        expect(result).toBe(NodeResult.Succeeded);
+        expect(result).toBe(NodeResult.Skipped);
     });
 
-    it("keeps Succeeded as Succeeded", () => {
+    it("passes through Succeeded", () => {
         const child = new StubAction(NodeResult.Succeeded);
-        const decorator = new ForceSuccess(child);
+        const decorator = new SkipOnFail(child);
 
         const result = BTNode.Tick(decorator, createTickContext());
 
         expect(result).toBe(NodeResult.Succeeded);
     });
 
-    it("passes through Running unchanged", () => {
+    it("passes through Running", () => {
         const child = new StubAction(NodeResult.Running);
-        const decorator = new ForceSuccess(child);
+        const decorator = new SkipOnFail(child);
 
         const result = BTNode.Tick(decorator, createTickContext());
 
         expect(result).toBe(NodeResult.Running);
     });
 
-    it("passes through Skipped without forcing to Succeeded", () => {
+    it("passes through Skipped", () => {
         const child = new StubAction(NodeResult.Skipped);
-        const decorator = new ForceSuccess(child);
+        const decorator = new SkipOnFail(child);
 
         const result = BTNode.Tick(decorator, createTickContext());
 

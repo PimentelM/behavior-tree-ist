@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Repeat } from "./repeat";
 import { NodeResult, NodeFlags } from "../../base";
-import { StubAction, tickNode } from "../../test-helpers";
+import { StubAction, tickNode, createNodeTicker } from "../../test-helpers";
 
 describe("Repeat", () => {
     it("repeats successful child n times and returns Running during", () => {
@@ -62,5 +62,17 @@ describe("Repeat", () => {
         const repeat = new Repeat(new StubAction(NodeResult.Succeeded), 2);
 
         expect(repeat.nodeFlags & NodeFlags.CountBased).toBeTruthy();
+    });
+
+    it("passes through Skipped without incrementing success count", () => {
+        const child = new StubAction([NodeResult.Succeeded, NodeResult.Skipped]);
+        const repeat = new Repeat(child, 3);
+        const { tick } = createNodeTicker();
+
+        tick(repeat); // success count = 1, returns Running
+
+        const result = tick(repeat); // Skipped
+
+        expect(result).toBe(NodeResult.Skipped);
     });
 });

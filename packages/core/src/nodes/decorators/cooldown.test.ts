@@ -65,4 +65,16 @@ describe("Cooldown", () => {
         expect(result).toBe(NodeResult.Succeeded);
         expect(child.tickCount).toBe(2);
     });
+
+    it("does not start cooldown on Skipped; ticks child again next tick immediately", () => {
+        const child = new StubAction([NodeResult.Skipped, NodeResult.Succeeded]);
+        const cooldown = new Cooldown(child, 100);
+
+        const r1 = tickNode(cooldown, { now: 0 });
+        expect(r1).toBe(NodeResult.Skipped);
+
+        const r2 = tickNode(cooldown, { now: 10 });
+        expect(r2).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(2);
+    });
 });

@@ -91,12 +91,18 @@ export class Parallel extends Composite {
         let successCount = 0;
         let failureCount = 0;
         let runningCount = 0;
+        let skippedCount = 0;
 
         for (const node of this.nodes) {
             const status = BTNode.Tick(node, ctx);
+            if (status === NodeResult.Skipped) { skippedCount++; continue; }
             if (status === NodeResult.Succeeded) successCount++;
             else if (status === NodeResult.Failed) failureCount++;
             else runningCount++;
+        }
+
+        if (skippedCount === this.nodes.length) {
+            return NodeResult.Skipped;
         }
 
         const result = this.policy(successCount, failureCount, runningCount);

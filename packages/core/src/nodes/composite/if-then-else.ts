@@ -43,6 +43,12 @@ export class IfThenElse extends Composite {
             return NodeResult.Running;
         }
 
+        if (conditionResult === NodeResult.Skipped) {
+            BTNode.Abort(thenNode, ctx);
+            if (elseNode) BTNode.Abort(elseNode, ctx);
+            return NodeResult.Skipped;
+        }
+
         if (conditionResult === NodeResult.Succeeded) {
             if (elseNode?.wasRunning) {
                 BTNode.Abort(elseNode, ctx);

@@ -31,4 +31,13 @@ describe("Inverter", () => {
 
         expect(result).toBe(NodeResult.Running);
     });
+
+    it("passes through Skipped without inverting", () => {
+        const child = new StubAction(NodeResult.Skipped);
+        const inverter = new Inverter(child);
+
+        const result = BTNode.Tick(inverter, createTickContext());
+
+        expect(result).toBe(NodeResult.Skipped);
+    });
 });

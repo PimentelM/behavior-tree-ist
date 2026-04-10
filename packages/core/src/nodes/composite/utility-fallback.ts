@@ -95,11 +95,15 @@ export class UtilityFallback extends Composite {
 
         let finalResult: NodeResult = NodeResult.Failed;
         let runningOrSucceededIndex: number | undefined = undefined;
+        let allSkipped = true;
 
         for (const entry of this.scoreBuffer) {
             const index = entry.index;
             const node = this.nodes[index] as BTNode;
             const result = BTNode.Tick(node, ctx);
+
+            if (result === NodeResult.Skipped) continue;
+            allSkipped = false;
 
             if (result === NodeResult.Succeeded || result === NodeResult.Running) {
                 finalResult = result;
@@ -107,6 +111,8 @@ export class UtilityFallback extends Composite {
                 break;
             }
         }
+
+        if (allSkipped) finalResult = NodeResult.Skipped;
 
         // Abort any node that was previously running but isn't the one we just ticked and returned running/succeeded.
         // Also abort it if we completely failed out.

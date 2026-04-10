@@ -50,8 +50,13 @@ export class FallbackWithMemory extends Composite {
 
         const startIndex = this._runningChildIndex ?? 0;
 
+        let allSkipped = true;
+
         for (let i = startIndex; i < this.nodes.length; i++) {
             const status = BTNode.Tick(this.nodes[i] as BTNode, ctx);
+
+            if (status === NodeResult.Skipped) continue;
+            allSkipped = false;
 
             if (status === NodeResult.Running) {
                 this._runningChildIndex = i;
@@ -65,6 +70,7 @@ export class FallbackWithMemory extends Composite {
             }
         }
 
+        if (allSkipped) return NodeResult.Skipped;
         return NodeResult.Failed;
     }
 

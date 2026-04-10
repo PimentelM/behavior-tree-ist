@@ -117,4 +117,71 @@ describe("IfThenElse", () => {
 
         expect(() => BTNode.Tick(ifThenElse, createTickContext())).toThrow("must have 2 or 3 children");
     });
+
+    describe("SKIPPED handling", () => {
+        it("skips over SKIPPED child and continues", () => {
+            const condition = new StubAction(NodeResult.Succeeded);
+            const thenBranch = new StubAction(NodeResult.Skipped);
+            const elseBranch = new StubAction(NodeResult.Failed);
+            const ifThenElse = IfThenElse.from([condition, thenBranch, elseBranch]);
+
+            const result = BTNode.Tick(ifThenElse, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+            expect(thenBranch.tickCount).toBe(1);
+            expect(elseBranch.tickCount).toBe(0);
+        });
+
+        it("returns SKIPPED when all children return SKIPPED", () => {
+            const condition = new StubAction(NodeResult.Skipped);
+            const thenBranch = new StubAction(NodeResult.Skipped);
+            const elseBranch = new StubAction(NodeResult.Skipped);
+            const ifThenElse = IfThenElse.from([condition, thenBranch, elseBranch]);
+
+            const result = BTNode.Tick(ifThenElse, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+            expect(thenBranch.tickCount).toBe(0);
+            expect(elseBranch.tickCount).toBe(0);
+        });
+
+        it("when condition returns Skipped, neither then nor else is ticked", () => {
+            const condition = new StubAction(NodeResult.Skipped);
+            const thenBranch = new StubAction(NodeResult.Succeeded);
+            const elseBranch = new StubAction(NodeResult.Succeeded);
+            const ifThenElse = IfThenElse.from([condition, thenBranch, elseBranch]);
+
+            const result = BTNode.Tick(ifThenElse, createTickContext());
+
+            expect(result).toBe(NodeResult.Skipped);
+            expect(thenBranch.tickCount).toBe(0);
+            expect(elseBranch.tickCount).toBe(0);
+        });
+
+        it("aborts previously-running then branch when condition becomes Skipped", () => {
+            const condition = new StubAction([NodeResult.Succeeded, NodeResult.Skipped]);
+            const thenBranch = new StubAction(NodeResult.Running);
+            const elseBranch = new StubAction(NodeResult.Succeeded);
+            const ifThenElse = IfThenElse.from([condition, thenBranch, elseBranch]);
+
+            BTNode.Tick(ifThenElse, createTickContext()); // condition succeeds, then running
+            BTNode.Tick(ifThenElse, createTickContext()); // condition skipped, then aborted
+
+            expect(thenBranch.abortCount).toBe(1);
+            expect(elseBranch.tickCount).toBe(0);
+        });
+
+        it("aborts previously-running else branch when condition becomes Skipped", () => {
+            const condition = new StubAction([NodeResult.Failed, NodeResult.Skipped]);
+            const thenBranch = new StubAction(NodeResult.Succeeded);
+            const elseBranch = new StubAction(NodeResult.Running);
+            const ifThenElse = IfThenElse.from([condition, thenBranch, elseBranch]);
+
+            BTNode.Tick(ifThenElse, createTickContext()); // condition fails, else running
+            BTNode.Tick(ifThenElse, createTickContext()); // condition skipped, else aborted
+
+            expect(elseBranch.abortCount).toBe(1);
+            expect(thenBranch.tickCount).toBe(0);
+        });
+    });
 });

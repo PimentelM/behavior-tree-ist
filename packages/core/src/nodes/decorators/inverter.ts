@@ -17,6 +17,10 @@ export class Inverter extends Decorator {
             return status;
         }
 
+        if (status === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
         return status === NodeResult.Succeeded ? NodeResult.Failed : NodeResult.Succeeded;
     }
 }

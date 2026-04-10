@@ -2,8 +2,8 @@ import { Decorator } from "../../base/decorator";
 import { BTNode, type TickContext } from "../../base/node";
 import { NodeResult, NodeFlags } from "../../base/types";
 
-export class SucceedIf extends Decorator {
-    public override readonly defaultName = "SucceedIf";
+export class SkipIf extends Decorator {
+    public override readonly defaultName = "SkipIf";
 
     constructor(child: BTNode, public override name: string, public readonly condition: (ctx: TickContext) => boolean) {
         super(child);
@@ -13,10 +13,9 @@ export class SucceedIf extends Decorator {
     protected onTick(ctx: TickContext): NodeResult {
         if (this.condition(ctx)) {
             BTNode.Abort(this.child, ctx);
-            return NodeResult.Succeeded;
+            return NodeResult.Skipped;
         }
 
         return BTNode.Tick(this.child, ctx);
     }
 }
-

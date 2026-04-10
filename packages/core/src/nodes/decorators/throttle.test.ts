@@ -132,4 +132,16 @@ describe("Throttle", () => {
         BTNode.Tick(throttle, createTickContext({ now: 5800 }));
         expect(throttle.displayName).toBe("Throttle (200)");
     });
+
+    it("does not start throttle timer on Skipped; ticks child again next tick immediately", () => {
+        const child = new StubAction([NodeResult.Skipped, NodeResult.Succeeded]);
+        const throttle = new Throttle(child, 1000);
+
+        const r1 = BTNode.Tick(throttle, createTickContext({ now: 5000 }));
+        expect(r1).toBe(NodeResult.Skipped);
+
+        const r2 = BTNode.Tick(throttle, createTickContext({ now: 5010 }));
+        expect(r2).toBe(NodeResult.Succeeded);
+        expect(child.tickCount).toBe(2);
+    });
 });

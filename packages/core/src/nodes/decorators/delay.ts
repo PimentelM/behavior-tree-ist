@@ -45,6 +45,12 @@ export class Delay extends Decorator {
             return NodeResult.Running;
         }
 
-        return BTNode.Tick(this.child, ctx);
+        const result = BTNode.Tick(this.child, ctx);
+
+        if (result === NodeResult.Skipped) {
+            return NodeResult.Skipped;
+        }
+
+        return result;
     }
 }

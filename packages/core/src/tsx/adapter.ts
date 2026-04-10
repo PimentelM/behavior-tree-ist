@@ -4,6 +4,7 @@ import * as Builder from "../builder";
 import { type ParallelPolicy } from "../nodes/composite/parallel";
 import { Utility as UtilityNode } from "../nodes/decorators/utility";
 import * as Decorators from "../nodes/decorators";
+import { Gizmos } from "../nodes/gizmos";
 
 export function Fragment(_props: unknown, ...children: BTNode[]): BTNode[] {
     return children;
@@ -35,6 +36,7 @@ const DECORATOR_REGISTRY: Record<string, DecoratorEntry> = {
     "keep-running-until-failure": dec((_p, c) => new Decorators.KeepRunningUntilFailure(c)),
     "run-once":                  dec((_p, c) => new Decorators.RunOnce(c)),
     "non-abortable":             dec((_p, c) => new Decorators.NonAbortable(c)),
+    "skip-on-fail":              dec((_p, c) => new Decorators.SkipOnFail(c)),
 
     // One numeric arg — use natural constructor param names
     "retry":                     dec((p, c) => new Decorators.Retry(c, p.maxRetries as number | undefined), "maxRetries"),
@@ -50,6 +52,7 @@ const DECORATOR_REGISTRY: Record<string, DecoratorEntry> = {
     "precondition": dec((p, c) => new Decorators.Precondition(c, (p.name as string | undefined) ?? "Precondition", p.condition as (ctx: TickContext) => boolean), "condition"),
     "succeed-if":   dec((p, c) => new Decorators.SucceedIf(c, (p.name as string | undefined) ?? "SucceedIf", p.condition as (ctx: TickContext) => boolean), "condition"),
     "fail-if":      dec((p, c) => new Decorators.FailIf(c, (p.name as string | undefined) ?? "FailIf", p.condition as (ctx: TickContext) => boolean), "condition"),
+    "skip-if":      dec((p, c) => new Decorators.SkipIf(c, (p.name as string | undefined) ?? "SkipIf", p.condition as (ctx: TickContext) => boolean), "condition"),
 
     // Lifecycle hooks — callback via cb prop
     "on-enter":             dec((p, c) => new Decorators.OnEnter(c, p.cb as (ctx: TickContext) => void), "cb"),
@@ -144,6 +147,13 @@ export function createElement(
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             return Builder.subTree(safeProps as unknown as any, flatChildren[0] as BTNode);
+        }
+        case "gizmos": {
+            if (flatChildren.length === 0) throw new Error("<gizmos> requires at least one child");
+            const gizmosNode = new Gizmos(flatChildren);
+            if (safeProps.name) gizmosNode.name = safeProps.name as string;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            return Builder.applyDecorators(gizmosNode, safeProps as any);
         }
         case "wrap": {
             if (flatChildren.length !== 1) {
@@ -245,6 +255,7 @@ declare global {
             "utility-sequence": DefaultCompositeProps;
             "utility-node": Builder.NodeProps & { scorer: UtilityScorer; children?: Element | Element[] };
             "sub-tree": Builder.SubTreeProps & { children?: Element | Element[] };
+            "gizmos": DefaultCompositeProps;
             "action": Builder.NodeProps & { execute: (ctx: TickContext) => NodeResult };
             "async-action": Builder.NodeProps & { execute: (ctx: TickContext, signal: CancellationSignal) => Promise<NodeResult | undefined> };
             "condition": Builder.NodeProps & { eval: (ctx: TickContext) => boolean };
@@ -270,6 +281,7 @@ declare global {
             "keep-running-until-failure": DecoratorProps;
             "run-once":                   DecoratorProps;
             "non-abortable":              DecoratorProps;
+            "skip-on-fail":               DecoratorProps;
 
             // Decorator intrinsic elements — one numeric arg (natural constructor param name)
             "retry":                      DecoratorProps & { maxRetries?: number };
@@ -285,6 +297,7 @@ declare global {
             "precondition": DecoratorProps & { condition: (ctx: TickContext) => boolean };
             "succeed-if":   DecoratorProps & { condition: (ctx: TickContext) => boolean };
             "fail-if":      DecoratorProps & { condition: (ctx: TickContext) => boolean };
+            "skip-if":      DecoratorProps & { condition: (ctx: TickContext) => boolean };
 
             // Decorator intrinsic elements — lifecycle hooks (callback via cb prop)
             "on-enter":              DecoratorProps & { cb: (ctx: TickContext) => void };

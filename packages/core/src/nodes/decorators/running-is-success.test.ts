@@ -42,4 +42,14 @@ describe("RunningIsSuccess", () => {
         expect(result).toBe(NodeResult.Failed);
         expect(child.abortCount).toBe(0);
     });
+
+    it("passes through Skipped without turning to Succeeded", () => {
+        const child = new StubAction(NodeResult.Skipped);
+        const decorator = new RunningIsSuccess(child);
+
+        const result = BTNode.Tick(decorator, createTickContext());
+
+        expect(result).toBe(NodeResult.Skipped);
+        expect(child.abortCount).toBe(0);
+    });
 });

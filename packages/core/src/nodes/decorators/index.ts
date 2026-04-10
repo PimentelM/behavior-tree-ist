@@ -24,6 +24,8 @@ export * from './running-is-failure';
 export * from './running-is-success';
 export * from './succeed-if';
 export * from './fail-if';
+export * from './skip-if';
+export * from './skip-on-fail';
 export * from './keep-running-until-failure';
 export * from './tag';
 export * from './activity';
