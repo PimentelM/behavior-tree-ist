@@ -1068,6 +1068,10 @@
   animation: bt-edge-dash 0.65s linear infinite;
 }
 
+.bt-edge-path--skipped {
+  stroke: var(--bt-color-skipped);
+}
+
 .bt-edge-path--activity-path {
   stroke: color-mix(in srgb, var(--bt-accent-color) 85%, #60a5fa);
   stroke-width: 2.6;

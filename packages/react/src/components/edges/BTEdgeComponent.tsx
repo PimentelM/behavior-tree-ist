@@ -33,6 +33,7 @@ function BTEdgeComponentInner({
   if (childResult === NodeResult.Succeeded) className = 'bt-edge-path bt-edge-path--succeeded';
   else if (childResult === NodeResult.Failed) className = 'bt-edge-path bt-edge-path--failed';
   else if (childResult === NodeResult.Running) className = 'bt-edge-path bt-edge-path--running';
+  else if (childResult === NodeResult.Skipped) className = 'bt-edge-path bt-edge-path--skipped';
   if (isOnActivityPathEdge) className += ' bt-edge-path--activity-path';
 
   return (
